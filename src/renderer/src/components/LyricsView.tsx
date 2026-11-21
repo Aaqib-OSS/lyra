@@ -191,7 +191,7 @@ function SyncedLyrics({ result, variant }: { result: LyricsResult; variant: 'min
     [locked, seek, offset]
   )
 
-  if (staged) return <LyricsStage lines={lines} active={active} mode={lyricStyle as 'kinetic' | 'constellation'} />
+  if (staged) return <LyricsStage lines={lines} active={active} mode={lyricStyle} />
 
   return (
     <>

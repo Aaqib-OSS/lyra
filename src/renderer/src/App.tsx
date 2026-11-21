@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Backdrop } from '@/components/Backdrop'
+import { VibeFx } from '@/components/VibeFx'
 import { CompactWidget } from '@/components/CompactWidget'
 import { FullscreenPlayer } from '@/components/FullscreenPlayer'
 import { MiniPlayer } from '@/components/MiniPlayer'
@@ -216,6 +217,7 @@ export default function App() {
       >
         <motion.div className="shell" style={{ x: shell.x, y: shell.y, width: shell.width, height: shell.height }}>
           <Backdrop rich={mode === 'full'} animated={mode === 'full' || (mode === 'mini' && settings.backgroundInMini)} />
+          <VibeFx />
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={mode === 'minimal' || mode === 'compact' ? 'widget' : mode}

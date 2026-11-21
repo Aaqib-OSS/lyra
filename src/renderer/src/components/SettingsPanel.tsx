@@ -207,6 +207,16 @@ function Row({ label, hint, info, children }: { label: string; hint?: string; in
   )
 }
 
+const VIBES: Array<{ id: Settings['vibe']; style: Settings['lyricStyle']; name: string; tag: string }> = [
+  { id: 'none', style: 'classic', name: 'Artwork', tag: 'Colours from the cover' },
+  { id: 'neon', style: 'kinetic', name: 'Neon', tag: 'Synthwave tubes' },
+  { id: 'chrome', style: 'kinetic', name: 'Chrome', tag: 'Y2K liquid metal' },
+  { id: 'dream', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
+  { id: 'crt', style: 'type', name: 'Terminal', tag: 'Typed in green' },
+  { id: 'sticker', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
+  { id: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' }
+]
+
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange(v: boolean): void; label: string }) {
   return (
     <button type="button" role="switch" aria-checked={checked} aria-label={label} className="switch" onClick={() => onChange(!checked)}>
@@ -692,6 +702,28 @@ export function SettingsPanel() {
       </section>
       )}
 
+      {tab === 'look' && (
+      <section>
+        <h4>Vibes</h4>
+        <p className="hint">A vibe changes the whole look: colours, type, background effects and how the lyrics appear.</p>
+        <div className="vibes" role="radiogroup" aria-label="Vibe">
+          {VIBES.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              role="radio"
+              aria-checked={s.vibe === v.id}
+              className={`vibecard vibecard--${v.id} ${s.vibe === v.id ? 'is-on' : ''}`}
+              onClick={() => set({ vibe: v.id, lyricStyle: v.style })}
+            >
+              <i className="vibecard__sw" />
+              <b>{v.name}</b>
+              <small>{v.tag}</small>
+            </button>
+          ))}
+        </div>
+      </section>
+      )}
       {!android && tab === 'look' && (
       <section>
         <h4>Widget</h4>

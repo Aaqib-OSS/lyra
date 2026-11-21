@@ -156,7 +156,9 @@ export type ThemeMode = 'dark' | 'light' | 'adaptive'
 export type LyricFont = 'sans' | 'serif' | 'rounded' | 'mono'
 export type LyricAnimation = 'glide' | 'focus' | 'fade'
 /** how the sung line is staged in fullscreen: the classic scrolling list, giant kinetic type or a star map */
-export type LyricStyle = 'classic' | 'kinetic' | 'constellation'
+export type LyricStyle = 'classic' | 'kinetic' | 'constellation' | 'sticker' | 'chat' | 'type'
+/** a whole look: colours, type, background effects (and usually its own way of staging lyrics) */
+export type Vibe = 'none' | 'sticker' | 'chat' | 'crt' | 'neon' | 'chrome' | 'dream'
 /** how fullscreen lyrics are laid out over a video */
 export type FullLayout = 'auto' | 'cinema' | 'split' | 'poster' | 'focus'
 
@@ -248,6 +250,7 @@ export interface Settings {
   lineSpacing: number // 1 - 2
   lyricAnimation: LyricAnimation
   lyricStyle: LyricStyle
+  vibe: Vibe
   /** a soft glow in the artwork's colour around the window edge */
   rimLight: boolean
   fullLayout: FullLayout
@@ -302,6 +305,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lineSpacing: 1.35,
   lyricAnimation: 'glide',
   lyricStyle: 'classic',
+  vibe: 'none',
   rimLight: true,
   fullLayout: 'cinema',
   wordByWord: true,

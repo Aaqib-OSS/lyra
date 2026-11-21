@@ -1,9 +1,12 @@
-import { memo, useMemo, useState } from 'react'
+import { memo, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { LyricLine, LyricStyle } from '@shared/types'
 import { useFrame } from '@/hooks/useLyricsSync'
 import { useLyricOffset } from '@/store/offsets'
 import { lyricPosition } from '@/hooks/useLyricsSync'
+import { useArtwork } from '@/hooks/useArtwork'
+import { usePlayer } from '@/store/player'
+import { clamp } from '@/lib/format'
 
 /**
  * Staged lyrics for fullscreen: one phrase at a time instead of a scrolling list.
@@ -82,11 +85,15 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
   const live = line && line.text !== '' ? line : undefined
   return (
     <div className={`stage stage--${mode}`} aria-live="off">
-      {mode === 'kinetic' ? (
+      {mode === 'kinetic' && (
         <AnimatePresence>{live && <Kinetic key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} />}</AnimatePresence>
-      ) : (
-        <Constellations lines={lines} active={active} />
       )}
+      {mode === 'constellation' && <Constellations lines={lines} active={active} />}
+      {mode === 'sticker' && (
+        <AnimatePresence>{live && <Stickers key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} />}</AnimatePresence>
+      )}
+      {mode === 'chat' && <Chat lines={lines} active={active} />}
+      {mode === 'type' && <Typewriter lines={lines} active={active} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -229,3 +236,173 @@ const Constellation = memo(function Constellation({ line, index, nextTime, ghost
     </motion.div>
   )
 })
+
+// ---------- sticker bomb ----------
+
+const STICKER_COLORS = ['#c6ff3d', '#ff5fa2', '#4fd0ff', '#ffd23d', '#b48cff', '#ff8a3d']
+const DECOS = [
+  // burst
+  'M50 4l9 20 21-9-7 22 22 5-19 12 14 17-23-2-1 23-16-16-16 16-1-23-23 2 14-17L2 42l22-5-7-22 21 9z',
+  // heart
+  'M50 90C8 58 6 30 28 18c12-6 22 0 22 12 0-12 10-18 22-12 22 12 20 40-22 72z',
+  // smiley (face outline + eyes as one path)
+  'M50 6a44 44 0 1 0 0 88 44 44 0 0 0 0-88zM34 36a6 6 0 1 1 0 12 6 6 0 0 1 0-12zm32 0a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM28 62c6 14 38 14 44 0-8 4-36 4-44 0z'
+]
+
+const Stickers = memo(function Stickers({ line, index, nextTime }: { line: LyricLine; index: number; nextTime: number | undefined }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words)
+  const seed = hash(index, line.text)
+  const rand = useMemo(() => rng(seed), [seed])
+  const look = useMemo(
+    () => words.map((_, i) => ({ rot: (rand() - 0.5) * 11, scale: 0.9 + rand() * 0.28, color: STICKER_COLORS[(i + seed) % STICKER_COLORS.length]! })),
+    [words, rand, seed]
+  )
+  const decos = useMemo(
+    () => [0, 1].map((n) => ({ d: DECOS[(seed + n) % DECOS.length]!, x: n ? 78 + rand() * 12 : 4 + rand() * 12, y: n ? 62 + rand() * 20 : 6 + rand() * 14, rot: (rand() - 0.5) * 50, c: STICKER_COLORS[(seed + n * 2 + 1) % STICKER_COLORS.length]! })),
+    [seed, rand]
+  )
+  const chars = line.text.length
+  const k = chars <= 12 ? 1 : chars <= 24 ? 0.82 : chars <= 40 ? 0.64 : 0.5
+  return (
+    <motion.div
+      className="stk"
+      style={{ ['--k' as string]: k }}
+      exit={{ opacity: 0, rotate: 7, y: -80, scale: 0.92, transition: { duration: 0.4, ease: [0.5, 0, 0.9, 0.4] } }}
+    >
+      {decos.map((d, i) => (
+        <svg key={i} className={`stk__deco ${revealed > i ? 'is-in' : ''}`} viewBox="0 0 100 100" style={{ left: `${d.x}%`, top: `${d.y}%`, ['--r' as string]: `${d.rot}deg`, fill: d.c }}>
+          <path d={d.d} fillRule="evenodd" />
+        </svg>
+      ))}
+      <div className="stk__words">
+        {words.map((w, i) => (
+          <span
+            key={i}
+            className={`stk__word ${i < revealed ? 'is-in' : ''} ${i === revealed - 1 ? 'is-now' : ''}`}
+            style={{ ['--r' as string]: `${look[i]!.rot}deg`, ['--s' as string]: look[i]!.scale, background: look[i]!.color }}
+          >
+            {w.text}
+          </span>
+        ))}
+      </div>
+    </motion.div>
+  )
+})
+
+// ---------- DM thread ----------
+
+function Chat({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const track = usePlayer((s) => s.snapshot?.track ?? null)
+  const art = useArtwork(track?.artworkUrl ?? null)
+  const shown: number[] = []
+  for (let i = active; i >= 0 && shown.length < 4; i--) if (lines[i] && lines[i]!.text !== '') shown.unshift(i)
+  const cur = shown[shown.length - 1]
+  return (
+    <div className="chat">
+      <header className="chat__head">
+        {art ? <img src={art} alt="" /> : <i />}
+        <div>
+          <b>{track?.artists[0] ?? 'Lyra'}</b>
+          <span>{track?.title ?? ''}</span>
+        </div>
+      </header>
+      <div className="chat__feed">
+        <AnimatePresence initial={false}>
+          {shown.map((i, n) => (
+            <Bubble key={i} line={lines[i]!} nextTime={lines[i + 1]?.timeMs} side={i % 2 === 0 ? 'in' : 'out'} age={shown.length - 1 - n} live={i === cur} />
+          ))}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+const Bubble = memo(function Bubble({ line, nextTime, side, age, live }: { line: LyricLine; nextTime: number | undefined; side: 'in' | 'out'; age: number; live: boolean }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words, !live)
+  const typing = live && revealed === 0
+  return (
+    <motion.div
+      layout="position"
+      className={`bub bub--${side} ${live ? 'is-live' : ''}`}
+      initial={{ opacity: 0, y: 40, scale: 0.7 }}
+      animate={{ opacity: live ? 1 : Math.max(0.5, 0.85 - age * 0.14), y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -50, scale: 0.9 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 30, mass: 0.8 }}
+    >
+      <div className={`bub__body ${typing ? 'is-typing' : ''}`}>
+        {typing && (
+          <span className="bub__dots">
+            <i />
+            <i />
+            <i />
+          </span>
+        )}
+        <span className="bub__text">
+          {words.map((w, i) => (
+            <span key={i} className={i < revealed ? 'is-in' : ''}>
+              {w.text}{' '}
+            </span>
+          ))}
+        </span>
+      </div>
+      {live && revealed >= words.length && <small className="bub__read">Read ✓✓</small>}
+    </motion.div>
+  )
+})
+
+// ---------- terminal ----------
+
+function Typewriter({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const track = usePlayer((s) => s.snapshot?.track ?? null)
+  const offset = useLyricOffset()
+  const typed = useRef<HTMLSpanElement>(null)
+  const bar = useRef<HTMLSpanElement>(null)
+  const cur = active >= 0 ? lines[active] : undefined
+  const text = cur?.text ?? ''
+  const prev: number[] = []
+  for (let i = active - 1; i >= 0 && prev.length < 4; i--) if (lines[i] && lines[i]!.text !== '') prev.unshift(i)
+  const end = cur ? (cur.endMs ?? lines[active + 1]?.timeMs ?? cur.timeMs + 4000) : 0
+
+  useFrame(
+    (pos) => {
+      if (!cur || !typed.current) return
+      const p = clamp((pos + offset - cur.timeMs) / Math.max(400, (end - cur.timeMs) * 0.8), 0, 1)
+      typed.current.textContent = text.slice(0, Math.ceil(p * text.length))
+      const dur = track?.durationMs
+      if (bar.current && dur) {
+        const filled = Math.round(clamp((pos + offset) / dur, 0, 1) * 24)
+        bar.current.textContent = '█'.repeat(filled) + '░'.repeat(24 - filled)
+      }
+    },
+    true,
+    [cur, text, end, offset, track?.durationMs]
+  )
+  return (
+    <div className="term">
+      <div className="term__head">
+        <span>LYRA.SYS</span>
+        <span>▸ {track ? `${track.title} — ${track.artists[0]}` : 'standby'}</span>
+        <span className="term__bar" ref={bar} />
+      </div>
+      <div className="term__log">
+        {prev.map((i) => (
+          <div key={i} className="term__old">
+            <em>{String(i + 1).padStart(3, '0')}</em> {lines[i]!.text}
+          </div>
+        ))}
+        {cur && text !== '' ? (
+          <div className="term__now" key={active}>
+            <em>{String(active + 1).padStart(3, '0')}</em> <b>&gt;</b> <span ref={typed} />
+            <i className="term__caret" />
+          </div>
+        ) : (
+          <div className="term__now">
+            <b>&gt;</b> <i className="term__caret" />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

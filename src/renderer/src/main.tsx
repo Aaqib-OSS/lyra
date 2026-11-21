@@ -1,4 +1,8 @@
 import '@fontsource-variable/inter'
+import '@fontsource-variable/nunito'
+import '@fontsource-variable/unbounded'
+import '@fontsource-variable/fraunces/standard-italic.css'
+import '@fontsource/vt323'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
@@ -12,11 +16,13 @@ import './styles/android.css'
 import './styles/polish.css'
 import './styles/redesign.css'
 import './styles/stage.css'
+import './styles/vibes.css'
 import { useSettings } from './store/settings'
 
 // let CSS honour the in-app reduced-motion setting (the OS preference is handled by media queries)
 useSettings.subscribe((st) => {
   document.documentElement.dataset.motion = st.settings.reducedMotion === 'on' ? 'off' : 'on'
+  document.documentElement.dataset.vibe = st.settings.vibe
   document.documentElement.dataset.rim = st.settings.rimLight ? 'on' : 'off'
 })
 
