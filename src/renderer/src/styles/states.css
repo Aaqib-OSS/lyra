@@ -26,3 +26,24 @@
 :root[data-calm] [data-vibe='neon'] .lfb h3 { animation: none; }
 /* the small player: the floor grid stays out of the way of the lyrics */
 :root[data-vibe='neon'][data-mode='mini'] .vibefx__grid, :root[data-vibe='neon'][data-platform='android'] .vibefx__grid { opacity: 0.22; }
+
+/* ===================== CHROME ===================== */
+:root[data-vibe='chrome'][data-bg-media] .backdrop__dim { background: linear-gradient(180deg, rgba(20,40,120,.45), rgba(10,22,70,.35) 50%, rgba(10,22,70,.6)); }
+[data-vibe='chrome'] .lyrics__notice { background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(160,180,230,.2)); border: 1px solid rgba(255,255,255,.7); color: #0a1650; font-weight: 700; box-shadow: 0 2px 0 rgba(255,255,255,.5) inset; }
+[data-vibe='chrome'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 800; font-style: italic; letter-spacing: -0.04em; }
+/* the metal is painted per line, not per verse, so every line has the same bright top and dark edge */
+[data-vibe='chrome'] .plain__stanza > span {
+  background: linear-gradient(180deg, #fff 0%, #cfdcff 40%, #7f93d4 52%, #e8efff 64%, #fff 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; -webkit-text-stroke: 0.01em #0a1650;
+  filter: drop-shadow(0 0.04em 0 #0a1650); padding-right: 0.1em; padding-block: 0.04em;
+}
+[data-vibe='chrome'] .lfb { align-items: center; text-align: center; }
+[data-vibe='chrome'] .lfb__poster { display: none; }
+[data-vibe='chrome'] .lfb h3 {
+  font-family: 'Unbounded Variable', var(--font); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: clamp(20px, 3.4cqw, 38px); letter-spacing: -0.03em;
+  background: linear-gradient(180deg, #fff 0%, #cfdcff 38%, #5a72b8 52%, #e8efff 64%, #fff 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0.04em 0 #0a1650) drop-shadow(0 0 0.3em rgba(143,209,255,.6)); padding-right: .1em;
+}
+[data-vibe='chrome'] .lfb p { color: rgba(255,255,255,.9); }
+[data-vibe='chrome'] .lfb__actions { justify-content: center; }
+[data-vibe='chrome'] .lfb__eq i { background: linear-gradient(180deg, #fff, #8fd1ff 55%, #5a72b8); }
