@@ -136,6 +136,16 @@ export interface LyricsCandidateInfo {
   instrumental: boolean
 }
 
+/** How one lyrics service is doing (Settings shows it, so a problem is never a mystery). */
+export interface SourceHealth {
+  id: string
+  name: string
+  state: 'ok' | 'slow' | 'down'
+  lastError: string
+  retryInSec: number
+  lastOkAt: number
+}
+
 export interface LyricsResult {
   trackId: string
   status: LyricsStatus
@@ -145,9 +155,13 @@ export interface LyricsResult {
   wordSynced?: boolean
   /** True when the user manually picked this match. */
   pinned?: boolean
+  /** The lyrics came from the user (pasted or imported), not from a service. */
+  imported?: boolean
+  /** Served from an old copy because the services could not be reached right now. */
+  stale?: boolean
   /** What the provider matched, so the UI can reveal wrong matches. */
   matched?: { title: string; artist: string; durationMs: number }
-  error?: { kind: 'network' | 'rate-limit' | 'server' | 'unknown'; message: string; retryable: boolean }
+  error?: { kind: 'network' | 'rate-limit' | 'server' | 'unknown'; message: string; retryable: boolean; /** seconds until the services are worth asking again */ retryInSec?: number }
 }
 
 // ---------- Settings ----------
@@ -155,6 +169,11 @@ export interface LyricsResult {
 export type ThemeMode = 'dark' | 'light' | 'adaptive'
 export type LyricFont = 'sans' | 'serif' | 'rounded' | 'mono'
 export type LyricAnimation = 'glide' | 'focus' | 'fade'
+/** how the sung line is staged in fullscreen: the classic scrolling list, giant kinetic type or a star map */
+export type LyricStyle = 'classic' | 'kinetic' | 'constellation' | 'sticker' | 'chat' | 'type' | 'diary' | 'subtitle' | 'chatlog' | 'lowerthird'
+export type VibeMode = 'fixed' | 'cycle' | 'smart'
+/** a whole look: colours, type, background effects (and usually its own way of staging lyrics) */
+export type Vibe = 'none' | 'sticker' | 'chat' | 'crt' | 'neon' | 'chrome' | 'dream' | 'paper' | 'arcade' | 'noir' | 'sunset' | 'blocks' | 'stadium' | 'cassette' | 'trailer'
 /** how fullscreen lyrics are laid out over a video */
 export type FullLayout = 'auto' | 'cinema' | 'split' | 'poster' | 'focus'
 
@@ -245,6 +264,18 @@ export interface Settings {
   lyricFontSize: number // px, fullscreen base
   lineSpacing: number // 1 - 2
   lyricAnimation: LyricAnimation
+  lyricStyle: LyricStyle
+  vibe: Vibe
+  /** fixed: keep the chosen vibe; cycle: the next vibe of the pool on every song; smart: pick the vibe that suits each song */
+  vibeMode: VibeMode
+  /** the vibes that cycle / smart mode may use (empty = all) */
+  vibePool: Vibe[]
+  /** the vibe you liked for a particular song (by song identity); wins over cycle / smart mode */
+  songVibes: Record<string, Vibe>
+  /** a soft glow in the artwork's colour around the window edge */
+  rimLight: boolean
+  /** auto picks Light on weak devices; Smooth always uses every effect; Light saves battery and GPU */
+  performance: 'auto' | 'smooth' | 'light'
   fullLayout: FullLayout
   /** Show a Roman-letter transliteration below Hindi and Punjabi lyrics. */
   romanizeLyrics: boolean
@@ -296,6 +327,13 @@ export const DEFAULT_SETTINGS: Settings = {
   lyricFontSize: 40,
   lineSpacing: 1.35,
   lyricAnimation: 'glide',
+  lyricStyle: 'classic',
+  vibe: 'none',
+  vibeMode: 'fixed',
+  vibePool: [],
+  songVibes: {},
+  rimLight: true,
+  performance: 'auto',
   fullLayout: 'cinema',
   wordByWord: true,
   romanizeLyrics: false,

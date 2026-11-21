@@ -11,6 +11,7 @@ import { settings } from '../settings'
 import { thumbCrop } from '@core/background/bars'
 import { HOST_RE } from '@core/background/itunes'
 import { createBackgroundResolver, type SongBg } from '@core/background/resolver'
+import { keyForId } from '@core/trackIndex'
 
 const log = createLogger('background')
 
@@ -35,6 +36,11 @@ class BackgroundService {
   }
   private songs(): Record<string, SongBg> {
     return (this.store ??= new JsonStore<{ songs: Record<string, SongBg> }>('backgrounds.json', { songs: {} })).get().songs
+  }
+  /** The keys a choice is stored under: the player's track id and the song's identity (when we know it). */
+  private idsFor(trackId: string): string[] {
+    const key = keyForId(trackId)
+    return key ? [trackId, key] : [trackId]
   }
   private save(songs: Record<string, SongBg>): void {
     this.store!.set({ songs })
@@ -138,7 +144,7 @@ class BackgroundService {
     if (scope === 'global') settings.update({ customBackground: media })
     else {
       const songs = this.songs()
-      songs[trackId!] = { ...songs[trackId!], media }
+      for (const k of this.idsFor(trackId!)) songs[k] = { ...songs[k], media }
       this.save(songs)
     }
     this.collectGarbage()
@@ -149,21 +155,24 @@ class BackgroundService {
     if (scope === 'global') settings.update({ customBackground: null })
     else if (trackId) {
       const songs = this.songs()
-      if (songs[trackId]) {
-        delete songs[trackId]!.media
-        if (!songs[trackId]!.youtube) delete songs[trackId]
-        this.save(songs)
+      for (const k of this.idsFor(trackId)) {
+        if (!songs[k]) continue
+        delete songs[k]!.media
+        if (!songs[k]!.youtube) delete songs[k]
       }
+      this.save(songs)
     }
     this.collectGarbage()
   }
 
   chooseYoutube(trackId: string, video: YoutubeVideo | null): void {
     const songs = this.songs()
-    if (video) songs[trackId] = { ...songs[trackId], youtube: video }
-    else if (songs[trackId]) {
-      delete songs[trackId]!.youtube
-      if (!songs[trackId]!.media) delete songs[trackId]
+    for (const k of this.idsFor(trackId)) {
+      if (video) songs[k] = { ...songs[k], youtube: video }
+      else if (songs[k]) {
+        delete songs[k]!.youtube
+        if (!songs[k]!.media) delete songs[k]
+      }
     }
     this.save(songs)
   }

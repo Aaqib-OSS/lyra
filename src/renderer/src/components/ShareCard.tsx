@@ -10,6 +10,7 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
   const canvas = useRef<HTMLCanvasElement>(null)
   const [from, setFrom] = useState(index)
   const [count, setCount] = useState(1)
+  const [look, setLook] = useState<'classic' | 'doodle'>('doodle')
   const android = document.documentElement.dataset.platform === 'android'
   const text = useMemo(
     () =>
@@ -30,9 +31,10 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
       artworkUrl: track.artworkUrl,
       accent: css.getPropertyValue('--accent').trim() || '#d8d8d8',
       tint1: css.getPropertyValue('--tint1').trim() || '#1a1a1a',
-      tint2: css.getPropertyValue('--tint2').trim() || '#101010'
+      tint2: css.getPropertyValue('--tint2').trim() || '#101010',
+      style: look
     })
-  }, [track, text])
+  }, [track, text, look])
 
   if (!track) return null
   const toast = useUi.getState().toast
@@ -73,6 +75,13 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
             {[1, 2, 3].map((n) => (
               <button key={n} type="button" className={count === n ? 'is-on' : ''} onClick={() => setCount(n)}>
                 {n}
+              </button>
+            ))}
+          </div>
+          <div className="seg" role="group" aria-label="Card style">
+            {(['doodle', 'classic'] as const).map((k) => (
+              <button key={k} type="button" className={look === k ? 'is-on' : ''} onClick={() => setLook(k)}>
+                {k === 'doodle' ? 'Doodle' : 'Classic'}
               </button>
             ))}
           </div>

@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState, type MutableRefObject } from 'react'
 import type { BackgroundSpec } from '@shared/types'
-import { useArtwork } from '@/hooks/useArtwork'
+import { useArtwork, useTinyArt } from '@/hooks/useArtwork'
 import { useBackground } from '@/hooks/useBackground'
 import { useReducedMotion } from '@/hooks/useMotion'
 import { getPosition, usePlayer } from '@/store/player'
-import { useBgState } from '@/store/bgState'
+import { useBgState, type VideoProblem } from '@/store/bgState'
 import { useSettings } from '@/store/settings'
 
 /** True while the window is actually on screen (not minimised / fully covered). */
@@ -214,6 +214,10 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
   // YouTube flashes its own controls for a few seconds after it starts and after the app is reopened: keep it invisible then
   const [masked, setMasked] = useState(phoneInit())
   const maskTimer = useRef(0)
+  useEffect(() => {
+    useBgState.setState({ ytReady: ready })
+    return () => useBgState.setState({ ytReady: false })
+  }, [ready])
   const holdMask = (ms = 4000): void => {
     setMasked(true)
     window.clearTimeout(maskTimer.current)
@@ -333,7 +337,8 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
 export function Backdrop({ rich = false, animated = false }: { rich?: boolean; animated?: boolean }) {
   const url = usePlayer((s) => s.snapshot?.track?.artworkUrl ?? null)
   const playing = usePlayer((s) => s.snapshot?.isPlaying ?? false)
-  const src = useArtwork(url)
+  const full = useArtwork(url)
+  const src = useTinyArt(full)
   const dim = useSettings((s) => s.settings.backgroundDim)
   const autoDim = useSettings((s) => s.settings.autoDim)
   const reduced = useReducedMotion()
@@ -408,6 +413,25 @@ export function Backdrop({ rich = false, animated = false }: { rich?: boolean; a
     useBgState.getState().setReason(text ? { text } : null)
     return () => useBgState.getState().setReason(null)
   }, [animated, reduced, res, hasMedia, ytDead, ytWhy, settingStyle])
+
+  // the whole video story in one place, for the status card in the UI
+  const ytReady = useBgState((s) => s.ytReady)
+  useEffect(() => {
+    const wants = animated && !reduced && (settingStyle === 'auto' || settingStyle === 'youtube')
+    const store = useBgState.getState()
+    if (hasMedia && spec) {
+      const title = 'title' in spec ? String(spec.title) : spec.kind === 'media' ? spec.name : ''
+      const channel = spec.kind === 'youtube' ? spec.channel : ''
+      if (spec.kind === 'youtube') store.setVideo({ phase: ytReady ? 'live' : 'loading', title, channel })
+      else if (spec.kind === 'preview') store.setVideo({ phase: 'fallback', title, problem: ytDead ? 'blocked' : null })
+      else store.setVideo({ phase: 'live', title })
+    } else if (wants && !res) store.setVideo({ phase: 'searching' })
+    else if (wants && res && !hasMedia) {
+      const problem: VideoProblem | null = ytDead ? (ytWhy === 'timeout' ? 'timeout' : 'blocked') : res.youtube === 'no-key' ? 'no-key' : res.youtube === 'none' ? 'none' : res.youtube === 'error' ? (navigator.onLine ? 'error' : 'offline') : null
+      store.setVideo(problem ? { phase: 'failed', problem } : { phase: 'off' })
+    } else store.setVideo({ phase: 'off' })
+    return () => useBgState.getState().setVideo({ phase: 'off' })
+  }, [animated, reduced, res, hasMedia, spec, ytReady, ytDead, ytWhy, settingStyle])
 
   // gentle parallax: the picture drifts against the cursor
   useEffect(() => {

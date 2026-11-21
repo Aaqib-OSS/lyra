@@ -76,3 +76,53 @@ export function stripLrc(source: string): string {
     .join('\n')
     .trim()
 }
+
+const SRT_TIME = /(\d{1,2}):(\d{2}):(\d{2})[,.](\d{1,3})\s*-->\s*(\d{1,2}):(\d{2}):(\d{2})[,.](\d{1,3})/
+
+/** SubRip (.srt) subtitles as timed lyric lines (the end time keeps a long line from stretching over a gap). */
+export function parseSrt(source: string): LyricLine[] {
+  const lines: LyricLine[] = []
+  const ms = (h: string, m: string, s: string, f: string): number => ((Number(h) * 60 + Number(m)) * 60 + Number(s)) * 1000 + Number(f.padEnd(3, '0'))
+  for (const block of source.replace(/\r/g, '').split(/\n{2,}/)) {
+    const rows = block.split('\n').filter((r) => r.trim() !== '')
+    const at = rows.findIndex((r) => SRT_TIME.test(r))
+    if (at < 0) continue
+    const m = SRT_TIME.exec(rows[at]!)!
+    const text = rows
+      .slice(at + 1)
+      .join(' ')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\{[^}]+\}/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (text) lines.push({ timeMs: ms(m[1]!, m[2]!, m[3]!, m[4]!), text, endMs: ms(m[5]!, m[6]!, m[7]!, m[8]!) })
+  }
+  return lines.sort((a, b) => a.timeMs - b.timeMs)
+}
+
+export interface ImportedLyrics {
+  kind: 'synced' | 'plain' | 'empty'
+  lines: LyricLine[]
+  plain: string
+  format: 'lrc' | 'srt' | 'text'
+}
+
+/**
+ * Understand whatever the user pasted or dropped: LRC / enhanced LRC, SRT subtitles, or plain words.
+ * Never throws; unreadable input comes back as `empty`.
+ */
+export function parseImported(raw: string): ImportedLyrics {
+  const text = raw.replace(/^﻿/, '').replace(/\u0000/g, '').slice(0, 400_000)
+  if (!text.trim()) return { kind: 'empty', lines: [], plain: '', format: 'text' }
+  if (SRT_TIME.test(text)) {
+    const lines = parseSrt(text)
+    if (lines.length) return { kind: 'synced', lines, plain: lines.map((l) => l.text).join('\n'), format: 'srt' }
+  }
+  const lrc = parseLrc(text)
+  if (lrc.length >= 2) return { kind: 'synced', lines: lrc, plain: stripLrc(text), format: 'lrc' }
+  const plain = stripLrc(text).trim()
+  return plain ? { kind: 'plain', lines: [], plain, format: 'text' } : { kind: 'empty', lines: [], plain: '', format: 'text' }
+}
+
+/** The import calls answer with lyrics or `{ error }`; lyrics results may carry an `error` object too, so check its type. */
+export const isImportError = (r: unknown): r is { error: string } => typeof (r as { error?: unknown } | null)?.error === 'string'

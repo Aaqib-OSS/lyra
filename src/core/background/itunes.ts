@@ -1,5 +1,6 @@
 import type { Track } from '@shared/types'
 import { logger, platform, type Store } from '../platform'
+import { retry } from '../resilience'
 import { cleanVideoTitle } from './rank'
 
 const log = logger('itunes')
@@ -49,12 +50,21 @@ class ItunesService {
     let json: { results?: Array<{ trackName?: string; artistName?: string; previewUrl?: string; trackTimeMillis?: number }> }
     try {
       const q = new URLSearchParams({ term: `${artist} ${track.title}`, entity: 'musicVideo', limit: '8' })
-      const res = await platform().fetch(`https://itunes.apple.com/search?${q}`, { signal: AbortSignal.timeout(10_000) })
+      const res = await retry(
+        async () => {
+          const r = await platform().fetch(`https://itunes.apple.com/search?${q}`, { signal: AbortSignal.timeout(10_000) })
+          if (r.status >= 500 || r.status === 429) throw new Error(`Apple search ${r.status}`)
+          return r
+        },
+        { retries: 1, baseMs: 900 }
+      )
       if (!res.ok) return null
       json = (await res.json()) as typeof json
     } catch (e) {
       log.warn('search failed', (e as Error).message)
-      return null
+      // offline or a bad moment: an expired clip we already know is still a good clip
+      const old = this.entries()[track.id]
+      return old?.url ? old : null
     }
     const wantT = norm(track.title)
     const wantA = norm(artist)

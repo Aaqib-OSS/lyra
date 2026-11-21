@@ -1,4 +1,5 @@
 import type { BackgroundMedia, BackgroundResolution, BackgroundSpec, Settings, Track, VideoCrop, YoutubeVideo } from '@shared/types'
+import { rememberTrack } from '../trackIndex'
 import { itunes } from './itunes'
 import { youtube } from './youtube'
 
@@ -27,7 +28,9 @@ export interface ResolverHost {
 export function createBackgroundResolver(host: ResolverHost): (track: Track) => Promise<BackgroundResolution> {
   return async (track) => {
     const s = host.settings()
-    const song = host.songs()[track.id]
+    // your choices belong to the SONG: found by the player's id, or by the song's identity (another player, a re-release)
+    const songs = host.songs()
+    const song = songs[track.id] ?? songs[rememberTrack(track)]
     const songSpec = song?.media ? host.mediaSpec(song.media, 'song') : null
     const globalSpec = s.customBackground ? host.mediaSpec(s.customBackground, 'global') : null
     const base = { hasSongMedia: !!songSpec, hasGlobalMedia: !!globalSpec }

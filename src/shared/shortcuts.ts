@@ -21,7 +21,8 @@ export const LOCAL_SHORTCUTS = [
   { keys: 'D', label: 'Distraction-free (fullscreen)' },
   { keys: '[ / ]', label: 'Lyrics later / earlier' },
   { keys: '1 / 2 / 3', label: 'Cinema / Split / Poster layout (fullscreen)' },
-  { keys: 'L', label: 'Flip lyric side in Split layout (fullscreen)' }
+  { keys: 'L', label: 'Flip lyric side in Split layout (fullscreen)' },
+  { keys: 'V / Shift + V', label: 'Next / previous vibe' }
 ] as const
 
 export type FullscreenShortcutAction =

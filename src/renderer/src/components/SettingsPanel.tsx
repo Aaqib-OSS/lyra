@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { LOCAL_SHORTCUTS } from '@shared/shortcuts'
-import type { Settings, YoutubeVideo } from '@shared/types'
+import type { Settings, SourceHealth, YoutubeVideo } from '@shared/types'
 import { useBackgroundVersion } from '@/hooks/useBackground'
 import { usePlayer } from '@/store/player'
 import { ShortcutEditor } from './ShortcutEditor'
@@ -9,6 +9,7 @@ import { useSettings } from '@/store/settings'
 import { roomLink, useRoom } from '@/store/room'
 import { useJam } from '@/store/jam'
 import QRCode from 'qrcode'
+import { VIBES } from '@shared/vibes'
 import { useUi } from '@/store/ui'
 import { setLanguage, useTranslation, type Language } from '@/i18n'
 
@@ -203,6 +204,33 @@ function Row({ label, hint, info, children }: { label: string; hint?: string; in
         {hint && <small>{hint}</small>}
       </div>
       <div className="srow__ctl">{children}</div>
+    </div>
+  )
+}
+
+/** Is each lyrics service working? A problem is never a mystery: it says what and when Lyra tries again. */
+function SourceHealthList() {
+  const [items, setItems] = useState<SourceHealth[] | null>(null)
+  useEffect(() => {
+    let live = true
+    const load = (): void => void window.lyra.lyrics.health().then((h) => live && setItems(h)).catch(() => undefined)
+    load()
+    const id = setInterval(load, 4000)
+    return () => {
+      live = false
+      clearInterval(id)
+    }
+  }, [])
+  if (!items) return null
+  return (
+    <div className="health" role="list" aria-label="Lyrics services">
+      {items.map((h) => (
+        <div key={h.id} className="health__row" data-state={h.state} role="listitem" title={h.lastError || undefined}>
+          <i className="health__dot" />
+          <span>{h.name}</span>
+          <small>{h.state === 'ok' ? 'working' : h.state === 'slow' ? 'checking…' : `resting, back in ${h.retryInSec}s`}</small>
+        </div>
+      ))}
     </div>
   )
 }
@@ -572,6 +600,7 @@ export function SettingsPanel() {
   const s = useSettings((x) => x.settings)
   const set = useSettings((x) => x.set)
   const status = usePlayer((x) => x.status)
+  const vibeWhy = useUi((x) => x.vibeWhy)
   const [version, setVersion] = useState('')
   useEffect(() => {
     void window.lyra.app.info().then((i) => setVersion(i.version))
@@ -692,6 +721,53 @@ export function SettingsPanel() {
       </section>
       )}
 
+      {tab === 'look' && (
+      <section>
+        <h4>Vibes</h4>
+        <p className="hint">A vibe changes the whole look: colours, type, background effects and how the lyrics appear. Press V anywhere to switch.</p>
+        <Row label="Change vibe" hint={s.vibeMode === 'fixed' ? 'Stay on the one you pick' : s.vibeMode === 'cycle' ? 'A new vibe from your picks on every song' : vibeWhy ? `Now: ${vibeWhy}` : 'Lyra picks what suits each song'}>
+          <Segmented
+            label="Vibe mode"
+            value={s.vibeMode}
+            onChange={(m) => set({ vibeMode: m })}
+            options={[
+              { v: 'fixed', label: 'Fixed' },
+              { v: 'cycle', label: 'Every song' },
+              { v: 'smart', label: 'Smart' }
+            ]}
+          />
+        </Row>
+        <div className="vibes" role={s.vibeMode === 'fixed' ? 'radiogroup' : 'group'} aria-label="Vibes">
+          {VIBES.filter((v) => s.vibeMode === 'fixed' || v.id !== 'none').map((v) => {
+            const inPool = s.vibePool.length === 0 || s.vibePool.includes(v.id)
+            const on = s.vibeMode === 'fixed' ? s.vibe === v.id : inPool
+            return (
+              <button
+                key={v.id}
+                type="button"
+                role={s.vibeMode === 'fixed' ? 'radio' : 'checkbox'}
+                aria-checked={on}
+                className={`vibecard vibecard--${v.id} ${on ? 'is-on' : ''} ${s.vibeMode !== 'fixed' ? 'is-multi' : ''}`}
+                onClick={() => {
+                  if (s.vibeMode === 'fixed') return set({ vibe: v.id, lyricStyle: v.style })
+                  // empty pool means "all": the first click starts from everything and removes that one
+                  const all = VIBES.map((x) => x.id).filter((x) => x !== 'none')
+                  const cur = s.vibePool.length === 0 ? all : s.vibePool
+                  const next = cur.includes(v.id) ? cur.filter((x) => x !== v.id) : [...cur, v.id]
+                  set({ vibePool: next.length === all.length ? [] : next.length ? next : cur })
+                }}
+              >
+                <i className="vibecard__sw" />
+                <b>{v.name}</b>
+                <small>{v.tag}</small>
+                {s.vibeMode !== 'fixed' && <span className="vibecard__tick" aria-hidden="true">{on ? '✓' : ''}</span>}
+              </button>
+            )
+          })}
+        </div>
+        {s.vibeMode !== 'fixed' && <p className="hint">{s.vibePool.length === 0 ? 'Using every vibe.' : `Using ${s.vibePool.length} vibe${s.vibePool.length === 1 ? '' : 's'}.`} Tap a card to add or remove it.</p>}
+      </section>
+      )}
       {!android && tab === 'look' && (
       <section>
         <h4>Widget</h4>
@@ -730,6 +806,13 @@ export function SettingsPanel() {
 
       {tab === 'lyrics' && (
       <section>
+        <h4>Lyrics services</h4>
+        <SourceHealthList />
+        <p className="hint">If a service is down Lyra uses the next one, keeps your saved copies, and tries again by itself.</p>
+      </section>
+      )}
+      {tab === 'lyrics' && (
+      <section>
         <h4>Lyrics</h4>
         <Row label="Romanized lyrics" info="Shows a Roman-letter reading below Hindi (Devanagari) and Punjabi (Gurmukhi) lyrics. This is transliteration, not translation." hint="Off by default">
           <Toggle label="Romanized lyrics" checked={s.romanizeLyrics} onChange={up('romanizeLyrics')} />
@@ -752,6 +835,33 @@ export function SettingsPanel() {
         </Row>
         <Row label="Line spacing">
           <Slider label="Line spacing" value={s.lineSpacing} min={1} max={2} step={0.05} onChange={up('lineSpacing')} format={(v) => v.toFixed(2)} />
+        </Row>
+        <Row label="Lyric style" hint="How the sung line is staged in fullscreen">
+          <Segmented
+            label="Lyric style"
+            value={s.lyricStyle}
+            onChange={up('lyricStyle')}
+            options={[
+              { v: 'classic', label: 'Classic' },
+              { v: 'kinetic', label: 'Kinetic' },
+              { v: 'constellation', label: 'Stars' }
+            ]}
+          />
+        </Row>
+        <Row label="Performance" hint="Light saves battery and GPU: no live blur, no endless motion">
+          <Segmented
+            label="Performance"
+            value={s.performance}
+            onChange={up('performance')}
+            options={[
+              { v: 'auto', label: 'Auto' },
+              { v: 'smooth', label: 'Smooth' },
+              { v: 'light', label: 'Light' }
+            ]}
+          />
+        </Row>
+        <Row label="Rim light" hint="A soft glow in the album's colour around the window edge">
+          <Toggle label="Rim light" checked={s.rimLight} onChange={up('rimLight')} />
         </Row>
         <Row label="Animation">
           <Segmented

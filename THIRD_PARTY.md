@@ -11,5 +11,6 @@
   The player is the official embed, unmodified, muted and visibly dimmed; Lyra does not download or rip video.
 - **Electron, React, Framer Motion, Zustand, Vite** — MIT licensed.
 - **Inter** typeface (@fontsource-variable/inter) — SIL Open Font License 1.1.
+- **Nunito**, **Unbounded**, **Fraunces** (@fontsource-variable/*) and **VT323** (@fontsource/vt323) typefaces, used by the Vibes themes — SIL Open Font License 1.1.
 - **Spotify** is a trademark of Spotify AB. Lyra is an independent project and is not affiliated with,
   endorsed by or sponsored by Spotify.

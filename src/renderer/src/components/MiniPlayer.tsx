@@ -7,6 +7,7 @@ import { useBgState } from '@/store/bgState'
 import { usePlayer } from '@/store/player'
 import { requestMode, useUi } from '@/store/ui'
 import { Artwork } from './Artwork'
+import { VideoStatus } from './VideoStatus'
 import { IconButton, Transport, VolumeControl, useCaps } from './Controls'
 import { LyricsView } from './LyricsView'
 import { KaraokeScreen } from './KaraokeScreen'
@@ -60,8 +61,6 @@ export function MiniPlayer() {
   const drag = useWindowDrag()
   const caps = useCaps()
   const videoBehind = useBgState((x) => x.media === 'mini')
-  const bgReason = useBgState((x) => x.reason)
-  const [noteHidden, setNoteHidden] = useState<string | null>(null)
   // with a video behind it, the header / title / controls fade away after a few seconds and return on touch
   // a touch screen hides after 4 s; with a mouse, give it a little longer
   const [studio, setStudio] = useState(false)
@@ -90,23 +89,7 @@ export function MiniPlayer() {
           <IconButton icon="close" label="Quit Lyra" size={16} onClick={() => window.lyra.window.quit()} />
         </div>
       </header>
-      {bgReason && noteHidden !== bgReason.text && track && (
-        <div className="mini__bgnote" data-nodrag role="status">
-          <span>{bgReason.text}</span>
-          <button
-            type="button"
-            onClick={() => {
-              sessionStorage.setItem('lyra.settingsTab', 'bg')
-              useUi.getState().setPanel('settings')
-            }}
-          >
-            Choose video
-          </button>
-          <button type="button" aria-label="Hide this note" onClick={() => setNoteHidden(bgReason.text)}>
-            ✕
-          </button>
-        </div>
-      )}
+      <VideoStatus />
 
       {view === 'playing' && track ? (
         <>

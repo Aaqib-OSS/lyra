@@ -56,3 +56,49 @@ export function usePalette(src: string | null): Palette {
   }, [src])
   return pal
 }
+
+const tinyCache = new Map<string, string>()
+
+/**
+ * The cover as a tiny, already blurred and saturated picture (64 px). The backdrop scales it up to the whole window,
+ * which looks like a heavy blur but costs the GPU nothing: no live blur filter on a screen-sized, animating image.
+ */
+export function useTinyArt(src: string | null): string | null {
+  const [tiny, setTiny] = useState<string | null>(src ? (tinyCache.get(src) ?? null) : null)
+  useEffect(() => {
+    let live = true
+    if (!src) {
+      setTiny(null)
+      return
+    }
+    const hit = tinyCache.get(src)
+    if (hit) {
+      setTiny(hit)
+      return
+    }
+    const img = new Image()
+    img.onload = () => {
+      if (!live) return
+      try {
+        const c = document.createElement('canvas')
+        c.width = c.height = 64
+        const ctx = c.getContext('2d')!
+        ctx.filter = 'blur(2.2px) saturate(1.5) brightness(1.08)'
+        // a little larger than the canvas so the blur does not fade out at the edges
+        ctx.drawImage(img, -6, -6, 76, 76)
+        const url = c.toDataURL('image/jpeg', 0.8)
+        tinyCache.set(src, url)
+        if (tinyCache.size > 20) tinyCache.delete(tinyCache.keys().next().value as string)
+        setTiny(url)
+      } catch {
+        setTiny(src)
+      }
+    }
+    img.onerror = () => live && setTiny(src)
+    img.src = src
+    return () => {
+      live = false
+    }
+  }, [src])
+  return tiny
+}

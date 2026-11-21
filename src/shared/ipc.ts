@@ -4,6 +4,7 @@ import type {
   ConnectionStatus,
   LyricsCandidateInfo,
   LyricsResult,
+  SourceHealth,
   ModeEvent,
   PlaybackSnapshot,
   PlayerCommand,
@@ -52,6 +53,9 @@ export const CH = {
   lyricsCandidates: 'lyrics:candidates',
   lyricsChoose: 'lyrics:choose',
   lyricsClearPin: 'lyrics:clear-pin',
+  lyricsImport: 'lyrics:import',
+  lyricsImportFile: 'lyrics:import-file',
+  lyricsHealth: 'lyrics:health',
   artGet: 'art:get',
   momentsList: 'moments:list',
   momentsAdd: 'moments:add',
@@ -179,6 +183,12 @@ export interface LyraApi {
     candidates(track: Track): Promise<{ items: LyricsCandidateInfo[]; error?: string }>
     choose(track: Track, provider: string, id: string): Promise<LyricsResult>
     clearPin(track: Track): Promise<LyricsResult>
+    /** Use lyrics the user pasted (LRC, SRT or plain text) for this song. */
+    importText(track: Track, text: string): Promise<LyricsResult | { error: string }>
+    /** Ask for a .lrc / .srt / .txt file and use it for this song. Resolves null when cancelled. */
+    importFile(track: Track): Promise<LyricsResult | { error: string } | null>
+    /** How each lyrics service is doing right now. */
+    health(): Promise<SourceHealth[]>
   }
   art: {
     /** Returns a data: URL (cached) so the renderer never needs remote image access. */

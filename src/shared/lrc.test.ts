@@ -37,3 +37,34 @@ describe('stripLrc', () => {
     expect(stripLrc('[ar:x]\n[00:01.00]hello\n[00:02.00]world')).toBe('hello\nworld')
   })
 })
+
+import { parseImported, parseSrt } from './lrc'
+
+describe('parseSrt', () => {
+  it('reads timed subtitle blocks and strips markup', () => {
+    const srt = '1\n00:00:01,500 --> 00:00:03,000\n<i>Hello</i> there\n\n2\n00:00:04,000 --> 00:00:06,250\nSecond {\\an8}line\n'
+    const l = parseSrt(srt)
+    expect(l).toEqual([
+      { timeMs: 1500, text: 'Hello there', endMs: 3000 },
+      { timeMs: 4000, text: 'Second line', endMs: 6250 }
+    ])
+  })
+})
+
+describe('parseImported', () => {
+  it('detects LRC, SRT and plain text', () => {
+    expect(parseImported('[00:01.00]one\n[00:03.00]two').format).toBe('lrc')
+    expect(parseImported('1\n00:00:01,000 --> 00:00:02,000\nhi\n').format).toBe('srt')
+    const p = parseImported('just some words\nand more')
+    expect(p.kind).toBe('plain')
+    expect(p.plain).toContain('and more')
+  })
+  it('never throws on junk and reports empty', () => {
+    expect(parseImported('').kind).toBe('empty')
+    expect(parseImported('   \n  ').kind).toBe('empty')
+    expect(parseImported('\u0000\u0000').kind).toBe('empty')
+  })
+  it('one timestamp is not enough to call it synced', () => {
+    expect(parseImported('[00:01.00]only one').kind).toBe('plain')
+  })
+})

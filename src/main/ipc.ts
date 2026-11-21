@@ -1,5 +1,6 @@
 import { ClipboardItem, Notification, app, clipboard, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
-import { writeFile } from 'node:fs/promises'
+import { readFile, stat, writeFile } from 'node:fs/promises'
+import { basename } from 'node:path'
 import { CH, EV, type AppInfo, type LanInfo } from '@shared/ipc'
 import type { ConnectionStatus, PlaybackSnapshot, PlayerCommand, Settings, Track, ViewMode } from '@shared/types'
 import { getArtwork } from './artwork'
@@ -191,6 +192,21 @@ export function registerIpc(): void {
   handle(CH.lyricsCandidates, (t: Track) => lyricsService.candidates(t))
   handle(CH.lyricsChoose, (t: Track, provider: string, id: string) => lyricsService.choose(t, provider, id))
   handle(CH.lyricsClearPin, (t: Track) => lyricsService.clearPin(t))
+  handle(CH.lyricsImport, (t: Track, text: string) => lyricsService.importText(t, String(text ?? ''), 'pasted'))
+  handle(CH.lyricsHealth, () => lyricsService.health())
+  handle(CH.lyricsImportFile, async (t: Track) => {
+    const win = windows.window
+    const opts: Electron.OpenDialogOptions = { title: 'Choose a lyrics file', properties: ['openFile'], filters: [{ name: 'Lyrics (.lrc, .srt, .txt)', extensions: ['lrc', 'srt', 'txt'] }] }
+    const r = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    if (r.canceled || !r.filePaths[0]) return null
+    try {
+      const file = r.filePaths[0]
+      if ((await stat(file)).size > 1_000_000) return { error: 'That file is too big to be lyrics (limit 1 MB).' }
+      return lyricsService.importText(t, await readFile(file, 'utf8'), basename(file))
+    } catch {
+      return { error: 'Couldn’t read that file.' }
+    }
+  })
   handle(CH.artGet, (url: string) => getArtwork(url))
 
   handle(CH.momentsList, () => moments.list())

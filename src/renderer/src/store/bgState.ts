@@ -6,7 +6,18 @@ export interface BgReason {
 }
 
 /** What the backdrop is currently showing, so the layout (cinema dock, wrong-video button) can adapt. */
+export type VideoPhase = 'off' | 'searching' | 'loading' | 'live' | 'fallback' | 'failed'
+export type VideoProblem = 'no-key' | 'none' | 'blocked' | 'timeout' | 'error' | 'offline'
+
 export const useBgState = create<{
+  /** where the video behind the lyrics is in its life: looked for, starting, playing, replaced by a clip, or given up */
+  phase: VideoPhase
+  problem: VideoProblem | null
+  title: string
+  channel: string
+  /** the YouTube embed reports it is playing */
+  ytReady: boolean
+  setVideo(v: { phase: VideoPhase; problem?: VideoProblem | null; title?: string; channel?: string }): void
   media: 'none' | 'full' | 'mini'
   kind: string | null
   reason: BgReason | null
@@ -16,6 +27,12 @@ export const useBgState = create<{
   set(v: { media: 'none' | 'full' | 'mini'; kind: string | null }): void
   setReason(r: BgReason | null): void
 }>((set) => ({
+  phase: 'off',
+  problem: null,
+  title: '',
+  channel: '',
+  ytReady: false,
+  setVideo: (v) => set({ phase: v.phase, problem: v.problem ?? null, title: v.title ?? '', channel: v.channel ?? '' }),
   media: 'none',
   kind: null,
   reason: null,

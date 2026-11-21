@@ -1,0 +1,172 @@
+import type { LyricStyle, Vibe } from './types'
+
+export interface VibeInfo {
+  id: Vibe
+  /** how the lyrics are staged by default in this vibe */
+  style: LyricStyle
+  name: string
+  tag: string
+}
+
+export const VIBES: readonly VibeInfo[] = [
+  { id: 'none', style: 'classic', name: 'Artwork', tag: 'Colours from the cover' },
+  { id: 'neon', style: 'kinetic', name: 'Neon', tag: 'Synthwave tubes' },
+  { id: 'chrome', style: 'kinetic', name: 'Chrome', tag: 'Y2K liquid metal' },
+  { id: 'dream', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
+  { id: 'crt', style: 'type', name: 'Terminal', tag: 'Typed in green' },
+  { id: 'sticker', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
+  { id: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' },
+  { id: 'paper', style: 'diary', name: 'Diary', tag: 'Handwritten, highlighted' },
+  { id: 'arcade', style: 'kinetic', name: 'Arcade', tag: '8-bit scoreboard' },
+  { id: 'noir', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
+  { id: 'sunset', style: 'kinetic', name: 'Sunset Drive', tag: 'Palms, radio and a pink sky' },
+  { id: 'blocks', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
+  { id: 'stadium', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },
+  { id: 'cassette', style: 'type', name: 'Cassette', tag: 'Walkman and amber LCD' },
+  { id: 'trailer', style: 'kinetic', name: 'Trailer', tag: 'Movie title cards' }
+]
+
+export const ALL_VIBES: readonly Vibe[] = VIBES.map((v) => v.id)
+export const vibeInfo = (id: Vibe): VibeInfo => VIBES.find((v) => v.id === id) ?? VIBES[0]!
+
+/** The next (dir 1) or previous (dir -1) vibe inside the pool. An empty pool means every vibe. */
+export function stepVibe(current: Vibe, pool: readonly Vibe[], dir: 1 | -1 = 1): Vibe {
+  const list = pool.length ? pool : ALL_VIBES
+  const i = list.indexOf(current)
+  if (i < 0) return dir === 1 ? list[0]! : list[list.length - 1]!
+  return list[(i + dir + list.length) % list.length]!
+}
+
+// ---------------------------------------------------------------------------------------------
+// Smart pick: choose the vibe that suits a song from what we know about it (words, pace, age and the
+// colours of the cover). Deterministic: the same song always gets the same vibe.
+
+export interface SmartInput {
+  title: string
+  artists: string[]
+  year?: number | null
+  /** every line of the lyrics (empty when there are none) */
+  lines: string[]
+  /** timing of lines in ms, to measure how fast the song is sung */
+  lineTimes?: number[]
+  durationMs?: number
+  /** cover colour: hue 0-360, saturation 0-1, lightness 0-1 */
+  hue?: number
+  sat?: number
+  light?: number
+}
+
+const WORDS: Partial<Record<Vibe, { re: RegExp; why: string }>> = {
+  neon: { re: /\b(night|nights|city|cities|lights?|neon|midnight|drive|driving|club|dance|dancing|electric|downtown|street|streets|fast|speed)\b/g, why: 'night-city words' },
+  dream: { re: /\b(dream|dreams|dreaming|star|stars|moon|sky|skies|heaven|float|floating|sleep|cloud|clouds|ocean|sea|angel|wish|galaxy|universe|forever)\b/g, why: 'dreamy words' },
+  chat: { re: /\b(call|called|calling|text|texted|phone|message|miss|missed|hey|baby|babe|tell|told|answer|reply|hello|dm|number)\b/g, why: 'talking-to-you words' },
+  sticker: { re: /\b(party|fun|crazy|wild|yeah|hey|sweet|candy|sugar|cute|kiss|smile|happy|love|loving|pink|dance)\b/g, why: 'playful words' },
+  paper: { re: /\b(letter|letters|write|wrote|writing|diary|memory|memories|remember|years|home|mother|mama|rain|paper|yesterday|childhood|old)\b/g, why: 'memory words' },
+  crt: { re: /\b(code|machine|machines|digital|robot|system|wire|wires|signal|computer|screen|online|data|program|static|electric)\b/g, why: 'machine words' },
+  arcade: { re: /\b(game|games|play|player|win|winner|level|score|fight|fighter|run|running|hero|fire|king|queen|power|champion|boss)\b/g, why: 'game-like words' },
+  noir: { re: /\b(dark|darkness|shadow|shadows|cry|crying|alone|blood|black|cold|ghost|gone|die|dead|death|lonely|pain|smoke|rain)\b/g, why: 'dark, lonely words' },
+  sunset: { re: /\b(sun|sunset|summer|beach|palm|road|ride|driving|highway|city|miami|california|heat|gold|golden|paradise|cruise|cruising|money|cash)\b/g, why: 'sunset-drive words' },
+  blocks: { re: /\b(build|building|mine|mining|craft|world|block|blocks|diamond|dig|island|kingdom|castle|adventure|explore|zombie|creeper)\b/g, why: 'adventure words' },
+  stadium: { re: /\b(champion|champions|win|winner|victory|team|goal|crowd|stadium|game|score|play|player|fight|roar|legend|glory|title)\b/g, why: 'stadium words' },
+  cassette: { re: /\b(tape|radio|vinyl|record|song|songs|rewind|play|memory|memories|old|yesterday|walkman|mixtape|nostalgia|stereo|volume)\b/g, why: 'retro words' },
+  trailer: { re: /\b(war|fate|destiny|world|rise|fall|battle|hero|legend|empire|king|queen|storm|thunder|end|begin|beginning|forever|eternal)\b/g, why: 'epic words' },
+  chrome: { re: /\b(future|shine|shiny|silver|chrome|gold|diamond|mirror|glass|crystal|space|rocket|baby|girl|boy|money)\b/g, why: 'shiny words' }
+}
+
+const count = (re: RegExp, text: string): number => (text.match(re) ?? []).length
+
+function hash(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619)
+  return h >>> 0
+}
+
+/** Score every vibe of the pool and return the best, with a short human reason ("night-city words"). */
+export function pickVibe(input: SmartInput, pool: readonly Vibe[] = ALL_VIBES): { vibe: Vibe; why: string } {
+  const list = (pool.length ? pool : ALL_VIBES).filter((v) => v !== 'none')
+  const candidates: readonly Vibe[] = list.length ? list : (['neon'] as const)
+  const text = input.lines.join(' ').toLowerCase()
+  const nWords = Math.max(1, text.split(/\s+/).filter(Boolean).length)
+  const score = new Map<Vibe, number>()
+  const why = new Map<Vibe, string>()
+  const strongest = new Map<Vibe, number>()
+  /** add points to a vibe; the biggest single contribution becomes the reason we show */
+  const add = (v: Vibe, n: number, reason: string): void => {
+    if (n <= 0) return
+    score.set(v, (score.get(v) ?? 0) + n)
+    if (n > (strongest.get(v) ?? 0)) {
+      strongest.set(v, n)
+      why.set(v, reason)
+    }
+  }
+
+  // 1 / the words
+  for (const [v, rule] of Object.entries(WORDS) as Array<[Vibe, { re: RegExp; why: string }]>) {
+    const hits = count(rule.re, text)
+    add(v, Math.min(6, (hits / nWords) * 60 + Math.min(hits, 4) * 0.5), rule.why)
+  }
+
+  // 2 / pace: lines per minute and words per line
+  const dur = (input.durationMs ?? 0) / 60000
+  const lpm = dur > 0 ? input.lines.filter(Boolean).length / dur : 0
+  const wpl = nWords / Math.max(1, input.lines.filter(Boolean).length)
+  if (lpm > 30 || wpl > 7) {
+    add('neon', 2, 'fast, packed lyrics')
+    add('arcade', 1.5, 'fast, packed lyrics')
+    add('chrome', 1.2, 'fast, packed lyrics')
+  } else if (lpm > 0 && lpm < 16) {
+    add('dream', 2, 'a slow, spacious song')
+    add('noir', 1.4, 'a slow, spacious song')
+    add('paper', 1.4, 'a slow, spacious song')
+  }
+
+  // 3 / age
+  const y = input.year ?? 0
+  if (y > 0 && y <= 2004) {
+    add('chrome', 2.2, `a ${y} classic`)
+    add('crt', 1.2, `a ${y} classic`)
+  } else if (y >= 1970 && y <= 1989) {
+    add('cassette', 2.2, `a ${y} song`)
+    add('sunset', 1.4, `a ${y} song`)
+  } else if (y >= 2005 && y <= 2012) {
+    add('arcade', 1, 'late-2000s energy')
+    add('chrome', 0.8, 'late-2000s energy')
+  } else if (y >= 2020) {
+    add('sticker', 0.9, 'a very recent song')
+    add('chat', 0.9, 'a very recent song')
+  }
+
+  // 4 / the cover
+  const { hue = -1, sat = -1, light = -1 } = input
+  if (sat >= 0) {
+    if (sat < 0.14) {
+      add('noir', 2.6, 'a black-and-white cover')
+      add('paper', 0.8, 'a quiet cover')
+    }
+    if (sat > 0.55 && light < 0.5) add('neon', 2, 'a bold, dark cover')
+    if (light > 0.68 && sat < 0.6) {
+      add('dream', 1.6, 'a soft pastel cover')
+      add('paper', 1.4, 'a soft pastel cover')
+    }
+    if (hue >= 190 && hue <= 260 && sat > 0.25) {
+      add('chat', 1.2, 'a blue cover')
+      add('chrome', 1.2, 'a blue cover')
+    }
+    if ((hue >= 35 && hue <= 70) || hue >= 320) add('sticker', 1.2, 'a bright, warm cover')
+    if (hue >= 80 && hue <= 160 && light < 0.45) add('crt', 1.4, 'a green cover')
+  }
+
+  // tiny deterministic tie-break so the same song always lands on the same vibe, but different songs spread out
+  const seed = hash(`${input.title}|${input.artists.join(',')}`)
+  let best: Vibe = candidates[seed % candidates.length]!
+  let bestScore = -1
+  candidates.forEach((v, i) => {
+    const s = (score.get(v) ?? 0) + ((seed >>> (i % 12)) % 7) / 100
+    if (s > bestScore) {
+      bestScore = s
+      best = v
+    }
+  })
+  const reason = (score.get(best) ?? 0) > 0.6 ? (why.get(best) ?? 'a good match') : 'a surprise pick'
+  return { vibe: best, why: reason }
+}

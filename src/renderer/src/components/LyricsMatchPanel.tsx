@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { isImportError } from '@shared/lrc'
 import type { LyricsCandidateInfo } from '@shared/types'
 import { formatTime } from '@/lib/format'
 import { useLyrics } from '@/store/lyrics'
@@ -16,6 +17,9 @@ export function LyricsMatchPanel() {
   const [items, setItems] = useState<LyricsCandidateInfo[] | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
+  const [draft, setDraft] = useState('')
+  const [saving, setSaving] = useState(false)
+  const draftRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     if (!track) return
@@ -51,6 +55,20 @@ export function LyricsMatchPanel() {
     }
   }
 
+  const useMine = async (text: string | null): Promise<void> => {
+    setSaving(true)
+    try {
+      const r = text === null ? await window.lyra.lyrics.importFile(track) : await window.lyra.lyrics.importText(track, text)
+      if (r === null) return // cancelled
+      if (isImportError(r)) return void toast(r.error, 'error')
+      apply(r)
+      setDraft('')
+      toast('Your lyrics are saved for this song')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const reset = async (): Promise<void> => {
     apply(await window.lyra.lyrics.clearPin(track))
     toast('Back to automatic matching')
@@ -58,6 +76,37 @@ export function LyricsMatchPanel() {
 
   return (
     <div className="list">
+      <h4>Your own lyrics</h4>
+      {current?.imported ? (
+        <div className="mylyrics__on">
+          <span>
+            <b>Using your lyrics</b> for this song
+          </span>
+          <button type="button" className="pill" onClick={() => void reset()}>
+            Remove
+          </button>
+        </div>
+      ) : (
+        <div className="mylyrics">
+          <textarea
+            ref={draftRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Paste lyrics here: plain words, or a timed .lrc / .srt"
+            aria-label="Paste your own lyrics"
+          />
+          <div className="mylyrics__row">
+            <button type="button" className="pill pill--primary" disabled={saving || draft.trim() === ''} onClick={() => void useMine(draft)}>
+              Use these lyrics
+            </button>
+            <button type="button" className="pill" disabled={saving} onClick={() => void useMine(null)}>
+              Choose a file…
+            </button>
+          </div>
+          <span className="mylyrics__hint">Or drop a .lrc, .srt or .txt file anywhere on the window. Remembered for this song, even in another player.</span>
+        </div>
+      )}
+
       <h4>Playing</h4>
       <div className="item item--now">
         <div>

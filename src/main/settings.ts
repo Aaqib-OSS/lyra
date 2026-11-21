@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { ACCEL_PATTERN, GLOBAL_SHORTCUTS } from '@shared/shortcuts'
+import { ALL_VIBES } from '@shared/vibes'
 import { DEFAULT_SETTINGS, type Settings } from '@shared/types'
 import { JsonStore } from './jsonStore'
 
@@ -16,6 +17,13 @@ function sanitize(s: Settings): Settings {
     lyricFontSize: clamp(s.lyricFontSize, 24, 72),
     lineSpacing: clamp(s.lineSpacing, 1, 2),
     fullLayout: (['auto', 'cinema', 'split', 'poster', 'focus'] as const).includes(s.fullLayout) ? s.fullLayout : d.fullLayout,
+    lyricStyle: (['classic', 'kinetic', 'constellation', 'sticker', 'chat', 'type', 'diary', 'subtitle', 'chatlog', 'lowerthird'] as const).includes(s.lyricStyle) ? s.lyricStyle : d.lyricStyle,
+    vibe: (ALL_VIBES as readonly string[]).includes(s.vibe) ? s.vibe : d.vibe,
+    vibeMode: (['fixed', 'cycle', 'smart'] as const).includes(s.vibeMode) ? s.vibeMode : d.vibeMode,
+    songVibes: Object.fromEntries(Object.entries(s.songVibes && typeof s.songVibes === 'object' ? s.songVibes : {}).filter(([, v]) => (ALL_VIBES as readonly string[]).includes(v as string)).slice(-300)),
+    vibePool: Array.isArray(s.vibePool) ? s.vibePool.filter((v) => (ALL_VIBES as readonly string[]).includes(v)) : d.vibePool,
+    rimLight: s.rimLight !== false,
+    performance: (['auto', 'smooth', 'light'] as const).includes(s.performance) ? s.performance : d.performance,
     lyricOffsetMs: clamp(s.lyricOffsetMs, -5000, 5000),
     compactWidth: clamp(s.compactWidth, 320, 520),
     shortcuts: Object.fromEntries(
