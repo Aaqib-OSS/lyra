@@ -235,6 +235,10 @@ async function main() {
   if (args.layouts) {
     for (const layout of LAYOUTS) for (const lang of LANGS) for (const sz of BIG)
       jobs.push({ v: { id: `layout-${layout}-${lang}`, style: 'classic' }, d: { id: sz.id, w: sz.w, h: sz.h, q: `mode=full&video=night${lang === 'en' ? '' : `&lang=${lang}`}` }, extra: { fullLayout: layout, romanizeLyrics: lang !== 'en' }, vibeId: 'none' })
+  } else if (args.states) {
+    // the lyrics outcomes (words without timing, no lyrics, offline) on the main devices, with and without a video
+    const key = devices.filter((d) => ['phone', 'tablet-land', 'win-full-768', 'win-mini'].includes(d.id))
+    for (const v of vibes) for (const d of key) for (const ly of ['plain', 'none', 'offline']) jobs.push({ v, d: { ...d, id: `${d.id}+${ly}`, q: `${d.q}&ly=${ly}`, lyricsOptional: true, state: ly } })
   } else for (const v of vibes) for (const d of devices) jobs.push({ v, d })
   const results = []
   let next = 0
@@ -258,6 +262,12 @@ async function main() {
       const cr = m.nowRects.length ? m.nowRects : m.textRects
       if (cr.length) contrast = await page.evaluate(CONTRAST, { png: 'data:image/png;base64,' + shot.toString('base64'), rects: cr })
       const fails = verdict(d, m, contrast)
+      if (d.state) {
+        // no synced lyrics: the screen must still say something useful (the words, or why there are none), never an empty hole
+        const said = await page.evaluate(() => document.body.innerText.trim().length)
+        if (said < 12) fails.push(`empty screen in the "${d.state}" lyrics state`)
+        if (d.state === 'plain' && !(await page.evaluate(() => !!document.querySelector('.plain__stanza')))) fails.push('plain lyrics are not shown')
+      }
       if (errors.length) fails.unshift(`page error: ${errors[0]}`)
       const name = `${v.id}__${d.id}`
       if (fails.length || args.shots) writeFileSync(join(OUT, 'shots', `${fails.length ? 'FAIL_' : ''}${name}.png`), shot)
