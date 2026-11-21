@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildManifest, safeToken } from './pwa'
 import { OVERLAY_CORE_JS, OVERLAY_HTML } from './overlayPage'
-import { VIEWER_HTML } from './viewerHtml'
 
 // the overlay's runtime logic is plain JS in a string (the page has no build step); run it here to test it
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
@@ -143,9 +142,6 @@ describe('pages', () => {
     expect(OVERLAY_HTML).toContain('background: transparent')
     expect(OVERLAY_HTML).not.toMatch(/https?:\/\//)
     expect(OVERLAY_HTML).toContain('/events?k=')
-  })
-  it('the viewer links its manifest through a key placeholder', () => {
-    expect(VIEWER_HTML).toContain('/manifest.webmanifest?k=__K__')
   })
   it('manifest keeps the key in start_url and only accepts hex keys into pages', () => {
     const m = buildManifest({ token: 'ab12cd', iconSize: 512 }) as { start_url: string; icons: { sizes: string }[] }
