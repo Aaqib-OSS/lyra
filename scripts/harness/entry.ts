@@ -13,7 +13,7 @@ let settings: Settings = { ...DEFAULT_SETTINGS, onboarded: true, source: 'api', 
 const startedAt = Date.now() - Number(q.get('t') ?? 40000)
 const playing = q.get('paused') !== '1'
 const snap = (): PlaybackSnapshot => ({
-  track, isPlaying: playing, positionMs: Date.now() - startedAt, sampledAt: Date.now(),
+  track, isPlaying: playing, positionMs: playing ? Date.now() - startedAt : Number(q.get('t') ?? 40000), sampledAt: Date.now(),
   device: { name: 'Studio PC', type: 'Computer', volume: 70 } as never, shuffle: false, repeat: 'off', isAdOrUnknown: false
 })
 const lyricsFor = (id: string): unknown => {
