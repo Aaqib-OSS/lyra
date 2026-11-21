@@ -8,6 +8,11 @@ export const VIEWER_HTML = String.raw`<!doctype html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#050505" />
+<link rel="manifest" href="/manifest.webmanifest?k=__K__" />
+<link rel="apple-touch-icon" href="/icon.png?k=__K__" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Lyra</title>
 <style>
   :root { --a: #ff7a59; --b: #c64cff; --c: #3fd0ff; --ease: cubic-bezier(0.22, 1, 0.36, 1); }
@@ -37,6 +42,15 @@ export const VIEWER_HTML = String.raw`<!doctype html>
   #sync button { padding: 6px 11px; font-size: 14px; background: rgba(255,255,255,.14); color: #f5f5f7; }
   .dot { position: fixed; right: 18px; top: 14px; width: 10px; height: 10px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 12px #4ade80; opacity: .9; }
   .dot.off { background: #f87171; box-shadow: 0 0 12px #f87171; }
+  .fs { position: fixed; right: 14px; bottom: 14px; z-index: 6; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.16); background: rgba(15,15,18,.55); color: #f5f5f7; font-size: 20px; line-height: 1; cursor: pointer; transition: opacity .4s; }
+  body.calm .fs, body.calm .listen, body.calm .dot { opacity: 0; pointer-events: none; }
+  body.calm { cursor: none; }
+  /* TV browsers sit metres away: bigger type, bigger cover, no small controls (?tv=1, or detected; ?tv=0 turns it off) */
+  body.tv .t { font-size: clamp(30px, 3.4vw, 64px); }
+  body.tv .ar { font-size: clamp(20px, 2vw, 38px); }
+  body.tv .ln { font-size: clamp(34px, 5.2vw, 96px); }
+  body.tv .art { max-width: 460px; }
+  body.tv .fs, body.tv .dot { display: none; }
   @media (max-aspect-ratio: 1/1) { main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; padding: 3vh 6vw; } .art { display: none; } .meta { align-self: start; padding: 0; } .lyrics { height: 72vh; } .ln { font-size: clamp(26px, 7.4vw, 56px); } }
 </style>
 </head>
@@ -48,6 +62,7 @@ export const VIEWER_HTML = String.raw`<!doctype html>
 </main>
 <div class="msg" id="msg">Waiting for Lyra…</div>
 <div class="dot off" id="dot" title="connection"></div>
+<button class="fs" id="fs" type="button" title="Full screen (F)" aria-label="Full screen">⛶</button>
 <audio id="aud" autoplay playsinline></audio>
 <div class="listen"><button id="listen" type="button">Listen</button><span id="sync"><span id="sync-label"></span> <button id="nm" type="button">−</button><b id="nv">0 ms</b><button id="np" type="button">+</button></span></div>
 <script>
@@ -194,8 +209,30 @@ export const VIEWER_HTML = String.raw`<!doctype html>
   }
   addEventListener('resize', () => { idx = -2 })
   connect(); frame()
-  // keep the screen awake on TVs / phones
-  try { navigator.wakeLock && navigator.wakeLock.request('screen') } catch {}
+  // ---- TV / kiosk comforts
+  const Q = new URLSearchParams(location.search)
+  const isTv = Q.has('tv') ? Q.get('tv') !== '0' : /SMART-TV|SmartTV|Tizen|Web0S|WebOS|NetCast|HbbTV|CrKey|AFT[A-Z]|BRAVIA|Roku|VIDAA|Hisense|AppleTV|GoogleTV/i.test(navigator.userAgent)
+  document.body.classList.toggle('tv', isTv)
+  const sc = Number(Q.get('scale'))
+  if (sc >= 0.5 && sc <= 3) document.querySelector('main').style.zoom = String(sc)
+  // fullscreen: the button, the F key, or a double tap anywhere
+  const toggleFs = () => {
+    const d = document, el = d.documentElement
+    if (d.fullscreenElement || d.webkitFullscreenElement) { (d.exitFullscreen || d.webkitExitFullscreen).call(d) } else { const f = el.requestFullscreen || el.webkitRequestFullscreen; if (f) try { const r = f.call(el); if (r && r.catch) r.catch(() => {}) } catch {} }
+  }
+  $('fs').addEventListener('click', toggleFs)
+  addEventListener('dblclick', toggleFs)
+  addEventListener('keydown', (e) => { if (e.key === 'f' || e.key === 'F') toggleFs() })
+  // after a few quiet seconds hide the pointer and the buttons; any movement brings them back
+  let calmTimer = 0
+  const wake = () => { document.body.classList.remove('calm'); clearTimeout(calmTimer); calmTimer = setTimeout(() => document.body.classList.add('calm'), 4000) }
+  ;['mousemove', 'touchstart', 'keydown', 'click'].forEach((ev) => addEventListener(ev, wake, { passive: true }))
+  wake()
+  // keep the screen awake on TVs / phones (needs HTTPS or localhost; re-asked when the tab comes back, the browser drops it on hide)
+  let lock = null
+  const keepAwake = async () => { try { if (navigator.wakeLock && document.visibilityState === 'visible') { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null }) } } catch {} }
+  keepAwake()
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && !lock) keepAwake() })
 })()
 </script>
 </body>

@@ -6,6 +6,9 @@ import { lyricsService } from '@core/lyrics/service'
 import { createLogger } from '../logger'
 import { settings } from '../settings'
 import { VIEWER_HTML } from './viewerHtml'
+import { OVERLAY_HTML } from './overlayPage'
+import { buildManifest, safeToken } from './pwa'
+import { appIcon } from '../tray'
 
 const log = createLogger('lan')
 
@@ -106,7 +109,8 @@ class LanViewer {
       hasArt: !!t?.artworkUrl,
       playing: !!s?.isPlaying,
       positionMs: s?.positionMs ?? 0,
-      sampledAt: s?.sampledAt ?? Date.now()
+      sampledAt: s?.sampledAt ?? Date.now(),
+      vibe: settings.get().vibe
     }
   }
 
@@ -157,9 +161,21 @@ class LanViewer {
       this.handleOffer(req, res, common)
       return
     }
+    const csp = "default-src 'self'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; media-src 'self' blob: data:"
     if (url.pathname === '/') {
-      res.writeHead(200, { ...common, 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; media-src 'self' blob: data:" })
-      res.end(VIEWER_HTML)
+      res.writeHead(200, { ...common, 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': csp })
+      res.end(VIEWER_HTML.replace(/__K__/g, safeToken(this.token)))
+    } else if (url.pathname === '/overlay') {
+      // stream / OBS overlay: transparent text page, styled by the URL (see overlayPage.ts)
+      res.writeHead(200, { ...common, 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': csp })
+      res.end(OVERLAY_HTML)
+    } else if (url.pathname === '/manifest.webmanifest') {
+      const size = appIcon().getSize().width || 512
+      res.writeHead(200, { ...common, 'Content-Type': 'application/manifest+json' })
+      res.end(JSON.stringify(buildManifest({ token: this.token, iconSize: size })))
+    } else if (url.pathname === '/icon.png') {
+      res.writeHead(200, { ...common, 'Content-Type': 'image/png', 'Cache-Control': 'max-age=86400' })
+      res.end(appIcon().toPNG())
     } else if (url.pathname === '/events') {
       res.writeHead(200, { ...common, 'Content-Type': 'text/event-stream', Connection: 'keep-alive' })
       res.write(`data: ${JSON.stringify(this.state())}\n\n`)

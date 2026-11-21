@@ -14,7 +14,7 @@ import type {
  * Emits: 'snapshot' (PlaybackSnapshot), 'status' (ConnectionStatus).
  */
 export abstract class PlaybackSource extends EventEmitter {
-  abstract readonly kind: 'spotify' | 'demo' | 'smtc'
+  abstract readonly kind: 'spotify' | 'demo' | 'smtc' | 'mpris'
   protected status: ConnectionStatus = { state: 'disconnected' }
   protected snapshot: PlaybackSnapshot | null = null
 
