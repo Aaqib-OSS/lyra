@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UnusedAttribute"
     android:configure="dev.lyra.android.WidgetConfigActivity"
     android:widgetFeatures="reconfigurable"
     android:description="@string/lyra_widget_description"
@@ -11,5 +13,6 @@
     android:resizeMode="horizontal|vertical"
     android:targetCellWidth="4"
     android:targetCellHeight="2"
+    android:previewLayout="@layout/preview_text"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen" />

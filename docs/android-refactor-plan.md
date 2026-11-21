@@ -196,13 +196,14 @@ Priority = user-visible value divided by risk. `[x]` done in this change, `[ ]` 
 
 ### Phase 5: richer notification and surfaces
 
-- [ ] Privacy mode for the lock screen (title and artist only while locked).
+- [x] Privacy mode for the lock screen (title, artist and cover only while locked); notification tick stops with the screen off; lyric position n/total in the sub text.
 - [ ] Lyrics on/off Quick Settings tile; sleep timer chip.
-- [ ] Widget: lyric line cross-fade through `ViewFlipper` for the ticker; "lyric offset +/-" buttons on the large widget.
+- [x] Widgets added: 4x2 now playing card, 2x2 big lyric with a `ViewFlipper` cross-fade, 1x1 cover; `previewLayout`, system corner radius (see `android-widget.md`). Unverified on a device.
+- [ ] Widget: cross-fade for the ticker too; "lyric offset +/-" buttons on the large widget.
 
 ### Phase 6: performance and release hardening
 
 - [ ] Baseline Profile and Macrobenchmark module; WebView pre-warm; R8 for release.
-- [ ] Fix the 16 pre-existing lint `NewApi` errors (see gap 9) so `lintDebug` can gate CI.
+- [x] Fix the 16 pre-existing lint errors (see gap 9): `showOverLockScreen()` helper with an API 26 window-flag fallback, `tools:targetApi="29"` on the recorder activity and service, version guards around the `RecordActivity` / `RecordService` use in `Rpc.kt`, suppression of the `startActivityAndCollapse(Intent)` branch that only runs below API 34. `minSdk` stays 26. `lintDebug` is green.
 - [ ] CI: `assembleDebug`, `lintDebug`, `testDebugUnitTest`, APK size budget.
 - [ ] Instrumented UI smoke test on an emulator image (system images are installed here).

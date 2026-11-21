@@ -59,6 +59,7 @@ abstract class LyraBaseWidget : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, ids: IntArray) {
         WidgetThemes.forget(context, ids)
+        LyraWidgetUpdater.forget(ids)
     }
 
     override fun onDisabled(context: Context) {
@@ -72,6 +73,9 @@ class LyraMiniWidget : LyraBaseWidget()
 class LyraTickerWidget : LyraBaseWidget()
 class LyraPlayWidget : LyraBaseWidget()
 class LyraCoverWidget : LyraBaseWidget()
+class LyraCardWidget : LyraBaseWidget()
+class LyraBigWidget : LyraBaseWidget()
+class LyraArtWidget : LyraBaseWidget()
 
 /** Previous / play-pause / next pressed on the widget. */
 class LyraWidgetAction : BroadcastReceiver() {
@@ -202,10 +206,14 @@ object LyraWidgetUpdater {
     private const val K_TICKER = 5
     private const val K_PLAY = 6
     private const val K_COVER = 7
+    private const val K_CARD = 8
+    private const val K_BIG = 9
+    private const val K_ART = 10
 
     private val providers = listOf(
         LyraWidget::class.java, LyraMiniWidget::class.java, LyraTickerWidget::class.java,
-        LyraPlayWidget::class.java, LyraCoverWidget::class.java
+        LyraPlayWidget::class.java, LyraCoverWidget::class.java,
+        LyraCardWidget::class.java, LyraBigWidget::class.java, LyraArtWidget::class.java
     )
 
     private val main = Handler(Looper.getMainLooper())
@@ -230,6 +238,9 @@ object LyraWidgetUpdater {
     private val bgCache = HashMap<String, Bitmap>()
     // what each widget id last showed, to skip identical redraws
     private val lastSig = HashMap<Int, String>()
+    // the big-lyric widget's ViewFlipper: which child is showing, and the line it shows
+    private val flipCur = HashMap<Int, Int>()
+    private val flipLine = HashMap<Int, String>()
     private var vibe: String? = null
     private const val PREFS = "lyra_widget"
 
@@ -262,7 +273,13 @@ object LyraWidgetUpdater {
         MediaMonitor.removeListener(listener)
         main.removeCallbacks(tick)
         lastSig.clear()
+        flipCur.clear()
+        flipLine.clear()
         bgCache.clear()
+    }
+
+    fun forget(ids: IntArray) {
+        for (i in ids) { lastSig.remove(i); flipCur.remove(i); flipLine.remove(i) }
     }
 
     /** Called when new lyric lines arrive from the app. */
@@ -294,7 +311,7 @@ object LyraWidgetUpdater {
                 val sig = "${state.id}|${state.title}|${state.lyric}|${state.nextLine}|${state.playing}|${state.progress / 12}|$key|$vibe"
                 if (!force && lastSig[id] == sig) continue
                 try {
-                    mgr.updateAppWidget(id, build(ctx, cls, state, key))
+                    mgr.updateAppWidget(id, build(ctx, id, cls, state, key))
                     lastSig[id] = sig
                 } catch (_: Exception) {
                     // a launcher that refuses the update must never crash the app
@@ -358,15 +375,18 @@ object LyraWidgetUpdater {
     }
 
     // ---------- drawing ----------
-    private fun build(ctx: Context, cls: Class<*>, s: State, themeKey: String): RemoteViews {
+    private fun build(ctx: Context, id: Int, cls: Class<*>, s: State, themeKey: String): RemoteViews {
         val pal = WidgetThemes.palette(ctx, themeKey, vibe)
         val eff = WidgetThemes.effectiveKey(ctx, themeKey, vibe)
-        fun view(layout: Int, kind: Int): RemoteViews = fill(ctx, RemoteViews(ctx.packageName, layout), s, kind, pal, eff)
+        fun view(layout: Int, kind: Int): RemoteViews = fill(ctx, id, RemoteViews(ctx.packageName, layout), s, kind, pal, eff)
         return when (cls) {
             LyraMiniWidget::class.java -> view(R.layout.lyra_widget_mini, K_MINI)
             LyraTickerWidget::class.java -> view(R.layout.lyra_widget_ticker, K_TICKER)
             LyraPlayWidget::class.java -> view(R.layout.lyra_widget_play, K_PLAY)
             LyraCoverWidget::class.java -> view(R.layout.lyra_widget_cover, K_COVER)
+            LyraCardWidget::class.java -> view(R.layout.lyra_widget_card, K_CARD)
+            LyraBigWidget::class.java -> view(R.layout.lyra_widget_big, K_BIG)
+            LyraArtWidget::class.java -> view(R.layout.lyra_widget_art, K_ART)
             else -> {
                 val medium = view(R.layout.lyra_widget_medium, K_MEDIUM)
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) medium
@@ -381,21 +401,21 @@ object LyraWidgetUpdater {
         }
     }
 
-    private fun fill(ctx: Context, v: RemoteViews, s: State, kind: Int, pl: WidgetPalette?, effKey: String): RemoteViews {
+    private fun fill(ctx: Context, id: Int, v: RemoteViews, s: State, kind: Int, pl: WidgetPalette?, effKey: String): RemoteViews {
         val text = pl?.text ?: Color.WHITE
         val text2 = pl?.text2 ?: Color.argb(179, 255, 255, 255)
-        val overCover = kind == K_COVER || kind == K_PLAY // text sits on the photo + scrim: always white
+        val overCover = kind == K_COVER || kind == K_PLAY || kind == K_ART // text sits on the photo + scrim: always white
         val ink = if (overCover) Color.WHITE else text
         val ink2 = if (overCover) Color.argb(220, 255, 255, 255) else text2
         // only touch the views a layout really has
         fun has(vararg kinds: Int) = kind in kinds
-        val hasTitle = !has(K_PLAY)
-        val hasArtist = has(K_COMPACT, K_MEDIUM, K_LARGE)
-        val hasLyric = !has(K_COMPACT, K_PLAY)
-        val hasNext = has(K_LARGE)
-        val hasProgress = has(K_MEDIUM, K_LARGE, K_TICKER)
-        val hasPrevNext = has(K_MEDIUM, K_LARGE)
-        val hasArt = has(K_COMPACT, K_MEDIUM, K_LARGE, K_MINI, K_TICKER)
+        val hasTitle = !has(K_PLAY, K_ART)
+        val hasArtist = has(K_COMPACT, K_MEDIUM, K_LARGE, K_CARD)
+        val hasLyric = !has(K_COMPACT, K_PLAY, K_ART, K_BIG) // K_BIG draws its line in a flipper, below
+        val hasNext = has(K_LARGE, K_CARD)
+        val hasProgress = has(K_MEDIUM, K_LARGE, K_TICKER, K_CARD, K_BIG)
+        val hasPrevNext = has(K_MEDIUM, K_LARGE, K_CARD)
+        val hasArt = has(K_COMPACT, K_MEDIUM, K_LARGE, K_MINI, K_TICKER, K_CARD)
 
         if (hasTitle) v.setTextColor(R.id.lw_title, ink)
         if (hasArtist) v.setTextColor(R.id.lw_artist, ink2)
@@ -420,6 +440,7 @@ object LyraWidgetUpdater {
         if (hasArtist) v.setTextViewText(R.id.lw_artist, s.artist)
         if (hasLyric) v.setTextViewText(R.id.lw_lyric, s.lyric)
         if (hasNext) v.setTextViewText(R.id.lw_next_line, s.nextLine)
+        if (kind == K_BIG) flipLyric(v, id, s.lyric, ink)
         if (hasProgress) v.setProgressBar(R.id.lw_progress, 1000, s.progress, false)
 
         if (hasArt) {
@@ -437,6 +458,34 @@ object LyraWidgetUpdater {
         v.setOnClickPendingIntent(R.id.lw_root, open)
         return v
     }
+
+    /**
+     * The big-lyric widget: the new line goes into the hidden child of a ViewFlipper and showNext() plays the in / out
+     * animations (res/anim/lw_in, lw_out). The displayed child is always set first, so a launcher that re-inflated the
+     * layout still starts from the line that was on screen and the transition stays correct.
+     */
+    private fun flipLyric(v: RemoteViews, id: Int, line: String, ink: Int) {
+        val ids = intArrayOf(R.id.lw_lyric_a, R.id.lw_lyric_b)
+        v.setTextColor(ids[0], ink)
+        v.setTextColor(ids[1], ink)
+        val cur = flipCur[id] ?: 0
+        val last = flipLine[id]
+        v.setDisplayedChild(R.id.lw_flipper, cur)
+        if (last != null && last != line) {
+            v.setTextViewText(ids[cur], last)
+            v.setTextViewText(ids[1 - cur], line)
+            v.showNext(R.id.lw_flipper)
+            flipCur[id] = 1 - cur
+        } else {
+            v.setTextViewText(ids[cur], line)
+        }
+        flipLine[id] = line
+    }
+
+    /** The system's own widget corner radius on Android 12+ (so the card matches the launcher's other widgets), else [fallbackDp]. */
+    private fun cornerRadius(ctx: Context, fallbackDp: Float): Float =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ctx.resources.getDimension(android.R.dimen.system_app_widget_background_radius)
+        else fallbackDp * ctx.resources.displayMetrics.density
 
     private fun broadcast(ctx: Context, action: String, code: Int): PendingIntent =
         PendingIntent.getBroadcast(ctx, code, Intent(ctx, LyraWidgetAction::class.java).setAction(action), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
@@ -457,13 +506,16 @@ object LyraWidgetUpdater {
         val key = "${s.id}|$effKey|$kind"
         bgCache[key]?.let { return it }
         val dp = ctx.resources.displayMetrics.density
+        val r = cornerRadius(ctx, 22f)
         val bmp = when (kind) {
-            K_COMPACT -> gradient((260 * dp).toInt().coerceAtMost(700), (96 * dp).toInt().coerceAtMost(300), accent, 22 * dp, pl)
-            K_MINI -> gradient((200 * dp).toInt().coerceAtMost(600), (64 * dp).toInt().coerceAtMost(220), accent, 20 * dp, pl)
-            K_TICKER -> gradient((420 * dp).toInt().coerceAtMost(900), (64 * dp).toInt().coerceAtMost(220), accent, 20 * dp, pl)
-            K_COVER -> coverCard(s.art, (200 * dp).toInt().coerceAtMost(520), 22 * dp, 0.62f, accent, pl)
-            K_PLAY -> coverCard(s.art, (100 * dp).toInt().coerceAtMost(300), 20 * dp, 0f, accent, pl, dim = 120)
-            else -> gradient((420 * dp).toInt().coerceAtMost(900), (200 * dp).toInt().coerceAtMost(500), accent, 26 * dp, pl)
+            K_COMPACT -> gradient((260 * dp).toInt().coerceAtMost(700), (96 * dp).toInt().coerceAtMost(300), accent, r, pl)
+            K_MINI -> gradient((200 * dp).toInt().coerceAtMost(600), (64 * dp).toInt().coerceAtMost(220), accent, r, pl)
+            K_TICKER -> gradient((420 * dp).toInt().coerceAtMost(900), (64 * dp).toInt().coerceAtMost(220), accent, r, pl)
+            K_COVER -> coverCard(s.art, (200 * dp).toInt().coerceAtMost(520), r, 0.62f, accent, pl)
+            K_PLAY -> coverCard(s.art, (100 * dp).toInt().coerceAtMost(300), r, 0f, accent, pl, dim = 120)
+            K_ART -> coverCard(s.art, (100 * dp).toInt().coerceAtMost(300), r, 0f, accent, pl)
+            K_BIG -> gradient((200 * dp).toInt().coerceAtMost(520), (200 * dp).toInt().coerceAtMost(520), accent, r, pl)
+            else -> gradient((420 * dp).toInt().coerceAtMost(900), (200 * dp).toInt().coerceAtMost(500), accent, r, pl)
         }
         bgCache[key] = bmp
         return bmp

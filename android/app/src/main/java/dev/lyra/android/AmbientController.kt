@@ -41,6 +41,7 @@ class AmbientTileService : TileService() {
         render()
     }
 
+    @android.annotation.SuppressLint("StartActivityAndCollapseDeprecated") // the Intent overload is only used below API 34
     override fun onClick() {
         super.onClick()
         val a = AmbientController.activity

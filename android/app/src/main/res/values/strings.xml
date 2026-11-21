@@ -13,4 +13,10 @@
     <string name="lyra_widget_play_description">A play / pause button on the dimmed cover. 1 x 1.</string>
     <string name="lyra_widget_cover_name">Lyra cover art</string>
     <string name="lyra_widget_cover_description">The cover art with the current line on it. 2 x 2.</string>
+    <string name="lyra_widget_card_name">Lyra now playing card</string>
+    <string name="lyra_widget_card_description">Big cover, the current and next lyric line, progress and controls. 4 x 2.</string>
+    <string name="lyra_widget_big_name">Lyra big lyric</string>
+    <string name="lyra_widget_big_description">The current line in big type, fading to the next one as the song moves. 2 x 2.</string>
+    <string name="lyra_widget_art_name">Lyra cover</string>
+    <string name="lyra_widget_art_description">Just the cover, with a small play / pause chip. 1 x 1.</string>
 </resources>

@@ -72,13 +72,11 @@ class MainActivity : ComponentActivity() {
     /** Opened from the lyrics notification on the lock screen: show above it (without unlocking), like an alarm. */
     private fun applyLockMode(i: android.content.Intent?) {
         val fromLock = i?.getBooleanExtra("fromLock", false) == true
-        setShowWhenLocked(fromLock)
-        setTurnScreenOn(fromLock)
+        showOverLockScreen(fromLock)
     }
 
     override fun onStop() {
-        setShowWhenLocked(false) // next time Lyra opens normally, it must not appear over the lock screen
-        setTurnScreenOn(false)
+        showOverLockScreen(false) // next time Lyra opens normally, it must not appear over the lock screen
         super.onStop()
     }
 

@@ -8,6 +8,9 @@ import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
+import android.os.PowerManager
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -102,7 +105,17 @@ class LyricsNotificationService : Service() {
     private val tick = object : Runnable {
         override fun run() {
             refresh()
-            main.postDelayed(this, 500)
+            // nobody sees the shade while the screen is off: stop ticking, the SCREEN_ON receiver resumes it
+            if ((getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive) main.postDelayed(this, 500)
+        }
+    }
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            main.removeCallbacks(tick)
+            if (intent.action == Intent.ACTION_SCREEN_ON) {
+                refresh(force = true)
+                main.post(tick)
+            }
         }
     }
 
@@ -117,6 +130,10 @@ class LyricsNotificationService : Service() {
                 NotificationChannel(CHANNEL, "Lyrics", NotificationManager.IMPORTANCE_LOW).apply {
                     description = "Live lyrics on the lock screen and in the notification shade"
                     setShowBadge(false)
+                    // a quiet, persistent media card: no sound, no vibration (IMPORTANCE_LOW is what music players use)
+                    setSound(null, null)
+                    enableVibration(false)
+                    enableLights(false)
                     lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 }
             )
@@ -124,6 +141,7 @@ class LyricsNotificationService : Service() {
             ServiceCompat.startForeground(this, ID, buildNotification(MediaMonitor.now()), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
             MediaMonitor.addListener(listener)
             MediaMonitor.refresh(this)
+            registerReceiver(screenReceiver, IntentFilter().apply { addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_SCREEN_ON) })
             main.post(tick)
         }
         return START_STICKY
@@ -160,7 +178,7 @@ class LyricsNotificationService : Service() {
 
     private fun display(now: MediaMonitor.Now): Display {
         val lines = if (LyricsNotifier.linesTrack == now.id) LyricsNotifier.lines else emptyList()
-        val sub = if (now.artist.isNotEmpty()) "${now.title} · ${now.artist}" else now.title
+        var sub = if (now.artist.isNotEmpty()) "${now.title} · ${now.artist}" else now.title
         if (lines.isEmpty()) {
             val note = when {
                 LyricsNotifier.linesTrack != now.id -> "Lyrics load while Lyra is open"
@@ -170,6 +188,7 @@ class LyricsNotificationService : Service() {
             return Display(now.title, if (now.artist.isNotEmpty()) "${now.artist} · $note" else note, sub)
         }
         val idx = LyricsNotifier.activeIndex(now.positionMs)
+        if (idx >= 0) sub = "$sub · ${idx + 1}/${lines.size}" // the lyrics' own progress, next to the seek bar of the media card
         fun text(i: Int): String = lines.getOrNull(i)?.text?.ifBlank { "♪" } ?: ""
         return Display(if (idx < 0) "♪" else text(idx), text(idx + 1), sub)
     }
@@ -242,6 +261,13 @@ class LyricsNotificationService : Service() {
         return Color.rgb((Color.red(s) * 0.55).toInt(), (Color.green(s) * 0.55).toInt(), (Color.blue(s) * 0.55).toInt())
     }
 
+    /** What the lock screen shows when lyrics must stay private: title, artist and cover, never a lyric line. */
+    private fun publicVersion(now: MediaMonitor.Now?): Notification {
+        val pb = Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_stat_lyra).setShowWhen(false)
+        if (now == null || now.isAd) return pb.setContentTitle("Lyra").setContentText("Lyrics are on").build()
+        return pb.setContentTitle(now.title).setContentText(now.artist.ifEmpty { "Lyra" }).setLargeIcon(now.art).build()
+    }
+
     private fun buildNotification(now: MediaMonitor.Now?): Notification {
         val publicLock = LyricsNotifier.publicOnLock(this)
         val open = PendingIntent.getActivity(
@@ -257,8 +283,9 @@ class LyricsNotificationService : Service() {
             .setShowWhen(false)
             .setCategory(Notification.CATEGORY_TRANSPORT)
             .setVisibility(if (publicLock) Notification.VISIBILITY_PUBLIC else Notification.VISIBILITY_PRIVATE)
-            .setPublicVersion(Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_stat_lyra).setContentTitle("Lyra").setContentText("Lyrics are on").build())
+            .setPublicVersion(publicVersion(now))
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) b.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
         if (now == null || now.isAd) {
             return b.setContentTitle("Lyra").setContentText(if (now?.isAd == true) "Ad playing" else "Nothing playing").build()
         }
@@ -281,6 +308,7 @@ class LyricsNotificationService : Service() {
 
     override fun onDestroy() {
         main.removeCallbacks(tick)
+        try { unregisterReceiver(screenReceiver) } catch (_: Exception) { }
         MediaMonitor.removeListener(listener)
         session?.release()
         session = null

@@ -134,19 +134,24 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
                 } else ok(JSONObject().put("ok", false).put("error", "Recording a lyric video needs Android 10 or newer."))
             }
             "recordGo" -> ui {
-                val a = if (android.os.Build.VERSION.SDK_INT >= 29) activity as? RecordActivity else null
-                val err = a?.go(args.optString(0, ""))
-                if (a == null) ok(JSONObject().put("ok", false).put("error", "Not on the recording screen."))
-                else ok(JSONObject().put("ok", err == null).put("error", err ?: JSONObject.NULL))
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    val a = activity as? RecordActivity
+                    if (a == null) ok(JSONObject().put("ok", false).put("error", "Not on the recording screen."))
+                    else {
+                        val err = a.go(args.optString(0, ""))
+                        ok(JSONObject().put("ok", err == null).put("error", err ?: JSONObject.NULL))
+                    }
+                } else ok(JSONObject().put("ok", false).put("error", "Not on the recording screen."))
             }
             "recordFinish" -> ui {
-                val a = if (android.os.Build.VERSION.SDK_INT >= 29) activity as? RecordActivity else null
-                if (a == null) ok(JSONObject().put("ok", false))
-                else a.finishNow { err -> ok(JSONObject().put("ok", err == null).put("error", err ?: JSONObject.NULL)) }
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    val a = activity as? RecordActivity
+                    if (a == null) ok(JSONObject().put("ok", false))
+                    else a.finishNow { err -> ok(JSONObject().put("ok", err == null).put("error", err ?: JSONObject.NULL)) }
+                } else ok(JSONObject().put("ok", false))
             }
             "recordAbort" -> ui {
-                val a = if (android.os.Build.VERSION.SDK_INT >= 29) activity as? RecordActivity else null
-                a?.leave(null)
+                if (android.os.Build.VERSION.SDK_INT >= 29) (activity as? RecordActivity)?.leave(null)
                 ok(true)
             }
             "copy" -> ui {
@@ -266,13 +271,14 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
                     }.getOrDefault(false)
             }
         }.getOrDefault(false)
-        val audioPath = when (RecordService.lastSound) {
+        val lastSound = if (android.os.Build.VERSION.SDK_INT >= 29) RecordService.lastSound else null
+        val audioPath = when (lastSound) {
             "capture" -> "direct playback capture"
             "microphone" -> "microphone"
             "none" -> "silent / no usable audio"
             else -> "not tested yet"
         }
-        val level = RecordService.lastSoundLevelDbfs?.let { "%.1f dBFS peak".format(java.util.Locale.US, it) } ?: "not measured"
+        val level = (if (android.os.Build.VERSION.SDK_INT >= 29) RecordService.lastSoundLevelDbfs else null)?.let { "%.1f dBFS peak".format(java.util.Locale.US, it) } ?: "not measured"
         return listOf(
             "Lyra Android compatibility report",
             "Device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}".trim(),
