@@ -10,6 +10,7 @@ import './styles/lyrics.css'
 import './styles/panels.css'
 import './styles/android.css'
 import './styles/polish.css'
+import './styles/redesign.css'
 import { useSettings } from './store/settings'
 
 // let CSS honour the in-app reduced-motion setting (the OS preference is handled by media queries)
