@@ -18,71 +18,6 @@
 :root:not([data-vibe='none']) .backdrop:not(.backdrop--media) .backdrop__shade { background: transparent !important; }
 :root:not([data-vibe='none']) .backdrop:not(.backdrop--media) .backdrop__field { background-blend-mode: normal; }
 
-/* ======================= NEON: synthwave tube lights ======================= */
-[data-vibe='neon'] .shell {
-  --accent: #ff3bd9;
-  --glow: rgba(255, 59, 217, 0.65);
-  --glow-soft: rgba(255, 59, 217, 0.3);
-  --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif;
-  --fg: #fff;
-  --bg-0: #09031c;
-}
-[data-vibe='neon'] .backdrop .backdrop__field {
-  background:
-    radial-gradient(90% 60% at 50% 62%, rgba(255, 59, 217, 0.28), transparent 70%),
-    linear-gradient(180deg, #0a0224 0%, #1a0537 48%, #2b0a4d 62%, #07020f 62.2%);
-}
-.vibefx__sun {
-  position: absolute;
-  left: 50%;
-  top: 36%;
-  width: min(46vw, 62vh);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: linear-gradient(180deg, #ffe45e 0%, #ff7a3c 45%, #ff2bd6 100%);
-  box-shadow: 0 0 120px 20px rgba(255, 59, 217, 0.45);
-  -webkit-mask: repeating-linear-gradient(180deg, #000 0 14px, transparent 14px 18px);
-  mask: repeating-linear-gradient(180deg, #000 0 14px, transparent 14px 18px);
-  -webkit-mask-size: 100% 100%;
-  opacity: 0.55;
-}
-.vibefx__grid {
-  position: absolute;
-  left: -50%;
-  right: -50%;
-  top: 62%;
-  bottom: -40%;
-  background:
-    linear-gradient(90deg, rgba(38, 240, 255, 0.75) 1.5px, transparent 1.5px) 0 0 / 70px 100%,
-    linear-gradient(180deg, rgba(38, 240, 255, 0.75) 1.5px, transparent 1.5px) 0 0 / 100% 56px;
-  transform: perspective(380px) rotateX(62deg);
-  transform-origin: top;
-  -webkit-mask: linear-gradient(180deg, transparent, #000 40%);
-  mask: linear-gradient(180deg, transparent, #000 40%);
-  will-change: transform;
-  animation: vfx-grid 1.6s linear infinite;
-}
-@keyframes vfx-grid { from { transform: perspective(380px) rotateX(62deg) translateY(0); } to { transform: perspective(380px) rotateX(62deg) translateY(56px); } }
-[data-vibe='neon'] .kin__word {
-  font-family: 'Unbounded Variable', var(--font);
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  color: #fff;
-  text-shadow: 0 0 6px #fff, 0 0 18px #ff3bd9, 0 0 44px #ff3bd9;
-}
-[data-vibe='neon'] .kin__word.is-now {
-  color: #d9fbff;
-  /* a tight tube glow: a wide bloom lights up the area around the letters and costs readability */
-  text-shadow: 0 0 3px #fff, 0 0 9px #26f0ff, 0 0 22px rgba(38, 240, 255, 0.5);
-  animation: neon-flicker 3.4s linear infinite;
-}
-@keyframes neon-flicker {
-  0%, 18%, 22%, 62%, 64%, 100% { opacity: 1; }
-  20%, 63% { opacity: 0.72; }
-}
-[data-vibe='neon'] .kin { font-size: calc(min(15cqw, 22cqh) * var(--k, 1)); }
-
 /* ======================= CHROME: Y2K liquid metal ======================= */
 [data-vibe='chrome'] .shell {
   --accent: #8fd1ff;
@@ -352,9 +287,8 @@
 .bub__read { margin: 3px 8px 0; font-size: 11px; color: var(--fg-3); }
 
 @media (prefers-reduced-motion: reduce) {
-  .vibefx__grid, .vibefx__spark, .vibefx__orb, .vibefx__scan, .term__caret, .bub__dots i { animation: none; }
+  .vibefx__spark, .vibefx__orb, .vibefx__scan, .term__caret, .bub__dots i { animation: none; }
 }
-:root[data-motion='off'] .vibefx__grid,
 :root[data-motion='off'] .vibefx__spark,
 :root[data-motion='off'] .vibefx__orb,
 :root[data-motion='off'] .vibefx__scan,
@@ -362,15 +296,9 @@
 :root[data-motion='off'] .bub__dots i { animation: none; }
 
 /* over a playing video the big scenery steps back so the footage stays the star */
-.backdrop--media ~ .vibefx .vibefx__sun,
-.backdrop--media ~ .vibefx .vibefx__grid,
 .backdrop--media ~ .vibefx .vibefx__orb,
 .backdrop--media ~ .vibefx .vibefx__dots { opacity: 0.18; }
 
-/* neon: the slab word is a lit tube, and on a tall phone the sun sits on the horizon behind the lyrics */
-[data-vibe='neon'] .kin__word.is-slab { background: #26f0ff; color: #05020f; text-shadow: none; box-shadow: 0 0 24px #26f0ff, 0 0 60px rgba(38, 240, 255, 0.5); }
-[data-platform='android'] .vibefx__sun { top: 62%; width: 78vw; }
-[data-platform='android'] .vibefx__grid { top: 74%; }
 
 /* ======================= shared: the flash when the vibe changes ======================= */
 .vibeflash {
@@ -380,6 +308,8 @@
   opacity: 0;
   animation: vibe-flash 0.9s ease-out;
 }
+/* paused / hidden: the flash must not stay frozen over the scene */
+:root[data-calm] .vibeflash { display: none; }
 @keyframes vibe-flash { 0% { opacity: 0.55; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.6); } }
 
 /* gallery: multi-select ticks */
@@ -653,8 +583,7 @@
 [data-vibe='trailer'] .kin__word.is-slab { background: none; color: #ffd9a0; padding: 0; transform: none; border-top: 2px solid #ffd9a0; border-bottom: 2px solid #ffd9a0; }
 [data-vibe='trailer'] .kin__word.is-big { font-size: 1.2em; }
 
-/* neon and sunset set big, bright type in front of a bright sun: a soft dark halo behind the stage keeps it readable */
-[data-vibe='neon'] .stage::before,
+/* sunset sets big, bright type in front of a bright sun: a soft dark halo behind the stage keeps it readable */
 [data-vibe='sunset'] .stage::before {
   content: '';
   position: absolute;
@@ -662,7 +591,6 @@
   pointer-events: none;
   background: radial-gradient(ellipse 62% 58% at 50% 50%, rgba(10, 0, 24, 0.62), transparent 78%);
 }
-[data-vibe='neon'] .vibefx__sun { opacity: 0.42; }
 [data-vibe='sunset'] .vibefx__sunset-sun { opacity: 0.78; }
 
 /* ---------- contrast fixes found by the UI test ---------- */

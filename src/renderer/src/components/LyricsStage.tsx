@@ -101,6 +101,7 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
+      {mode === 'sign' && <Sign lines={lines} active={active} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -619,6 +620,50 @@ const LtBar = memo(function LtBar({ line, nextTime }: { line: LyricLine; nextTim
           </span>
         ))}
       </p>
+    </motion.div>
+  )
+})
+
+// ---------- sign: the song is lit word by word on a wall sign, the next line waits underneath ----------
+const Sign = memo(function Sign({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const line = active >= 0 ? lines[active] : undefined
+  const live = line && line.text !== '' ? line : undefined
+  const next = lines.slice(active + 1).find((l) => l.text !== '')
+  return (
+    <div className="sign">
+      <AnimatePresence mode="wait" initial={false}>
+        {live && <SignLine key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} next={next?.text} />}
+      </AnimatePresence>
+    </div>
+  )
+})
+const SignLine = memo(function SignLine({ line, index, nextTime, next }: { line: LyricLine; index: number; nextTime: number | undefined; next: string | undefined }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words)
+  // one word per line flickers now and then, like a tired tube (picked from the line itself so it stays put)
+  const tired = hash(index, line.text) % words.length
+  const row = (
+    <>
+      {words.map((w, i) => (
+        <span key={i} className={['sign__word', i < revealed ? 'is-in' : '', i === revealed - 1 ? 'is-now' : '', i === tired ? 'is-tired' : ''].join(' ')}>
+          {w.text}
+        </span>
+      ))}
+    </>
+  )
+  return (
+    <motion.div
+      className="sign__line"
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10, transition: { duration: 0.22 } }}
+      transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+    >
+      <div className="sign__row">{row}</div>
+      {next && <div className="sign__next">{next}</div>}
+      <div className="sign__refl" aria-hidden="true">
+        <div className="sign__row">{row}</div>
+      </div>
     </motion.div>
   )
 })

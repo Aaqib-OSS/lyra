@@ -21,7 +21,6 @@ import { fillWindow, isAnimating, runTransition, shell } from '@/lib/shell'
 import { useLyrics } from '@/store/lyrics'
 import { OFFSET_STEP_MS, nudgeSongOffset } from '@/store/offsets'
 import { getFullscreenShortcutAction } from '@shared/shortcuts'
-import { resolveFullscreenFlipSide } from '@shared/fullLayout'
 import { usePlayer } from '@/store/player'
 import { useSettings } from '@/store/settings'
 import { requestMode, useUi } from '@/store/ui'
@@ -142,24 +141,6 @@ function useHotkeys(): void {
           case 'nudge':
             nudgeSongOffset(fullscreenAction.direction * OFFSET_STEP_MS)
             break
-          case 'layout':
-            useSettings.getState().set({ fullLayout: fullscreenAction.layout })
-            break
-          case 'flip-side': {
-            if (e.repeat) break
-            const settings = useSettings.getState().settings
-            const currentUi = useUi.getState()
-            const next = resolveFullscreenFlipSide(
-              settings.fullLayout,
-              window.innerWidth,
-              window.innerHeight,
-              currentUi.lyricSideFlipped
-            )
-            if (next.layout === 'split' && next.lyricSideFlipped !== currentUi.lyricSideFlipped) {
-              currentUi.toggleLyricSide()
-            }
-            break
-          }
         }
         return
       }

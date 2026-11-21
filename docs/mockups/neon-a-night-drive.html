@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Neon concept A: Night Drive</title>
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#05010f;overflow:hidden;font-family:'Unbounded','Nunito',system-ui,sans-serif}
+.stage{position:relative;width:100vw;height:100vh;overflow:hidden;--p:0;
+  background:linear-gradient(180deg,#07011a 0%,#1b0540 46%,#3a0a63 60%,#07020f 60.2%)}
+/* stars */
+.stars{position:absolute;inset:0 0 45% 0}
+.stars i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;animation:tw 3s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.15}50%{opacity:1}}
+.shoot{position:absolute;top:8%;left:70%;width:160px;height:2px;background:linear-gradient(90deg,#fff,transparent);transform:rotate(28deg);opacity:0;animation:shoot 7s linear infinite 2s}
+@keyframes shoot{0%{opacity:0;transform:translate(0,0) rotate(28deg)}4%{opacity:1}14%{opacity:0;transform:translate(-420px,230px) rotate(28deg)}100%{opacity:0}}
+/* sun rises with the song */
+.sun{position:absolute;left:36%;width:min(36vw,48vh);aspect-ratio:1;border-radius:50%;
+  top:calc(62% - var(--p) * 0px);transform:translate(-50%,calc(-50% - 16vh * var(--sunup,0.3)));
+  background:linear-gradient(180deg,#ffe45e 0%,#ff7a3c 45%,#ff2bd6 100%);
+  box-shadow:0 0 140px 24px rgba(255,59,217,.45);
+  -webkit-mask:repeating-linear-gradient(180deg,#000 0 14px,transparent 14px 19px),linear-gradient(180deg,#000 55%,transparent 55%);-webkit-mask-composite:source-over;
+  mask:repeating-linear-gradient(180deg,#000 0 14px,transparent 14px 19px);
+  clip-path:inset(0 0 calc(50% - 50% * var(--sunup,.3) * 3) 0);opacity:.78;animation:sunpulse 2s ease-in-out infinite}
+@keyframes sunpulse{50%{filter:brightness(1.18)}}
+/* skyline */
+.sky{position:absolute;left:0;right:0;top:calc(62% - 17vh);height:17vh}
+.sky svg{width:100%;height:100%;display:block}
+.win{animation:win 4s steps(1) infinite}
+@keyframes win{0%{opacity:1}40%{opacity:.2}55%{opacity:1}80%{opacity:.4}}
+/* grid floor driven by tempo */
+.floor{position:absolute;left:0;right:0;top:62%;bottom:0;overflow:hidden;perspective:520px}
+.grid{position:absolute;left:-60%;right:-60%;top:0;height:200%;transform-origin:top;transform:rotateX(64deg);
+  background:linear-gradient(90deg,rgba(38,240,255,.85) 2px,transparent 2px) 0 0/90px 100%,linear-gradient(180deg,rgba(38,240,255,.85) 2px,transparent 2px) 0 0/100% 70px;
+  -webkit-mask:linear-gradient(180deg,transparent,#000 35%);animation:drive 1.1s linear infinite}
+@keyframes drive{to{background-position:0 0,0 70px}}
+.horizon{position:absolute;left:0;right:0;top:calc(62% - 2px);height:4px;background:#ff3bd9;box-shadow:0 0 24px 6px #ff3bd9,0 0 80px 14px rgba(255,59,217,.6)}
+/* video billboard on a pole */
+.bill{position:absolute;right:7%;top:14%;width:31%;aspect-ratio:16/9;transform:perspective(900px) rotateY(-14deg) rotateZ(1.2deg);
+  border:3px solid #26f0ff;border-radius:10px;box-shadow:0 0 0 3px #05010f,0 0 22px #26f0ff,0 0 70px rgba(38,240,255,.55),inset 0 0 40px rgba(38,240,255,.3);overflow:hidden;background:#000;animation:billbuzz 5s infinite}
+@keyframes billbuzz{0%,92%,100%{filter:none}93%{filter:brightness(1.7) saturate(1.4)}94%{filter:brightness(.6)}96%{filter:none}}
+.bill .vid{position:absolute;inset:0;background:radial-gradient(60% 80% at 30% 40%,#ff7a3c 0,transparent 60%),radial-gradient(70% 90% at 80% 70%,#6a3cff 0,transparent 60%),#1a0a30;animation:vidmove 9s ease-in-out infinite alternate}
+@keyframes vidmove{to{background-position:30% 20%;filter:hue-rotate(60deg)}}
+.bill:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(0,0,0,.28) 0 2px,transparent 2px 5px),linear-gradient(105deg,transparent 40%,rgba(255,255,255,.14) 50%,transparent 60%) -150% 0/250% 100% no-repeat;animation:sweep 6s linear infinite}
+@keyframes sweep{to{background-position:150% 0}}
+.bill .rec{position:absolute;left:10px;top:8px;font:700 11px/1 'Unbounded',sans-serif;letter-spacing:.18em;color:#ff3bd9;text-shadow:0 0 8px #ff3bd9;z-index:2}
+.pole{position:absolute;right:21%;top:calc(14% + 17.5vw*.56*.9);width:8px;height:30%;background:linear-gradient(90deg,#1c0a36,#3a1470);box-shadow:0 0 14px rgba(255,59,217,.5)}
+/* lyrics */
+.lyrics{position:absolute;left:5%;top:9%;width:58%;height:40%;display:flex;flex-direction:column;justify-content:center;gap:1.1vh}
+.row{font-weight:800;letter-spacing:-.04em;font-size:min(5.4vw,9.4vh);line-height:1.02;text-transform:none;display:flex;flex-wrap:wrap;gap:0 .28em}
+.w{color:#7a35c0;transition:color .25s;-webkit-text-stroke:1.5px rgba(255,59,217,.8)}
+.w.on{color:#fff;-webkit-text-stroke:0;text-shadow:0 0 6px #fff,0 0 18px #ff3bd9,0 0 44px #ff3bd9;animation:strike .55s steps(1) 1,buzz 3.4s linear infinite .6s}
+.w.now{color:#e8ffff;text-shadow:0 0 4px #fff,0 0 12px #26f0ff,0 0 30px #26f0ff,0 0 70px rgba(38,240,255,.6)}
+@keyframes strike{0%{opacity:0}12%{opacity:1}22%{opacity:.1}34%{opacity:1}48%{opacity:.25}60%,100%{opacity:1}}
+@keyframes buzz{0%,17%,21%,61%,63%,100%{opacity:1}19%,62%{opacity:.78}}
+.sub{font:600 1.55vh/1 'Nunito',sans-serif;letter-spacing:.16em;color:#9efcff;opacity:.8;text-transform:uppercase;text-shadow:0 0 10px #26f0ff}
+.row.next{font-size:min(3vw,5vh);opacity:.5}
+.row.next .w{-webkit-text-stroke:1px rgba(38,240,255,.7)}
+/* reflection under horizon */
+.refl{position:absolute;left:5%;top:62.5%;width:60%;height:14%;overflow:hidden;opacity:.2;transform:scaleY(-1);filter:blur(2px);-webkit-mask:linear-gradient(0deg,#000,transparent)}
+/* edge tube */
+.edge{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+/* player dock */
+.dock{position:absolute;left:5%;right:5%;bottom:4.5%;height:15%;display:flex;align-items:center;gap:2vw;padding:0 2vw;
+  background:rgba(14,4,34,.82);border:2px solid #ff3bd9;border-radius:22px;box-shadow:0 0 0 1px #05010f,0 0 20px rgba(255,59,217,.7),0 0 60px rgba(255,59,217,.3),inset 0 0 24px rgba(255,59,217,.25);backdrop-filter:blur(6px)}
+.cov{height:78%;aspect-ratio:1;border-radius:14px;position:relative;background:conic-gradient(from 20deg,#ff2bd6,#6a3cff,#26f0ff,#ffe45e,#ff2bd6);box-shadow:0 0 0 2px #26f0ff,0 0 22px rgba(38,240,255,.7);animation:coverspin 24s linear infinite}
+@keyframes coverspin{to{filter:hue-rotate(360deg)}}
+.cov:after{content:"";position:absolute;inset:30%;border-radius:50%;background:#12031f;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
+.meta{min-width:0;flex:0 0 22%}
+.meta b{display:block;color:#fff;font-size:2.6vh;letter-spacing:-.02em;text-shadow:0 0 12px rgba(255,59,217,.9);white-space:nowrap}
+.meta span{display:block;margin-top:.7vh;color:#9efcff;font:700 1.5vh 'Nunito',sans-serif;letter-spacing:.2em;text-transform:uppercase}
+.tube{flex:1;height:14px;border-radius:99px;background:#1b0636;box-shadow:inset 0 0 0 2px rgba(255,59,217,.35);position:relative}
+.tube i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;width:calc(var(--p)*100%);background:linear-gradient(90deg,#ff3bd9,#26f0ff);box-shadow:0 0 14px #26f0ff,0 0 30px rgba(255,59,217,.7)}
+.tube i:after{content:"";position:absolute;right:-5px;top:50%;width:14px;height:14px;margin-top:-7px;border-radius:50%;background:#fff;box-shadow:0 0 14px 5px #26f0ff,0 0 34px 10px #ff3bd9;animation:spark .25s steps(2) infinite}
+@keyframes spark{50%{transform:scale(1.5);opacity:.8}}
+.ctl{display:flex;gap:1.4vw;align-items:center}
+.ctl svg{width:3.6vh;height:3.6vh;fill:none;stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 6px #ff3bd9)}
+.ctl .pp{width:6.8vh;height:6.8vh;border-radius:50%;border:2px solid #26f0ff;display:grid;place-items:center;box-shadow:0 0 18px rgba(38,240,255,.8),inset 0 0 14px rgba(38,240,255,.3)}
+.tag{position:absolute;left:2%;top:3%;font:800 1.5vh 'Unbounded';letter-spacing:.3em;color:#26f0ff;text-shadow:0 0 10px #26f0ff}
+
+/* ---- state matrix ---- */
+.w{text-shadow:none}
+.lyrics:before{content:"";position:absolute;inset:-6% -4%;background:radial-gradient(closest-side,rgba(7,1,26,.72),transparent);z-index:-1}
+.plain,.sign,.wait,.art{display:none}
+.plain{position:absolute;left:5%;top:9%;width:58%;height:44%;flex-direction:column;justify-content:center;gap:1.4vh}
+.plain p{font:700 min(2.6vw,4.2vh)/1.25 'Unbounded',sans-serif;color:#ffe9fb;text-shadow:0 0 8px rgba(255,59,217,.8),0 0 24px rgba(255,59,217,.45);letter-spacing:-.02em}
+.plain small,.sign small,.wait small{font:800 1.5vh 'Unbounded';letter-spacing:.3em;color:#26f0ff;text-shadow:0 0 10px #26f0ff;border:2px solid #26f0ff;border-radius:8px;padding:.7vh 1.2vh;align-self:flex-start;box-shadow:0 0 12px rgba(38,240,255,.5)}
+.sign{position:absolute;left:5%;top:9%;width:58%;height:44%;flex-direction:column;justify-content:center;gap:2vh}
+.sign h1{font-weight:900;font-size:min(7.2vw,12vh);letter-spacing:-.05em;line-height:1;color:#fff;text-shadow:0 0 6px #fff,0 0 20px #ff3bd9,0 0 50px #ff3bd9;animation:buzz 3.4s linear infinite}
+.sign h2{font:800 min(2vw,3.2vh) 'Unbounded';letter-spacing:.3em;color:#26f0ff;text-shadow:0 0 12px #26f0ff;text-transform:uppercase}
+.eq{display:flex;gap:6px;align-items:flex-end;height:7vh}.eq i{width:10px;border-radius:3px;background:linear-gradient(180deg,#26f0ff,#ff3bd9);box-shadow:0 0 10px #26f0ff;animation:eq 1s ease-in-out infinite}
+@keyframes eq{0%,100%{height:15%}50%{height:100%}}
+.wait{position:absolute;left:5%;top:9%;width:58%;height:44%;flex-direction:column;justify-content:center;gap:2vh}
+.wait h1{font-weight:900;font-size:min(5.6vw,9.5vh);letter-spacing:-.04em;color:#e8ffff;text-shadow:0 0 6px #fff,0 0 20px #26f0ff,0 0 50px #26f0ff;animation:buzz 1.1s linear infinite}
+.wait h1 i{font-style:normal;animation:dots 1.2s steps(1) infinite}@keyframes dots{0%{opacity:0}33%{opacity:1}}
+.art{position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:1vh;z-index:3;background:radial-gradient(circle,rgba(38,240,255,.14),transparent 70%),#08011a}
+.art b{font:900 2.6vw 'Unbounded';letter-spacing:.12em;color:#26f0ff;text-shadow:0 0 10px #26f0ff,0 0 30px #26f0ff;animation:buzz 2.4s linear infinite}
+.art em{font:700 1.3vw 'Nunito';font-style:normal;color:#ffd6f7;letter-spacing:.2em;text-transform:uppercase}
+.noise{display:none;position:absolute;inset:0;z-index:3;background:repeating-linear-gradient(0deg,#222 0 2px,#999 2px 3px);opacity:.5;animation:nz .2s steps(3) infinite}@keyframes nz{50%{background-position:0 2px;filter:contrast(1.4)}}
+.sw{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:50;display:flex;gap:4px;background:rgba(0,0,0,.6);padding:4px;border-radius:99px}
+.sw button{font:700 11px 'Nunito';color:#fff;background:#2a0f46;border:0;border-radius:99px;padding:5px 9px;cursor:pointer}.sw button.on{background:#ff3bd9;color:#12031f}
+/* states: data-v video (on|art|noise), data-l lyrics (sync|plain|none|wait|idle) */
+[data-l=plain] .lyrics,[data-l=none] .lyrics,[data-l=wait] .lyrics,[data-l=idle] .lyrics{display:none}
+[data-l=plain] .plain{display:flex}
+[data-l=none] .sign,[data-l=idle] .sign{display:flex}
+[data-l=wait] .wait{display:flex}
+[data-v=art] .art{display:flex}[data-v=art] .vid{opacity:0}[data-v=noise] .noise{display:block}
+[data-l=idle] .edge,[data-l=idle] .sun{opacity:.25}[data-l=idle] .grid{animation-play-state:paused}
+[data-l=idle] .cov{animation-play-state:paused;filter:grayscale(.7)}
+[data-l=plain] .grid,[data-l=wait] .grid{animation-duration:2.2s}
+</style></head><body>
+<div class="stage" id="st">
+  <div class="stars" id="stars"></div><div class="shoot"></div>
+  <div class="sun"></div>
+  <div class="sky"><svg viewBox="0 0 1000 170" preserveAspectRatio="none" id="sk"></svg></div>
+  <div class="horizon"></div>
+  <div class="floor"><div class="grid"></div></div>
+  <div class="bill"><div class="vid"></div><span class="rec">● VIDEO</span><div class="noise"></div><div class="art"><b>NO VIDEO</b><em id="artmsg">just the music</em><div class="eq" style="height:4vh"><i></i><i style="animation-delay:.2s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.3s"></i></div></div></div><div class="pole"></div>
+  <div class="lyrics"><div class="row" id="cur"></div><div class="row next" id="nxt"></div></div>
+  <svg class="edge" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+    <defs><filter id="g" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <rect x="14" y="14" width="1892" height="1052" rx="30" fill="none" stroke="rgba(255,59,217,.22)" stroke-width="4"/>
+    <rect id="lit" x="14" y="14" width="1892" height="1052" rx="30" fill="none" stroke="#ff3bd9" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" filter="url(#g)"/>
+    <circle id="head" r="9" fill="#fff" filter="url(#g)"/>
+  </svg>
+  <div class="plain"><small>NOT SYNCED</small><p>Chasing the lights on an empty road</p><p>Engine humming low like a heartbeat</p><p>Neon rain on the windshield glass</p><p>We never slow down</p></div>
+  <div class="sign"><h2 id="sh2">now playing</h2><h1>Midnight Overdrive</h1><h2 id="sh3">Echo Avenue</h2><div class="eq"><i></i><i style="animation-delay:.15s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.05s"></i></div></div>
+  <div class="wait"><small>RETRY IN <span id="cd">8</span>s</small><h1>tuning in<i>.</i><i style="animation-delay:.2s">.</i><i style="animation-delay:.4s">.</i></h1></div>
+  <div class="sw" id="sw"></div>
+  <div class="tag">NEON · NIGHT DRIVE</div>
+  <div class="dock"><div class="cov"></div><div class="meta"><b>Midnight Overdrive</b><span>Echo Avenue</span></div>
+    <div class="tube"><i></i></div>
+    <div class="ctl"><svg viewBox="0 0 24 24"><path d="M19 5v14M17 12 7 5v14z"/></svg><div class="pp"><svg viewBox="0 0 24 24" style="width:60%;height:60%"><path d="M8 5v14M16 5v14"/></svg></div><svg viewBox="0 0 24 24"><path d="M5 5v14M7 12l10-7v14z"/></svg></div></div>
+</div>
+<script>
+const st=document.getElementById('st');
+const S=document.getElementById('stars');for(let i=0;i<70;i++){const e=document.createElement('i');e.style.cssText=`left:${(i*37+11)%100}%;top:${(i*53+7)%100}%;animation-delay:${(i*.37)%3}s;opacity:${.3+(i%5)/8};width:${1+i%3}px;height:${1+i%3}px`;S.appendChild(e)}
+// skyline
+let svg='',x=0,seed=3;const r=()=>(seed=(seed*9301+49297)%233280)/233280;
+while(x<1000){const w=24+r()*46,h=30+r()*120;svg+=`<rect x="${x}" y="${170-h}" width="${w}" height="${h}" fill="#0b0220" stroke="#6a1aa0" stroke-width=".7"/>`;
+ for(let j=0;j<h/14;j++)for(let k=0;k<w/10;k++)if(r()>.55)svg+=`<rect class="win" style="animation-delay:${r()*4}s" x="${x+4+k*10}" y="${170-h+5+j*14}" width="4" height="6" fill="${r()>.5?'#26f0ff':'#ff3bd9'}"/>`;x+=w+4}
+document.getElementById('sk').innerHTML=svg;
+const lines=[["Chasing","the","lights","on","an","empty","road"],["Engine","humming","low","like","a","heartbeat"],["Neon","rain","on","the","windshield","glass"],["We","never","slow","down"]];
+let li=0,wi=0;const cur=document.getElementById('cur'),nxt=document.getElementById('nxt');
+function render(){cur.innerHTML=lines[li].map((w,i)=>`<span class="w ${i<wi?'on':''} ${i==wi-1?'now':''}">${w}</span>`).join('');
+ nxt.innerHTML=lines[(li+1)%lines.length].map(w=>`<span class="w">${w}</span>`).join('')}
+render();
+setInterval(()=>{wi++;if(wi>lines[li].length){wi=0;li=(li+1)%lines.length}render()},430);
+// progress loop
+const rect=document.getElementById('lit'),head=document.getElementById('head');
+const L=rect;const dur=42000;
+function loop(t){const p=(t%dur)/dur;st.style.setProperty('--p',p);st.style.setProperty('--sunup',.12+.5*Math.sin(p*Math.PI));
+ rect.setAttribute('stroke-dasharray',`${p*100} 100`);
+ const len=rect.getTotalLength?rect.getTotalLength():0;
+ // pathLength=100 scales getPointAtLength? use raw length
+ const pt=rect.getPointAtLength(p*len);head.setAttribute('cx',pt.x);head.setAttribute('cy',pt.y);
+ requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+
+const STATES={A:['on','sync','Full experience'],B:['art','sync','Lyrics only'],C:['on','plain','Video + unsynced'],D:['art','plain','Text only'],E:['on','none','Video, no words'],F:['art','none','Music only'],G:['noise','wait','Waiting'],H:['art','idle','Idle / ad']};
+const sw=document.getElementById('sw');
+function setS(k){const [v,l]=STATES[k];st.dataset.v=v;st.dataset.l=l;[...sw.children].forEach(b=>b.classList.toggle('on',b.dataset.k==k));
+ document.getElementById('sh2').textContent=l=='idle'?'nothing playing':(l=='none'?'no words for this one':'now playing');
+ document.getElementById('artmsg').textContent=k=='G'?'looking for a clip':'just the music'}
+for(const k in STATES){const b=document.createElement('button');b.dataset.k=k;b.textContent=k+' '+STATES[k][2];b.onclick=()=>setS(k);sw.appendChild(b)}
+setS((location.hash||'#A').slice(1)||'A');addEventListener('hashchange',()=>setS(location.hash.slice(1)||'A'));
+setInterval(()=>{const c=document.getElementById('cd');c.textContent=((+c.textContent+7)%9)+1},1000);
+</script></body></html>

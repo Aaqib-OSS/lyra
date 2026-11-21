@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Neon concept B: Rain Alley</title>
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#03060d;overflow:hidden;font-family:'Unbounded','Nunito',system-ui,sans-serif}
+.stage{position:relative;width:100vw;height:100vh;overflow:hidden;--p:0;
+  background:radial-gradient(70% 55% at 22% 38%,rgba(255,43,140,.22),transparent 70%),radial-gradient(60% 50% at 82% 30%,rgba(38,240,255,.18),transparent 70%),linear-gradient(180deg,#05101c,#0a1426 60%,#03060d)}
+/* brick wall */
+.wall{position:absolute;inset:0 0 24% 0;opacity:.5;background:
+  repeating-linear-gradient(0deg,transparent 0 38px,rgba(0,0,0,.55) 38px 40px),
+  repeating-linear-gradient(90deg,transparent 0 118px,rgba(0,0,0,.45) 118px 120px);
+  -webkit-mask:linear-gradient(180deg,#000,rgba(0,0,0,.35))}
+.pipe{position:absolute;top:0;bottom:24%;width:16px;background:linear-gradient(90deg,#0b1424,#223552,#0b1424)}
+.fog{position:absolute;inset:0;background:radial-gradient(50% 30% at 50% 78%,rgba(255,43,140,.25),transparent),radial-gradient(40% 25% at 20% 75%,rgba(38,240,255,.2),transparent);animation:fog 8s ease-in-out infinite alternate}
+@keyframes fog{to{transform:translateX(3%);opacity:.7}}
+/* wet street */
+.street{position:absolute;left:0;right:0;bottom:0;height:24%;background:linear-gradient(180deg,#0a1220,#02040a);border-top:2px solid rgba(255,255,255,.08)}
+.puddle{position:absolute;bottom:4%;height:10%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,43,140,.5),rgba(38,240,255,.18),transparent);filter:blur(6px);animation:pud 3s ease-in-out infinite}
+@keyframes pud{50%{opacity:.55;transform:scaleX(1.08)}}
+.ring{position:absolute;width:40px;height:10px;border:1.5px solid rgba(180,240,255,.5);border-radius:50%;opacity:0;animation:ring 2.4s ease-out infinite}
+@keyframes ring{0%{opacity:.9;transform:scale(.2)}100%{opacity:0;transform:scale(2.4)}}
+/* rain */
+.rain{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.rain i{position:absolute;top:-12%;width:1.5px;height:9vh;background:linear-gradient(180deg,transparent,rgba(190,235,255,.75));transform:rotate(12deg);animation:fall linear infinite}
+@keyframes fall{to{transform:translate(-8vh,125vh) rotate(12deg)}}
+/* storefront window = video */
+.shop{position:absolute;left:5%;top:8%;width:36%;aspect-ratio:16/10;border:5px solid #1b2c48;border-radius:6px;background:#000;
+  box-shadow:0 0 0 2px #26f0ff,0 0 24px rgba(38,240,255,.7),0 0 80px rgba(38,240,255,.3);overflow:hidden}
+.shop .vid{position:absolute;inset:0;background:radial-gradient(60% 80% at 25% 40%,#ff2b8c 0,transparent 60%),radial-gradient(70% 90% at 80% 65%,#2b6bff 0,transparent 60%),#10142a;animation:vm 8s ease-in-out infinite alternate}
+@keyframes vm{to{filter:hue-rotate(50deg);background-position:20% 30%}}
+.shop:before{content:"";position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(180deg,rgba(0,0,0,.55) 0 7px,transparent 7px 22px);animation:blind 9s ease-in-out infinite;-webkit-mask:linear-gradient(180deg,#000 var(--b,0%),transparent var(--b,0%))}
+.shop:after{content:"";position:absolute;inset:0;z-index:3;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.14) 50%,transparent 60%) -150% 0/250% 100% no-repeat;animation:sw 5s linear infinite}
+@keyframes sw{to{background-position:150% 0}}
+@keyframes blind{0%,100%{--b:0%}}
+.open{position:absolute;left:5%;top:calc(8% - 5.2vh);font:900 2.5vh 'Unbounded';letter-spacing:.14em;color:#ff2b8c;text-shadow:0 0 8px #ff2b8c,0 0 26px #ff2b8c;border:3px solid #ff2b8c;border-radius:10px;padding:.5vh 1.4vh;box-shadow:0 0 14px #ff2b8c,inset 0 0 12px rgba(255,43,140,.5);animation:buzz 4s linear infinite}
+/* sign lyrics */
+.board{position:absolute;left:5%;right:23%;bottom:30%;top:46%;display:flex;flex-direction:column;justify-content:center}
+.row{display:flex;flex-wrap:wrap;gap:0 .3em;font-weight:900;font-size:min(5.6vw,9.8vh);letter-spacing:-.045em;line-height:1.08}
+.w{color:#26364f;-webkit-text-stroke:1.5px #3d6f9c;transition:.2s}
+.w.on{color:#ffe3f3;-webkit-text-stroke:0;text-shadow:0 0 5px #fff,0 0 16px #ff2b8c,0 0 40px #ff2b8c,0 0 90px rgba(255,43,140,.6);animation:strike .6s steps(1) 1,buzz 3.1s linear infinite .8s}
+.w.now{color:#eaffff;text-shadow:0 0 5px #fff,0 0 16px #26f0ff,0 0 38px #26f0ff,0 0 80px rgba(38,240,255,.6)}
+.w.dead.on{animation:dead 2.2s steps(1) infinite}
+@keyframes strike{0%{opacity:0}10%{opacity:1}20%{opacity:.1}32%{opacity:1}46%{opacity:.2}58%,100%{opacity:1}}
+@keyframes buzz{0%,17%,21%,61%,63%,100%{opacity:1}19%,62%{opacity:.75}}
+@keyframes dead{0%,60%,100%{opacity:1}64%{opacity:.1}70%{opacity:1}74%{opacity:.15}}
+.cap{font:700 1.7vh 'Nunito';letter-spacing:.2em;text-transform:uppercase;color:#7fdcff;margin-top:1.6vh;text-shadow:0 0 10px rgba(38,240,255,.7)}
+.reflect{position:absolute;left:5%;right:23%;bottom:7%;height:17%;overflow:hidden;transform:scaleY(-1);opacity:.28;filter:blur(3px);-webkit-mask:linear-gradient(0deg,#000,transparent)}
+/* bracket lines linking the sign to the wall */
+.brk{position:absolute;width:3px;background:#44546e;box-shadow:0 0 6px #000}
+/* hanging card */
+.hang{position:absolute;right:5%;top:0;width:15%;display:flex;flex-direction:column;align-items:center}
+.hang .chain{width:3px;height:9vh;background:repeating-linear-gradient(180deg,#8aa0c0 0 6px,#334 6px 9px)}
+.hang .chain.b{position:absolute;top:0;left:18%;width:3px}.hang .chain.c{position:absolute;top:0;right:18%;width:3px}
+.sign{margin-top:8.5vh;width:100%;border:3px solid #26f0ff;border-radius:16px;padding:1.6vh 1.2vw 2vh;background:rgba(5,14,28,.88);
+  box-shadow:0 0 0 2px #03060d,0 0 20px #26f0ff,0 0 60px rgba(38,240,255,.4),inset 0 0 26px rgba(38,240,255,.2);animation:sway 6s ease-in-out infinite;transform-origin:50% -8.5vh}
+@keyframes sway{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+.cov{width:100%;aspect-ratio:1;border-radius:10px;background:conic-gradient(from 200deg,#ff2b8c,#2b6bff,#26f0ff,#ffd84a,#ff2b8c);box-shadow:0 0 18px rgba(255,43,140,.6);position:relative}
+.cov:after{content:"";position:absolute;inset:32%;border-radius:50%;background:#071020;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
+.sign b{display:block;margin-top:1.6vh;color:#fff;font-size:2.2vh;letter-spacing:-.02em;text-shadow:0 0 10px #ff2b8c}
+.sign span{display:block;margin-top:.5vh;color:#7fdcff;font:700 1.3vh 'Nunito';letter-spacing:.2em;text-transform:uppercase}
+.bar{margin-top:1.6vh;height:10px;border-radius:9px;background:#0c2038;position:relative;box-shadow:inset 0 0 0 1px rgba(38,240,255,.4)}
+.bar i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--p)*100%);border-radius:9px;background:#26f0ff;box-shadow:0 0 12px #26f0ff}
+.btns{display:flex;justify-content:space-between;margin-top:1.6vh}
+.btns svg{width:3.4vh;height:3.4vh;fill:none;stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 6px #26f0ff)}
+.btns .pp{width:5.6vh;height:5.6vh;border:2px solid #ff2b8c;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 14px #ff2b8c}
+/* marquee bulbs edge */
+.bulbs{position:absolute;inset:0;pointer-events:none}
+.bulbs i{position:absolute;width:10px;height:10px;border-radius:50%;background:#3a1a30}
+/* states */
+.alt,.noise,.art{display:none}
+.alt{position:absolute;left:5%;right:23%;bottom:30%;top:46%;flex-direction:column;justify-content:center;gap:1.4vh}
+.alt p{font:700 min(2.4vw,4vh)/1.25 'Unbounded';color:#ffe9f7;text-shadow:0 0 8px rgba(255,43,140,.7),0 0 24px rgba(255,43,140,.4);letter-spacing:-.02em}
+.alt h1{font-weight:900;font-size:min(6vw,10.5vh);letter-spacing:-.05em;line-height:1;color:#fff;text-shadow:0 0 6px #fff,0 0 20px #ff2b8c,0 0 50px #ff2b8c;animation:buzz 3.4s linear infinite}
+.alt h2{font:800 min(1.8vw,3vh) 'Unbounded';letter-spacing:.3em;color:#26f0ff;text-shadow:0 0 12px #26f0ff;text-transform:uppercase}
+.alt small{font:800 1.5vh 'Unbounded';letter-spacing:.3em;color:#26f0ff;border:2px solid #26f0ff;border-radius:8px;padding:.7vh 1.2vh;align-self:flex-start;box-shadow:0 0 12px rgba(38,240,255,.5);text-shadow:0 0 10px #26f0ff}
+.eq{display:flex;gap:6px;align-items:flex-end;height:6vh}.eq i{width:10px;border-radius:3px;background:linear-gradient(180deg,#26f0ff,#ff2b8c);box-shadow:0 0 10px #26f0ff;animation:eq 1s ease-in-out infinite}
+@keyframes eq{0%,100%{height:15%}50%{height:100%}}
+.art,.noise{position:absolute;inset:0;z-index:4}
+.art{align-items:center;justify-content:center;flex-direction:column;gap:1vh;background:radial-gradient(circle,rgba(255,43,140,.18),transparent 70%),#07101e}
+.art b{font:900 2.2vw 'Unbounded';letter-spacing:.14em;color:#ff2b8c;text-shadow:0 0 10px #ff2b8c,0 0 30px #ff2b8c;animation:buzz 2.6s linear infinite}
+.art em{font:700 1.2vw 'Nunito';font-style:normal;color:#bfe9ff;letter-spacing:.2em;text-transform:uppercase}
+.noise{background:repeating-linear-gradient(0deg,#222 0 2px,#999 2px 3px);opacity:.45;animation:nz .2s steps(3) infinite}@keyframes nz{50%{background-position:0 2px;filter:contrast(1.4)}}
+[data-l=plain] .board,[data-l=none] .board,[data-l=wait] .board,[data-l=idle] .board,[data-l=plain] .reflect,[data-l=none] .reflect,[data-l=wait] .reflect,[data-l=idle] .reflect{display:none}
+[data-l=plain] .a-plain,[data-l=none] .a-none,[data-l=idle] .a-none,[data-l=wait] .a-wait{display:flex}
+[data-v=art] .art{display:flex}[data-v=art] .vid{opacity:0}[data-v=noise] .noise{display:block}
+[data-l=idle] .rain,[data-l=idle] .bulbs{opacity:.25}[data-l=idle] .sign{animation-play-state:paused}
+.sw{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:50;display:flex;gap:4px;background:rgba(0,0,0,.6);padding:4px;border-radius:99px}
+.sw button{font:700 11px 'Nunito';color:#fff;background:#1b2c48;border:0;border-radius:99px;padding:5px 9px;cursor:pointer}.sw button.on{background:#26f0ff;color:#03060d}
+.tag{position:absolute;left:2%;bottom:2%;font:800 1.4vh 'Unbounded';letter-spacing:.3em;color:#26f0ff;text-shadow:0 0 10px #26f0ff}
+</style></head><body>
+<div class="stage" id="st">
+  <div class="wall"></div><div class="pipe" style="left:46%"></div><div class="pipe" style="left:48.5%;opacity:.6"></div>
+  <div class="fog"></div>
+  <div class="street"></div><div class="puddle" style="left:12%;width:30%"></div><div class="puddle" style="left:48%;width:24%;animation-delay:1s"></div>
+  <div id="rings"></div>
+  <div class="open">OPEN · 24H</div>
+  <div class="shop"><div class="vid"></div><div class="noise"></div><div class="art"><b>NO VIDEO</b><em id="am">just the music</em><div class="eq" style="height:4vh"><i></i><i style="animation-delay:.2s"></i><i style="animation-delay:.1s"></i></div></div></div>
+  <div class="board"><div class="row" id="cur"></div><div class="cap" id="cap"></div></div>
+  <div class="reflect"><div class="board" style="position:relative;left:0;right:0;top:0;bottom:0"><div class="row" id="rf"></div></div></div>
+  <div class="alt a-plain"><small>NOT SYNCED</small><p>Chasing the lights on an empty road</p><p>Engine humming low like a heartbeat</p><p>Neon rain on the windshield glass</p></div>
+  <div class="alt a-none"><h2 id="h2">now playing</h2><h1>Midnight Overdrive</h1><h2>Echo Avenue</h2><div class="eq"><i></i><i style="animation-delay:.15s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.4s"></i><i style="animation-delay:.2s"></i></div></div>
+  <div class="alt a-wait"><small>RETRY IN <span id="cd">8</span>s</small><h1>checking the signal...</h1></div>
+  <div class="hang"><div class="chain b"></div><div class="chain c"></div>
+    <div class="sign"><div class="cov"></div><b>Midnight Overdrive</b><span>Echo Avenue</span><div class="bar"><i></i></div>
+      <div class="btns"><svg viewBox="0 0 24 24"><path d="M5 5v14M7 12l10-7v14z"/></svg><div class="pp"><svg viewBox="0 0 24 24" style="width:60%;height:60%"><path d="M8 5v14M16 5v14"/></svg></div><svg viewBox="0 0 24 24"><path d="M19 5v14M17 12 7 5v14z"/></svg></div></div></div>
+  <div class="rain" id="rain"></div>
+  <div class="bulbs" id="bulbs"></div>
+  <div class="tag">NEON · RAIN ALLEY</div>
+  <div class="sw" id="sw"></div>
+</div>
+<script>
+const st=document.getElementById('st');
+const rain=document.getElementById('rain');for(let i=0;i<90;i++){const e=document.createElement('i');e.style.cssText=`left:${(i*37)%110}%;animation-duration:${.55+(i%7)*.09}s;animation-delay:${-(i*.13)%2}s;opacity:${.25+(i%5)/9};height:${5+i%6}vh`;rain.appendChild(e)}
+const rg=document.getElementById('rings');for(let i=0;i<9;i++){const e=document.createElement('i');e.className='ring';e.style.cssText=`left:${8+(i*43)%78}%;bottom:${3+(i*5)%9}%;animation-delay:${(i*.53)%2.4}s`;rg.appendChild(e)}
+// marquee bulbs around the border
+const bl=document.getElementById('bulbs');const bulbs=[];const W=innerWidth,H=innerHeight,m=14,n=2*(Math.floor((W-2*m)/34)+Math.floor((H-2*m)/34));
+const perim=[];function add(x,y){const e=document.createElement('i');e.style.left=x+'px';e.style.top=y+'px';bl.appendChild(e);bulbs.push(e)}
+for(let x=m;x<W-m;x+=34)add(x,m);for(let y=m;y<H-m;y+=34)add(W-m-10,y);for(let x=W-m;x>m;x-=34)add(x-10,H-m-10);for(let y=H-m;y>m;y-=34)add(m,y-10);
+const lines=[["Rain","on","the","neon","sign"],["Every","street","knows","my","name"],["Hold","the","light","a","little","longer"],["Don't","let","it","go","out"]];
+let li=0,wi=0;const cur=document.getElementById('cur'),rf=document.getElementById('rf');
+function draw(){const h=lines[li].map((w,i)=>`<span class="w ${i<wi?'on':''} ${i==wi-1?'now':''} ${i==2?'dead':''}">${w}</span>`).join('');cur.innerHTML=h;rf.innerHTML=h;document.getElementById('cap').textContent=wi?'':'' }
+draw();setInterval(()=>{wi++;if(wi>lines[li].length){wi=0;li=(li+1)%lines.length}draw()},440);
+let tick=0;function loop(t){const p=(t%42000)/42000;st.style.setProperty('--p',p);
+ // chase: a lit snake of bulbs follows the song, others dim; every beat pulses all
+ const beat=Math.floor(t/500)%2,head=Math.floor(p*bulbs.length);
+ bulbs.forEach((b,i)=>{const d=(head-i+bulbs.length)%bulbs.length;if(d<bulbs.length*p&&p>0&&i<=head){b.style.background=(i%2?'#ff2b8c':'#ffd84a');b.style.boxShadow=`0 0 8px ${i%2?'#ff2b8c':'#ffd84a'}`}else{b.style.background='#2b1626';b.style.boxShadow='none'}
+  if(i==head){b.style.background='#fff';b.style.boxShadow='0 0 14px 4px #26f0ff'}});
+ requestAnimationFrame(loop)}requestAnimationFrame(loop);
+const STATES={A:['on','sync','Full experience'],B:['art','sync','Lyrics only'],C:['on','plain','Video + unsynced'],D:['art','plain','Text only'],E:['on','none','Video, no words'],F:['art','none','Music only'],G:['noise','wait','Waiting'],H:['art','idle','Idle / ad']};
+const sw=document.getElementById('sw');
+function setS(k){const [v,l]=STATES[k];st.dataset.v=v;st.dataset.l=l;[...sw.children].forEach(b=>b.classList.toggle('on',b.dataset.k==k));document.getElementById('h2').textContent=l=='idle'?'nothing playing':(l=='none'?'no words for this one':'now playing');document.getElementById('am').textContent=k=='G'?'looking for a clip':'just the music'}
+for(const k in STATES){const b=document.createElement('button');b.dataset.k=k;b.textContent=k+' '+STATES[k][2];b.onclick=()=>setS(k);sw.appendChild(b)}
+setS((location.hash||'#A').slice(1)||'A');addEventListener('hashchange',()=>setS(location.hash.slice(1)||'A'));
+setInterval(()=>{const c=document.getElementById('cd');c.textContent=((+c.textContent+7)%9)+1},1000);
+</script></body></html>

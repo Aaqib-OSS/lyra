@@ -45,17 +45,6 @@ if (args.device) devices = DEVICES.filter((d) => String(args.device).split(',').
 const vibes = args.vibe ? VIBES.filter((v) => String(args.vibe).split(',').includes(v.id)) : VIBES
 const withVideo = !!args.video
 
-// --layouts: the fullscreen layouts over a video, with Latin / Devanagari / Gurmukhi lyrics (and the Roman line), at
-// 1366x768 .. 3440x1440 (issue #51). Contrast is judged on the current line.
-const LAYOUTS = ['cinema', 'split', 'poster', 'focus']
-const LANGS = ['en', 'hi', 'pa']
-const BIG = [
-  { id: '1366x768', w: 1366, h: 768 },
-  { id: '1920x1080', w: 1920, h: 1080 },
-  { id: '2560x1440', w: 2560, h: 1440 },
-  { id: '3440x1440', w: 3440, h: 1440 }
-]
-
 async function up() {
   try { return (await fetch(BASE)).ok } catch { return false }
 }
@@ -232,10 +221,7 @@ async function main() {
   mkdirSync(join(OUT, 'shots'), { recursive: true })
   const browser = await chromium.launch()
   const jobs = []
-  if (args.layouts) {
-    for (const layout of LAYOUTS) for (const lang of LANGS) for (const sz of BIG)
-      jobs.push({ v: { id: `layout-${layout}-${lang}`, style: 'classic' }, d: { id: sz.id, w: sz.w, h: sz.h, q: `mode=full&video=night${lang === 'en' ? '' : `&lang=${lang}`}` }, extra: { fullLayout: layout, romanizeLyrics: lang !== 'en' }, vibeId: 'none' })
-  } else if (args.states) {
+  if (args.states) {
     // the lyrics outcomes (words without timing, no lyrics, offline) on the main devices, with and without a video
     const key = devices.filter((d) => ['phone', 'tablet-land', 'win-full-768', 'win-mini'].includes(d.id))
     for (const v of vibes) for (const d of key) for (const ly of ['plain', 'none', 'offline']) jobs.push({ v, d: { ...d, id: `${d.id}+${ly}`, q: `${d.q}&ly=${ly}`, lyricsOptional: true, state: ly } })
@@ -255,7 +241,7 @@ async function main() {
       const s = encodeURIComponent(JSON.stringify({ vibe: vibeId ?? v.id, lyricStyle: v.style, performance: 'smooth', ...(extra ?? {}) }))
       await page.goto(`${BASE}/?paused=1&t=43500&${d.q}${withVideo ? '&video=night' : ''}&s=${s}`)
       await page.evaluate(() => document.fonts.ready)
-      await page.waitForTimeout(args.layouts ? 4200 : 2800)
+      await page.waitForTimeout(2800)
       const m = await page.evaluate(MEASURE)
       const shot = await page.screenshot()
       let contrast = null
@@ -283,7 +269,7 @@ async function main() {
   results.sort((a, b) => (a.vibe + a.device).localeCompare(b.vibe + b.device))
   writeFileSync(join(OUT, 'report.json'), JSON.stringify(results, null, 2))
   const bad = results.filter((r) => r.fails.length)
-  console.log(`\nUI test: ${results.length} screens checked${args.layouts ? ' (fullscreen layouts x languages x sizes)' : ` (${vibes.length} vibes x ${devices.length} devices)`}, ${bad.length} with problems\n`)
+  console.log(`\nUI test: ${results.length} screens checked${` (${vibes.length} vibes x ${devices.length} devices)`}, ${bad.length} with problems\n`)
   for (const r of bad) console.log(`  ✗ ${r.vibe} @ ${r.device}\n      ${r.fails.join('\n      ')}`)
   if (!bad.length) console.log('  ✓ all screens pass')
   console.log(`\nreport + failing screenshots: ${OUT}`)

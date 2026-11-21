@@ -170,12 +170,11 @@ export type ThemeMode = 'dark' | 'light' | 'adaptive'
 export type LyricFont = 'sans' | 'serif' | 'rounded' | 'mono'
 export type LyricAnimation = 'glide' | 'focus' | 'fade'
 /** how the sung line is staged in fullscreen: the classic scrolling list, giant kinetic type or a star map */
-export type LyricStyle = 'classic' | 'zoom' | 'kinetic' | 'constellation' | 'sticker' | 'chat' | 'type' | 'diary' | 'subtitle' | 'chatlog' | 'lowerthird'
+export type LyricStyle = 'classic' | 'zoom' | 'kinetic' | 'constellation' | 'sticker' | 'chat' | 'type' | 'diary' | 'subtitle' | 'chatlog' | 'lowerthird' | 'sign'
 export type VibeMode = 'fixed' | 'cycle' | 'smart'
 /** a whole look: colours, type, background effects (and usually its own way of staging lyrics) */
 export type Vibe = 'none' | 'sticker' | 'chat' | 'crt' | 'neon' | 'chrome' | 'dream' | 'paper' | 'arcade' | 'noir' | 'sunset' | 'blocks' | 'stadium' | 'cassette' | 'trailer' | 'sketch' | 'glitch' | 'comic' | 'stencil' | 'film'
 /** how fullscreen lyrics are laid out over a video */
-export type FullLayout = 'auto' | 'cinema' | 'split' | 'poster' | 'focus'
 
 export type SourceKind = 'local' | 'api'
 
@@ -278,7 +277,6 @@ export interface Settings {
   rimLight: boolean
   /** auto picks Light on weak devices; Smooth always uses every effect; Light saves battery and GPU */
   performance: 'auto' | 'smooth' | 'light'
-  fullLayout: FullLayout
   /** Show a Roman-letter transliteration below Hindi and Punjabi lyrics. */
   romanizeLyrics: boolean
   /** highlight each word as it is sung (estimated unless the source has real word timing) */
@@ -337,7 +335,6 @@ export const DEFAULT_SETTINGS: Settings = {
   songVibes: {},
   rimLight: true,
   performance: 'auto',
-  fullLayout: 'cinema',
   wordByWord: true,
   romanizeLyrics: false,
   keepScreenOn: false,

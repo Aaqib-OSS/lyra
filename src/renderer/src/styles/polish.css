@@ -453,4 +453,3 @@ select option {
 :root[data-perf='low'] .full:not(.is-cinema) .full__side {
   background: color-mix(in srgb, var(--bg-0) 88%, transparent) !important;
 }
-:root[data-perf='low'] .vibefx__grid { transform: perspective(380px) rotateX(62deg); }

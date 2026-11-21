@@ -1,0 +1,334 @@
+/* ==========================================================================
+   NEON: a rainy alley at night (one vibe, one file).
+   Scene (fullscreen): the video plays in a shop-window frame top left, the song is lit word by word on a sign below it,
+   the player card hangs from a rail on the right. Wall, street and fog are the backdrop; rain, ripples, the window glass
+   and a passing car's light are VibeFx (NeonAlley). Every state keeps those same regions (docs/ui-state-matrix.md).
+   Edge effect: no rim line. A car's light sweeps across the wall now and then.
+   ========================================================================== */
+:root[data-vibe='neon'] {
+  --rimc: #ff4fa3;
+  --neon-pink: #ff4fa3;
+  --neon-cyan: #6beaff;
+  --neon-glass: rgba(10, 18, 34, 0.62);
+  --neon-hair: rgba(255, 255, 255, 0.14);
+  /* the window (video) and card geometry, shared by the backdrop, the effects and the layout */
+  --nw-l: 5vw;
+  --nw-t: 9vh;
+  --nw-w: min(40vw, 70vh);
+  --nw-h: calc(var(--nw-w) * 0.625);
+  --nw-r: 2.2vh;
+  --nc-w: clamp(170px, 17vw, 270px);
+}
+/* a video with no words: the video is the star, the window grows to a hero size (and shrinks back when lyrics arrive) */
+:root[data-vibe='neon'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --nw-w: min(50vw, 80vh); }
+@media (max-aspect-ratio: 1/1) {
+  :root[data-vibe='neon'] { --nw-l: 5vw; --nw-t: 9vh; --nw-w: 90vw; }
+}
+[data-vibe='neon'] .shell {
+  --accent: #ff4fa3;
+  --glow: rgba(255, 79, 163, 0.55);
+  --glow-soft: rgba(255, 79, 163, 0.26);
+  --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif;
+  --fg: #fff;
+  --bg-0: #07101d;
+}
+/* the rim line is replaced by the passing light */
+:root[data-vibe='neon'][data-rim='on']::after { display: none; }
+
+/* ---------------- backdrop: wall, street, fog ---------------- */
+[data-vibe='neon'] .backdrop .backdrop__field {
+  background:
+    radial-gradient(45% 26% at 50% 80%, rgba(255, 79, 163, 0.18), transparent),
+    radial-gradient(35% 22% at 18% 78%, rgba(107, 234, 255, 0.15), transparent),
+    linear-gradient(180deg, transparent 78%, #0b1424 78.1%, #04070d 100%),
+    radial-gradient(80% 60% at 18% 30%, rgba(255, 79, 163, 0.2), transparent 70%),
+    radial-gradient(70% 55% at 85% 20%, rgba(107, 234, 255, 0.15), transparent 70%),
+    linear-gradient(180deg, #07101d 0%, #0a1526 66%, #04070d 100%);
+}
+[data-vibe='neon'] .backdrop .backdrop__field::before {
+  content: '';
+  position: absolute;
+  inset: -4% -4% 22% -4%;
+  opacity: 0.38;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 5.6vh, rgba(0, 0, 0, 0.55) 5.6vh calc(5.6vh + 2px)),
+    repeating-linear-gradient(90deg, transparent 0 17vh, rgba(0, 0, 0, 0.4) 17vh calc(17vh + 2px));
+  -webkit-mask: linear-gradient(180deg, #000 20%, rgba(0, 0, 0, 0.25));
+  mask: linear-gradient(180deg, #000 20%, rgba(0, 0, 0, 0.25));
+  animation: neon-drift 70s ease-in-out infinite alternate;
+}
+@keyframes neon-drift { to { transform: scale(1.05) translateX(-1.5%); } }
+[data-vibe='neon'] .backdrop__img,
+[data-vibe='neon'] .backdrop__blob,
+[data-vibe='neon'] .backdrop__dim,
+[data-vibe='neon'] .backdrop__grade,
+[data-vibe='neon'] .backdrop__shade { display: none !important; }
+
+/* ---------------- the video lives in the shop window (fullscreen on Windows) ---------------- */
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .backdrop__stage {
+  inset: auto;
+  left: var(--nw-l);
+  top: var(--nw-t);
+  width: var(--nw-w);
+  height: var(--nw-h);
+  border-radius: var(--nw-r);
+  overflow: hidden;
+  transform: none !important;
+  transition: width 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), height 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ---------------- effects (VibeFx) ---------------- */
+.neonfx { position: absolute; inset: 0; pointer-events: none; }
+.neonfx__win, .neonfx__sweep { display: none; }
+.neonfx__rain { position: absolute; inset: 0; overflow: hidden; }
+.neonfx__rain i {
+  position: absolute;
+  top: -14%;
+  border-radius: 2px;
+  background: linear-gradient(180deg, transparent, rgba(200, 236, 255, 0.7));
+  transform: rotate(11deg);
+  animation: neon-fall linear infinite;
+}
+@keyframes neon-fall { to { transform: translate(-8vh, 128vh) rotate(11deg); } }
+.neonfx__ring {
+  position: absolute;
+  width: 5vh;
+  height: 1.1vh;
+  border: 1px solid rgba(190, 240, 255, 0.55);
+  border-radius: 50%;
+  opacity: 0;
+  animation: neon-ring 2.8s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+@keyframes neon-ring { 0% { opacity: 0.85; transform: scale(0.15); } 100% { opacity: 0; transform: scale(2.6); } }
+:root[data-perf='low'] .neonfx__rain i:nth-child(2n), :root[data-perf='low'] .neonfx__ring { display: none; }
+:root[data-motion='off'] .neonfx *, :root[data-motion='off'] .full__side { animation: none !important; }
+
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .neonfx__sweep {
+  display: block;
+  position: absolute;
+  inset: 0 0 22% 0;
+  mix-blend-mode: screen;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 230, 200, 0.1) 35%, transparent 50%) -60% 0 / 220% 100% no-repeat;
+  animation: neon-sweep 11s ease-in-out infinite;
+}
+@keyframes neon-sweep { 0%, 70% { background-position: -80% 0; } 100% { background-position: 90% 0; } }
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .neonfx__win {
+  display: block;
+  position: absolute;
+  left: var(--nw-l);
+  top: var(--nw-t);
+  width: var(--nw-w);
+  height: var(--nw-h);
+  border-radius: var(--nw-r);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 0.5vh #14223a,
+    0 0 0 calc(0.5vh + 1px) rgba(255, 255, 255, 0.12),
+    0 0 0 calc(0.5vh + 2px) rgba(107, 234, 255, 0.55),
+    0 3vh 8vh rgba(0, 0, 0, 0.6),
+    0 0 6vh rgba(107, 234, 255, 0.22);
+  transition: width 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), height 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.neonfx__art {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4vh;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 79, 163, 0.22), transparent 65%), #091221;
+}
+.neonfx__art span { font: 700 1.6vh/1 'Inter Variable', system-ui, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255, 255, 255, 0.85); }
+:root:not([data-bg-media]) .neonfx__art { display: flex; }
+.neonfx__eq { display: flex; gap: 0.6vh; align-items: flex-end; height: 5vh; }
+.neonfx__eq i { width: 0.8vh; border-radius: 3px; background: linear-gradient(180deg, var(--neon-cyan), var(--neon-pink)); animation: neon-eq 1.1s ease-in-out infinite; }
+@keyframes neon-eq { 0%, 100% { height: 18%; } 50% { height: 100%; } }
+.neonfx__glass {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.1), transparent 30%, transparent 70%, rgba(255, 255, 255, 0.05)), radial-gradient(120% 100% at 50% 120%, rgba(0, 0, 0, 0.35), transparent 60%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 -2vh 4vh rgba(0, 0, 0, 0.25);
+}
+.neonfx__drop {
+  position: absolute;
+  width: 1.1vh;
+  height: 1.4vh;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.12) 40%, transparent 70%);
+  opacity: 0;
+  animation: neon-slide linear infinite;
+}
+@keyframes neon-slide { 0% { transform: translateY(-4vh); opacity: 0; } 8% { opacity: 0.8; } 100% { transform: translateY(26vh); opacity: 0; } }
+
+/* ---------------- layout: window, sign, hanging card (fullscreen, Windows) ---------------- */
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] { --art: 100%; }
+/* coordinates are the window's, not the body's (the header sits above the body) */
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__body { position: absolute; inset: 0; }
+/* the sign: lyrics sit under the window, over the wet street */
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics {
+  left: var(--nw-l);
+  right: auto;
+  width: calc(100vw - var(--nw-l) - var(--nc-w) - 11vw);
+  top: calc(var(--nw-t) + var(--nw-h) + 5vh);
+  bottom: 18vh;
+}
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { bottom: 6vh; }
+/* the card: glass, hung from a rail by two chains, swaying a little */
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  left: auto !important;
+  right: 5vw !important;
+  top: calc(64px + 4vh) !important;
+  bottom: auto !important;
+  width: var(--nc-w) !important;
+  height: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.6vh;
+  padding: 1.8vh !important;
+  border-radius: 2.4vh !important;
+  background: var(--neon-glass) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border: 0 !important;
+  box-shadow: 0 0 0 1px var(--neon-hair), 0 0 0 2px rgba(107, 234, 255, 0.28), 0 2.4vh 6vh rgba(0, 0, 0, 0.5), 0 0 5vh rgba(107, 234, 255, 0.16) !important;
+  transform-origin: 50% -4vh;
+  animation: neon-sway 7s ease-in-out infinite;
+}
+@keyframes neon-sway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before,
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after {
+  content: '';
+  position: absolute;
+  top: -4vh;
+  width: 2px;
+  height: 4vh;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.18));
+}
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before { left: 22%; }
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after { right: 22%; }
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1 !important;
+  box-shadow: 0 1.4vh 3vh rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2vh;
+  grid-template-columns: none;
+}
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
+  font-family: 'Inter Variable', system-ui, sans-serif;
+  font-size: 2.3vh;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-shadow: none;
+}
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.6vh; color: rgba(190, 215, 245, 0.72); }
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { justify-content: center; }
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #fff !important; color: #0a1220 !important; box-shadow: 0 0.8vh 2vh rgba(255, 79, 163, 0.45) !important; }
+
+/* the card never hides when the pointer rests: it is part of the scene, not an overlay on the video */
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full.is-idle[data-arch='scene'] .full__side,
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full.is-df[data-arch='scene'] .full__side { opacity: 1; pointer-events: auto; }
+/* a video behind changes nothing here: no scrims, the card and the sign stay where they are */
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full.is-cinema[data-arch='scene']::before,
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics::before { display: none; }
+:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full.is-cinema[data-arch='scene'] .full__top { background: none; }
+
+/* ---------------- lyrics: the sign (stage 'sign') ---------------- */
+.stage--sign { display: flex; flex-direction: column; justify-content: center; }
+.sign { position: relative; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+.sign__line { display: flex; flex-direction: column; gap: 2.2vh; }
+.sign__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.26em;
+  font-family: 'Unbounded Variable', 'Inter Variable', sans-serif;
+  font-weight: 800;
+  font-size: min(4.2vw, 7.4vh);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  padding-inline-end: 0.28em;
+}
+.sign__word { color: rgba(170, 195, 230, 0.36); transition: color 0.35s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.sign__word.is-in {
+  color: #ffd9ec;
+  text-shadow: 0 0 0.5vh rgba(255, 255, 255, 0.9), 0 0 1.8vh rgba(255, 79, 163, 0.85), 0 0 5vh rgba(255, 79, 163, 0.4);
+  animation: neon-on 0.38s cubic-bezier(0.2, 0.7, 0.2, 1) 1;
+}
+.sign__word.is-now {
+  color: #effcff;
+  text-shadow: 0 0 0.5vh rgba(255, 255, 255, 0.95), 0 0 1.8vh rgba(107, 234, 255, 0.9), 0 0 5vh rgba(107, 234, 255, 0.45);
+}
+.sign__word.is-in.is-tired { animation: neon-on 0.38s cubic-bezier(0.2, 0.7, 0.2, 1) 1, neon-tired 5.5s linear 0.6s infinite; }
+@keyframes neon-on { 0% { opacity: 0.1; filter: brightness(2.4); transform: translateY(0.8vh); } 60% { opacity: 1; filter: brightness(1.35); } 100% { opacity: 1; filter: none; transform: none; } }
+@keyframes neon-tired { 0%, 58%, 64%, 100% { opacity: 1; } 60%, 62% { opacity: 0.15; } }
+.sign__next { font: 600 min(2vw, 3.2vh) / 1.2 'Inter Variable', system-ui, sans-serif; color: rgba(190, 215, 245, 0.42); letter-spacing: -0.01em; }
+/* the wet street under the sign shows the lit words upside down */
+.sign__refl {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 1vh;
+  height: 12vh;
+  overflow: hidden;
+  transform: scaleY(-1);
+  transform-origin: 50% 0;
+  opacity: 0.28;
+  filter: blur(2.2px);
+  -webkit-mask: linear-gradient(0deg, #000, transparent 85%);
+  mask: linear-gradient(0deg, #000, transparent 85%);
+  pointer-events: none;
+}
+.sign__refl .sign__row { position: absolute; bottom: 100%; left: 0; right: 0; }
+:root[data-perf='low'] .sign__refl { display: none; }
+:root[data-calm] .sign__word.is-tired { animation: none; }
+
+/* ---------------- other lyric states (same regions as the sign) ---------------- */
+[data-vibe='neon'] .lyrics__notice {
+  align-self: flex-start;
+  background: rgba(107, 234, 255, 0.1);
+  border: 0;
+  box-shadow: inset 0 0 0 1px rgba(107, 234, 255, 0.4);
+  color: var(--neon-cyan);
+  border-radius: 99px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+}
+[data-vibe='neon'] .plain__stanza {
+  font-family: 'Inter Variable', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #e7eefb;
+  text-shadow: none;
+  border: 0;
+  padding-left: 0;
+  box-shadow: none;
+}
+[data-vibe='neon'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='neon'] .lfb__poster { display: none; }
+[data-vibe='neon'] .lfb h3 {
+  font-family: 'Unbounded Variable', 'Inter Variable', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-transform: none;
+  font-size: clamp(24px, 4.2vw, 62px);
+  color: #ffd9ec;
+  text-shadow: 0 0 0.5vh rgba(255, 255, 255, 0.9), 0 0 1.8vh rgba(255, 79, 163, 0.85), 0 0 5vh rgba(255, 79, 163, 0.4);
+}
+[data-vibe='neon'] .lfb p { color: rgba(231, 238, 251, 0.82); }
+[data-vibe='neon'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='neon'] .lfb__eq i { background: linear-gradient(180deg, var(--neon-cyan), var(--neon-pink)); box-shadow: none; }
+:root[data-calm] [data-vibe='neon'] .lfb h3 { animation: none; }
+
+/* ---------------- mini player / phone: the alley stays a quiet backdrop ---------------- */
+:root[data-vibe='neon'][data-mode='mini'] .neonfx__rain, :root[data-vibe='neon'][data-platform='android'] .neonfx__rain { opacity: 0.55; }
+:root[data-vibe='neon'][data-mode='mini'] .neonfx__ring, :root[data-vibe='neon'][data-platform='android'] .neonfx__ring { display: none; }

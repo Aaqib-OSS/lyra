@@ -19,18 +19,13 @@ describe('shortcuts', () => {
 })
 
 describe('fullscreen shortcuts', () => {
-  it('maps sync nudges, layouts and lyric-side flipping', () => {
+  it('maps sync nudges', () => {
     expect(getFullscreenShortcutAction('[')).toEqual({ type: 'nudge', direction: -1 })
     expect(getFullscreenShortcutAction(']')).toEqual({ type: 'nudge', direction: 1 })
-    expect(getFullscreenShortcutAction('1')).toEqual({ type: 'layout', layout: 'cinema' })
-    expect(getFullscreenShortcutAction('2')).toEqual({ type: 'layout', layout: 'split' })
-    expect(getFullscreenShortcutAction('3')).toEqual({ type: 'layout', layout: 'poster' })
-    expect(getFullscreenShortcutAction('L')).toEqual({ type: 'flip-side' })
-    expect(getFullscreenShortcutAction('l')).toEqual({ type: 'flip-side' })
   })
 
   it('does not handle fullscreen shortcuts while editing a field', () => {
-    for (const key of ['[', ']', '1', '2', '3', 'L']) {
+    for (const key of ['[', ']']) {
       expect(getFullscreenShortcutAction(key, true)).toBeNull()
     }
   })
@@ -38,5 +33,6 @@ describe('fullscreen shortcuts', () => {
   it('ignores unrelated keys', () => {
     expect(getFullscreenShortcutAction('Enter')).toBeNull()
     expect(getFullscreenShortcutAction('x')).toBeNull()
+    for (const key of ['1', '2', '3', 'l']) expect(getFullscreenShortcutAction(key)).toBeNull()
   })
 })

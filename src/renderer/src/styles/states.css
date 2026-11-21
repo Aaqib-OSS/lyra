@@ -4,28 +4,7 @@
  * Rules: lyrics stay the hero, nothing clips, unsynced never looks like it follows the song (no active line).
  */
 
-/* ===================== NEON ===================== */
-/* video playing: the video is the scene, so the painted sun steps away and only the grid stays as a faint floor */
-:root[data-vibe='neon'][data-bg-media] .vibefx__sun { display: none; }
-:root[data-vibe='neon'][data-bg-media] .vibefx__grid { opacity: 0.35; }
-:root[data-vibe='neon'][data-bg-media] .backdrop__dim { background: linear-gradient(180deg, rgba(10,2,36,.55), rgba(10,2,36,.25) 40%, rgba(40,6,70,.55)); }
-/* unsynced words: a lit sign, calm and static (no glow flicker: nothing here follows the song) */
-[data-vibe='neon'] .lyrics__notice { background: rgba(255,59,217,.12); border: 1px dashed #ff3bd9; color: #ffd6f7; letter-spacing: .08em; font-size: 10.5px; text-transform: uppercase; }
-[data-vibe='neon'] .plain__stanza {
-  font-family: 'Unbounded Variable', var(--font); font-weight: 700; letter-spacing: -0.03em; color: #fff;
-  text-shadow: 0 0 3px #fff, 0 0 12px rgba(255,59,217,.8), 0 0 30px rgba(255,59,217,.35);
-  border-left: 3px solid #26f0ff; padding-left: 0.7em; box-shadow: -6px 0 18px -8px #26f0ff;
-}
-/* no lyrics / waiting: a neon sign, centred, no ghost poster */
-[data-vibe='neon'] .lfb { align-items: center; text-align: center; }
-[data-vibe='neon'] .lfb__poster { display: none; }
-[data-vibe='neon'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); text-transform: uppercase; letter-spacing: .04em; font-size: clamp(16px, 2.4cqw, 26px); color: #fff; text-shadow: 0 0 4px #fff, 0 0 16px #ff3bd9, 0 0 40px #ff3bd9; animation: neon-flicker 3.4s linear infinite; }
-[data-vibe='neon'] .lfb p { color: rgba(255,255,255,.82); }
-[data-vibe='neon'] .lfb__actions { justify-content: center; }
-[data-vibe='neon'] .lfb__eq i { background: linear-gradient(180deg, #26f0ff, #ff3bd9); box-shadow: 0 0 10px rgba(38,240,255,.6); }
-:root[data-calm] [data-vibe='neon'] .lfb h3 { animation: none; }
-/* the small player: the floor grid stays out of the way of the lyrics */
-:root[data-vibe='neon'][data-mode='mini'] .vibefx__grid, :root[data-vibe='neon'][data-platform='android'] .vibefx__grid { opacity: 0.22; }
+/* ===================== NEON: see styles/neon.css ===================== */
 
 /* ===================== CHROME ===================== */
 :root[data-vibe='chrome'][data-bg-media] .backdrop__dim { background: linear-gradient(180deg, rgba(20,40,120,.45), rgba(10,22,70,.35) 50%, rgba(10,22,70,.6)); }

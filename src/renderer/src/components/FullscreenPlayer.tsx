@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react'
-import { resolveAutoFullLayout } from '@shared/fullLayout'
 import { vibeInfo } from '@shared/vibes'
 import { useEffectiveVibe } from '@/hooks/useVibe'
 import { useIdle } from '@/hooks/useIdle'
@@ -7,7 +5,6 @@ import { usePlayerView } from '@/hooks/usePlayerView'
 import { joinArtists } from '@/lib/format'
 import { useBgState } from '@/store/bgState'
 import { usePlayer } from '@/store/player'
-import { useSettings } from '@/store/settings'
 import { requestMode, useUi } from '@/store/ui'
 import { Artwork } from './Artwork'
 import { IconButton, Transport, VolumeControl, useCaps } from './Controls'
@@ -19,12 +16,6 @@ import { VideoStatus } from './VideoStatus'
 import { ConnectScreen, LoadingScreen, NoMusicScreen, OfflineBanner, OfflineScreen } from './StateScreens'
 
 export function FullscreenPlayer() {
-  const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }))
-  useEffect(() => {
-    const observer = new ResizeObserver(() => setViewport({ width: window.innerWidth, height: window.innerHeight }))
-    observer.observe(document.documentElement)
-    return () => observer.disconnect()
-  }, [])
   const view = usePlayerView()
   const track = usePlayer((s) => s.snapshot?.track ?? null)
   const device = usePlayer((s) => s.snapshot?.device ?? null)
@@ -34,21 +25,16 @@ export function FullscreenPlayer() {
   const togglePanel = useUi((s) => s.togglePanel)
   const df = useUi((s) => s.distractionFree)
   const toggleDf = useUi((s) => s.toggleDistractionFree)
-  const sideFlipped = useUi((s) => s.lyricSideFlipped)
 
   const quiet = idle && panel === 'none'
   // cinema layout: a video is playing, so get the UI out of its way
   const cinema = useBgState((s) => s.media === 'full')
-  const selectedLayout = useSettings((s) => s.settings.fullLayout)
-  const layout = selectedLayout === 'auto'
-    ? resolveAutoFullLayout(viewport.width, viewport.height)
-    : selectedLayout
   const ytVideo = useBgState((s) => s.kind === 'youtube')
   // each vibe arranges the card and the lyrics its own way
   const arch = vibeInfo(useEffectiveVibe().vibe).layout
 
   return (
-    <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${sideFlipped ? 'is-side-flipped' : ''} ${cinema ? (arch === 'term' ? 'is-video' : `is-cinema ${arch === 'side' ? `layout-${layout}` : ''}`) : ''}`} data-arch={arch}>
+    <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${cinema ? (arch === 'term' ? 'is-video' : 'is-cinema') : ''}`} data-arch={arch}>
       <VideoStatus />
       <header className="full__top">
         <span className="full__device">{device ? `Playing on ${device.name}` : 'Lyra'}</span>
@@ -65,7 +51,7 @@ export function FullscreenPlayer() {
       {view === 'playing' && track ? (
         <div className="full__body">
           <aside className="full__side">
-            <Artwork url={track.artworkUrl} size={arch === 'term' ? 'clamp(120px, 24vh, 240px)' : arch !== 'side' ? 'clamp(54px, 8.5vh, 84px)' : cinema ? 'clamp(84px, 12vh, 124px)' : 'min(34vw, 46vh, 460px)'} radius={arch === 'orb' ? 999 : arch !== 'side' ? 12 : cinema ? 14 : 18} className="artwork--lift" />
+            <Artwork url={track.artworkUrl} size={arch === 'scene' ? '100%' : arch === 'term' ? 'clamp(120px, 24vh, 240px)' : arch !== 'side' ? 'clamp(54px, 8.5vh, 84px)' : cinema ? 'clamp(84px, 12vh, 124px)' : 'min(34vw, 46vh, 460px)'} radius={arch === 'scene' ? 16 : arch === 'orb' ? 999 : arch !== 'side' ? 12 : cinema ? 14 : 18} className="artwork--lift" />
             <div className="full__chrome">
               <div className="full__titlerow">
                 <div className="full__titles">

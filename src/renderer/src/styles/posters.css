@@ -31,9 +31,6 @@
 [data-vibe='paper'] .artwork__deco--c { right: 5%; bottom: 5%; width: 22%; height: 22%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 88 C10 58 6 30 28 22 C40 18 48 26 50 34 C52 26 60 18 72 22 C94 30 90 58 50 88Z' fill='%23ff7a9c' stroke='%23c0394f' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); --r: -8deg; animation: pz-bob 3s ease-in-out infinite; }
 
 /* ---- Neon: a double tube, breathing, with corner brackets ---- */
-[data-vibe='neon'] .artwork--lift { outline: 3px solid #ff3df2; outline-offset: 5px; box-shadow: 0 0 0 2px #2ef2ff, 0 0 26px 4px rgba(255,61,242,.75), 0 0 60px rgba(46,242,255,.35) !important; animation: pz-pulse 2.6s ease-in-out infinite; }
-[data-vibe='neon'] .artwork__deco--a { inset: 4%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M4 28 V4 H28 M72 4 H96 V28 M96 72 V96 H72 M28 96 H4 V72' fill='none' stroke='%232ef2ff' stroke-width='3' stroke-linecap='square'/%3E%3C/svg%3E"); background-size: 100% 100%; }
-[data-vibe='neon'] .artwork__deco--b { left: 0; right: 0; height: 16%; top: -12%; background: linear-gradient(180deg, transparent, rgba(255,61,242,.35), transparent); animation: pz-scan 3.4s linear infinite; }
 
 /* ---- Chrome: a polished bevel with a sparkle ---- */
 [data-vibe='chrome'] .artwork--lift { outline: 4px solid #fff; outline-offset: 0; box-shadow: 0 0 0 6px #aab4c4, 0 0 0 8px #fff, 0 22px 40px -10px rgba(20,40,90,.6) !important; }

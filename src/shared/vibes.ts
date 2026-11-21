@@ -9,7 +9,7 @@ import type { LyricStyle, Vibe } from './types'
  *  chat  one centred column like a messaging app, the controls are the message bar
  *  term  a framed sidebar next to a framed log, like two terminal panes
  */
-export type LayoutArch = 'side' | 'dock' | 'orb' | 'bar' | 'chat' | 'term'
+export type LayoutArch = 'side' | 'dock' | 'orb' | 'bar' | 'chat' | 'term' | 'scene'
 
 export interface VibeInfo {
   id: Vibe
@@ -22,7 +22,7 @@ export interface VibeInfo {
 
 export const VIBES: readonly VibeInfo[] = [
   { id: 'none', layout: 'side', style: 'classic', name: 'Artwork', tag: 'Colours from the cover' },
-  { id: 'neon', layout: 'dock', style: 'kinetic', name: 'Neon', tag: 'Synthwave tubes' },
+  { id: 'neon', layout: 'scene', style: 'sign', name: 'Neon', tag: 'Rain alley, neon signs' },
   { id: 'chrome', layout: 'dock', style: 'kinetic', name: 'Chrome', tag: 'Y2K liquid metal' },
   { id: 'dream', layout: 'orb', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
   { id: 'crt', layout: 'term', style: 'type', name: 'Terminal', tag: 'Typed in green' },

@@ -18,7 +18,6 @@ const lockLook = (s: Settings): Settings => ({
   lyricFontSize: DEFAULT_SETTINGS.lyricFontSize,
   lineSpacing: DEFAULT_SETTINGS.lineSpacing,
   lyricAnimation: DEFAULT_SETTINGS.lyricAnimation,
-  fullLayout: DEFAULT_SETTINGS.fullLayout,
   rimLight: true
 })
 

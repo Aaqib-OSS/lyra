@@ -24,6 +24,55 @@ function Scoreboard() {
   )
 }
 
+/** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
+ *  (the video plays inside it) and a passing car's light sweeping the wall. */
+function NeonAlley() {
+  const rain = useMemo(
+    () =>
+      Array.from({ length: 70 }, (_, i) => {
+        const far = i % 3 !== 0
+        return {
+          left: (i * 37) % 112,
+          w: far ? 1 : 1.8,
+          h: far ? 5 + (i % 4) : 9 + (i % 4),
+          dur: far ? 0.9 + (i % 5) * 0.1 : 0.55 + (i % 4) * 0.07,
+          delay: -((i * 0.13) % 2),
+          o: far ? 0.18 + (i % 4) / 16 : 0.35 + (i % 3) / 9
+        }
+      }),
+    []
+  )
+  const rings = useMemo(() => Array.from({ length: 8 }, (_, i) => ({ left: 6 + ((i * 41) % 84), bottom: 2 + ((i * 5) % 14), delay: (i * 0.57) % 2.8 })), [])
+  const drops = useMemo(() => Array.from({ length: 7 }, (_, i) => ({ left: (i * 47 + 9) % 92, top: (i * 23) % 50, dur: 5 + (i % 4) * 1.4, delay: -(i * 1.3), s: 0.7 + (i % 3) * 0.4 })), [])
+  return (
+    <div className="neonfx">
+      <div className="neonfx__sweep" />
+      <div className="neonfx__win">
+        <div className="neonfx__art">
+          <span>No video</span>
+          <div className="neonfx__eq">
+            {[0, 0.2, 0.1, 0.3, 0.15].map((d, i) => (
+              <i key={i} style={{ animationDelay: `${d}s` }} />
+            ))}
+          </div>
+        </div>
+        <div className="neonfx__glass" />
+        {drops.map((d, i) => (
+          <i key={i} className="neonfx__drop" style={{ left: `${d.left}%`, top: `${d.top}%`, animationDuration: `${d.dur}s`, animationDelay: `${d.delay}s`, scale: d.s }} />
+        ))}
+      </div>
+      {rings.map((r, i) => (
+        <i key={i} className="neonfx__ring" style={{ left: `${r.left}%`, bottom: `${r.bottom}%`, animationDelay: `${r.delay}s` }} />
+      ))}
+      <div className="neonfx__rain">
+        {rain.map((r, i) => (
+          <i key={i} style={{ left: `${r.left}%`, width: r.w, height: `${r.h}vh`, animationDuration: `${r.dur}s`, animationDelay: `${r.delay}s`, opacity: r.o }} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** Background effects of the active vibe. Pure decoration: sits behind the content and never takes input. */
 export function VibeFx() {
   const { vibe } = useEffectiveVibe()
@@ -140,12 +189,7 @@ export function VibeFx() {
           <div className="vibefx__rgb" />
         </>
       )}
-      {vibe === 'neon' && (
-        <>
-          <div className="vibefx__sun" />
-          <div className="vibefx__grid" />
-        </>
-      )}
+      {vibe === 'neon' && <NeonAlley />}
       {vibe === 'crt' && <div className="vibefx__scan" />}
       {vibe === 'dream' && (
         <>
