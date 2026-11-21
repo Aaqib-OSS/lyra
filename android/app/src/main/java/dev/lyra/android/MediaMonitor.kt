@@ -208,6 +208,33 @@ object MediaMonitor {
         return o.toString()
     }
 
+    /**
+     * The songs queued after the current one, as the player publishes them (MediaController.getQueue), for prefetching.
+     * Most players (Spotify among them) publish no queue to other apps: then this is "null" and nothing is prefetched.
+     * Returns a JSON array of {id,title,artists,artworkUrl} (at most 3), or "null".
+     */
+    fun queueJson(): String {
+        val c = pick() ?: return "null"
+        val q = try { c.queue } catch (_: Exception) { null }
+        if (q.isNullOrEmpty()) return "null"
+        val activeId = c.playbackState?.activeQueueItemId ?: return "null"
+        val i = q.indexOfFirst { it.queueId == activeId }
+        if (i < 0 || i + 1 >= q.size) return "null"
+        val out = JSONArray()
+        for (item in q.subList(i + 1, minOf(q.size, i + 4))) {
+            val d = item.description
+            val title = d.title?.toString() ?: continue
+            val artist = d.subtitle?.toString() ?: ""
+            out.put(JSONObject().apply {
+                put("id", trackId(c.packageName, d.mediaId ?: "", title, artist, ""))
+                put("title", title)
+                put("artists", JSONArray().apply { if (artist.isNotEmpty()) put(artist) })
+                put("artworkUrl", JSONObject.NULL)
+            })
+        }
+        return if (out.length() == 0) "null" else out.toString()
+    }
+
     private fun spotifyWebUrl(mediaId: String): String? {
         val m = Regex("^spotify:track:([A-Za-z0-9]+)$").find(mediaId) ?: return null
         return "https://open.spotify.com/track/${m.groupValues[1]}"
