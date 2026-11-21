@@ -96,6 +96,8 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'type' && <Typewriter lines={lines} active={active} />}
       {mode === 'diary' && <Diary lines={lines} active={active} />}
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
+      {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
+      {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -483,6 +485,90 @@ const SubLine = memo(function SubLine({ line, nextTime }: { line: LyricLine; nex
           {w.text}{' '}
         </span>
       ))}
+    </motion.div>
+  )
+})
+
+// ---------- chat log (sandbox game style) ----------
+
+function ChatLog({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const track = usePlayer((x) => x.snapshot?.track ?? null)
+  const shown: number[] = []
+  for (let i = active; i >= 0 && shown.length < 6; i--) if (lines[i] && lines[i]!.text !== '') shown.unshift(i)
+  const cur = shown[shown.length - 1]
+  return (
+    <div className="mc">
+      <AnimatePresence initial={false}>
+        {active >= 0 && active < 2 && track && (
+          <motion.div key="adv" className="mc__adv" initial={{ x: 120, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 120, opacity: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 26 }}>
+            <i />
+            <span>
+              <b>Now playing!</b>
+              {track.title}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="mc__log">
+        <AnimatePresence initial={false}>
+          {shown.map((i, n) => (
+            <McRow key={i} line={lines[i]!} nextTime={lines[i + 1]?.timeMs} who={track?.artists[0] ?? 'Lyra'} live={i === cur} age={shown.length - 1 - n} />
+          ))}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+const McRow = memo(function McRow({ line, nextTime, who, live, age }: { line: LyricLine; nextTime: number | undefined; who: string; live: boolean; age: number }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words, !live)
+  return (
+    <motion.div layout="position" className={`mc__row ${live ? 'is-live' : ''}`} initial={{ opacity: 0, x: -40 }} animate={{ opacity: Math.max(0.45, 1 - age * 0.12), x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+      <span className="mc__who">&lt;{who}&gt;</span>{' '}
+      {words.map((w, i) => (
+        <span key={i} className={i < revealed ? 'is-in' : ''}>
+          {w.text}{' '}
+        </span>
+      ))}
+    </motion.div>
+  )
+})
+
+// ---------- broadcast lower-third ----------
+
+function LowerThird({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const cur = active >= 0 ? lines[active] : undefined
+  const live = cur && cur.text !== '' ? cur : undefined
+  const prev: number[] = []
+  for (let i = active - 1; i >= 0 && prev.length < 3; i--) if (lines[i] && lines[i]!.text !== '') prev.unshift(i)
+  return (
+    <div className="lt">
+      <div className="lt__ticker">
+        {prev.map((i) => (
+          <span key={i}>{lines[i]!.text}</span>
+        ))}
+      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        {live && <LtBar key={active} line={live} nextTime={lines[active + 1]?.timeMs} />}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+const LtBar = memo(function LtBar({ line, nextTime }: { line: LyricLine; nextTime: number | undefined }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words)
+  return (
+    <motion.div className="lt__bar" initial={{ x: -80, opacity: 0, clipPath: 'inset(0 100% 0 0)' }} animate={{ x: 0, opacity: 1, clipPath: 'inset(0 0% 0 0)' }} exit={{ x: 60, opacity: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
+      <small>NOW SINGING</small>
+      <p>
+        {words.map((w, i) => (
+          <span key={i} className={i < revealed ? 'is-in' : ''}>
+            {w.text}{' '}
+          </span>
+        ))}
+      </p>
     </motion.div>
   )
 })

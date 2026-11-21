@@ -18,7 +18,12 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' },
   { id: 'paper', style: 'diary', name: 'Diary', tag: 'Handwritten, highlighted' },
   { id: 'arcade', style: 'kinetic', name: 'Arcade', tag: '8-bit scoreboard' },
-  { id: 'noir', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' }
+  { id: 'noir', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
+  { id: 'sunset', style: 'kinetic', name: 'Sunset Drive', tag: 'Palms, radio and a pink sky' },
+  { id: 'blocks', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
+  { id: 'stadium', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },
+  { id: 'cassette', style: 'type', name: 'Cassette', tag: 'Walkman and amber LCD' },
+  { id: 'trailer', style: 'kinetic', name: 'Trailer', tag: 'Movie title cards' }
 ]
 
 export const ALL_VIBES: readonly Vibe[] = VIBES.map((v) => v.id)
@@ -60,6 +65,11 @@ const WORDS: Partial<Record<Vibe, { re: RegExp; why: string }>> = {
   crt: { re: /\b(code|machine|machines|digital|robot|system|wire|wires|signal|computer|screen|online|data|program|static|electric)\b/g, why: 'machine words' },
   arcade: { re: /\b(game|games|play|player|win|winner|level|score|fight|fighter|run|running|hero|fire|king|queen|power|champion|boss)\b/g, why: 'game-like words' },
   noir: { re: /\b(dark|darkness|shadow|shadows|cry|crying|alone|blood|black|cold|ghost|gone|die|dead|death|lonely|pain|smoke|rain)\b/g, why: 'dark, lonely words' },
+  sunset: { re: /\b(sun|sunset|summer|beach|palm|road|ride|driving|highway|city|miami|california|heat|gold|golden|paradise|cruise|cruising|money|cash)\b/g, why: 'sunset-drive words' },
+  blocks: { re: /\b(build|building|mine|mining|craft|world|block|blocks|diamond|dig|island|kingdom|castle|adventure|explore|zombie|creeper)\b/g, why: 'adventure words' },
+  stadium: { re: /\b(champion|champions|win|winner|victory|team|goal|crowd|stadium|game|score|play|player|fight|roar|legend|glory|title)\b/g, why: 'stadium words' },
+  cassette: { re: /\b(tape|radio|vinyl|record|song|songs|rewind|play|memory|memories|old|yesterday|walkman|mixtape|nostalgia|stereo|volume)\b/g, why: 'retro words' },
+  trailer: { re: /\b(war|fate|destiny|world|rise|fall|battle|hero|legend|empire|king|queen|storm|thunder|end|begin|beginning|forever|eternal)\b/g, why: 'epic words' },
   chrome: { re: /\b(future|shine|shiny|silver|chrome|gold|diamond|mirror|glass|crystal|space|rocket|baby|girl|boy|money)\b/g, why: 'shiny words' }
 }
 
@@ -115,6 +125,9 @@ export function pickVibe(input: SmartInput, pool: readonly Vibe[] = ALL_VIBES): 
   if (y > 0 && y <= 2004) {
     add('chrome', 2.2, `a ${y} classic`)
     add('crt', 1.2, `a ${y} classic`)
+  } else if (y >= 1970 && y <= 1989) {
+    add('cassette', 2.2, `a ${y} song`)
+    add('sunset', 1.4, `a ${y} song`)
   } else if (y >= 2005 && y <= 2012) {
     add('arcade', 1, 'late-2000s energy')
     add('chrome', 0.8, 'late-2000s energy')

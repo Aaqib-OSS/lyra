@@ -1,5 +1,28 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { getPosition, usePlayer } from '@/store/player'
 import { useEffectiveVibe } from '@/hooks/useVibe'
+
+const PALM = 'M50 300 C48 220 52 150 60 90 C40 100 18 96 0 80 C24 78 44 82 58 74 C52 52 36 40 14 36 C40 30 62 44 66 66 C74 46 92 34 112 34 C96 44 82 58 76 80 C96 84 116 82 140 70 C120 92 94 98 70 98 C62 150 58 220 62 300 Z'
+
+function Scoreboard() {
+  const track = usePlayer((x) => x.snapshot?.track ?? null)
+  const [t, setT] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setT(getPosition()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const dur = track?.durationMs ?? 1
+  const mm = String(Math.floor(t / 60000)).padStart(2, '0')
+  const ss = String(Math.floor((t % 60000) / 1000)).padStart(2, '0')
+  return (
+    <div className="vibefx__score-bug">
+      <span className="live">LIVE</span>
+      <span className="clock">{mm}:{ss}</span>
+      <span className="teams">{track?.title ?? 'Lyra'}<em>vs</em>{track?.artists[0] ?? ''}</span>
+      <span className="half">{t < dur / 2 ? '1ST HALF' : '2ND HALF'}</span>
+    </div>
+  )
+}
 
 /** Background effects of the active vibe. Pure decoration: sits behind the content and never takes input. */
 export function VibeFx() {
@@ -23,6 +46,49 @@ export function VibeFx() {
           <div className="vibefx__hud"><span>1UP</span><span className="vibefx__score" /><span>HI 099950</span></div>
           <div className="vibefx__stars" />
           <div className="vibefx__stars vibefx__stars--b" />
+        </>
+      )}
+      {vibe === 'sunset' && (
+        <>
+          <div className="vibefx__sunset-sun" />
+          <svg className="vibefx__palm vibefx__palm--l" viewBox="0 0 140 300"><path d={PALM} /></svg>
+          <svg className="vibefx__palm vibefx__palm--r" viewBox="0 0 140 300"><path d={PALM} /></svg>
+          <div className="vibefx__road" />
+          <div className="vibefx__radio"><i /><i /><i /><b>LYRA FM 98.7</b></div>
+          <div className="vibefx__stars-hud">★★★<s>★★</s></div>
+        </>
+      )}
+      {vibe === 'blocks' && (
+        <>
+          <div className="vibefx__cloud vibefx__cloud--a" />
+          <div className="vibefx__cloud vibefx__cloud--b" />
+          <div className="vibefx__ground" />
+          <div className="vibefx__hotbar">{Array.from({ length: 9 }, (_, i) => <i key={i} className={i === 2 ? 'on' : ''} />)}</div>
+          <div className="vibefx__xp" />
+        </>
+      )}
+      {vibe === 'stadium' && (
+        <>
+          <div className="vibefx__pitch" />
+          <div className="vibefx__flood vibefx__flood--l" />
+          <div className="vibefx__flood vibefx__flood--r" />
+          <Scoreboard />
+        </>
+      )}
+      {vibe === 'cassette' && (
+        <svg className="vibefx__tape" viewBox="0 0 320 200" aria-hidden="true">
+          <rect x="4" y="4" width="312" height="192" rx="18" />
+          <rect x="40" y="26" width="240" height="64" rx="8" className="lbl" />
+          <text x="160" y="66" textAnchor="middle">SIDE A</text>
+          <g className="reels"><circle cx="100" cy="132" r="26" className="reel" /><circle cx="220" cy="132" r="26" className="reel" /><path d="M100 112v40M80 132h40M220 112v40M200 132h40" /></g>
+          <rect x="120" y="164" width="80" height="22" rx="4" className="win" />
+        </svg>
+      )}
+      {vibe === 'trailer' && (
+        <>
+          <div className="vibefx__bar vibefx__bar--t" />
+          <div className="vibefx__bar vibefx__bar--b" />
+          <div className="vibefx__flare" />
         </>
       )}
       {vibe === 'noir' && (
