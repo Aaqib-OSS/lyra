@@ -22,6 +22,7 @@ if (params.has('record')) {
     startLyricNotifier()
     const { startAmbientConfig } = await import('./ambientConfig')
     startAmbientConfig()
+    void import('./car').then((m) => m.startCarWatcher())
     const { useUi, requestMode } = await import('@/store/ui')
     // hardware / gesture Back: close a panel, leave the cinema layout, otherwise let the app go to the background
     window.__lyraNative!.back = () => {

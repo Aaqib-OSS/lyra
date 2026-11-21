@@ -82,6 +82,7 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
         }
 
         when (req.optString("method")) {
+            "carInfo" -> ui { ok(dev.lyra.android.car.CarModeSupport.infoJson(ctx)) }
             "snapshot" -> ui { ok(MediaMonitor.snapshotJson(ctx)) }
             "status" -> ui { ok(MediaMonitor.statusJson(ctx)) }
             "queue" -> ui { ok(MediaMonitor.queueJson()) }

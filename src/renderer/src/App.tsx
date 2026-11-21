@@ -8,6 +8,8 @@ import { isImportError } from '@shared/lrc'
 import { cycleVibe, useVibeConductor } from '@/hooks/useVibe'
 import { usePrefetchNext } from '@/hooks/usePrefetchNext'
 import { useStartGate } from '@/hooks/useStartGate'
+import { CarMode, CarOffer } from '@/components/CarMode'
+import { useCar } from '@/store/car'
 import { CompactWidget } from '@/components/CompactWidget'
 import { FullscreenPlayer } from '@/components/FullscreenPlayer'
 import { MiniPlayer } from '@/components/MiniPlayer'
@@ -206,6 +208,7 @@ const getNow = getPosition // the one shared song clock
 export default function App() {
   const ready = useBoot()
   const mode = useUi((s) => s.mode)
+  const car = useCar((s) => s.on)
   const settings = useSettings((s) => s.settings)
   const reduced = useReducedMotion()
   const sceneLook = vibeInfo(useEffectiveVibe().vibe).layout === 'scene'
@@ -238,6 +241,7 @@ export default function App() {
   }, [ready, onboarded])
 
   if (!ready) return null
+  if (car) return <CarMode />
 
   return (
     <MotionConfig reducedMotion={reduced ? 'always' : 'never'}>
@@ -272,6 +276,7 @@ export default function App() {
           {(mode === 'mini' || mode === 'full') && <SidePanel />}
           {!onboarded && (mode === 'mini' || mode === 'full') && <Welcome />}
           <Toasts />
+          <CarOffer />
           {dropping && <div className="dropzone">Drop the lyrics file here</div>}
           {(mode === 'mini' || mode === 'compact' || mode === 'minimal') && <ResizeGrip />}
         </motion.div>
