@@ -72,3 +72,9 @@
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .lfb { align-items: center; text-align: center; }
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .lfb__actions { justify-content: center; }
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .plain__stanza { text-align: center; }
+
+/* portrait window: the card is a compact row (scene.css), so the orb is smaller and the lyrics above it keep their room */
+@media (max-aspect-ratio: 1/1) {
+  :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { width: 11vh !important; }
+  :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { padding: 1.4vh 2vh !important; }
+}

@@ -120,3 +120,8 @@
 [data-vibe='cassette'] .lfb p, [data-vibe='cassette'] .lfb small { color: rgba(255, 226, 176, 0.88); font-family: 'Courier New', monospace; }
 [data-vibe='cassette'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='cassette'] .lfb__eq i { background: var(--cs-amber); border-radius: 0; box-shadow: none; }
+
+/* portrait window: the card becomes a compact row (scene.css) and the reels are hidden, so the room kept for them under the controls goes too */
+@media (max-aspect-ratio: 1/1) {
+  :root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { padding-bottom: 1.6vh !important; }
+}
