@@ -209,10 +209,12 @@
 [data-vibe='wall'] .scenewin { box-shadow: 0 0 0 0.6vh #3a3a44, 0 2vh 5vh rgba(0, 0, 0, 0.5); }
 .nvfx__panels { position: absolute; inset: -10% -20%; background: repeating-linear-gradient(90deg, transparent 0 22vh, rgba(255, 255, 255, 0.05) 22vh calc(22vh + 2px)), repeating-linear-gradient(0deg, transparent 0 14vh, rgba(255, 255, 255, 0.05) 14vh calc(14vh + 2px)); animation: wl-drift 40s linear infinite; }
 @keyframes wl-drift { to { transform: translateX(-22vh); } }
+/* the wall card is as wide as its content; keep it wide enough for the progress bar + times (min-width is zeroed by scene.css) */
+:root[data-vibe='wall'] { --sc-cw: max(340px, 24vw) !important; }
 .stage--wall { display: flex; flex-direction: column; justify-content: center; overflow: visible; }
-.sign--wall .sign__line { transform: perspective(1100px) rotateY(-16deg) rotateX(3deg); transform-origin: 0 50%; gap: 2vh; animation: wl-cam 14s ease-in-out infinite alternate; }
-@keyframes wl-cam { from { transform: perspective(1100px) rotateY(-16deg) rotateX(3deg) translateX(0); } to { transform: perspective(1100px) rotateY(-10deg) rotateX(1deg) translateX(2vw); } }
-.sign--wall .sign__row { font-family: 'Unbounded Variable', sans-serif; font-weight: 900; font-size: min(3.8vw, 7vh); line-height: 1.15; letter-spacing: -0.04em; text-transform: uppercase; gap: 1vh 1.2vh; padding-inline-end: 0; }
+.sign--wall .sign__line { transform: perspective(150vh) rotateY(-16deg) rotateX(3deg); transform-origin: 0 50%; max-width: 84%; gap: 2vh; animation: wl-cam 14s ease-in-out infinite alternate; }
+@keyframes wl-cam { from { transform: perspective(150vh) rotateY(-16deg) rotateX(3deg) translateX(0); } to { transform: perspective(150vh) rotateY(-10deg) rotateX(1deg) translateX(0.5vw); } }
+.sign--wall .sign__row { font-family: 'Unbounded Variable', sans-serif; font-weight: 900; font-size: min(3.2vw, 6.4vh); line-height: 1.15; letter-spacing: -0.04em; text-transform: uppercase; gap: 1vh 1.2vh; padding-inline-end: 0; }
 .sign--wall .sign__word { padding: 0.06em 0.3em 0.12em; border-radius: 0.18em; color: rgba(255, 255, 255, 0.18); box-shadow: inset 0 0 0 0.2vh rgba(255, 255, 255, 0.12); }
 .sign--wall .sign__word.is-in { color: #15100a; background: #ff9f43; box-shadow: 0 0.8vh 0 #b86b1c, 0 1.6vh 2.4vh rgba(0, 0, 0, 0.5); animation: wl-land 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 1; }
 .sign--wall .sign__word:nth-child(4n+2).is-in { background: #4dd0e1; box-shadow: 0 0.8vh 0 #1f8a96, 0 1.6vh 2.4vh rgba(0, 0, 0, 0.5); }
