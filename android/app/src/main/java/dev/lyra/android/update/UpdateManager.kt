@@ -262,7 +262,7 @@ object UpdateManager {
         val prefs = UpdatePrefs(ctx)
         val r = prefs.release
         if (disabledReason(ctx) != null || r == null || prefs.phase != Phase.READY) return@synchronized res("error", "There is no update ready to install.")
-        if (!UpdatePolicy.mayInstallNow(playing(ctx),RecordService.isActive(), userInitiated)) {
+        if (!UpdatePolicy.mayInstallNow(playing(ctx), android.os.Build.VERSION.SDK_INT >= 29 && RecordService.isActive(), userInitiated)) {
             return@synchronized res("deferred", "Lyra will install the update when nothing is playing or recording.")
         }
         if (!ctx.packageManager.canRequestPackageInstalls()) {
