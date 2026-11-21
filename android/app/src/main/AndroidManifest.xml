@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -100,6 +101,18 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/lyra_widget_cover_info" />
         </receiver>
+        <receiver android:name=".LyraCardWidget" android:exported="false" android:label="@string/lyra_widget_card_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/lyra_widget_card_info" />
+        </receiver>
+        <receiver android:name=".LyraBigWidget" android:exported="false" android:label="@string/lyra_widget_big_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/lyra_widget_big_info" />
+        </receiver>
+        <receiver android:name=".LyraArtWidget" android:exported="false" android:label="@string/lyra_widget_art_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/lyra_widget_art_info" />
+        </receiver>
         <!-- Opens when a widget is added (and from "reconfigure"): pick the widget's look -->
         <activity
             android:name=".WidgetConfigActivity"
@@ -129,6 +142,7 @@
         <!-- Records a lyric video: the Lyra screen plus Spotify's sound, after the user allowed it -->
         <activity
             android:name=".RecordActivity"
+            tools:targetApi="29"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|uiMode"
             android:excludeFromRecents="true"
@@ -137,6 +151,7 @@
             android:theme="@style/Theme.Lyra" />
         <service
             android:name=".RecordService"
+            tools:targetApi="29"
             android:exported="false"
             android:foregroundServiceType="mediaProjection|microphone" />
 

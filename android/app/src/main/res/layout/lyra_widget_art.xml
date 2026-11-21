@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 1 x 1: just the cover (tap opens Lyra) with a small play / pause chip in the corner -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/lw_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/lw_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
+    <ImageButton
+        android:id="@+id/lw_play"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="6dp"
+        android:background="@drawable/widget_btn_bg_main"
+        android:contentDescription="Play or pause"
+        android:padding="5dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_w_play_dark" />
+</FrameLayout>
