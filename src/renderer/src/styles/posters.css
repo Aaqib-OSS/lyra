@@ -41,10 +41,6 @@
 [data-vibe='dream'] .artwork__deco--c { bottom: 12%; left: 30%; width: 12%; height: 12%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 2 C54 30 70 46 98 50 C70 54 54 70 50 98 C46 70 30 54 2 50 C30 46 46 30 50 2Z' fill='%23d9ccff'/%3E%3C/svg%3E"); animation: pz-twinkle 2.8s 1.7s ease-in-out infinite; }
 
 /* ---- Terminal: scan lines, a sweeping bar and brackets ---- */
-[data-vibe='crt'] .artwork--lift { outline: 2px solid #35ff7a; outline-offset: 4px; box-shadow: 0 0 22px rgba(53,255,122,.45) !important; filter: sepia(.35) hue-rotate(70deg) saturate(1.4) contrast(1.05); animation: pz-flick 4s steps(1) infinite; }
-[data-vibe='crt'] .artwork__deco--a { inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 2px, transparent 2px 4px); }
-[data-vibe='crt'] .artwork__deco--b { left: 0; right: 0; height: 14%; top: -14%; background: linear-gradient(180deg, transparent, rgba(53,255,122,.3), transparent); animation: pz-scan 4.5s linear infinite; }
-[data-vibe='crt'] .artwork__deco--c { inset: 3%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M4 28 V4 H28 M72 4 H96 V28 M96 72 V96 H72 M28 96 H4 V72' fill='none' stroke='%2335ff7a' stroke-width='3' stroke-linecap='square'/%3E%3C/svg%3E"); background-size: 100% 100%; }
 
 /* ---- DM: sent as a picture, with a reaction that pops ---- */
 [data-vibe='chat'] .artwork--lift { outline: 3px solid #2f6bff; outline-offset: 0; box-shadow: 0 14px 34px -10px rgba(47,107,255,.6) !important; border-bottom-left-radius: 6px !important; }

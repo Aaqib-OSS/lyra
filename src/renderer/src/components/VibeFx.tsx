@@ -290,6 +290,21 @@ function DreamFx() {
   )
 }
 
+/** Terminal, fullscreen: tmux panes with titles, scanlines, a rolling bar, a curved-glass vignette, a blinking cursor. */
+function TermFx() {
+  return (
+    <div className="termfx">
+      <SceneWindow />
+      <div className="termfx__pane termfx__pane--video" data-title="video.mp4" />
+      <div className="termfx__pane termfx__pane--log" data-title="lyrics.log" />
+      <div className="termfx__cursor" />
+      <div className="termfx__roll" />
+      <div className="termfx__scan" />
+      <div className="termfx__glass" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -408,7 +423,7 @@ export function VibeFx() {
       {vibe === 'comic' && <ComicFx />}
       {vibe === 'glitch' && <GlitchFx />}
       {vibe === 'neon' && <NeonAlley />}
-      {vibe === 'crt' && <div className="vibefx__scan" />}
+      {vibe === 'crt' && <TermFx />}
       {vibe === 'dream' && <DreamFx />}
       {vibe === 'filmstrip' && <FilmStripFx />}
       {vibe === 'chrome' && <ChromeFx sparkles={sparkles} />}

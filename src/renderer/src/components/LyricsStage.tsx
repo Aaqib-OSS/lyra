@@ -103,6 +103,7 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
       {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title' || mode === 'ink' || mode === 'glitch' || mode === 'bubble' || mode === 'spray' || mode === 'intertitle') && <Sign lines={lines} active={active} variant={mode} />}
       {mode === 'bloom' && <Bloom lines={lines} active={active} />}
+      {mode === 'log' && <TermLog lines={lines} active={active} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -703,5 +704,35 @@ const BloomLine = memo(function BloomLine({ line, nextTime }: { line: LyricLine;
         </span>
       ))}
     </motion.div>
+  )
+})
+
+// ---------- log: a terminal log, the newest line at the bottom with a cursor, older lines dim above it ----------
+const fmtStamp = (ms: number): string => `[${String(Math.floor(ms / 60000)).padStart(2, '0')}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}]`
+const TermLog = memo(function TermLog({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const ids: number[] = []
+  for (let i = active; i >= 0 && ids.length < 6; i--) if (lines[i] && lines[i]!.text !== '') ids.unshift(i)
+  return (
+    <div className="termlog">
+      {ids.map((i) => (
+        <TermRow key={i} line={lines[i]!} current={i === active} nextTime={lines[i + 1]?.timeMs} />
+      ))}
+    </div>
+  )
+})
+const TermRow = memo(function TermRow({ line, current, nextTime }: { line: LyricLine; current: boolean; nextTime: number | undefined }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words, !current)
+  return (
+    <div className={`termlog__row ${current ? 'is-current' : ''}`}>
+      <span className="termlog__ts">{fmtStamp(line.timeMs)}</span>
+      <span className="termlog__text">
+        {words.map((w, i) => (
+          <span key={i} className={['termlog__word', i < revealed ? 'is-in' : '', current && i === revealed - 1 ? 'is-now' : ''].join(' ')}>
+            {w.text}{' '}
+          </span>
+        ))}
+      </span>
+    </div>
   )
 })

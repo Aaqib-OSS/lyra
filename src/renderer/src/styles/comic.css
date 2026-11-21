@@ -80,6 +80,7 @@
 [data-vibe='comic'] .scenewin { box-shadow: 0 0 0 1vh var(--cm-ink), 1.4vh 1.6vh 0 1vh rgba(17, 17, 17, 0.9); }
 .comicfx__caption { position: absolute; left: calc(var(--sc-wl) + 1vh); top: calc(var(--sc-wt) + 1vh); padding: 0.8vh 1.4vh; background: var(--cm-yellow); border: 0.4vh solid var(--cm-ink); font: 900 1.7vh/1 'Unbounded Variable', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cm-ink); box-shadow: 0.4vh 0.5vh 0 var(--cm-ink); }
 .comicfx__caption, .comicfx__pow { display: none; }
+:root:has(.full .full__screen) .comicfx__caption { display: none !important; }
 :root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .comicfx__caption { display: block; }
 :root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .comicfx__pow { display: grid; }
 .scenewin__art span { font: 900 3.4vh/1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; background: #fff; border: 0.5vh solid var(--cm-ink); padding: 1vh 1.6vh; box-shadow: 0.6vh 0.7vh 0 var(--cm-ink); rotate: -3deg; color: var(--cm-ink); }

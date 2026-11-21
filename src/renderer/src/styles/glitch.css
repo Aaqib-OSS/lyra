@@ -117,7 +117,7 @@
 [data-vibe='glitch'] .plain__stanza { font-family: 'VT323', monospace; font-weight: 400; font-size: min(3vw, 5vh); line-height: 1.15; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; text-shadow: -1.5px 0 0 var(--gl-red), 1.5px 0 0 var(--gl-cyan); }
 [data-vibe='glitch'] .lfb { align-items: flex-start; text-align: left; }
 [data-vibe='glitch'] .lfb__poster { display: none; }
-[data-vibe='glitch'] .lfb h3 { font-family: 'Unbounded Variable', 'Inter Variable', sans-serif; text-transform: uppercase; font-weight: 800; letter-spacing: -0.03em; font-size: clamp(22px, 3.4vw, 50px); color: #fff; text-shadow: -0.04em 0 0 var(--gl-red), 0.04em 0 0 var(--gl-cyan); }
+[data-vibe='glitch'] .lfb h3 { font-family: 'Unbounded Variable', 'Inter Variable', sans-serif; text-transform: uppercase; font-weight: 800; letter-spacing: -0.03em; font-size: clamp(20px, 2.7vw, 40px); color: #fff; text-shadow: -0.04em 0 0 var(--gl-red), 0.04em 0 0 var(--gl-cyan); }
 [data-vibe='glitch'] .lfb p { color: rgba(255, 255, 255, 0.85); }
 [data-vibe='glitch'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='glitch'] .lfb__eq i { background: #fff; box-shadow: -2px 0 0 var(--gl-red), 2px 0 0 var(--gl-cyan); }

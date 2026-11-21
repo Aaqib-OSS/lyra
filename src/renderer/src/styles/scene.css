@@ -119,7 +119,9 @@
 /* idle (nothing playing): no video window, the "nothing playing" screen has the stage to itself */
 :root[data-arch='scene']:has(.full .full__screen) .scenewin { display: none !important; }
 /* the "no video found" card in a scene: a slim pill, so it never covers the header or the video */
-:root[data-arch='scene'][data-mode='full'] .vstat__card { max-width: min(460px, 42vw); }
+:root[data-arch='scene'][data-mode='full'] .vstat { top: 6px; width: min(92%, 440px); }
+:root[data-arch='scene'][data-mode='full'] .vstat__card { max-width: min(440px, 42vw); padding: 7px 8px 7px 10px; gap: 10px; border-radius: 16px; }
+:root[data-arch='scene'][data-mode='full'] .vstat__icon { width: 30px; height: 30px; border-radius: 9px; }
 :root[data-arch='scene'][data-mode='full'] .vstat__text span, :root[data-arch='scene'][data-mode='full'] .vstat__text p { display: none; }
 /* portrait window (a rotated monitor): the video on top, the lyrics under it, the card as a compact row at the bottom */
 @media (max-aspect-ratio: 1/1) {

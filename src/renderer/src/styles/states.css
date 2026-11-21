@@ -23,20 +23,7 @@
 
 /* ===================== TERMINAL ===================== */
 /* video playing: the panes turn translucent, so the picture shows through like a feed on a monitor */
-:root[data-vibe='crt'] .full.is-video .full__lyrics, :root[data-vibe='crt'] .full.is-video .full__side { background: rgba(2, 12, 6, 0.62) !important; }
-[data-vibe='crt'] .lyrics__notice { background: transparent; border: 1px solid var(--accent); border-radius: 0; color: var(--accent); font-family: 'VT323', monospace; font-size: 15px; letter-spacing: .04em; }
-[data-vibe='crt'] .lyrics__notice::before { content: '# '; }
 /* unsynced words: `cat lyrics.txt` with line numbers, nothing blinking, nothing highlighted */
-[data-vibe='crt'] .lyrics__inner--plain { counter-reset: ln; }
-[data-vibe='crt'] .plain__stanza { font-family: 'VT323', monospace; font-weight: 400; letter-spacing: 0; color: var(--accent); font-size: calc(var(--lyric-size) * 0.8); text-shadow: 0 0 8px rgba(53,255,122,.45); }
-[data-vibe='crt'] .plain__stanza > span { counter-increment: ln; }
-[data-vibe='crt'] .plain__stanza > span::before { content: counter(ln, decimal-leading-zero) '  '; color: var(--fg-3); }
-[data-vibe='crt'] .lfb { align-items: flex-start; }
-[data-vibe='crt'] .lfb__poster { display: none; }
-[data-vibe='crt'] .lfb h3 { font-family: 'VT323', monospace; font-weight: 400; text-transform: uppercase; color: #ffd34d; text-shadow: 0 0 10px rgba(255,211,77,.5); letter-spacing: .04em; max-width: none; }
-[data-vibe='crt'] .lfb h3::before { content: 'ERR> '; color: #ff6b6b; }
-[data-vibe='crt'] .lfb p { font-family: 'VT323', monospace; font-size: 17px; color: var(--fg-2); }
-[data-vibe='crt'] .lfb__eq i { background: var(--accent); border-radius: 0; width: 5px; }
 
 /* ===================== STICKERS ===================== */
 [data-vibe='sticker'] .lyrics__notice { background: #fff; color: #111; border: 3px solid #111; border-radius: 12px; box-shadow: 3px 3px 0 #111; font-weight: 800; transform: rotate(-1deg); }
