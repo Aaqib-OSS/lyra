@@ -738,3 +738,68 @@
 .more[open] > summary::before { transform: rotate(45deg); }
 .more > summary:hover { color: var(--fg); }
 .more[open] { padding-bottom: 4px; }
+
+/* ==========================================================================
+   VIDEO BEHIND THE LYRICS: placement and legibility (task: video experience)
+   ========================================================================== */
+
+/* the status pill sits below the header of whichever surface it is on, never on top of the buttons */
+.mini .vstat { top: 56px; }
+.mini--phone .vstat { top: calc(env(safe-area-inset-top, 0px) + 76px); }
+.full .vstat { top: 18px; }
+
+/* a soft dark scrim behind the lyrics keeps them readable over bright parts of the footage */
+:root[data-bg-media] .mini__lyrics::before {
+  content: '';
+  position: absolute;
+  inset: 0 -24px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.34) 22%, rgba(0, 0, 0, 0.5) 100%);
+}
+:root[data-bg-media] .mini--phone .mini__lyrics::before { inset: 0 -16px; background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.42) 28%, rgba(0, 0, 0, 0.58) 100%); }
+:root[data-bg-media='full'] .full__lyrics::before {
+  content: '';
+  position: absolute;
+  inset: -4% -6%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0, 0, 0, 0.5), transparent 72%);
+}
+.mini__lyrics, .full__lyrics { isolation: isolate; }
+/* over video, the lines that are not being sung stay clearly readable */
+:root[data-bg-media] .lyric.is-past { opacity: 0.55; }
+:root[data-bg-media] .lyric.is-next[data-dist='1'] { opacity: 0.72; }
+:root[data-bg-media] .lyric.is-next[data-dist='2'] { opacity: 0.6; }
+:root[data-bg-media] .lyric.is-next[data-dist='3'] { opacity: 0.5; }
+:root[data-bg-media] .lyric__text { text-shadow: none; }
+
+/* phone + video: the dock and the lyrics keep their layout (the video-mode "glass card" styling must not reshape them) */
+:root[data-bg-media='mini'] .mini--phone .phone__dock {
+  display: flex;
+  margin: 0 -16px;
+  padding: 10px 16px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.5) 45%);
+}
+:root[data-bg-media='mini'] .mini--phone .mini__lyrics {
+  margin: 0 -16px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+[data-platform='android'][data-bg-media='mini'] .mini--phone.is-idle .mini__lyrics { height: auto; }
+@media (orientation: landscape) and (max-height: 520px) {
+  :root[data-bg-media='mini'] .mini--phone .mini__lyrics { grid-column: 2; grid-row: 1 / span 3; margin: 0 -16px 0 0; height: auto; }
+  :root[data-bg-media='mini'] .mini--phone .phone__dock { grid-column: 1; grid-row: 3; margin: 0; padding-inline: 0; background: transparent; border-top: 0; }
+  :root[data-bg-media='mini'] .mini--phone .phone__bar { grid-column: 1; grid-row: 1; }
+}
