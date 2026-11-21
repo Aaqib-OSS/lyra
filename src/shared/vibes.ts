@@ -30,7 +30,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'chat', layout: 'scene', style: 'chat', name: 'DM', tag: 'The song texts you' },
   { id: 'paper', layout: 'scene', style: 'note', name: 'Diary', tag: 'A cosy night corner, a polaroid, handwriting' },
   { id: 'arcade', layout: 'scene', style: 'pixel', name: 'Arcade', tag: '8-bit cabinet' },
-  { id: 'noir', layout: 'bar', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
+  { id: 'noir', layout: 'scene', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
   { id: 'sunset', layout: 'scene', style: 'bloom', name: 'Sunset Drive', tag: 'Golden hour, warm glow' },
   { id: 'blocks', layout: 'side', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
   { id: 'stadium', layout: 'dock', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },

@@ -364,6 +364,24 @@ function DiaryFx() {
   )
 }
 
+/** Cinema, fullscreen: a black-and-white screening. Venetian-blind light drifts, grain, a projector flicker, a beam with dust. */
+function NoirFx() {
+  const dust = useMemo(() => Array.from({ length: 22 }, (_, i) => ({ left: 8 + ((i * 37 + 5) % 84), top: 30 + ((i * 19) % 62), dur: 8 + (i % 6) * 2, delay: -((i * 1.1) % 12) })), [])
+  return (
+    <div className="noirfx">
+      <i className="noirfx__beam" />
+      <SceneWindow />
+      <div className="noirfx__blinds" />
+      {dust.map((d, i) => (
+        <i key={i} className="noirfx__dust" style={{ left: `${d.left}%`, top: `${d.top}%`, animationDuration: `${d.dur}s`, animationDelay: `${d.delay}s` }} />
+      ))}
+      <div className="noirfx__vignette" />
+      <div className="noirfx__flicker" />
+      <div className="noirfx__grain" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -468,13 +486,7 @@ export function VibeFx() {
           <TrailerFx />
         </>
       )}
-      {vibe === 'noir' && (
-        <>
-          <div className="vibefx__bar vibefx__bar--t" />
-          <div className="vibefx__bar vibefx__bar--b" />
-          <div className="vibefx__dust" />
-        </>
-      )}
+      {vibe === 'noir' && <NoirFx />}
       {vibe === 'paper' && <DiaryFx />}
       {vibe === 'sketch' && <SketchFx />}
       {vibe === 'stencil' && <StencilFx />}
