@@ -18,3 +18,6 @@ The harness has switches for edge cases: `?vs=` (video: searching, nokey, none, 
 
 ## Lyrics-state matrix
 `npm run test:ui:states` renders every vibe on phone, tablet landscape, Windows 1366x768 and the mini player with `?ly=plain`, `?ly=none` and `?ly=offline`; it fails on clipping, contrast, an empty screen, or plain lyrics not shown (`.plain__stanza`).
+
+## Video follows the music
+`npm run test:video` plays a generated clip through the harness, pauses and resumes the fake player live and checks the video freezes / moves within 300 ms (HTML video only; needs ffmpeg). It is part of the CI `ui` job.

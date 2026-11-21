@@ -42,6 +42,7 @@ function sanitize(s: Settings): Settings {
     ambientAutoBrightness: s.ambientAutoBrightness !== false,
     ambientStyle: s.ambientStyle === 'minimal' || s.ambientStyle === 'glow' || s.ambientStyle === 'video' ? s.ambientStyle : 'video',
     autoDim: s.autoDim !== false,
+    startGate: s.startGate === true,
     customBackground:
       s.customBackground && /^[a-f0-9]{16}\.(mp4|webm|gif|png|jpe?g|webp|apng)$/i.test(s.customBackground.file ?? '')
         ? { file: s.customBackground.file, name: String(s.customBackground.name ?? '').slice(0, 120), kind: s.customBackground.kind === 'video' ? 'video' : 'image' }

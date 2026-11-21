@@ -10,10 +10,11 @@ const idx = Number(q.get('track') ?? 0)
 let track = DEMO_TRACKS[idx] ?? DEMO_TRACKS[0]!
 const playbackListeners: Array<(s: PlaybackSnapshot) => void> = []
 let settings: Settings = { ...DEFAULT_SETTINGS, onboarded: true, source: 'api', ...(JSON.parse(q.get('s') ?? '{}') as Partial<Settings>) }
-const startedAt = Date.now() - Number(q.get('t') ?? 40000)
-const playing = q.get('paused') !== '1'
+let startedAt = Date.now() - Number(q.get('t') ?? 40000)
+let playing = q.get('paused') !== '1'
+let frozenAt = Number(q.get('t') ?? 40000)
 const snap = (): PlaybackSnapshot => ({
-  track, isPlaying: playing, positionMs: playing ? Date.now() - startedAt : Number(q.get('t') ?? 40000), sampledAt: Date.now(),
+  track, isPlaying: playing, positionMs: playing ? Date.now() - startedAt : frozenAt, sampledAt: Date.now(),
   device: { name: 'Studio PC', type: 'Computer', volume: 70 } as never, shuffle: false, repeat: 'off', isAdOrUnknown: false
 })
 // ?lang=hi|pa plays original sample lyrics in Devanagari / Gurmukhi (for glyph clipping and Roman-line checks)
@@ -76,6 +77,14 @@ const api: any = {
   app: { info: async () => ({ version: '0.17.1', platform: 'win32', envClientId: false }), diagnostics: async () => '', copy: async () => true, copyImage: async () => true, shareImage: async () => 'saved', failedShortcuts: async () => [], onCommand: sub }
 }
 ;(window as any).lyra = api
+// window.__setPlaying(false|true) pauses / resumes the fake player live (used by the video sync test)
+;(window as any).__setPlaying = (on: boolean) => {
+  if (on === playing) return
+  if (on) startedAt = Date.now() - frozenAt
+  else frozenAt = Date.now() - startedAt
+  playing = on
+  playbackListeners.forEach((cb) => cb(snap()))
+}
 // window.__next() plays the next demo song (used to check the vibe conductor)
 ;(window as any).__next = () => {
   track = DEMO_TRACKS[(DEMO_TRACKS.indexOf(track) + 1) % DEMO_TRACKS.length]!

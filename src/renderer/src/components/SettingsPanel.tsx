@@ -509,6 +509,11 @@ function BackgroundSection() {
           <Toggle label="Auto dim" checked={s.autoDim} onChange={(v) => set({ autoDim: v })} />
         </Row>
       {document.documentElement.dataset.platform !== 'android' && (
+        <Row label="Wait a moment for lyrics" info="When a song starts and neither its lyrics nor its video are ready, Lyra can pause the music for up to 1.5 seconds so you don't miss the start. It only does this when the first line is more than 5 seconds into the song, never after you pause or skip within a song, and it is off unless you turn it on.">
+          <Toggle label="Wait a moment for lyrics" checked={s.startGate} onChange={(v) => set({ startGate: v })} />
+        </Row>
+      )}
+      {document.documentElement.dataset.platform !== 'android' && (
         <Row label="Also in the expanded player" info="Show the video in the expanded player too, not only in fullscreen. Uses a little more CPU/GPU.">
           <Toggle label="Video in the expanded player" checked={s.backgroundInMini} onChange={(v) => set({ backgroundInMini: v })} />
         </Row>

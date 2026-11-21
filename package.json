@@ -24,7 +24,8 @@
     "test:ui:quick": "node scripts/ui-test/run.mjs --quick",
     "test:ui:states": "node scripts/ui-test/run.mjs --states",
     "test:settings": "node scripts/ui-test/settings.mjs",
-    "test:ui:layouts": "node scripts/ui-test/run.mjs --layouts"
+    "test:ui:layouts": "node scripts/ui-test/run.mjs --layouts",
+    "test:video": "node scripts/ui-test/video-sync.mjs"
   },
   "build": {
     "appId": "dev.lyra.companion",

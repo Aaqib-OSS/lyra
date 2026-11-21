@@ -34,6 +34,7 @@ jobs:
       - run: npm run test:ui:quick
       - run: npm run test:settings
       - run: npm run test:ui:states
+      - run: npm run test:video
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

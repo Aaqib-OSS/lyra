@@ -5,6 +5,7 @@ import { VibeFx } from '@/components/VibeFx'
 import { isImportError } from '@shared/lrc'
 import { cycleVibe, useVibeConductor } from '@/hooks/useVibe'
 import { usePrefetchNext } from '@/hooks/usePrefetchNext'
+import { useStartGate } from '@/hooks/useStartGate'
 import { CompactWidget } from '@/components/CompactWidget'
 import { FullscreenPlayer } from '@/components/FullscreenPlayer'
 import { MiniPlayer } from '@/components/MiniPlayer'
@@ -232,6 +233,7 @@ export default function App() {
   useThemeVars()
   useVibeConductor()
   usePrefetchNext()
+  useStartGate()
   useHotkeys()
   const dropping = useLyricDrop()
 
