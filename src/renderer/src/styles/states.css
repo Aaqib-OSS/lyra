@@ -136,7 +136,7 @@
 :root .full.is-cinema .artwork--lift, :root .full:not([data-arch='side']) .artwork--lift, :root .mini__dock .artwork--lift, :root .phone__dock .artwork--lift { outline-width: 2px !important; outline-offset: 0 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.55), 0 8px 20px -6px rgba(0,0,0,.6) !important; animation: none !important; }
 
 /* ===================== ARCADE ===================== */
-[data-vibe='arcade'] .lyrics__notice { background: #0d0d30; border: 2px solid #ffe600; border-radius: 0; color: #ffe600; font: 9px/1.5 'Press Start 2P', monospace; text-transform: uppercase; letter-spacing: 0; }
+[data-vibe='arcade'] .lyrics__notice { background: #0d0d30; border: 2px solid #ffe600; border-radius: 0; color: #ffe600; font: 10px/1.5 'Press Start 2P', monospace; text-transform: uppercase; letter-spacing: 0; }
 /* unsynced words: the high-score table: rows, a marker, no highlight that moves */
 [data-vibe='arcade'] .plain__stanza { font-family: 'Press Start 2P', monospace; font-weight: 400; letter-spacing: 0; line-height: 1.9; color: #fff; font-size: max(11px, calc(var(--lyric-size) * 0.34)); }
 [data-vibe='arcade'] .plain__stanza > span::before { content: '▸ '; color: #ff2d6f; }
@@ -151,7 +151,7 @@
 /* the film is black and white, the video too */
 [data-vibe='noir'] .backdrop__stage { filter: grayscale(1) contrast(1.12) brightness(.92) !important; }
 :root[data-vibe='noir'][data-bg-media] .backdrop__dim { background: rgba(0,0,0,.45); }
-[data-vibe='noir'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid rgba(255,255,255,.35); border-bottom: 1px solid rgba(255,255,255,.35); border-radius: 0; letter-spacing: .3em; text-transform: uppercase; font-size: 9.5px; color: rgba(255,255,255,.75); padding: 5px 10px; }
+[data-vibe='noir'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid rgba(255,255,255,.35); border-bottom: 1px solid rgba(255,255,255,.35); border-radius: 0; letter-spacing: .3em; text-transform: uppercase; font-size: 10px; color: rgba(255,255,255,.75); padding: 5px 10px; }
 /* unsynced words: end credits, centred and still */
 [data-vibe='noir'] .lyrics__inner--plain { text-align: center; }
 [data-vibe='noir'] .lyrics__inner--plain .lyrics__notice { margin-inline: auto; }
@@ -226,7 +226,7 @@
 /* the film is graded like a trailer: lifted contrast, muted colour, warm */
 [data-vibe='trailer'] .backdrop__stage { filter: contrast(1.15) saturate(.7) sepia(.22) brightness(.92); }
 :root[data-vibe='trailer'][data-bg-media] .backdrop__dim { background: rgba(0,0,0,.42); }
-[data-vibe='trailer'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid #c9a24a; border-bottom: 1px solid #c9a24a; border-radius: 0; color: #c9a24a; letter-spacing: .3em; text-transform: uppercase; font-size: 9.5px; padding: 5px 10px; }
+[data-vibe='trailer'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid #c9a24a; border-bottom: 1px solid #c9a24a; border-radius: 0; color: #c9a24a; letter-spacing: .3em; text-transform: uppercase; font-size: 10px; padding: 5px 10px; }
 /* unsynced words: a scrolling card of the credits, small caps, evenly spaced, nothing glowing */
 [data-vibe='trailer'] .lyrics__inner--plain { text-align: center; }
 [data-vibe='trailer'] .lyrics__inner--plain .lyrics__notice { margin-inline: auto; }
@@ -280,3 +280,6 @@
 /* the small floating card of the light inked vibes is a paper slip with ink text */
 :root[data-vibe='comic'] .full .full__side { background: #fff !important; --fg: #111; --fg-2: #2a2a2a; --fg-3: #444; border: 3px solid #111; box-shadow: 4px 4px 0 #111; border-radius: 10px; -webkit-backdrop-filter: none; backdrop-filter: none; }
 :root[data-vibe='sketch'] .full .full__side { background: #f4ead0 !important; --fg: #1f1511; --fg-2: #3a2a22; --fg-3: #55443a; border: 2px solid #1f1511; box-shadow: 4px 4px 0 #d23a2a; border-radius: 6px; -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+[data-vibe='arcade'] .lfb small, [data-vibe='arcade'] .lfb p { font-size: max(10px, 1em); }
+[data-vibe='arcade'] .lfb small { font-size: 10px; }
