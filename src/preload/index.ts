@@ -60,6 +60,7 @@ const api: LyraApi = {
     importFile: (track) => invoke(CH.lyricsImportFile, track),
     health: () => invoke(CH.lyricsHealth)
   },
+  cache: { clear: () => invoke(CH.cacheClear) },
   art: { get: (url) => invoke(CH.artGet, url) },
   moments: {
     list: () => invoke(CH.momentsList),

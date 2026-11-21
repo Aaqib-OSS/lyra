@@ -1,16 +1,21 @@
 import type { Track, YoutubeVideo } from '@shared/types'
-import { logger, platform, type Store } from '../platform'
+import { logger, platform } from '../platform'
+import { PersistentCache } from '../cache/persistentCache'
+import { sameLength, trackCacheKey } from '../cache/trackCacheKey'
 import { retry } from '../resilience'
 import { parseIsoDuration, rankKaraoke, rankVideos, type VideoCandidate } from './rank'
 
 const log = logger('youtube')
 
 const API = 'https://www.googleapis.com/youtube/v3'
+const HIT_TTL = 90 * 24 * 3600_000
 const MISS_TTL = 14 * 24 * 3600_000
+const MAX_ENTRIES = 1500
 const QUOTA_COOLDOWN = 6 * 3600_000
 
 interface Entry {
-  at: number
+  /** length of the song this answer was made for (a much longer/shorter version must not reuse it) */
+  durationMs: number
   /** the auto-play pick (null = nothing convincing found) */
   video: YoutubeVideo | null
   /** everything we found, so the picker panel costs no extra quota */
@@ -36,14 +41,16 @@ function decodeEntities(t: string): string {
 
 class YoutubeService {
   private readonly karaokeCache = new Map<string, { at: number; items: YoutubeVideo[] }>()
-  private cache: Store<{ entries: Record<string, Entry> }> | null = null
+  /** keyed by the SONG (artist|title), not the player's track id: the second play of a song costs no quota */
+  private readonly cache = new PersistentCache<Entry>({
+    name: 'youtube-cache-v3.json',
+    version: 1,
+    maxEntries: MAX_ENTRIES,
+    ttl: (e) => (e.video ? HIT_TTL : MISS_TTL)
+  })
   private cooldownUntil = 0
   private key: string | null | undefined // undefined = not loaded yet
   private inflight = new Map<string, Promise<YoutubeResult>>()
-
-  private entries(): Record<string, Entry> {
-    return (this.cache ??= platform().store<{ entries: Record<string, Entry> }>('youtube-cache-v2.json', { entries: {} })).get().entries
-  }
 
   /** The key is encrypted by the host (never sent to the interface). */
   private loadKey(): string | null {
@@ -106,18 +113,19 @@ class YoutubeService {
   find(track: Track): Promise<YoutubeResult> {
     const key = this.loadKey()
     if (!key) return Promise.resolve({ state: 'no-key' })
-    const hit = this.entries()[track.id]
-    if (hit && (hit.video || Date.now() - hit.at < MISS_TTL)) {
-      return Promise.resolve(hit.video ? { state: 'found', video: hit.video, list: hit.list } : { state: 'none', list: hit.list })
-    }
-    if (Date.now() < this.cooldownUntil) return Promise.resolve(this.staleOr(hit, 'YouTube quota is used up for now; trying again later.'))
-    const running = this.inflight.get(track.id)
+    const ck = trackCacheKey(track)
+    const fits = (e: Entry): boolean => sameLength(e.durationMs, track.durationMs)
+    const hit = this.cache.get(ck, fits)
+    if (hit) return Promise.resolve(hit.video ? { state: 'found', video: hit.video, list: hit.list } : { state: 'none', list: hit.list })
+    const old = this.cache.getStale(ck, fits)
+    if (Date.now() < this.cooldownUntil) return Promise.resolve(this.staleOr(old, 'YouTube quota is used up for now; trying again later.'))
+    const running = this.inflight.get(ck)
     if (running) return running
     const p = this.search(track, key)
       // when the search fails but we once knew an answer (even an old one), use it instead of an error
-      .then((r) => (r.state === 'error' ? this.staleOr(hit, r.message) : r))
-      .finally(() => this.inflight.delete(track.id))
-    this.inflight.set(track.id, p)
+      .then((r) => (r.state === 'error' ? this.staleOr(old, r.message) : r))
+      .finally(() => this.inflight.delete(ck))
+    this.inflight.set(ck, p)
     return p
   }
 
@@ -163,9 +171,7 @@ class YoutubeService {
   }
 
   private remember(track: Track, video: YoutubeVideo | null, list: YoutubeVideo[]): YoutubeResult {
-    const entries = this.entries()
-    entries[track.id] = { at: Date.now(), video, list }
-    this.cache!.set({ entries })
+    this.cache.set(trackCacheKey(track), { durationMs: track.durationMs, video, list })
     return video ? { state: 'found', video, list } : { state: 'none', list }
   }
 

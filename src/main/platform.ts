@@ -1,6 +1,6 @@
 import { app, net, safeStorage } from 'electron'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { setPlatform, type BlobCache, type CorePlatform, type SecretStore } from '@core/platform'
 import { JsonStore } from './jsonStore'
@@ -27,13 +27,28 @@ class FileBlobCache implements BlobCache {
   }
   read(key: string): string | null {
     try {
-      return readFileSync(this.file(key), 'utf8')
+      const f = this.file(key)
+      const v = readFileSync(f, 'utf8')
+      const t = new Date()
+      utimesSync(f, t, t) // a read counts as use, so frequently played songs survive the size cap (LRU)
+      return v
     } catch {
       return null
     }
   }
   write(key: string, value: string): void {
-    writeFileSync(this.file(key), value)
+    // atomic: a crash mid-write leaves the old file, never a half-written one
+    const f = this.file(key)
+    const tmp = `${f}.tmp`
+    writeFileSync(tmp, value)
+    renameSync(tmp, f)
+  }
+  clear(): void {
+    try {
+      for (const f of readdirSync(this.dir)) rmSync(join(this.dir, f), { force: true })
+    } catch {
+      /* best effort */
+    }
   }
 }
 

@@ -83,6 +83,11 @@ class LocalBlobCache implements BlobCache {
     localStorage.setItem(this.indexKey, JSON.stringify(this.index))
   }
 
+  clear(): void {
+    this.evict(this.index.length)
+    localStorage.setItem(this.indexKey, JSON.stringify(this.index))
+  }
+
   private evict(n: number): void {
     for (const k of this.index.splice(0, n)) localStorage.removeItem(this.prefix + k)
   }
