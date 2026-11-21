@@ -152,3 +152,18 @@
 [data-vibe='noir'] .lfb h3 { font-family: 'Iowan Old Style', Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; font-size: clamp(14px, 2cqw, 22px); border-top: 1px solid rgba(255,255,255,.5); border-bottom: 1px solid rgba(255,255,255,.5); padding: .6em 1.2em; max-width: none; }
 [data-vibe='noir'] .lfb p { font-family: 'Iowan Old Style', Georgia, serif; font-style: italic; }
 [data-vibe='noir'] .lfb__actions { justify-content: center; }
+
+/* ===================== SUNSET DRIVE ===================== */
+/* a video plays: the painted sun and palms step back so the picture is the sky */
+:root[data-vibe='sunset'][data-bg-media] .vibefx__sunset-sun { opacity: .0; }
+:root[data-vibe='sunset'][data-bg-media] .vibefx__palm { opacity: .55; }
+:root[data-vibe='sunset'][data-bg-media] .backdrop__dim { background: linear-gradient(180deg, rgba(60,10,90,.5), rgba(255,94,155,.18) 60%, rgba(40,6,60,.55)); }
+[data-vibe='sunset'] .lyrics__notice { background: rgba(43,10,90,.55); border: 1px solid rgba(255,209,166,.6); color: #ffe9c7; }
+/* unsynced words: radio-station copy, a dark halo keeps it readable on the sun */
+[data-vibe='sunset'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 800; font-style: italic; letter-spacing: -0.04em; color: #fff; text-shadow: 0 0 2px #2b0a5a, 0.06em 0.06em 0 #2b0a5a, 0 0 18px rgba(43,10,90,.8); }
+[data-vibe='sunset'] .lfb { align-items: center; text-align: center; }
+[data-vibe='sunset'] .lfb__poster { display: none; }
+[data-vibe='sunset'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: clamp(18px, 3cqw, 34px); letter-spacing: -0.03em; background: linear-gradient(180deg, #fff6c4, #ffb347 50%, #ff5e9b); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; -webkit-text-stroke: .014em rgba(40,6,60,.9); filter: drop-shadow(.05em .05em 0 #2b0a5a) drop-shadow(0 0 .3em rgba(43,10,90,.85)); padding-right: .1em; }
+[data-vibe='sunset'] .lfb p { color: #fff; text-shadow: 0 0 10px rgba(43,10,90,.9); }
+[data-vibe='sunset'] .lfb__actions { justify-content: center; }
+[data-vibe='sunset'] .lfb__eq i { background: linear-gradient(180deg, #fff6c4, #ff5e9b); }
