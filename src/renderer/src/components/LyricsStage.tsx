@@ -101,7 +101,8 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
-      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'radio' || mode === 'title') && <Sign lines={lines} active={active} variant={mode} />}
+      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title') && <Sign lines={lines} active={active} variant={mode} />}
+      {mode === 'bloom' && <Bloom lines={lines} active={active} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -665,6 +666,42 @@ const SignLine = memo(function SignLine({ line, index, nextTime, next }: { line:
       <div className="sign__refl" aria-hidden="true">
         <div className="sign__row">{row}</div>
       </div>
+    </motion.div>
+  )
+})
+
+// ---------- bloom: three lines like a photo caption, the one being sung blooms word by word ----------
+const Bloom = memo(function Bloom({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const line = active >= 0 ? lines[active] : undefined
+  const live = line && line.text !== '' ? line : undefined
+  const before = lines.slice(0, Math.max(0, active)).reverse().find((l) => l.text !== '')
+  const after = lines.slice(active + 1).find((l) => l.text !== '')
+  return (
+    <div className="bloom">
+      <div className="bloom__side bloom__side--prev">{before?.text}</div>
+      <AnimatePresence mode="wait" initial={false}>
+        {live && <BloomLine key={active} line={live} nextTime={lines[active + 1]?.timeMs} />}
+      </AnimatePresence>
+      <div className="bloom__side bloom__side--next">{after?.text}</div>
+    </div>
+  )
+})
+const BloomLine = memo(function BloomLine({ line, nextTime }: { line: LyricLine; nextTime: number | undefined }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words)
+  return (
+    <motion.div
+      className="bloom__line"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -14, transition: { duration: 0.24 } }}
+      transition={{ duration: 0.4, ease: [0.2, 0.7, 0.2, 1] }}
+    >
+      {words.map((w, i) => (
+        <span key={i} className={['bloom__word', i < revealed ? 'is-in' : '', i === revealed - 1 ? 'is-now' : ''].join(' ')}>
+          {w.text}
+        </span>
+      ))}
     </motion.div>
   )
 })

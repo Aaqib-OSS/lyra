@@ -7,7 +7,7 @@
      --sc-cl|--sc-cr --sc-ct|--sc-cb --sc-cw     the player card (use `auto` for the unused side)
      --sc-ll --sc-lt --sc-lw --sc-lb             the lyrics region (left, top, width, bottom)
    ========================================================================== */
-:root[data-arch='scene'] { --sc-wh: calc(var(--sc-ww) * 0.625); --sc-wr: 16px; --sc-cl: auto; --sc-cr: auto; --sc-ct: auto; --sc-cb: auto; }
+:root[data-arch='scene'] { --sc-wh: calc(var(--sc-ww) * 0.5625); --sc-wr: 16px; --sc-cl: auto; --sc-cr: auto; --sc-ct: auto; --sc-cb: auto; }
 /* the video: a window, not the whole screen */
 :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .backdrop__stage {
   inset: auto;

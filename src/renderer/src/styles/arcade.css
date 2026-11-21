@@ -13,7 +13,7 @@
   --sc-wl: 6vw;
   --sc-wt: 9vh;
   --sc-ww: min(42vw, 66vh);
-  --sc-wh: calc(var(--sc-ww) * 0.7);
+  --sc-wh: calc(var(--sc-ww) * 0.62);
   --sc-wr: 2.4vh;
   --sc-cr: 5vw;
   --sc-ct: calc(64px + 4vh);

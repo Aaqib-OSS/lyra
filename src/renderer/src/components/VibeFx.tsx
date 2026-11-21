@@ -92,16 +92,22 @@ function ArcadeFx() {
   )
 }
 
-/** Sunset Drive, fullscreen: you sit in the car. The video is the windshield, the dashboard glows under it. */
-function SunsetCar() {
+/** Sunset Drive, fullscreen: golden hour. Warm haze and soft light rays, dust in the light, the video as a framed print. */
+function GoldenHour() {
+  const motes = useMemo(() => Array.from({ length: 26 }, (_, i) => ({ left: (i * 41 + 7) % 100, bottom: (i * 29) % 60, size: 2 + (i % 3), dur: 14 + (i % 7) * 3, delay: -((i * 1.7) % 20) })), [])
   return (
     <div className="sunsetfx">
+      <i className="sunsetfx__ray sunsetfx__ray--a" />
+      <i className="sunsetfx__ray sunsetfx__ray--b" />
+      <i className="sunsetfx__ray sunsetfx__ray--c" />
+      <div className="sunsetfx__hills" />
+      {motes.map((m, i) => (
+        <i key={i} className="sunsetfx__mote" style={{ left: `${m.left}%`, bottom: `${m.bottom}%`, width: m.size, height: m.size, animationDuration: `${m.dur}s`, animationDelay: `${m.delay}s` }} />
+      ))}
       <SceneWindow>
         <div className="sunsetfx__glass" />
       </SceneWindow>
-      <div className="sunsetfx__mirror" />
-      <div className="sunsetfx__dangle"><i /><b /></div>
-      <div className="sunsetfx__dash" />
+      <div className="sunsetfx__haze" />
     </div>
   )
 }
@@ -188,7 +194,7 @@ export function VibeFx() {
           <div className="vibefx__road" />
           <div className="vibefx__radio"><i /><i /><i /><b>LYRA FM 98.7</b></div>
           <div className="vibefx__stars-hud">★★★<s>★★</s></div>
-          <SunsetCar />
+          <GoldenHour />
         </>
       )}
       {vibe === 'blocks' && (
