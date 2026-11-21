@@ -59,4 +59,4 @@ Written 2026-11-21 after auditing every mode (screenshots in `docs/screenshots/l
 - [x] Fullscreen: card limited by height, nothing clipped at 1024x600
 - [ ] Compact / minimal widget: unchanged on purpose (audit found no layout problem)
 - [ ] Fullscreen with video: audited, no change needed this round
-- [ ] Android tablet / foldable two-pane layout (next)
+- [x] Android tablet / unfolded foldable: two panes (cover, title, controls | big lyrics); landscape phones keep the phone layout. Fold-posture (half-open) awareness needs the native hinge API and is not done.
