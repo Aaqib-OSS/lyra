@@ -21,8 +21,8 @@
   --sc-ll: calc(6vw + var(--sc-ww) + 5vw);
   --sc-lt: 11vh;
   --sc-lw: calc(94vw - var(--sc-ww) - 6vw - 5vw);
-  --sc-lb: calc(7vh + 28vh);
-  --sc-lbs: calc(7vh + 28vh);
+  --sc-lb: calc(7vh + 44vh);
+  --sc-lbs: calc(7vh + 44vh);
   --sc-art-bg: radial-gradient(60% 60% at 50% 40%, #2c2218, #0d0905);
   --sc-art-fg: #ffb347;
   --sc-eq: #ffb347;

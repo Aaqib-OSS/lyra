@@ -10,7 +10,7 @@
   --sd-gold: #ffd84a;
   --sd-navy: #0b1b2e;
   /* scene geometry (styles/scene.css): the jumbotron top centre, the lower third under it, a scoreboard bar at the bottom */
-  --sc-ww: min(54vw, 80vh);
+  --sc-ww: min(54vw, 70vh);
   --sc-wl: calc(50vw - var(--sc-ww) / 2);
   --sc-wt: 7vh;
   --sc-wr: 0.6vh;
