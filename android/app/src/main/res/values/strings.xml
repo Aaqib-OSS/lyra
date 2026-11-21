@@ -3,4 +3,6 @@
     <string name="app_name">Lyra</string>
     <string name="shortcut_ambient">Ambient</string>
     <string name="shortcut_ambient_long">Ambient lyrics on / off</string>
+    <string name="lyra_widget_description">Live lyrics, the cover and the controls. Resizes from a small player to a big lyrics card.</string>
+    <string name="lyra_widget_name">Lyra live lyrics</string>
 </resources>
