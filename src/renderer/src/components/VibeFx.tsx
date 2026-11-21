@@ -112,6 +112,12 @@ export function VibeFx() {
           </svg>
         </>
       )}
+      {vibe === 'comic' && (
+        <>
+          <div className="vibefx__halftone" />
+          <div className="vibefx__rays" />
+        </>
+      )}
       {vibe === 'glitch' && (
         <>
           <div className="vibefx__scan" />

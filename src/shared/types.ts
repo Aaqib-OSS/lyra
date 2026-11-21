@@ -173,7 +173,7 @@ export type LyricAnimation = 'glide' | 'focus' | 'fade'
 export type LyricStyle = 'classic' | 'zoom' | 'kinetic' | 'constellation' | 'sticker' | 'chat' | 'type' | 'diary' | 'subtitle' | 'chatlog' | 'lowerthird'
 export type VibeMode = 'fixed' | 'cycle' | 'smart'
 /** a whole look: colours, type, background effects (and usually its own way of staging lyrics) */
-export type Vibe = 'none' | 'sticker' | 'chat' | 'crt' | 'neon' | 'chrome' | 'dream' | 'paper' | 'arcade' | 'noir' | 'sunset' | 'blocks' | 'stadium' | 'cassette' | 'trailer' | 'sketch' | 'glitch'
+export type Vibe = 'none' | 'sticker' | 'chat' | 'crt' | 'neon' | 'chrome' | 'dream' | 'paper' | 'arcade' | 'noir' | 'sunset' | 'blocks' | 'stadium' | 'cassette' | 'trailer' | 'sketch' | 'glitch' | 'comic'
 /** how fullscreen lyrics are laid out over a video */
 export type FullLayout = 'auto' | 'cinema' | 'split' | 'poster' | 'focus'
 

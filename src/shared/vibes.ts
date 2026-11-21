@@ -37,7 +37,8 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'cassette', layout: 'side', style: 'type', name: 'Cassette', tag: 'Walkman and amber LCD' },
   { id: 'trailer', layout: 'bar', style: 'kinetic', name: 'Trailer', tag: 'Movie title cards' },
   { id: 'sketch', layout: 'orb', style: 'zoom', name: 'Sketchbook', tag: 'Giant cut-out words on graphite paper' },
-  { id: 'glitch', layout: 'orb', style: 'zoom', name: 'Glitch', tag: 'RGB-split type on a dying tape' }
+  { id: 'glitch', layout: 'orb', style: 'zoom', name: 'Glitch', tag: 'RGB-split type on a dying tape' },
+  { id: 'comic', layout: 'orb', style: 'zoom', name: 'Pop Comic', tag: 'Halftone, outlines and BAM words' }
 ]
 
 export const ALL_VIBES: readonly Vibe[] = VIBES.map((v) => v.id)
@@ -86,6 +87,7 @@ const WORDS: Partial<Record<Vibe, { re: RegExp; why: string }>> = {
   trailer: { re: /\b(war|fate|destiny|world|rise|fall|battle|hero|legend|empire|king|queen|storm|thunder|end|begin|beginning|forever|eternal)\b/g, why: 'epic words' },
   sketch: { re: /\b(love|heart|hearts|eyes|eye|face|tears|cry|crying|tell|told|never|always|save|stay|leave|left|hold|miss|kiss|hand|hands|scared|afraid|feel|feelings)\b/g, why: 'raw, personal words' },
   glitch: { re: /\b(broken|break|breaking|static|noise|lost|crash|crashing|fall|falling|burn|burning|fire|scream|screaming|run|running|chaos|mess|wrong|numb|signal)\b/g, why: 'broken, noisy words' },
+  comic: { re: /\b(boom|bang|pow|wow|crazy|wild|super|hero|power|fight|crash|jump|shout|loud|fire|thunder|yeah|hey|go|run)\b/g, why: 'loud, punchy words' },
   chrome: { re: /\b(future|shine|shiny|silver|chrome|gold|diamond|mirror|glass|crystal|space|rocket|baby|girl|boy|money)\b/g, why: 'shiny words' }
 }
 

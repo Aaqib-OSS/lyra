@@ -762,3 +762,37 @@
 [data-vibe='sketch'] .shell { color: var(--fg); }
 [data-vibe='sketch'] .root:not([data-theme='light']) .lyric.is-active .word, :root[data-vibe='sketch'] .lyric.is-active .word { --fg: #1f1511; --word-dim: rgba(31, 21, 17, 0.34); filter: none; }
 :root[data-vibe='sketch']:not([data-theme='light']) .lyric.is-active .word { --fg: #1f1511; filter: none; }
+
+/* ======================= POP COMIC: halftone, outlines and BAM words ======================= */
+:root[data-vibe='comic'] { --rimc: #ffd400; }
+[data-vibe='comic'] .shell {
+  --accent: #ff3b6b;
+  --glow: rgba(255, 59, 107, 0.4);
+  --glow-soft: rgba(255, 59, 107, 0.18);
+  --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif;
+  --fg: #111;
+  --fg-2: rgba(17, 17, 17, 0.75);
+  --fg-3: rgba(17, 17, 17, 0.58);
+  --line: rgba(17, 17, 17, 0.2);
+  --line-2: rgba(17, 17, 17, 0.35);
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-2: rgba(255, 255, 255, 0.95);
+  --on-fg: #fff;
+  --word-dim: rgba(17, 17, 17, 0.34);
+  --bg-0: #ffd400;
+  --edge: linear-gradient(145deg, #fff, rgba(255, 255, 255, 0.3));
+}
+[data-vibe='comic'] .backdrop .backdrop__field { background: #ffd400; }
+.vibefx__halftone { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255, 59, 107, .55) 28%, transparent 30%); background-size: 22px 22px; -webkit-mask: radial-gradient(120% 100% at 100% 100%, #000, transparent 70%); mask: radial-gradient(120% 100% at 100% 100%, #000, transparent 70%); }
+.vibefx__rays { position: absolute; inset: -20%; background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.28) 0 6deg, transparent 6deg 16deg); animation: comic-spin 40s linear infinite; mix-blend-mode: soft-light; }
+@keyframes comic-spin { to { transform: rotate(360deg); } }
+:root[data-calm] .vibefx__rays { animation: none; }
+[data-vibe='comic'] .zoom__word { -webkit-text-stroke: .045em #111; paint-order: stroke fill; text-shadow: .06em .07em 0 #111; }
+[data-vibe='comic'] .zoom__word--fill { color: #ff3b6b; }
+[data-vibe='comic'] .zoom__word--outline { color: #fff; }
+[data-vibe='comic'] .zoom__word--cut { color: #111; -webkit-text-stroke: 0; background: #fff; border: .05em solid #111; padding: .02em .14em .06em; text-shadow: none; box-shadow: .07em .08em 0 #111; }
+[data-vibe='comic'] .zoom__word--ghost { color: #27b6ff; }
+[data-vibe='comic'] .zoom__line { color: #111; font-weight: 800; background: #fff; border: 3px solid #111; padding: .25em .7em; width: fit-content; left: 50%; right: auto; transform: translateX(-50%); box-shadow: 4px 4px 0 #111; max-width: 88%; }
+[data-vibe='comic'] .shell { color: var(--fg); }
+[data-vibe='comic'] .word { background: linear-gradient(90deg, var(--fg) 0, var(--fg) var(--x), var(--word-dim) calc(var(--p) * 114%)); -webkit-background-clip: text; background-clip: text; }
+:root[data-vibe='comic'] .lyric.is-active .word, :root[data-vibe='comic']:not([data-theme='light']) .lyric.is-active .word { --fg: #111; --word-dim: rgba(17,17,17,.34); filter: none; }
