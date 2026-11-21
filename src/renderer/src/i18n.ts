@@ -9,6 +9,11 @@ const translations: Record<Language, Record<string, string>> = {
   hi: {
     'Phone': 'फ़ोन',
     'Lyrics': 'गीत के बोल',
+    'Lyrics & video': 'बोल और वीडियो',
+    'Search settings': 'सेटिंग खोजें',
+    'Startup & keys': 'स्टार्टअप और कीज़',
+    'A small pop-up when the song changes': 'गाना बदलने पर एक छोटा पॉप-अप',
+    'Keys that work even when Lyra is in the background': 'ऐसी कीज़ जो Lyra के बैकग्राउंड में होने पर भी चलती हैं',
     'Look': 'रूप',
     'Background': 'पृष्ठभूमि',
     'Share': 'शेयर',

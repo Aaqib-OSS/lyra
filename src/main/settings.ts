@@ -10,18 +10,28 @@ const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.m
 function sanitize(s: Settings): Settings {
   const d = DEFAULT_SETTINGS
   const pos = s.position
+  // Settings that were removed from the page (or renamed in an older Lyra) must never break loading: only keys that
+  // still exist are kept, everything else in an old settings.json is dropped on the next save.
+  const known = Object.fromEntries(Object.entries(s && typeof s === 'object' ? s : {}).filter(([k]) => k in d)) as Settings
+  s = known
   return {
     ...d,
     ...s,
+    // the page no longer offers these (each vibe designs its own type, size, spacing, motion and edge glow)
+    lyricFont: d.lyricFont,
+    lyricFontSize: d.lyricFontSize,
+    lineSpacing: d.lineSpacing,
+    lyricAnimation: d.lyricAnimation,
+    rimLight: true,
+    theme: (['adaptive', 'dark', 'light'] as const).includes(s.theme) ? s.theme : d.theme,
+    reducedMotion: (['system', 'on', 'off'] as const).includes(s.reducedMotion) ? s.reducedMotion : d.reducedMotion,
+    source: s.source === 'api' ? 'api' : 'local',
     opacity: clamp(s.opacity, 0.4, 1),
-    lyricFontSize: clamp(s.lyricFontSize, 24, 72),
-    lineSpacing: clamp(s.lineSpacing, 1, 2),
     lyricStyle: (['classic', 'zoom', 'kinetic', 'constellation', 'sticker', 'chat', 'type', 'diary', 'subtitle', 'chatlog', 'lowerthird', 'sign', 'liquid', 'pixel', 'bloom', 'title', 'ink', 'glitch', 'bubble', 'spray', 'intertitle', 'log', 'note', 'label', 'lockscreen', 'wallet', 'route', 'editor', 'metro', 'weave', 'picto', 'wall', 'flap'] as const).includes(s.lyricStyle) ? s.lyricStyle : d.lyricStyle,
     vibe: (ALL_VIBES as readonly string[]).includes(s.vibe) ? s.vibe : d.vibe,
     vibeMode: (['fixed', 'cycle', 'smart'] as const).includes(s.vibeMode) ? s.vibeMode : d.vibeMode,
     songVibes: Object.fromEntries(Object.entries(s.songVibes && typeof s.songVibes === 'object' ? s.songVibes : {}).filter(([, v]) => (ALL_VIBES as readonly string[]).includes(v as string)).slice(-300)),
     vibePool: Array.isArray(s.vibePool) ? s.vibePool.filter((v) => (ALL_VIBES as readonly string[]).includes(v)) : d.vibePool,
-    rimLight: s.rimLight !== false,
     performance: (['auto', 'smooth', 'light'] as const).includes(s.performance) ? s.performance : d.performance,
     lyricOffsetMs: clamp(s.lyricOffsetMs, -5000, 5000),
     compactWidth: clamp(s.compactWidth, 320, 520),
