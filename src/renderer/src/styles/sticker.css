@@ -1,0 +1,98 @@
+/* ==========================================================================
+   STICKERS: a sticker sheet (fullscreen: one file, layout mechanics are in scene.css).
+   A purple page with a dot grid and loose die-cut stickers drifting about, the video as a big die-cut sticker with a peeling
+   corner, every lyric word slapped on as its own sticker (stage 'sticker'), the card as a label sticker, a dashed cut line that
+   marches around the edge of the sheet. Graphic: shapes, white borders and colour only.
+   ========================================================================== */
+:root[data-vibe='sticker'] {
+  --rimc: #c6ff3d;
+  --sk-lime: #c6ff3d;
+  --sk-pink: #ff6fb0;
+  --sk-cyan: #4de3ff;
+  --sk-yellow: #ffd84a;
+  /* scene geometry (styles/scene.css): the big sticker top left, a label under it, the words on the right */
+  --sc-ww: min(38vw, 60vh);
+  --sc-wl: 6vw;
+  --sc-wt: 10vh;
+  --sc-wr: 2.6vh;
+  --sc-cl: 6vw;
+  --sc-cb: 6vh;
+  --sc-ct: auto;
+  --sc-cw: var(--sc-ww);
+  --sc-ll: calc(6vw + var(--sc-ww) + 4vw);
+  --sc-lt: 10vh;
+  --sc-lw: calc(94vw - var(--sc-ww) - 6vw - 4vw);
+  --sc-lb: 16vh;
+  --sc-lbs: 16vh;
+  --sc-art-bg: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.5) 0 1.2vh, rgba(255, 255, 255, 0.25) 1.2vh 2.4vh), #ffd84a;
+  --sc-art-fg: #15101f;
+  --sc-eq: #15101f;
+}
+:root[data-vibe='sticker'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(42vw, 66vh); }
+:root[data-vibe='sticker'][data-rim='on']::after { display: none; }
+[data-vibe='sticker'] .backdrop .backdrop__field { background: radial-gradient(100% 80% at 80% 0%, #3b1f6e, #14101f 70%); }
+:root[data-vibe='sticker'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+[data-vibe='sticker'] .shell { --accent: #c6ff3d; --glow: rgba(198, 255, 61, 0.5); --glow-soft: rgba(198, 255, 61, 0.22); --font: 'Nunito Variable', 'Arial Rounded MT Bold', system-ui, sans-serif; --fg: #fff; --bg-0: #14101f; }
+
+/* ---------------- the sheet ---------------- */
+.stickerfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.stickerfx__dots { position: absolute; inset: 0; background-image: radial-gradient(rgba(255, 255, 255, 0.16) 2px, transparent 2.5px); background-size: 26px 26px; }
+/* loose stickers drifting and turning slowly */
+.stickerfx__loose { position: absolute; width: var(--s, 9vh); height: var(--s, 9vh); filter: drop-shadow(0 0 0 #fff) drop-shadow(0.35vh 0 0 #fff) drop-shadow(-0.35vh 0 0 #fff) drop-shadow(0 0.35vh 0 #fff) drop-shadow(0 -0.35vh 0 #fff) drop-shadow(0 0.8vh 0.8vh rgba(0, 0, 0, 0.4)); animation: stk-float 11s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+@keyframes stk-float { from { transform: translate(0, 0) rotate(var(--r0, -8deg)); } to { transform: translate(1.4vw, -2vh) rotate(var(--r1, 10deg)); } }
+/* the dashed cut line around the sheet: the dashes march */
+.stickerfx__cut { position: absolute; inset: 1.6vh; border-radius: 3vh; border: 0.4vh dashed rgba(255, 255, 255, 0.5); animation: stk-cut 1.4s linear infinite; }
+@keyframes stk-cut { to { border-color: rgba(255, 255, 255, 0.5); } }
+.stickerfx__cut::before { content: ''; position: absolute; inset: -0.4vh; border-radius: inherit; background: repeating-conic-gradient(from 0deg, transparent 0 5deg, transparent 5deg 10deg); }
+:root[data-calm] .stickerfx__loose { animation-play-state: paused; }
+:root[data-motion='off'] .stickerfx * { animation: none !important; }
+:root[data-perf='low'] .stickerfx__loose:nth-child(2n) { display: none; }
+/* the video as a die-cut sticker: a thick white border and a soft shadow; one corner peels */
+[data-vibe='sticker'] .scenewin { box-shadow: 0 0 0 1.1vh #fff, 0.6vh 1.6vh 3vh 1.1vh rgba(0, 0, 0, 0.5); }
+.stickerfx__peel { position: absolute; right: calc(100vw - var(--sc-wl) - var(--sc-ww) - 1.1vh); bottom: calc(100vh - var(--sc-wt) - var(--sc-wh) - 1.1vh); width: 9vh; height: 9vh; background: linear-gradient(135deg, transparent 50%, #e9e4f5 50%, #bdb4d6); border-radius: 0 0 0 100%; clip-path: polygon(0 0, 100% 100%, 0 100%); filter: drop-shadow(-0.4vh -0.4vh 0.6vh rgba(0, 0, 0, 0.35)); }
+.stickerfx__peel, .stickerfx__peel--hide { display: none; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .stickerfx__peel { display: block; }
+.scenewin__art span { font: 900 3vh/1 'Nunito Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: #15101f; background: #fff; padding: 0.9vh 1.6vh; border-radius: 1.4vh; rotate: -3deg; box-shadow: 0 0.5vh 0 rgba(0, 0, 0, 0.25); }
+.scenewin__eq { display: none; }
+
+/* ---------------- the card: a label sticker ---------------- */
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  --fg: #15101f;
+  --fg-2: #3a2f55;
+  --fg-3: #55486f;
+  flex-direction: row;
+  align-items: center;
+  gap: 2vh;
+  padding: 1.3vh 2vh 1.3vh 1.3vh !important;
+  border-radius: 2.2vh !important;
+  background: var(--sk-lime) !important;
+  border: 0 !important;
+  box-shadow: 0 0 0 0.9vh #fff, 0.5vh 1.4vh 2.4vh 0.9vh rgba(0, 0, 0, 0.45) !important;
+  color: #15101f;
+}
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 1.4vh !important; box-shadow: 0 0 0 0.5vh #15101f; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.3vh/1.1 'Nunito Variable', sans-serif; letter-spacing: -0.02em; color: #15101f; text-shadow: none; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; font-weight: 800; color: #3a2f55; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(21, 16, 31, 0.2); }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #15101f; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #15101f !important; color: var(--sk-lime) !important; box-shadow: 0 0 0 0.4vh #fff !important; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #15101f; }
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='sticker'] .lyrics__notice { align-self: flex-start; background: #fff; border: 0; border-radius: 99px; color: #15101f; font: 900 1.5vh/1.2 'Nunito Variable', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; box-shadow: 0 0.4vh 0 rgba(0, 0, 0, 0.3); }
+[data-vibe='sticker'] .plain__stanza { font-family: 'Nunito Variable', sans-serif; font-weight: 900; font-size: min(2vw, 3.6vh); line-height: 1.2; letter-spacing: -0.02em; color: #fff; }
+[data-vibe='sticker'] .plain__stanza > span { display: inline-block; background: var(--sk-pink); color: #15101f; padding: 0.1em 0.5em 0.16em; border-radius: 0.5em; margin: 0 0.3em 0.5vh 0; box-shadow: 0 0 0 0.3vh #fff; }
+[data-vibe='sticker'] .plain__stanza > span:nth-child(3n+2) { background: var(--sk-cyan); }
+[data-vibe='sticker'] .plain__stanza > span:nth-child(3n) { background: var(--sk-yellow); }
+[data-vibe='sticker'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='sticker'] .lfb__poster { display: none; }
+[data-vibe='sticker'] .lfb h3 { font-family: 'Nunito Variable', sans-serif; font-weight: 900; letter-spacing: -0.03em; text-transform: none; font-size: clamp(26px, 3.8vw, 56px); color: #15101f; background: var(--sk-yellow); padding: 0.1em 0.4em 0.16em; border-radius: 0.4em; box-shadow: 0 0 0 0.12em #fff; rotate: -2deg; }
+[data-vibe='sticker'] .lfb p, [data-vibe='sticker'] .lfb small { color: #fff; }
+[data-vibe='sticker'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='sticker'] .lfb__eq i { background: var(--sk-lime); border-radius: 99px; box-shadow: 0 0 0 0.2vh #fff; }

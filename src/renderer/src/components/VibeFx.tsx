@@ -305,6 +305,34 @@ function TermFx() {
   )
 }
 
+/** Stickers, fullscreen: a sticker sheet. A dot grid, loose die-cut stickers drifting, a peeling corner on the video sticker. */
+const STICKER_SHAPES = [
+  { d: 'M50 6 L61 38 L95 38 L67 58 L78 92 L50 71 L22 92 L33 58 L5 38 L39 38 Z', fill: '#ffd84a' },
+  { d: 'M50 88 C10 60 6 30 28 22 C40 18 48 26 50 32 C52 26 60 18 72 22 C94 30 90 60 50 88 Z', fill: '#ff6fb0' },
+  { d: 'M50 10 A40 40 0 1 1 49.9 10 Z M34 40 A5 5 0 1 0 34 41 Z M66 40 A5 5 0 1 0 66 41 Z', fill: '#4de3ff' },
+  { d: 'M20 80 L50 14 L80 80 Z', fill: '#c6ff3d' },
+  { d: 'M12 50 C12 20 40 12 50 36 C60 12 88 20 88 50 C88 80 60 88 50 64 C40 88 12 80 12 50 Z', fill: '#b794ff' }
+]
+function StickerFx() {
+  const loose = useMemo(
+    () => Array.from({ length: 9 }, (_, i) => ({ shape: STICKER_SHAPES[i % STICKER_SHAPES.length]!, left: 44 + ((i * 53 + 5) % 48), top: 4 + ((i * 37 + 8) % 82), s: 6 + ((i * 5) % 7), d: -((i * 1.7) % 11), r0: -14 + ((i * 9) % 20), r1: 6 + ((i * 7) % 24) })),
+    []
+  )
+  return (
+    <div className="stickerfx">
+      <div className="stickerfx__dots" />
+      {loose.map((l, i) => (
+        <svg key={i} className="stickerfx__loose" viewBox="0 0 100 100" style={{ left: `${l.left}%`, top: `${l.top}%`, ['--s' as string]: `${l.s}vh`, ['--d' as string]: `${l.d}s`, ['--r0' as string]: `${l.r0}deg`, ['--r1' as string]: `${l.r1}deg` }}>
+          <path d={l.shape.d} fill={l.shape.fill} fillRule="evenodd" />
+        </svg>
+      ))}
+      <div className="stickerfx__cut" />
+      <SceneWindow />
+      <div className="stickerfx__peel" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -427,7 +455,7 @@ export function VibeFx() {
       {vibe === 'dream' && <DreamFx />}
       {vibe === 'filmstrip' && <FilmStripFx />}
       {vibe === 'chrome' && <ChromeFx sparkles={sparkles} />}
-      {vibe === 'sticker' && <div className="vibefx__dots" />}
+      {vibe === 'sticker' && <StickerFx />}
     </div>
   )
 }

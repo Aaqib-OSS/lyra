@@ -26,7 +26,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'chrome', layout: 'scene', style: 'liquid', name: 'Chrome', tag: 'Y2K liquid metal' },
   { id: 'dream', layout: 'scene', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
   { id: 'crt', layout: 'scene', style: 'log', name: 'Terminal', tag: 'tmux panes, a lyric log, a status bar' },
-  { id: 'sticker', layout: 'side', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
+  { id: 'sticker', layout: 'scene', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
   { id: 'chat', layout: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' },
   { id: 'paper', layout: 'side', style: 'diary', name: 'Diary', tag: 'Handwritten, highlighted' },
   { id: 'arcade', layout: 'scene', style: 'pixel', name: 'Arcade', tag: '8-bit cabinet' },
