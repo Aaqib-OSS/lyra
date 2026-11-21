@@ -14,8 +14,8 @@ let startedAt = Date.now() - Number(q.get('t') ?? 40000)
 let playing = q.get('paused') !== '1'
 let frozenAt = Number(q.get('t') ?? 40000)
 const snap = (): PlaybackSnapshot => ({
-  track, isPlaying: playing, positionMs: playing ? Date.now() - startedAt : frozenAt, sampledAt: Date.now(),
-  device: { name: 'Studio PC', type: 'Computer', volume: 70 } as never, shuffle: false, repeat: 'off', isAdOrUnknown: false
+  track: q.get('idle') === '1' ? null : track, isPlaying: playing, positionMs: playing ? Date.now() - startedAt : frozenAt, sampledAt: Date.now(),
+  device: { name: 'Studio PC', type: 'Computer', volume: 70 } as never, shuffle: false, repeat: 'off', isAdOrUnknown: q.get('ad') === '1'
 })
 // ?lang=hi|pa plays original sample lyrics in Devanagari / Gurmukhi (for glyph clipping and Roman-line checks)
 const SAMPLE: Record<string, string[]> = {
