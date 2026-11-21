@@ -208,6 +208,7 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
                 AmbientController.activity?.setBrightness(args.getDouble(0).toFloat(), args.optBoolean(1, false))
                 ok(true)
             }
+            "ambientConfig" -> { AmbientConfig.set(ctx, args.getString(0)); ok(true) }
             "toggleAmbient" -> ui {
                 AmbientController.toggle(ctx)
                 ok(true)

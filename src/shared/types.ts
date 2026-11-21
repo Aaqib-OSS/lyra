@@ -313,6 +313,14 @@ export interface Settings {
   ambientBrightness: number
   /** Android: let the ambient screen follow the room light (the slider is then the maximum) */
   ambientAutoBrightness: boolean
+  /** Android: open the ambient screen by itself when the phone is plugged in while music plays, or only on demand */
+  ambientTrigger: 'charge' | 'demand'
+  /** Android ambient screen: show the clock */
+  ambientClock: boolean
+  /** Android ambient screen: slowly shift the picture so an OLED screen is not burned in */
+  ambientPixelShift: boolean
+  /** Android: keep updating the lyric on the lock-screen media card while the screen is off */
+  ambientCardWhenOff: boolean
   lyricOffsetMs: number
   reducedMotion: 'system' | 'on' | 'off'
   compactWidth: number
@@ -364,6 +372,10 @@ export const DEFAULT_SETTINGS: Settings = {
   ambientStyle: 'video', // the music video, dimmed (switch to Glow or Minimal in Settings)
   ambientBrightness: 0.2,
   ambientAutoBrightness: true,
+  ambientTrigger: 'demand',
+  ambientClock: true,
+  ambientPixelShift: true,
+  ambientCardWhenOff: true,
   lyricOffsetMs: 0,
   reducedMotion: 'system',
   compactWidth: 380,

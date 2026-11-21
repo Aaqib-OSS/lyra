@@ -94,7 +94,10 @@ object LyricsNotifier {
 
 class LyricsNotificationService : Service() {
     private val main = Handler(Looper.getMainLooper())
-    private val listener = { refresh() }
+    private val listener = {
+        refresh()
+        if (!(getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive) scheduleOffTick() // resumed while the screen is off
+    }
     private var started = false
     private var session: MediaSession? = null
     private var lastNotificationSig = ""
@@ -105,8 +108,8 @@ class LyricsNotificationService : Service() {
     private val tick = object : Runnable {
         override fun run() {
             refresh()
-            // nobody sees the shade while the screen is off: stop ticking, the SCREEN_ON receiver resumes it
             if ((getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive) main.postDelayed(this, 500)
+            else scheduleOffTick()
         }
     }
     private val screenReceiver = object : BroadcastReceiver() {
@@ -115,14 +118,29 @@ class LyricsNotificationService : Service() {
             if (intent.action == Intent.ACTION_SCREEN_ON) {
                 refresh(force = true)
                 main.post(tick)
-            }
+            } else scheduleOffTick() // screen off: the lock-screen / AOD media card may still be visible
         }
+    }
+
+    /**
+     * Screen off: an OEM always-on display or the lock screen can still show the media card. While music plays,
+     * update it once per lyric line (the CPU is awake for playback anyway); paused or no lyrics: no timer at all.
+     */
+    private fun scheduleOffTick() {
+        if (!AmbientConfig.cardWhileOff(this)) return
+        val now = MediaMonitor.now() ?: return
+        if (!now.playing || now.isAd || LyricsNotifier.linesTrack != now.id || LyricsNotifier.lines.isEmpty()) return
+        val idx = LyricsNotifier.activeIndex(now.positionMs)
+        val delay = AodLogic.nextDelayMs(LyricsNotifier.lines.getOrNull(idx + 1)?.t, now.positionMs, LyricsNotifier.offsetMs, minMs = 1000)
+        main.removeCallbacks(tick)
+        main.postDelayed(tick, delay)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         instance = this
+        AmbientAutoStart.ensure(this)
         if (!started) {
             started = true
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -207,19 +225,31 @@ class LyricsNotificationService : Service() {
             val d = display(now)
 
             // card contents: only touch the session when the text / cover changed (this is what the system redraws)
-            val metaSig = "${now.id}|${d.title}|${d.text}|${now.durationMs}"
+            val publicLock = LyricsNotifier.publicOnLock(this)
+            val metaSig = "${now.id}|${d.title}|${d.text}|${now.durationMs}|$publicLock"
             if (metaSig != lastMetaSig) {
                 lastMetaSig = metaSig
-                s.setMetadata(
-                    MediaMetadata.Builder()
-                        .putString(MediaMetadata.METADATA_KEY_TITLE, d.title)
+                // Which field an OEM lock screen / AOD media card draws is not documented and differs per vendor, so the
+                // line goes into every title-like field. Privacy on: the session carries only song, artist and cover (never a lyric).
+                val b = MediaMetadata.Builder()
+                    .putLong(MediaMetadata.METADATA_KEY_DURATION, now.durationMs)
+                    .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, now.art)
+                    .putBitmap(MediaMetadata.METADATA_KEY_ART, now.art)
+                    .putString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST, now.artist)
+                if (publicLock) {
+                    b.putString(MediaMetadata.METADATA_KEY_TITLE, d.title)
                         .putString(MediaMetadata.METADATA_KEY_ARTIST, d.text)
                         .putString(MediaMetadata.METADATA_KEY_ALBUM, d.sub)
-                        .putLong(MediaMetadata.METADATA_KEY_DURATION, now.durationMs)
-                        .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, now.art)
-                        .putBitmap(MediaMetadata.METADATA_KEY_ART, now.art)
-                        .build()
-                )
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, d.title)
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, d.text)
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, d.sub)
+                } else {
+                    b.putString(MediaMetadata.METADATA_KEY_TITLE, now.title)
+                        .putString(MediaMetadata.METADATA_KEY_ARTIST, now.artist)
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, now.title)
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, now.artist)
+                }
+                s.setMetadata(b.build())
             }
             // seek bar: only re-anchor when play/pause changed or the position jumped (a seek)
             val predicted = if (lastPlaying == true) anchorPos + (SystemClock.elapsedRealtime() - anchorAt) else anchorPos
