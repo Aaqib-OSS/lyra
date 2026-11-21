@@ -49,7 +49,11 @@ export function useKaraokePlayer(videoId: string | null): KaraokePlayer {
         return
       }
       const info = d?.info
-      if (d?.event === 'onReady') setReady(true)
+      if (d?.event === 'onReady') {
+        setReady(true)
+        cmd('unloadModule', ['captions'])
+        cmd('unloadModule', ['cc'])
+      }
       if (!info) return
       if (typeof info.currentTime === 'number') last.current = { ...last.current, t: info.currentTime, at: performance.now() }
       if (typeof info.duration === 'number' && info.duration > 0) {
@@ -69,7 +73,7 @@ export function useKaraokePlayer(videoId: string | null): KaraokePlayer {
 
   return {
     frame,
-    src: videoId ? `${ORIGIN}/embed/${videoId}?controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1&fs=0&iv_load_policy=3&enablejsapi=1` : '',
+    src: videoId ? `${ORIGIN}/embed/${videoId}?controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1` : '',
     ready,
     playing,
     duration,

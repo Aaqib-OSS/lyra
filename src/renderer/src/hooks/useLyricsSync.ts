@@ -9,9 +9,29 @@ export function lyricPosition(offsetMs: number): number {
   return getPosition() + offsetMs
 }
 
+/** One shared ~12 Hz timer for every active-line hook (several can be mounted at once); idle when nobody listens or the window is hidden. */
+const tickers = new Set<() => void>()
+let tickTimer: ReturnType<typeof setInterval> | null = null
+function subscribeTick(fn: () => void): () => void {
+  tickers.add(fn)
+  if (tickTimer === null) {
+    tickTimer = setInterval(() => {
+      if (document.visibilityState === 'hidden') return
+      tickers.forEach((f) => f())
+    }, 80)
+  }
+  return () => {
+    tickers.delete(fn)
+    if (tickers.size === 0 && tickTimer !== null) {
+      clearInterval(tickTimer)
+      tickTimer = null
+    }
+  }
+}
+
 /**
- * Index of the active lyric line. Re-renders only when the index changes
- * (checked ~12x/s, and skipped entirely while the window is hidden).
+ * Index of the active lyric line. Re-renders only when the index changes. The position always comes from the shared
+ * song clock, so lyrics that arrive late (or after a pause, seek or track change) light up the right line at once.
  */
 export function useActiveLine(lines: readonly LyricLine[], enabled = true): number {
   const offset = useLyricOffset()
@@ -22,13 +42,19 @@ export function useActiveLine(lines: readonly LyricLine[], enabled = true): numb
   useEffect(() => {
     if (!enabled) return
     const tick = (): void => {
-      if (document.visibilityState === 'hidden') return
       const next = findActiveLine(linesRef.current, lyricPosition(offset))
       setIdx((cur) => (cur === next ? cur : next))
     }
-    tick()
-    const t = setInterval(tick, 80)
-    return () => clearInterval(t)
+    tick() // snap to the right line immediately (late-loaded lyrics, offset change)
+    const off = subscribeTick(tick)
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') tick()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      off()
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [enabled, offset, lines])
 
   return idx

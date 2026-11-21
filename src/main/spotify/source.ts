@@ -249,7 +249,8 @@ export class SpotifySource extends PlaybackSource {
     if (o.isAdOrUnknown !== n.isAdOrUnknown) return true
     if (o.device?.name !== n.device?.name || o.device?.volumePercent !== n.device?.volumePercent) return true
     const predicted = o.positionMs + (o.isPlaying ? n.sampledAt - o.sampledAt : 0)
-    return Math.abs(predicted - n.positionMs) > 1200 // seek or drift
+    // seek or drift: re-anchor the renderer's clock once it is off by a noticeable amount (1.2 s left lyrics/video visibly out)
+    return Math.abs(predicted - n.positionMs) > 400
   }
 
   /** Force a fresh poll shortly after a command so the UI reflects the real state. */

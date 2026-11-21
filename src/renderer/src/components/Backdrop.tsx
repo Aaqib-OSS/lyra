@@ -6,6 +6,7 @@ import { useBackground } from '@/hooks/useBackground'
 import { failedVideos, rememberFailure } from '@/lib/failMemory'
 import { trackKey } from '@core/songKey'
 import { useReducedMotion } from '@/hooks/useMotion'
+import { DriftController, VIDEO_EL_DRIFT, YT_DRIFT, isTimelineSyncable, videoTargetSec } from '@core/clock'
 import { getPosition, usePlayer } from '@/store/player'
 import { useBgState, type VideoProblem } from '@/store/bgState'
 import { useSettings } from '@/store/settings'
@@ -145,11 +146,42 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
     else els.forEach((e) => e.current?.pause())
   }, [run]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  /** a video file as long as the song follows the song clock instead of looping on its own */
+  const locked = (v: HTMLVideoElement): boolean => {
+    const t = usePlayer.getState().snapshot?.track
+    return !!t && isTimelineSyncable(v.duration, t.durationMs)
+  }
+  useEffect(() => {
+    const dc = new DriftController(VIDEO_EL_DRIFT)
+    const id = window.setInterval(() => {
+      const v = els[frontRef.current]!.current
+      const snap = usePlayer.getState().snapshot
+      if (!v || !runRef.current || !snap?.track || snap.isAdOrUnknown || !locked(v)) {
+        dc.reset()
+        if (v && v.playbackRate !== 1) v.playbackRate = 1
+        return
+      }
+      v.loop = false
+      const act = dc.update({
+        nowMs: performance.now(),
+        videoSec: v.currentTime,
+        targetSec: videoTargetSec(getPosition(), v.duration),
+        playing: !v.paused && !v.ended,
+        buffering: v.readyState < 3 || v.seeking,
+        rate: v.playbackRate
+      })
+      if (act.seekToSec !== undefined) v.currentTime = act.seekToSec
+      if (act.rate !== undefined) v.playbackRate = act.rate
+    }, 400)
+    return () => window.clearInterval(id)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const id = window.setInterval(() => {
       const cur = els[frontRef.current]!.current
       const next = els[1 - frontRef.current]!.current
       if (!cur || !next || swapping.current || !runRef.current) return
+      if (locked(cur)) return // a clip as long as the song is locked to the song clock: no loop crossfade
       if (cur.duration > 4 && cur.duration - cur.currentTime < 1.3) {
         swapping.current = true
         next.currentTime = 0
@@ -240,6 +272,30 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
   const cmd = (func: string, args: unknown[] = []): void =>
     frame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), 'https://www.youtube-nocookie.com')
 
+  // Keeps the video on the song clock: the embed reports its own time, the shared clock says where the song is.
+  const drift = useRef(new DriftController(YT_DRIFT))
+  const vInfo = useRef({ dur: 0, rate: 1 })
+  const syncFromEmbed = (videoSec: number): void => {
+    const snap = usePlayer.getState().snapshot
+    if (!runRef.current || !snap?.track || snap.isAdOrUnknown || !isTimelineSyncable(vInfo.current.dur, snap.track.durationMs)) return
+    const act = drift.current.update({
+      nowMs: performance.now(),
+      videoSec,
+      targetSec: videoTargetSec(getPosition(), vInfo.current.dur),
+      playing: lastState.current === 1,
+      buffering: lastState.current === 3,
+      rate: vInfo.current.rate
+    })
+    if (act.seekToSec !== undefined) cmd('seekTo', [act.seekToSec, true])
+    if (act.rate !== undefined) cmd('setPlaybackRate', [act.rate])
+  }
+  /** No captions, ever: the embed parameter is not always honoured (account / language settings), so also unload the module. */
+  const noCaptions = (): void => {
+    cmd('unloadModule', ['captions'])
+    cmd('unloadModule', ['cc'])
+    cmd('setOption', ['captions', 'track', {}])
+  }
+
   // always render the embed at 1080p and scale it down/up to cover, so YouTube serves its best stream even in the small mini player.
   // Ambient mode (dim, soft, on battery) asks for 480p instead: far cheaper to decode and it looks just as good that dim.
   const W = document.documentElement.dataset.ambient === '1' ? 854 : 1920
@@ -263,9 +319,11 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
 
   useEffect(() => {
     setReady(false)
+    drift.current.reset()
+    vInfo.current = { dur: 0, rate: 1 }
     const onMsg = (e: MessageEvent): void => {
       if (e.source !== frame.current?.contentWindow || e.origin !== 'https://www.youtube-nocookie.com') return
-      let d: { event?: string; info?: { playerState?: number } } | null = null
+      let d: { event?: string; info?: { playerState?: number; currentTime?: number; duration?: number; playbackRate?: number } } | null = null
       try {
         d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data
       } catch {
@@ -279,13 +337,18 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
         // YouTube re-shows its transport overlay when playback resumes after a pause (not after buffering or a seek).
         if (!phone && d.info.playerState === 1 && previousState === 2) holdMask(1800)
       }
+      if (typeof d?.info?.duration === 'number' && d.info.duration > 0) vInfo.current.dur = d.info.duration
+      if (typeof d?.info?.playbackRate === 'number') vInfo.current.rate = d.info.playbackRate
+      if (d?.event === 'infoDelivery' && typeof d.info?.currentTime === 'number') syncFromEmbed(d.info.currentTime)
       if (d?.event === 'onError') onFailRef.current(`error ${(d as { info?: unknown }).info ?? ''}`)
       else if (d?.event === 'onReady') {
         cmd('setPlaybackQuality', [document.documentElement.dataset.ambient === '1' ? 'large' : 'hd1080'])
+        noCaptions()
         if (!runRef.current) cmd('pauseVideo')
       } else if (d?.event === 'infoDelivery' && d.info?.playerState === 1) {
         window.clearTimeout(timer.current)
         setReady((was) => {
+          if (!was) noCaptions()
           // Keep the embed hidden while YouTube's startup transport overlay is visible.
           if (!was) holdMask(phone ? 4000 : 6500)
           return true
@@ -304,6 +367,9 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
 
   useEffect(() => {
     if (!ready) return
+    // paused or resumed: forget the old drift state, the first playing sample re-joins at the song's current position
+    drift.current.reset()
+    if (!run && vInfo.current.rate !== 1) cmd('setPlaybackRate', [1])
     if (phone) {
       // Pause with the music like on the PC. YouTube re-shows its own controls when a paused video resumes, so on the
       // phone the picture is hidden while paused and for a moment after resuming (the cover shows through meanwhile).
@@ -322,7 +388,7 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
 
   const src =
     `https://www.youtube-nocookie.com/embed/${spec.videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${spec.videoId}&start=${start}` +
-    '&modestbranding=1&playsinline=1&disablekb=1&rel=0&fs=0&iv_load_policy=3&enablejsapi=1&vq=' + (document.documentElement.dataset.ambient === '1' ? 'large' : 'hd1080')
+    '&modestbranding=1&playsinline=1&disablekb=1&rel=0&fs=0&iv_load_policy=3&cc_load_policy=0&enablejsapi=1&vq=' + (document.documentElement.dataset.ambient === '1' ? 'large' : 'hd1080')
   return (
     <div ref={wrap} className="backdrop__ytwrap">
       <iframe
@@ -403,7 +469,8 @@ export function Backdrop({ rich = false, animated = false }: { rich?: boolean; a
   const showYt = usable && isYt
   const hasMedia = showMedia || showYt
   const exporting = useBgState((s) => s.exporting)
-  const run = visible && playing && !exporting // pause (never unmount) when the window is hidden or the song is paused
+  const adBreak = usePlayer((s) => s.snapshot?.isAdOrUnknown ?? false)
+  const run = visible && playing && !adBreak && !exporting // pause (never unmount) when the window is hidden or the song is paused
   const alive = animated && !reduced && spec?.kind !== 'still'
 
   const stats = useFrameStats(videoRef, usable && isVideoFile && run, specKey)
