@@ -22,13 +22,17 @@ import {
 } from '@core/connect/protocol'
 import { CommandGate, Pairing, formatCode, type Device } from '@core/connect/pairing'
 import { SyncState } from '@core/connect/syncState'
+import { messageForRole } from '@core/connect/roleView'
 import { acceptUpgrade, type WsConn } from './ws'
 import { isLocalPeer, originAllowed } from './net'
+import { buildManifest } from './pwa'
 
 /**
  * The Lyra Connect host: one small HTTP + WebSocket server, bound ONLY to the PC's LAN address.
  *
  *  - GET /        the viewer page (static, contains no data and no secrets)
+ *  - GET /overlay the OBS / stream overlay page (static too; it authenticates over the WS with an overlay-role link)
+ *  - GET /manifest.webmanifest, /icon.png   the viewer's installable-app bits (static)
  *  - WS  /ws      the protocol (docs/connect-protocol.md). Nothing is served to a connection that has not paired.
  *
  * Off by default; nothing listens until the user turns Devices on. Everything else (what is shown, who may do what)
@@ -42,6 +46,10 @@ export interface Advertiser {
 export interface HubDeps {
   pairing: Pairing
   viewerHtml: string
+  /** the stream overlay page served at /overlay; when absent the route 404s */
+  overlayHtml?: string
+  /** the app icon for the installable viewer (PNG bytes and edge length), or null */
+  icon?: () => { png: Buffer; size: number } | null
   lanIp: () => string | null
   /** preferred port; if taken the OS picks another */
   port?: number
@@ -163,6 +171,26 @@ export class ConnectHub extends EventEmitter {
     return u ? `${u}#p=${code}` : null
   }
 
+  /**
+   * An overlay link for an OBS browser source (which cannot do QR pairing): a view-only device the host creates directly.
+   * The credential rides in the URL FRAGMENT (`#d=<id>&t=<token>`): a browser never sends it to any server or puts it in a
+   * Referer, and the page proves the token with the normal HMAC handshake, so it never crosses the network. OBS keeps the
+   * URL, so unlike a one-time pairing code the link keeps working; revoking the device is what kills it.
+   */
+  createOverlay(name?: string): { id: string; url: string | null } | null {
+    const d = this.d.pairing.addOverlay(name)
+    if (!d) return null
+    this.emit('change')
+    return { id: d.id, url: this.overlayUrl(d.id) }
+  }
+
+  /** The link for an existing overlay device (host side only; never sent to another device). */
+  overlayUrl(id: string): string | null {
+    const d = this.d.pairing.get(id)
+    const u = this.status().url
+    return d && d.role === 'overlay' && u ? `${u}overlay#d=${d.id}&t=${d.token}` : null
+  }
+
   startParty(): { code: string; display: string; expiresAt: number; url: string | null } {
     this.party = true
     const c = this.d.pairing.createCode({ party: true })
@@ -183,7 +211,8 @@ export class ConnectHub extends EventEmitter {
   }
 
   setRole(id: string, role: Role): void {
-    this.d.pairing.setRole(id, role)
+    // refused (false) for an overlay link, or when asking for the overlay role: nothing changes, nobody is kicked
+    if (!this.d.pairing.setRole(id, role)) return
     // a role is fixed for a session: reconnect so the device re-learns it (and a downgrade can't linger)
     this.kick(id, 'Role changed. Reconnecting.')
     this.emit('change')
@@ -226,13 +255,24 @@ export class ConnectHub extends EventEmitter {
     const text = encode(m)
     for (const s of this.sessions) {
       if (s.stage !== 'ready') continue
+      const out = this.textFor(s, m, text)
+      if (out === null) continue
       if (s.conn.bufferedAmount > 2_000_000) this.drop(s, 'Too slow to keep up.')
-      else s.conn.send(text)
+      else s.conn.send(out)
     }
   }
 
+  /** The wire text of `m` for this session: as-is for viewers and controllers, redacted (or withheld) for an overlay. */
+  private textFor(s: Session, m: HostMsg, text: string): string | null {
+    const role = s.device?.role
+    if (role !== 'overlay') return text
+    const r = messageForRole('overlay', m)
+    return r ? encode(r) : null
+  }
+
   private broadcastDevices(): void {
-    const devs = this.devices().map(({ id, name, role, online }) => ({ id, name, role, online }))
+    // overlay links are a host-side concern; other apps are not told they exist
+    const devs = this.devices().filter((x) => x.role !== 'overlay').map(({ id, name, role, online }) => ({ id, name, role, online }))
     const text = encode({ t: 'devices', devices: devs })
     for (const s of this.sessions) if (s.stage === 'ready' && s.device?.role === 'controller') s.conn.send(text)
   }
@@ -245,18 +285,42 @@ export class ConnectHub extends EventEmitter {
       return
     }
     const path = (req.url ?? '/').split('?')[0]
+    const common = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY' }
     if (req.method === 'GET' && path === '/') {
       res.writeHead(200, {
+        ...common,
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-store',
-        'X-Content-Type-Options': 'nosniff',
-        'Referrer-Policy': 'no-referrer',
-        'X-Frame-Options': 'DENY',
-        // the page may talk only to this host; art is inline or https; the optional video is a YouTube embed
-        'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https:; connect-src 'self' ws:; frame-src https://www.youtube-nocookie.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+        // the page may talk only to this host; art is inline or https; the optional video is a YouTube embed;
+        // the manifest and icon (installable app) come from this host only
+        'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ws:; manifest-src 'self'; frame-src https://www.youtube-nocookie.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
       })
       res.end(this.d.viewerHtml)
       return
+    }
+    if (req.method === 'GET' && path === '/overlay' && this.d.overlayHtml) {
+      res.writeHead(200, {
+        ...common,
+        'Content-Type': 'text/html; charset=utf-8',
+        // its own, tighter policy: this page only draws text and art. Same-origin socket only (no 'ws:' wildcard), no frames,
+        // no manifest, no fonts or media; art arrives as an https: URL or an inline data: image over the socket
+        'Content-Security-Policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+      })
+      res.end(this.d.overlayHtml)
+      return
+    }
+    if (req.method === 'GET' && path === '/manifest.webmanifest') {
+      const icon = this.d.icon?.()
+      res.writeHead(200, { ...common, 'Content-Type': 'application/manifest+json' })
+      res.end(JSON.stringify(buildManifest({ iconSize: icon?.size ?? 0 })))
+      return
+    }
+    if (req.method === 'GET' && path === '/icon.png') {
+      const icon = this.d.icon?.()
+      if (icon) {
+        res.writeHead(200, { ...common, 'Cache-Control': 'max-age=86400', 'Content-Type': 'image/png' })
+        res.end(icon.png)
+        return
+      }
     }
     res.writeHead(404, { 'Cache-Control': 'no-store' }).end()
   }
@@ -361,9 +425,13 @@ export class ConnectHub extends EventEmitter {
     s.device = device
     s.gate = new CommandGate(sessionKey)
     this.d.pairing.touch(device.id)
-    s.conn.send(encode({ t: 'ready', role: device.role, name: this.d.hostName(), host: this.now(), vibes: this.d.vibes, party: this.party }))
-    for (const m of this.state.snapshot()) s.conn.send(encode(m))
-    s.conn.send(encode({ t: 'devices', devices: this.devices().map(({ id, name, role, online }) => ({ id, name, role, online })) }))
+    const send = (m: HostMsg): void => {
+      const r = messageForRole(device.role, m)
+      if (r) s.conn.send(encode(r))
+    }
+    send({ t: 'ready', role: device.role, name: this.d.hostName(), host: this.now(), vibes: this.d.vibes, party: this.party })
+    for (const m of this.state.snapshot()) send(m)
+    send({ t: 'devices', devices: this.devices().filter((x) => x.role !== 'overlay').map(({ id, name, role, online }) => ({ id, name, role, online })) })
     this.emit('change')
     this.broadcastDevices()
   }

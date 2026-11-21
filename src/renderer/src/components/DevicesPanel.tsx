@@ -23,6 +23,15 @@ export function DevicesPanel() {
     setBusy(true)
     void p.finally(() => setBusy(false))
   }
+  const [copied, setCopied] = useState<string | null>(null)
+  const copyOverlay = (id: string): void => {
+    void api.overlayLink(id).then(async (url) => {
+      if (url && (await window.lyra.app.copy(url))) {
+        setCopied(id)
+        setTimeout(() => setCopied((c) => (c === id ? null : c)), 2500)
+      }
+    })
+  }
   const oneTime = status.codes.find((c) => !c.party)
   const party = status.codes.find((c) => c.party)
 
@@ -93,6 +102,20 @@ export function DevicesPanel() {
             </div>
           )}
 
+          <div className="srow">
+            <div className="srow__label">
+              <span>Stream overlay (OBS)</span>
+              <small>
+                Lyrics on your stream as a transparent browser source. OBS cannot scan a code, so this makes a view-only link that stays valid until you remove it below. Anyone with this link on your network can see what you play
+              </small>
+            </div>
+            <div className="srow__ctl">
+              <button type="button" className="pill" disabled={busy} onClick={() => run(api.addOverlay())}>
+                Add an overlay link
+              </button>
+            </div>
+          </div>
+
           <div className="health" role="list" aria-label="Connected devices">
             {status.devices.length === 0 && <p className="hint">No devices yet.</p>}
             {status.devices.map((d) => (
@@ -103,18 +126,29 @@ export function DevicesPanel() {
                   {d.guest ? ' (guest)' : ''}
                 </span>
                 <small>{d.online ? 'connected' : 'offline'}</small>
-                {!d.guest && (
+                {d.role === 'overlay' && (
+                  <>
+                    <small>overlay, view only</small>
+                    <button type="button" className="pill" disabled={busy} onClick={() => copyOverlay(d.id)}>
+                      {copied === d.id ? 'Copied' : 'Copy link'}
+                    </button>
+                  </>
+                )}
+                {!d.guest && d.role !== 'overlay' && (
                   <select aria-label={`Role of ${d.name}`} value={d.role} disabled={busy} onChange={(e) => run(api.setRole(d.id, e.target.value as 'viewer' | 'controller'))}>
                     <option value="viewer">Viewer</option>
                     <option value="controller">Controller</option>
                   </select>
                 )}
                 <button type="button" className="pill" disabled={busy} onClick={() => run(api.revoke(d.id))}>
-                  Disconnect
+                  {d.role === 'overlay' ? 'Remove link' : 'Disconnect'}
                 </button>
               </div>
             ))}
           </div>
+          <p className="hint">
+            In OBS add a Browser source and paste the copied link; set its width and height to your canvas. Options go after a <code>?</code> before the <code>#</code> (for example <code>?vibe=neon&amp;lines=2&amp;size=80&amp;chroma=00ff00</code>). The link holds a secret: treat it like a password, and remove it here to cut it off.
+          </p>
           <p className="hint">Devices stay paired until you disconnect them. Traffic stays on your local network and is not encrypted: pair only on a network you trust.</p>
         </>
       )}

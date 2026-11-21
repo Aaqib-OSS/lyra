@@ -5,20 +5,20 @@ Written 2026-11-22 against `feat/vibe-redesign`. Scope: besides Windows, Android
 
 ## How music state reaches a new surface
 
-Lyra's only network-facing mechanism today is the **LAN viewer** (`src/main/lan/server.ts`, Settings, TV & party mode): a small
-read-only HTTP server with a secret key `?k=`, offering `/events` (SSE: track, position clock, playing, and now the app's vibe),
-`/lyrics` (line-synced), `/art`, and an opt-in WebRTC audio route. Any device with a browser can be a *display*. No device can
-*send* playback state into Lyra; the connection protocol being written elsewhere may add that.
+Lyra's only network-facing mechanism is **Lyra Connect** (`src/main/connect/`, Settings, Devices; `docs/connect-protocol.md`,
+`docs/connect-redesign.md`): a LAN-only HTTP + WebSocket host with per-device pairing. It replaced the older LAN viewer (shared
+`?k=` key, `/events` SSE, `/lyrics`, `/art`), which no longer exists. Any device with a browser can be a *display*: paired
+phones and TVs through the viewer page, and OBS through a view-only `overlay` role. No device can *send* playback state into Lyra.
 
-New surfaces should therefore read a `LyraFeed` (`src/shared/lyraFeed.ts`): `{nowPlaying, positionClock, lyrics, vibe, videoRef}`.
-Today it is filled from the LAN viewer endpoints; when the connection protocol lands, only the filler changes.
-`videoRef` is part of the contract but nothing fills it yet.
+New surfaces should read a `LyraFeed` (`src/shared/lyraFeed.ts`): `{nowPlaying, positionClock, lyrics, vibe, videoRef}`. It is
+filled from Connect messages (`now`, `play` plus the ping/pong clock offset, `lyrics`, `art`, `view`). `videoRef` is part of the
+contract but nothing fills it yet (the overlay role is deliberately not told the video id).
 
 ## Ranked table
 
 | # | Platform | Audience value | Effort | Blockers | Recommendation |
 |---|---|---|---|---|---|
-| 1 | **OBS / streamer overlay** (browser source) | High: streamers, lyric-video makers, VTubers, "now playing" panels. Spotify-playing streamers are common and lyric overlays are rare | Low. **Built** | Needs the desktop app running with TV & party mode on; LAN/localhost only. Streamers should play music they may broadcast (DMCA) | **Done.** Add a settings link/QR for the overlay URL (not done: Settings UI untouched) |
+| 1 | **OBS / streamer overlay** (browser source) | High: streamers, lyric-video makers, VTubers, "now playing" panels. Spotify-playing streamers are common and lyric overlays are rare | Low. **Built** | Needs the desktop app running with Devices on; LAN only. Streamers should play music they may broadcast (DMCA) | **Done**, including the Devices panel link ("Add an overlay link", revocable) |
 | 2 | **Browser / PWA viewer** (any phone, tablet, laptop, smart-TV browser, Fire TV Silk, Chromecast with Google TV browser, Steam Deck) | High: the one route to Samsung Tizen, LG webOS, Fire TV, Nest Hub, consoles' browsers without writing an app per store | Low. **Polished** | Plain `http://<ip>` is not a "secure context": wake lock and the install prompt need HTTPS or localhost. Apple TV has no browser (use AirPlay from a Mac/iPad browser) | **Done.** For installable/wake-lock on LAN, a future option is a self-signed or tunnelled HTTPS (needs the owner's call) |
 | 3 | **Discord Rich Presence** ("Listening to ...") | Medium-high: social reach, free advertising for Lyra | Low (about a day): local Discord IPC, one Discord application id | Owner must create the application id in the Discord developer portal. Presence strings update about every 15 s, so it can show song + "synced lyrics on Lyra", **not** a live lyric line. Privacy: it publishes what you play, must be opt-in, off by default | Next cheap one once the app id exists. Not built: cannot register the id from here |
 | 4 | **Linux desktop** (Electron already builds for Linux) | Medium: Linux users like open-source, account-free tools; Spotify's Linux client speaks MPRIS | Medium: reader is done (groundwork), but packaging, source picker, icons, tray differences, `lyra-media.exe` bundling, CI job are not | SMTC is Windows-only. MPRIS via `playerctl` works but was not run on a real Linux desktop. Spotify Web API source already works anywhere | Groundwork **built** (`src/main/mpris/`, tested parser, unwired). Finish when someone can test on Linux |
@@ -34,7 +34,9 @@ Today it is filled from the LAN viewer endpoints; when the connection protocol l
 
 ### 1. OBS / stream overlay: `/overlay`
 
-`src/main/lan/overlayPage.ts` (page, CSS, runtime), served by `server.ts` at `/overlay`, same secret key as the viewer.
+`src/main/connect/overlayPage.ts` (page, CSS, runtime), served by the Connect host (`hub.ts`) at `/overlay`, with its own tight CSP.
+It authenticates as a view-only `overlay` device (docs/connect-redesign.md section 3b): the link carries the credential in the URL
+**fragment**, the page runs the normal Connect `hello`/`auth` handshake, and removing the device in Devices kills the link.
 Fully transparent by default (OBS Browser Source composites it). Ten text "looks"; every app vibe maps to the nearest one:
 
 | Look | Vibes |
@@ -54,8 +56,9 @@ Honest limit: this is **not** the app's scene renderer. The scenes' backgrounds,
 bundle and would not fit a small, dependency-free, transparent page. The overlay carries the *type treatment* of each vibe
 (colour, font feel, line shape), not its set. If a streamer wants the full scene, they can capture the Lyra window.
 
-Setup in OBS: Sources, add Browser, URL = the viewer link with `/overlay` before the `?`, e.g.
-`http://192.168.1.20:47813/overlay?k=KEY&vibe=neon`. Set the width and height to your canvas (type scales with height,
+Setup in OBS: turn Devices on in Lyra, Settings, Devices, press **Add an overlay link**, then **Copy link** on the new row.
+In OBS: Sources, add Browser, paste the URL (it looks like `http://192.168.1.20:47813/overlay#d=...&t=...`). Add options before
+the `#` (`...:47813/overlay?vibe=neon&lines=2#d=...`) or after the credentials (`#d=...&t=...&vibe=neon`). Set the width and height to your canvas (type scales with height,
 so a 1920x1080 source and a 1280x720 source look the same). Tick nothing else; leave "custom CSS" empty.
 
 URL parameters (all optional):
@@ -78,18 +81,20 @@ URL parameters (all optional):
 | `idle` | `1` shows a hint when nothing is playing | off (stays invisible) |
 | `debug` | `1` shows a connection indicator | off |
 
-Colours and fonts are sanitised so a shared URL cannot inject CSS.
+Colours and fonts are sanitised so a shared URL cannot inject CSS. The link is a secret: anyone with it on your LAN can see what
+you play (read-only) until you press **Remove link**. A wrong, missing or removed credential shows nothing (with `debug=1` the page
+says why).
 
-### 2. Browser / PWA viewer polish (`src/main/lan/viewerHtml.ts`, `pwa.ts`)
+### 2. Browser / PWA viewer polish (`src/main/connect/viewerHtml.ts`, `pwa.ts`)
 
-* Web app manifest (`/manifest.webmanifest`, keeps the key in `start_url`), icon route, apple-touch / mobile-web-app meta.
+* Web app manifest (`/manifest.webmanifest`, static, `start_url: /`, no secret), `/icon.png` from the app icon, apple-touch / mobile-web-app meta. The pairing credential lives in the browser's own storage, so an installed copy that has separate storage (iOS home-screen apps) pairs again once.
 * Full-screen: a button, the `F` key and double-click/tap.
 * Screen wake lock, re-requested when the tab becomes visible again (the browser drops it on hide).
 * Pointer and buttons hide after 4 s of no input.
 * TV layout: auto-detected from the user agent (Tizen, webOS, Fire TV `AFT*`, Android TV Chromecast `CrKey`, Bravia, Roku, Vidaa, and so on), forced with `?tv=1`, disabled with `?tv=0`: bigger type, bigger cover, small controls hidden. `?scale=0.5..3` zooms the layout.
-* The app's vibe is now included in `/events` so overlays can follow it.
+* The viewer's CSP gained only `manifest-src 'self'` and `'self'` for images; pairing (QR fragment, code screen, reconnect by proof) is unchanged.
 
-Limitations to know: wake lock and the install prompt need a secure context, which plain `http://192.168.x.x` is not;
+Limitations to know: wake lock and the install prompt need a secure context, which plain `http://192.168.x.x` is not (the page asks anyway and ignores a refusal);
 on a real TV browser the TV layout detection is by user-agent string and has only been tested with a faked Tizen string.
 
 ### 3. Linux MPRIS groundwork (`src/main/mpris/`)
@@ -102,18 +107,22 @@ on a real TV browser the TV layout detection is by user-agent string and has onl
 
 ## Verified
 
-* `npx vitest run src/main`: 22 tests pass (16 for the overlay/manifest/feed logic, 6 for the MPRIS parser). Full suite not run, as asked.
+* `npx vitest run` (whole suite): 355 tests pass. The overlay work adds to `src/main/connect/overlayPage.test.ts` (options incl. fragment
+  options, credentials parsing, feed from Connect messages, clock offset, the page and manifest) and the "overlay role" block in
+  `hub.test.ts` (link shape, `/overlay` CSP, proof auth, redaction, view-only enforcement with a valid signature, no upgrade or
+  minting through codes, hidden from controllers, revocation of a live and a stale link, wrong token, device cap, a loopback test
+  driving the overlay feed and clock from a live host over a real socket).
 * `npm run typecheck`: clean.
-* `node scripts/ui-test/overlay-check.mjs` (Playwright + Chromium, mock of the LAN server, not the real Electron server): all
-  checks pass. It screenshots a contact sheet of the ten looks over a photo-like gradient, confirms the page background is
-  transparent, `chroma=00ff00` gives pure green, `size=120` gives 120 px type at 1080p, `lines=1` shows one line, the active
-  line advances with the clock, the viewer renders in desktop, phone and faked-Tizen modes, and the manifest is served.
-  Output lands in `ui-test-out/overlay/`.
+* `node --experimental-transform-types scripts/ui-test/overlay-check.mjs` (Playwright + Chromium against the REAL Connect hub on
+  loopback, not Electron): all checks pass. Contact sheet of the ten looks, transparent background, `chroma=00ff00` green,
+  `size=120` gives 120 px at 1080p, `lines=1`, `meta`/`art` (cover arrives over the socket), options in the fragment, the line
+  advances with the clock and freezes on pause, a vibe change in the app re-styles the overlay live, a wrong / missing / revoked
+  credential is refused, revoking a live overlay is noticed, no CSP violation, the viewer in desktop, phone and TV modes with
+  its manifest, icon, idle hide, code wiped from the address bar, reconnect by stored credential. Output: `ui-test-out/overlay/`.
 
 ## Not verified
 
-* The routes were exercised through a mock server that runs the same page strings, not through the Electron `LanViewer`
-  (the app was not launched). The only server changes are small: three new routes and the `vibe` field.
-* Not tested inside OBS itself, on a real TV or on Fire TV, or over HTTPS (wake lock, install prompt).
+* The Electron app (Devices panel buttons, IPC, copying the link, the app icon route) was not launched. The hub, pages and
+  options ran through the real hub class with an in-memory registry.
+* Not tested inside OBS itself (its CEF browser), on a real TV or Fire TV, or over HTTPS (wake lock, install prompt, full screen).
 * `MprisSource` was never run against a real player.
-* No Settings UI for the overlay link yet.

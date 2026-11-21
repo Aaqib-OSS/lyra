@@ -1,27 +1,27 @@
 /**
- * LyraFeed: the one small shape every "viewer" surface (OBS overlay, browser / TV viewer, a future Cast receiver, a watch tile)
- * consumes, so none of them care how the music state reaches them. Today the feed is filled from the LAN viewer server
- * (`/events` + `/lyrics` + `/art`); the connection protocol being written separately can supply the same shape later.
+ * LyraFeed: the one small shape every "viewer" surface (OBS overlay, browser / TV viewer, a future Cast receiver, a watch
+ * tile) consumes, so none of them care how the music state reaches them. It is filled from Lyra Connect messages
+ * (docs/connect-protocol.md): `now` -> nowPlaying, `play` + ping/pong clock offset -> positionClock, `lyrics`, `art`, `view`.
  *
  * The overlay page is a single self-contained HTML file, so its runtime copy of this contract lives in
- * `src/main/lan/overlayPage.ts` (plain JS, unit-tested). Keep the two in step.
+ * `src/main/connect/overlayPage.ts` (`applyHost`, plain JS, unit-tested). Keep the two in step.
  */
 export interface LyraFeedTrack {
   trackId: string
   title: string
   artists: string
   durationMs: number
-  /** URL the viewer can load the cover from, or null */
+  /** `https:` URL or inline `data:` image the viewer can load the cover from, or null */
   artUrl: string | null
 }
 
 export interface LyraFeedClock {
   /** playback position at `sampledAt` */
   positionMs: number
-  /** the sender's Date.now() when `positionMs` was sampled */
+  /** the sender's (host's) Date.now() when `positionMs` was sampled */
   sampledAt: number
   playing: boolean
-  /** sender clock minus this device's clock, so the position can be extrapolated locally */
+  /** host clock minus this device's clock (Connect clock offset), so the position can be extrapolated locally */
   skewMs: number
 }
 
@@ -40,20 +40,6 @@ export interface LyraFeed {
   vibe: string | null
   /** a reference to the video behind the lyrics (a URL or a search key); null when there is none */
   videoRef: string | null
-}
-
-/** What `GET /events` sends (one JSON object per SSE message). */
-export interface LanStateMessage {
-  type: 'state'
-  now: number
-  trackId: string
-  title: string
-  artists: string
-  durationMs: number
-  hasArt: boolean
-  playing: boolean
-  positionMs: number
-  sampledAt: number
-  /** the vibe chosen in the app (added so overlays can follow the app's look) */
-  vibe?: string
+  /** the host's lyric timing shift in effect (global + per-song), ms; lyric time = position - this */
+  lyricOffsetMs?: number
 }

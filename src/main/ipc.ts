@@ -317,6 +317,11 @@ export function registerIpc(): void {
     connectService.api.setRole(String(id), role === 'controller' ? 'controller' : 'viewer')
     return connectStatus()
   })
+  handle(CH.connectOverlayAdd, async () => {
+    if (connectService.running) connectService.api.createOverlay()
+    return connectStatus()
+  })
+  handle(CH.connectOverlayLink, (id: string) => connectService.api.overlayUrl(String(id)))
   handle(CH.connectView, (v: ConnectView) => connectService.setView(v))
   handle(CH.appInfo, (): AppInfo => ({ version: app.getVersion(), platform: process.platform, envClientId: !!envClientId() }))
 

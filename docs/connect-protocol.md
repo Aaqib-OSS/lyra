@@ -96,6 +96,13 @@ Keep the last 8 samples and use the one with the smallest `rtt` (queueing only e
 negative or over 10 s `rtt`. Cadence (`pingDelayMs`): 6 pings 150 ms apart after connecting, then 6 one second apart,
 then every 10 s. The host drops a peer silent for 20 s. Typical Wi-Fi accuracy is a few ms (uncertainty = rtt / 2).
 
+## 5b. Roles
+
+`viewer` watches, `controller` also commands (section 6), `overlay` is a view-only role for an OBS browser source. An overlay
+device is created by the host (Devices panel), never by a pairing code; its credential is carried in the URL fragment of
+`/overlay` (`#d=<deviceId>&t=<token>`) and used for the normal `hello` / `auth` handshake (the token itself is never sent). The
+host redacts for it: `now` without `choices`, `view` with `video.id` null, `ready.party` false, no `devices`. Every command from an overlay gets `err forbidden`.
+
 ## 6. Client to host: commands (role `controller` only)
 
 `cmd {n, b, mac}`: `n` strictly increasing integer per connection (start at 1), `b` a JSON **string** (so the signed
@@ -121,7 +128,7 @@ off or the page hidden if the platform allows; the snapshot sent on `ready` brin
 
 ## 9. Security summary
 
-Per-device 256-bit tokens, challenge-response (token never re-sent), signed commands with replay protection, single-use
+Per-device 256-bit tokens (the overlay link is the one deliberate secret in a URL: fragment only, revocable), challenge-response (token never re-sent), signed commands with replay protection, single-use
 short-lived pairing codes in the URL fragment, LAN-only binding and peer check, strict page CSP and same-origin check,
-revocation, no secrets in URLs. NOT provided: confidentiality. Traffic is plain `ws`: someone on the same network can
+revocation, no secrets in URLs or Referers. NOT provided: confidentiality. Traffic is plain `ws`: someone on the same network can
 read what is playing and, at pairing time, see the token. See `docs/connect-redesign.md` for the plan to add TLS.

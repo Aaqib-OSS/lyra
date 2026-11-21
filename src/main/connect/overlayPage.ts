@@ -1,15 +1,24 @@
+import { HMAC_JS } from '@core/connect/hmac'
+
 /**
- * The stream / OBS overlay: a self-contained page (no build step, no external requests, no imports) that the local
- * viewer server hands out at `/overlay`. Add it to OBS as a Browser Source, or open it on any screen.
+ * The stream / OBS overlay: a self-contained page (no build step, no external requests) that the Lyra Connect host hands
+ * out at `/overlay`. Add it to OBS as a Browser Source, or open it on any screen.
  *
- *   http://<pc>:47813/overlay?k=<key>&vibe=neon&size=72&chroma=00ff00
+ *   http://<pc>:47813/overlay#d=<device>&t=<token>          (made in Lyra: Settings, Devices, Add an overlay link)
+ *   http://<pc>:47813/overlay?vibe=neon&size=72&chroma=00ff00#d=<device>&t=<token>
  *
- * The page keeps a `LyraFeed` (see src/shared/lyraFeed.ts) filled from the server's /events + /lyrics + /art, and draws
- * it in one of ten text "looks". Every app vibe maps to the nearest look (LOOKS below): the overlay is DOM text, not the
- * app's full scene renderer, so it stays tiny, transparent and cheap on a streaming PC.
+ * Auth: the link carries an `overlay`-role device credential in the URL FRAGMENT (never sent to a server, never in a
+ * Referer, absent from logs). The page opens the Connect WebSocket and proves the token with the normal HMAC handshake
+ * (hello, challenge, auth), so the token itself never crosses the network. The role is view-only: the host sends it the
+ * song, clock, lyrics, art and vibe and nothing else, and refuses any command. Revoking the device in the Devices panel
+ * ends the link. Options may sit in the query or after the credentials in the fragment (`#d=..&t=..&size=80`).
+ *
+ * The page keeps a `LyraFeed` (see src/shared/lyraFeed.ts) filled from the Connect messages (now, play, view, lyrics,
+ * art) and a clock offset estimated from ping/pong (NTP style, best of the last 8 round trips; docs/connect-protocol.md
+ * section 5), and draws it in one of ten text "looks". Every app vibe maps to the nearest look (LOOKS below): the overlay
+ * is DOM text, not the app's full scene renderer, so it stays tiny, transparent and cheap on a streaming PC.
  *
  * OVERLAY_CORE_JS is plain JS shared by the page and by the unit tests (which run it with `new Function`).
- * This file must stay free of imports so a plain script can load it too (scripts/ui-test/overlay-check.mjs).
  */
 
 export const OVERLAY_CORE_JS = String.raw`
@@ -55,9 +64,17 @@ function cleanFont(v) {
   var s = String(v).replace(/[^A-Za-z0-9 ,_-]/g, '').trim().slice(0, 80)
   return s
 }
-/** everything the page can be told through the URL */
-function parseOptions(search) {
+/** the device credential from the URL fragment (#d=hexid&t=hextoken); null when missing or malformed */
+function parseCreds(hash) {
+  var q = new URLSearchParams(String(hash || '').replace(/^#/, ''))
+  var d = q.get('d'), t = q.get('t')
+  if (!d || !t || !/^[0-9a-f]{8,64}$/i.test(d) || !/^[0-9a-f]{32,128}$/i.test(t)) return null
+  return { id: d, token: t }
+}
+/** everything the page can be told through the URL: the query, then any options after the credentials in the fragment */
+function parseOptions(search, hash) {
   var q = new URLSearchParams(search || '')
+  new URLSearchParams(String(hash || '').replace(/^#/, '')).forEach(function (v, k) { if (k !== 'd' && k !== 't' && !q.has(k)) q.set(k, v) })
   var rawVibe = (q.get('vibe') || 'app').toLowerCase()
   var look = q.get('look')
   look = look && LOOK_NAMES.indexOf(look.toLowerCase()) >= 0 ? look.toLowerCase() : ''
@@ -69,7 +86,6 @@ function parseOptions(search) {
   var pos = (q.get('pos') || 'bottom').toLowerCase()
   var align = (q.get('align') || 'center').toLowerCase()
   return {
-    k: q.get('k') || '',
     vibe: rawVibe,
     look: look,
     lines: lines,
@@ -145,26 +161,59 @@ function positionAt(feed, nowMs, nudgeMs) {
   return Math.max(0, c.positionMs + run + (nudgeMs || 0))
 }
 function emptyFeed() {
-  return { nowPlaying: null, positionClock: { positionMs: 0, sampledAt: 0, playing: false, skewMs: 0 }, lyrics: { status: 'none', lines: [] }, vibe: null, videoRef: null }
+  return { nowPlaying: null, positionClock: { positionMs: 0, sampledAt: 0, playing: false, skewMs: 0 }, lyrics: { status: 'none', lines: [] }, vibe: null, videoRef: null, lyricOffsetMs: 0 }
 }
-/** applies one /events message to a feed; reports whether the song changed */
-function applyState(feed, m, localNow) {
+/** a clock-offset estimator (docs/connect-protocol.md section 5): host clock minus this clock, from the lowest-rtt sample */
+function emptyClock() { return { samples: [] } }
+function clockAdd(clock, c0, s1, s2, c3) {
+  var rtt = c3 - c0 - (s2 - s1)
+  if (!(rtt >= 0 && rtt < 10000)) return false
+  clock.samples.push({ o: (s1 - c0 + (s2 - c3)) / 2, r: rtt })
+  if (clock.samples.length > 8) clock.samples.shift()
+  return true
+}
+function clockOffset(clock) {
+  var b = null
+  for (var i = 0; i < clock.samples.length; i++) if (!b || clock.samples[i].r < b.r) b = clock.samples[i]
+  return b ? b.o : 0
+}
+/** ping cadence: a quick burst after connecting, then slow */
+function pingDelay(n) { return n < 6 ? 150 : n < 12 ? 1000 : 10000 }
+/** reconnect backoff with jitter, rand in [0,1) */
+function backoff(attempt, rand) { return Math.round(Math.min(15000, 500 * Math.pow(2, Math.max(0, attempt))) * (0.75 + rand * 0.5)) }
+/**
+ * applies one Connect host message (now / play / view / lyrics / art) to a feed; reports whether the song changed.
+ * The anchor keeps the host's own time (sampledAt is HOST time); the caller keeps positionClock.skewMs current from
+ * the clock estimator so positionAt() can convert it.
+ */
+function applyHost(feed, m) {
   var changed = false
-  if (m.now) feed.positionClock.skewMs = m.now - localNow
-  if (!m.trackId) {
-    changed = !!feed.nowPlaying
-    feed.nowPlaying = null
-    feed.lyrics = { status: 'none', lines: [] }
-  } else {
-    var prev = feed.nowPlaying ? feed.nowPlaying.trackId : ''
-    changed = prev !== m.trackId
-    feed.nowPlaying = { trackId: m.trackId, title: m.title || '', artists: m.artists || '', durationMs: m.durationMs || 0, artUrl: m.hasArt ? '/art' : null }
-    if (changed) feed.lyrics = { status: 'loading', lines: [] }
+  if (m.t === 'now') {
+    if (!m.now) {
+      changed = !!feed.nowPlaying
+      feed.nowPlaying = null
+      feed.lyrics = { status: 'none', lines: [] }
+    } else {
+      var n = m.now
+      changed = !feed.nowPlaying || feed.nowPlaying.trackId !== n.id
+      feed.nowPlaying = { trackId: n.id, title: n.title || '', artists: Array.isArray(n.artists) ? n.artists.join(', ') : String(n.artists || ''), durationMs: n.durationMs || 0, artUrl: changed ? null : feed.nowPlaying.artUrl }
+      if (changed) feed.lyrics = { status: 'loading', lines: [] }
+    }
+  } else if (m.t === 'play' && m.play) {
+    feed.positionClock.positionMs = m.play.positionMs || 0
+    feed.positionClock.sampledAt = m.play.at || 0
+    feed.positionClock.playing = !!m.play.playing
+  } else if (m.t === 'view' && m.view) {
+    if (m.view.vibe) feed.vibe = m.view.vibe
+    feed.lyricOffsetMs = typeof m.view.offsetMs === 'number' ? m.view.offsetMs : 0
+  } else if (m.t === 'lyrics') {
+    if (feed.nowPlaying && m.id === feed.nowPlaying.trackId) {
+      var synced = m.status === 'synced' && m.synced && Array.isArray(m.lines)
+      feed.lyrics = { status: synced ? 'synced' : m.status === 'instrumental' ? 'instrumental' : m.status === 'error' ? 'error' : 'none', lines: synced ? m.lines.map(function (l) { return { timeMs: l.t, text: l.x } }) : [] }
+    }
+  } else if (m.t === 'art') {
+    if (feed.nowPlaying && m.id === feed.nowPlaying.trackId) feed.nowPlaying.artUrl = m.src || null
   }
-  feed.positionClock.positionMs = m.positionMs || 0
-  feed.positionClock.sampledAt = m.sampledAt || localNow
-  feed.positionClock.playing = !!m.playing
-  if (m.vibe) feed.vibe = m.vibe
   return changed
 }
 `
@@ -256,18 +305,19 @@ body[data-look=glitch] .ln.on { text-shadow: .04em 0 #ff2a6d, -.04em 0 #00e5ff; 
 
 const OVERLAY_SCRIPT = String.raw`
 (function () {
-  var opts = parseOptions(location.search)
-  var K = opts.k
+  var opts = parseOptions(location.search, location.hash)
+  var cred = parseCreds(location.hash)
+  var clock = emptyClock()
+  var ws = null, attempt = 0, retryTimer = 0, pingTimer = 0, pingsSent = 0, revoked = false
   var $ = function (id) { return document.getElementById(id) }
   var body = document.body
   var feed = emptyFeed()
-  var appVibe = null
-  var lines = []
+    var lines = []
   var lastKey = ''
   var curLook = ''
 
   function applyStyle() {
-    var look = resolveLook(opts, feed.vibe || appVibe)
+    var look = resolveLook(opts, feed.vibe)
     curLook = look
     body.dataset.look = look
     body.dataset.pos = opts.pos
@@ -298,36 +348,64 @@ const OVERLAY_SCRIPT = String.raw`
     $('mt').textContent = np.title
     $('ma').textContent = np.artists
     var im = $('mi')
-    if (np.artUrl) { im.src = np.artUrl + '?k=' + encodeURIComponent(K) + '&t=' + encodeURIComponent(np.trackId); im.classList.add('show') } else { im.classList.remove('show'); im.removeAttribute('src') }
+    if (np.artUrl) { im.src = np.artUrl; im.classList.add('show') } else { im.classList.remove('show'); im.removeAttribute('src') }
   }
 
-  function loadLyrics() {
-    var id = feed.nowPlaying && feed.nowPlaying.trackId
-    lines = []; lastKey = ''
-    if (!id) return
-    fetch('/lyrics?k=' + encodeURIComponent(K)).then(function (r) { return r.json() }).then(function (r) {
-      if (!feed.nowPlaying || feed.nowPlaying.trackId !== id) return
-      feed.lyrics = { status: r.status, lines: r.lines || [] }
-      lines = r.status === 'synced' ? estimate(feed.lyrics.lines, feed.nowPlaying.durationMs) : []
-      lastKey = ''
-      setMsg(opts.idle && !lines.length ? (r.status === 'instrumental' ? '♪' : '') : '')
-    }).catch(function () { feed.lyrics = { status: 'error', lines: [] } })
+  /** (re)builds the timed lines from the feed's lyrics */
+  function rebuildLines() {
+    var np = feed.nowPlaying
+    lines = np && feed.lyrics.status === 'synced' ? estimate(feed.lyrics.lines, np.durationMs) : []
+    lastKey = ''
+    if (!np) { $('lines').textContent = ''; setMsg(opts.idle ? 'Play a song in Lyra' : '') }
+    else setMsg(opts.idle && !lines.length ? (feed.lyrics.status === 'instrumental' ? '\u266a' : '') : '')
+  }
+
+  function send(o) { if (ws && ws.readyState === 1) { o.v = 1; ws.send(JSON.stringify(o)) } }
+  function rnd(n) { var a = new Uint8Array(n); (window.crypto || window.msCrypto).getRandomValues(a); var s = ''; for (var i = 0; i < n; i++) s += (a[i] < 16 ? '0' : '') + a[i].toString(16); return s }
+  function dbg(t) { $('dbg').textContent = t }
+  function schedulePing() {
+    clearTimeout(pingTimer)
+    pingTimer = setTimeout(function () { if (ws && ws.readyState === 1) { send({ t: 'ping', id: pingsSent, c0: Date.now() }); pingsSent++; schedulePing() } }, pingDelay(pingsSent))
+  }
+  function retry() {
+    clearTimeout(pingTimer)
+    if (revoked) return
+    dbg('reconnecting\u2026')
+    retryTimer = setTimeout(function () { attempt++; connect() }, backoff(attempt, Math.random()))
   }
 
   function connect() {
-    var es = new EventSource('/events?k=' + encodeURIComponent(K))
-    es.onerror = function () { es.close(); $('dbg').textContent = 'reconnecting…'; setTimeout(connect, 2000) }
-    es.onopen = function () { $('dbg').textContent = 'connected' }
-    es.onmessage = function (e) {
-      var m
-      try { m = JSON.parse(e.data) } catch (x) { return }
-      if (m.type !== 'state') return
-      var changed = applyState(feed, m, Date.now())
-      if (m.vibe) appVibe = m.vibe
-      applyStyle()
-      if (changed) { renderMeta(); loadLyrics() }
-      if (!m.trackId) { lines = []; lastKey = ''; $('lines').textContent = ''; setMsg(opts.idle ? 'Play a song in Lyra' : '') }
+    clearTimeout(retryTimer)
+    if (!cred) { dbg('This link has no credential. In Lyra open Settings, Devices and add an overlay link.'); body.dataset.debug = '1'; return }
+    var cn = rnd(16)
+    var mine
+    try { mine = ws = new WebSocket('ws://' + location.host + '/ws') } catch (x) { return retry() }
+    mine.onopen = function () {
+      attempt = 0; pingsSent = 0; clock = emptyClock()
+      send({ t: 'hello', deviceId: cred.id, name: 'OBS overlay', cn: cn })
+      schedulePing()
     }
+    mine.onmessage = function (ev) {
+      var m
+      try { m = JSON.parse(ev.data) } catch (x) { return }
+      if (m.t === 'challenge') send({ t: 'auth', proof: lyraHmac(cred.token, 'lyra1|auth|' + cn + '|' + m.sn) })
+      else if (m.t === 'ready') dbg('connected')
+      else if (m.t === 'pong') { clockAdd(clock, m.c0, m.s1, m.s2, Date.now()); feed.positionClock.skewMs = clockOffset(clock) }
+      else if (m.t === 'err') {
+        if (m.code === 'bad-proof' || m.code === 'unknown-device') { revoked = true; dbg('This overlay link was revoked or is not recognised. Make a new one in Lyra.'); body.dataset.debug = '1' }
+      } else if (m.t === 'bye') {
+        if (m.why && /removed/.test(m.why)) { revoked = true; dbg('This overlay link was removed in Lyra.'); body.dataset.debug = '1' }
+      } else if (m.t === 'now' || m.t === 'play' || m.t === 'view' || m.t === 'lyrics' || m.t === 'art') {
+        var changed = applyHost(feed, m)
+        if (m.t === 'view') { applyStyle() }
+        if (changed) renderMeta()
+        if (m.t === 'now' && (changed || !m.now)) rebuildLines()
+        else if (m.t === 'lyrics') rebuildLines()
+        else if (m.t === 'art') renderMeta()
+      }
+    }
+    mine.onclose = function () { if (mine === ws) retry() }
+    mine.onerror = function () {}
   }
 
   function draw(idx) {
@@ -352,7 +430,8 @@ const OVERLAY_SCRIPT = String.raw`
   function frame() {
     var np = feed.nowPlaying
     if (np && lines.length) {
-      var p = positionAt(feed, Date.now(), opts.nudge)
+      // the host's own lyric shift (global + per song) applies here too, so the overlay matches the app, plus your nudge=
+      var p = positionAt(feed, Date.now(), opts.nudge - (feed.lyricOffsetMs || 0))
       var idx = activeIndex(lines, p)
       var key = idx + '|' + curLook
       if (key !== lastKey) { lastKey = key; draw(idx) }
@@ -364,7 +443,7 @@ const OVERLAY_SCRIPT = String.raw`
           if (done === sp[k].classList.contains('todo')) { sp[k].classList.toggle('todo', !done); sp[k].classList.toggle('done', done) }
         }
       }
-      $('bar').firstElementChild.style.transform = 'scaleX(' + (np.durationMs ? Math.min(1, p / np.durationMs) : 0).toFixed(4) + ')'
+      $('bar').firstElementChild.style.transform = 'scaleX(' + (np.durationMs ? Math.min(1, positionAt(feed, Date.now(), 0) / np.durationMs) : 0).toFixed(4) + ')'
     } else if (np) {
       $('bar').firstElementChild.style.transform = 'scaleX(' + (np.durationMs ? Math.min(1, positionAt(feed, Date.now(), 0) / np.durationMs) : 0).toFixed(4) + ')'
     }
@@ -395,7 +474,7 @@ export const OVERLAY_HTML = `<!doctype html>
   <div id="bar"><b></b></div>
 </div>
 <div id="dbg"></div>
-<script>${OVERLAY_CORE_JS}${OVERLAY_SCRIPT}</script>
+<script>${HMAC_JS}\n${OVERLAY_CORE_JS}${OVERLAY_SCRIPT}</script>
 </body>
 </html>
 `

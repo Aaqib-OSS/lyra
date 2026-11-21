@@ -421,6 +421,8 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
     revoke: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
     setRole: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
     publishView: () => undefined,
+    addOverlay: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    overlayLink: async () => null,
     onChange: () => () => undefined
   },
   app: {

@@ -89,6 +89,8 @@ export const CH = {
   connectRevoke: 'connect:revoke',
   connectRole: 'connect:role',
   connectView: 'connect:view',
+  connectOverlayAdd: 'connect:overlay-add',
+  connectOverlayLink: 'connect:overlay-link',
   studioOpen: 'studio:open',
   studioWrite: 'studio:write',
   studioClose: 'studio:close',
@@ -147,7 +149,7 @@ export const EV = {
 export interface ConnectDevice {
   id: string
   name: string
-  role: 'viewer' | 'controller'
+  role: 'viewer' | 'controller' | 'overlay'
   online: boolean
   guest: boolean
   lastSeen: number
@@ -381,6 +383,10 @@ export interface LyraApi {
     setRole(id: string, role: 'viewer' | 'controller'): Promise<ConnectStatus>
     /** the renderer reports the vibe / video / lyric offset in effect so other screens can match */
     publishView(v: ConnectView): void
+    /** a view-only, revocable device for an OBS browser source (it cannot scan a QR code); remove it with revoke() to kill its link */
+    addOverlay(): Promise<ConnectStatus>
+    /** the overlay link for that device (carries its credential in the URL fragment), or null; keep it private */
+    overlayLink(id: string): Promise<string | null>
     onChange(cb: (s: ConnectStatus) => void): Unsubscribe
   }
   app: {
