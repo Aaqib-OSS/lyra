@@ -62,7 +62,7 @@ async function up() {
 let server
 async function ensureServer() {
   if (await up()) return
-  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore', shell: process.platform === 'win32' })
+  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore', shell: process.platform === 'win32', detached: process.platform !== 'win32' })
   for (let i = 0; i < 80 && !(await up()); i++) await new Promise((r) => setTimeout(r, 500))
   if (!(await up())) throw new Error('the harness server did not start')
 }
@@ -278,7 +278,7 @@ async function main() {
   }
   await Promise.all(Array.from({ length: Number(args.workers) || 4 }, worker))
   await browser.close()
-  server?.kill()
+  try { if (server) process.kill(process.platform === 'win32' ? server.pid : -server.pid) } catch {}
 
   results.sort((a, b) => (a.vibe + a.device).localeCompare(b.vibe + b.device))
   writeFileSync(join(OUT, 'report.json'), JSON.stringify(results, null, 2))
@@ -289,4 +289,4 @@ async function main() {
   console.log(`\nreport + failing screenshots: ${OUT}`)
   process.exit(bad.length ? 1 : 0)
 }
-main().catch((e) => { console.error(e); server?.kill(); process.exit(2) })
+main().catch((e) => { console.error(e); try { if (server) process.kill(process.platform === 'win32' ? server.pid : -server.pid) } catch {}; process.exit(2) })

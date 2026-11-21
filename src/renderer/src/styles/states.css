@@ -106,3 +106,19 @@
 [data-vibe='chat'] .lfb h3 { font-weight: 600; font-size: clamp(14px, 1.7cqw, 18px); letter-spacing: 0; background: #262c3d; color: #eaf0ff; padding: .55em .85em; border-radius: 20px 20px 20px 6px; max-width: 30ch; }
 [data-vibe='chat'] .lfb h3::after { content: ' ···'; letter-spacing: .1em; color: #8fa6ff; animation: pz-blink 1.2s steps(1) infinite; }
 :root[data-calm] [data-vibe='chat'] .lfb h3::after { animation: none; }
+
+/* ===================== DIARY (a light, inked vibe: with a video behind, every piece sits on its own paper) ===================== */
+:root[data-vibe='paper'][data-bg-media] .backdrop__dim { background: rgba(255, 244, 226, 0.34); }
+:root[data-vibe='paper'] .full.is-cinema .full__side { background: #fffaf0; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; border-radius: 14px; box-shadow: 0 18px 40px -16px rgba(0,0,0,.6), 0 0 0 1px rgba(45,42,58,.15); transform: rotate(-0.5deg); }
+:root[data-vibe='paper'][data-bg-media] .lyrics__scroller--plain, :root[data-vibe='paper'][data-bg-media] .lfb { background: #fffaf0; color: #2d2a3a; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; border-radius: 4px; box-shadow: 0 16px 36px -14px rgba(0,0,0,.55); width: min(560px, 92%); margin: 18px auto; transform: rotate(-0.4deg); position: relative; }
+:root[data-vibe='paper'][data-bg-media] .lyrics__scroller--plain { flex: 0 1 auto; max-height: calc(100% - 36px); align-self: center; -webkit-mask-image: none; mask-image: none; container-type: normal; }
+:root[data-vibe='paper'][data-bg-media] .lyrics__inner--plain { padding: 16px 22px 20px; }
+:root[data-vibe='paper'][data-bg-media] .lfb { padding: 22px 26px 16px; max-width: 560px; }
+:root[data-vibe='paper'][data-bg-media] .lyrics__stage:has(.lyrics__scroller--plain)::before, :root[data-vibe='paper'][data-bg-media] .lfb::before { content: ''; position: absolute; top: -12px; left: 50%; width: 90px; height: 24px; margin-left: -45px; background: rgba(255,226,120,.8); transform: rotate(-3deg); }
+:root[data-vibe='paper'][data-bg-media] .lyrics__notice { background: transparent; border-color: rgba(45,42,58,.3); }
+:root[data-vibe='paper'][data-bg-media] .lfb { align-items: flex-start; }
+[data-vibe='paper'] .lyrics__notice { font-family: 'Caveat', cursive; font-size: 16px; color: var(--fg-2); }
+[data-vibe='paper'] .plain__stanza { font-family: 'Caveat', cursive; font-weight: 600; font-size: max(21px, calc(var(--lyric-size) * 0.85)); line-height: 1.15; letter-spacing: 0; color: #2d2a3a; }
+[data-vibe='paper'] .lfb__poster { display: none; }
+[data-vibe='paper'] .lfb h3 { font-family: 'Caveat', cursive; font-weight: 700; font-size: clamp(26px, 3.2cqw, 40px); letter-spacing: 0; background: linear-gradient(transparent 62%, rgba(255,226,120,.85) 62%); padding: 0 .2em; }
+[data-vibe='paper'] .lfb__eq i { background: #2d2a3a; border-radius: 1px; width: 3px; }

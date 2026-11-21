@@ -14,7 +14,7 @@ const BASE = `http://localhost:${PORT}`
 const up = () => fetch(BASE).then((r) => r.ok).catch(() => false)
 let server
 if (!(await up())) {
-  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' })
+  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', String(PORT), '--strictPort'], { stdio: 'ignore', detached: true })
   for (let i = 0; i < 80 && !(await up()); i++) await new Promise((r) => setTimeout(r, 500))
 }
 const DEVICES = [
@@ -53,5 +53,5 @@ for (const d of DEVICES) {
   await page.close()
 }
 await b.close()
-server?.kill()
+try { if (server) process.kill(process.platform === 'win32' ? server.pid : -server.pid) } catch {}
 console.log(`sheets in ${out}`)
