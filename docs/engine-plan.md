@@ -1,5 +1,7 @@
 # Engine plan: lyrics, video, start-up
 
+> **Status (0.20.0):** section 1 (synced first) done. Section 2: Apple clip disk cache, failure memory (renderer, 14 days) and fade-in done on Windows; pause/resume works on Windows, phone YouTube still plays while paused; no prefetch yet. Section 3 (smooth start) not started.
+
 ## 1. Lyrics: synced always wins
 Today `LyricsService.lookup` asks providers in order and returns the first `found`, even if it is plain text. Change:
 1. Ask providers in order but **do not stop at a plain result**. Keep it as `fallback`, continue to the remaining providers (and to other candidate matches in the same provider: LRCLIB `/search` often has a synced entry when `/get` returned plain).

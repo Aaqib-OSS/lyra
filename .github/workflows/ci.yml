@@ -33,6 +33,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui:quick
       - run: npm run test:settings
+      - run: npm run test:ui:states
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
