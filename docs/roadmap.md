@@ -16,7 +16,7 @@ Released 0.19.0 / 0.5.0 and 0.20.0 / 0.6.0. The owner tests on a real PC and And
 Spec: docs/ui-state-matrix.md. Done when: every cell of the matrix has a designed, tested screen for every device class; the UI tests render the whole matrix; Settings has no layout or style controls.
 
 ## Phase 3: personalised cards and themed everything
-**Status:** share cards, Settings skins and poster frames DONE for all 15 vibes; player card plates per vibe DONE for dock/pill/bar layouts (0.22.0); mini-player card per vibe and widget colours OPEN.
+**Status:** share cards, Settings skins and poster frames DONE for all 15 vibes; player card plates per vibe DONE for dock/pill/bar layouts (0.22.0); mini-player / side-layout cards and widget colours DONE in 0.22.0.
 Per-vibe player card, share card, settings skin, video treatment. Done when each vibe has its own card design (doodle language where it fits) in the player and in the share dialog, and screenshots for all of them are in `docs/screenshots/`.
 
 ## Phase 4: platform polish
