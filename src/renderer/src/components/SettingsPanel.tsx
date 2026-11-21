@@ -771,9 +771,11 @@ export function SettingsPanel() {
             value={s.fullLayout}
             onChange={up('fullLayout')}
             options={[
+              { v: 'auto', label: 'Auto' },
               { v: 'cinema', label: 'Cinema' },
               { v: 'split', label: 'Split' },
-              { v: 'poster', label: 'Poster' }
+              { v: 'poster', label: 'Poster' },
+              { v: 'focus', label: 'Focus' }
             ]}
           />
         </Row>

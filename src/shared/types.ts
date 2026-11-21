@@ -156,7 +156,7 @@ export type ThemeMode = 'dark' | 'light' | 'adaptive'
 export type LyricFont = 'sans' | 'serif' | 'rounded' | 'mono'
 export type LyricAnimation = 'glide' | 'focus' | 'fade'
 /** how fullscreen lyrics are laid out over a video */
-export type FullLayout = 'cinema' | 'split' | 'poster'
+export type FullLayout = 'auto' | 'cinema' | 'split' | 'poster' | 'focus'
 
 export type SourceKind = 'local' | 'api'
 
