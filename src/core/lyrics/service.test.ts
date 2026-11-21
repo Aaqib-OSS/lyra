@@ -21,7 +21,10 @@ function memoryPlatform(): CorePlatform {
   }
 }
 
-const found = (text = '[00:01.00]one\n[00:03.00]two'): ProviderResult => ({ kind: 'found', synced: text, matched: { title: 't', artist: 'a', durationMs: 1000 } })
+// a believable synced lyric for track() below: right song, right length, enough lines, timestamps inside the song
+const LRC = Array.from({ length: 12 }, (_, i) => `[${String(Math.floor((10 + i * 14) / 60)).padStart(2, '0')}:${String((10 + i * 14) % 60).padStart(2, '0')}.00]line ${i + 1}`).join('\n')
+const MATCHED = { title: 'Song', artist: 'Artist', durationMs: 180_000 }
+const found = (text = LRC): ProviderResult => ({ kind: 'found', synced: text, matched: MATCHED })
 
 class Fake implements LyricsProvider {
   calls = 0
@@ -150,7 +153,7 @@ describe('your own lyrics and your choices', () => {
 })
 
 describe('synced lyrics always win', () => {
-  const plainRes = (): ProviderResult => ({ kind: 'found', plain: 'just words\nno timing', matched: { title: 't', artist: 'a', durationMs: 1000 } })
+  const plainRes = (): ProviderResult => ({ kind: 'found', plain: 'just words\nno timing', matched: MATCHED })
 
   it('keeps asking the next service when the first one only has plain text', async () => {
     const a = new Fake('a', () => plainRes())

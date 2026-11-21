@@ -152,17 +152,17 @@ class YoutubeService {
     if (ids.length === 0) return this.remember(track, null, [])
 
     const d = await this.call('videos', { part: 'contentDetails,status', id: ids.join(',') }, key)
-    const details = new Map<string, { sec: number | null; embeddable: boolean }>()
+    const details = new Map<string, { sec: number | null; embeddable: boolean; hd: boolean | undefined }>()
     if (d.ok) {
-      for (const v of (d.json.items ?? []) as Array<{ id: string; contentDetails?: { duration?: string }; status?: { embeddable?: boolean; privacyStatus?: string } }>) {
-        details.set(v.id, { sec: parseIsoDuration(v.contentDetails?.duration), embeddable: !!v.status?.embeddable && v.status?.privacyStatus === 'public' })
+      for (const v of (d.json.items ?? []) as Array<{ id: string; contentDetails?: { duration?: string; definition?: string }; status?: { embeddable?: boolean; privacyStatus?: string } }>) {
+        details.set(v.id, { sec: parseIsoDuration(v.contentDetails?.duration), embeddable: !!v.status?.embeddable && v.status?.privacyStatus === 'public', hd: v.contentDetails?.definition ? v.contentDetails.definition === 'hd' : undefined })
       }
     }
     const candidates: VideoCandidate[] = items.flatMap((i) => {
       const id = i.id?.videoId
       if (!id) return []
       const info = details.get(id)
-      return [{ videoId: id, title: decodeEntities(i.snippet?.title ?? ''), channel: decodeEntities(i.snippet?.channelTitle ?? ''), durationSec: info?.sec ?? null, embeddable: info ? info.embeddable : true }]
+      return [{ videoId: id, title: decodeEntities(i.snippet?.title ?? ''), channel: decodeEntities(i.snippet?.channelTitle ?? ''), durationSec: info?.sec ?? null, embeddable: info ? info.embeddable : true, hd: info?.hd }]
     })
     const ranked = rankVideos({ title: track.title, artist, durationMs: track.durationMs }, candidates)
     const list: YoutubeVideo[] = ranked.map((r) => ({ videoId: r.videoId, title: r.title, channel: r.channel, durationSec: r.durationSec }))
@@ -192,17 +192,17 @@ class YoutubeService {
     const ids = found.map((i) => i.id?.videoId).filter((x): x is string => !!x)
     if (ids.length === 0) return { items: [] }
     const d = await this.call('videos', { part: 'contentDetails,status', id: ids.join(',') }, key)
-    const details = new Map<string, { sec: number | null; embeddable: boolean }>()
+    const details = new Map<string, { sec: number | null; embeddable: boolean; hd: boolean | undefined }>()
     if (d.ok) {
-      for (const v of (d.json.items ?? []) as Array<{ id: string; contentDetails?: { duration?: string }; status?: { embeddable?: boolean; privacyStatus?: string } }>) {
-        details.set(v.id, { sec: parseIsoDuration(v.contentDetails?.duration), embeddable: !!v.status?.embeddable && v.status?.privacyStatus === 'public' })
+      for (const v of (d.json.items ?? []) as Array<{ id: string; contentDetails?: { duration?: string; definition?: string }; status?: { embeddable?: boolean; privacyStatus?: string } }>) {
+        details.set(v.id, { sec: parseIsoDuration(v.contentDetails?.duration), embeddable: !!v.status?.embeddable && v.status?.privacyStatus === 'public', hd: v.contentDetails?.definition ? v.contentDetails.definition === 'hd' : undefined })
       }
     }
     const candidates: VideoCandidate[] = found.flatMap((i) => {
       const id = i.id?.videoId
       if (!id) return []
       const info = details.get(id)
-      return [{ videoId: id, title: decodeEntities(i.snippet?.title ?? ''), channel: decodeEntities(i.snippet?.channelTitle ?? ''), durationSec: info?.sec ?? null, embeddable: info ? info.embeddable : true }]
+      return [{ videoId: id, title: decodeEntities(i.snippet?.title ?? ''), channel: decodeEntities(i.snippet?.channelTitle ?? ''), durationSec: info?.sec ?? null, embeddable: info ? info.embeddable : true, hd: info?.hd }]
     })
     const ranked = rankKaraoke({ title: track.title, artist, durationMs: track.durationMs }, candidates)
     // acceptable ones first, then the rest by score (they appear in the "choose another" list)

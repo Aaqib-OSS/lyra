@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanVideoTitle, parseIsoDuration, rankVideos, type VideoCandidate } from './rank'
+import { cleanVideoTitle, parseIsoDuration, pickBestVideo, rankVideos, type VideoCandidate } from './rank'
 
 const v = (videoId: string, title: string, channel: string, durationSec: number, embeddable = true): VideoCandidate => ({
   videoId,
@@ -75,5 +75,48 @@ describe('parseIsoDuration', () => {
     expect(parseIsoDuration('PT1H2M3S')).toBe(3723)
     expect(parseIsoDuration('PT45S')).toBe(45)
     expect(parseIsoDuration(undefined)).toBeNull()
+  })
+})
+
+describe('pickBestVideo: real-world result lists', () => {
+  const want = { title: 'Blinding Lights', artist: 'The Weeknd', durationMs: 200_000 }
+  const hd = (x: VideoCandidate, h = true): VideoCandidate => ({ ...x, hd: h })
+  const others = [
+    hd(v('lyr', 'The Weeknd - Blinding Lights (Lyrics)', 'Lyrics Daily', 203)),
+    hd(v('live', 'The Weeknd - Blinding Lights (Live at the Super Bowl)', 'The Weeknd', 240)),
+    hd(v('rx', 'Blinding Lights REACTION!! first time hearing', 'ReactBros', 480)),
+    hd(v('kar', 'Blinding Lights - The Weeknd (Karaoke Version)', 'Sing King', 201)),
+    hd(v('top', 'Blinding Lights', 'The Weeknd - Topic', 200)),
+    hd(v('sh', 'Blinding Lights #shorts', 'The Weeknd', 30)),
+    hd(v('ad', 'The Weeknd - Blinding Lights (Official Ad Teaser)', 'The Weeknd', 15)),
+    hd(v('cov', 'Blinding Lights - cover by Sam', 'Sam Sings', 199))
+  ]
+  const mv = (sec: number) => hd(v('mv', 'The Weeknd - Blinding Lights (Official Video)', 'TheWeekndVEVO', sec))
+  it('picks the official video over lyric/live/reaction/karaoke/topic/shorts/ad/cover, in any input order', () => {
+    const r = pickBestVideo(want, [...others, mv(201)].reverse())
+    expect(r.best?.videoId).toBe('mv')
+    expect(r.ranked[0]!.videoId).toBe('mv')
+  })
+  it('a different-length cut is listed but never auto-picked', () => {
+    const r = pickBestVideo(want, [...others, mv(262)])
+    expect(r.best).toBeNull()
+    expect(r.ranked.some((x) => x.videoId === 'mv')).toBe(true)
+  })
+  it('returns no auto pick but a ranked list when nothing qualifies', () => {
+    const r = pickBestVideo(want, others)
+    expect(r.best).toBeNull()
+    expect(r.ranked.length).toBeGreaterThan(0)
+  })
+  it('an HD upload beats an SD re-upload of the same video', () => {
+    const a = v('sd', 'The Weeknd - Blinding Lights (Official Video)', 'The Weeknd', 200)
+    const b = v('hd', 'The Weeknd - Blinding Lights (Official Video)', 'The Weeknd', 200)
+    expect(pickBestVideo(want, [{ ...a, hd: false }, { ...b, hd: true }]).best?.videoId).toBe('hd')
+  })
+  it('shorts are never auto-picked', () => {
+    expect(pickBestVideo(want, [v('s', 'The Weeknd - Blinding Lights #shorts', 'The Weeknd', 45)]).best).toBeNull()
+  })
+  it('does not penalise "live" when the track itself is a live recording', () => {
+    const w = { title: 'Blinding Lights (Live)', artist: 'The Weeknd', durationMs: 240_000 }
+    expect(pickBestVideo(w, [v('l', 'The Weeknd - Blinding Lights (Live) (Official Video)', 'The Weeknd', 241)]).best?.videoId).toBe('l')
   })
 })

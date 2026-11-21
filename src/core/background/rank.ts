@@ -8,6 +8,8 @@ export interface VideoCandidate {
   channel: string
   durationSec: number | null
   embeddable: boolean
+  /** YouTube's contentDetails.definition === 'hd' (>= 720p); undefined when unknown. Shorts are vertical, so HD 16:9 is what we want. */
+  hd?: boolean
 }
 
 export interface Wanted {
@@ -16,7 +18,7 @@ export interface Wanted {
   durationMs: number
 }
 
-const BAD = /\b(lyrics?|lyrical|audio|cover|karaoke|reaction|remix|slowed|reverb|8d|nightcore|instrumental|tutorial|status|shorts?|mashup|sped\s*up|reprise|visuali[sz]er|live|concert|fan\s*made|fanmade|edit|animated|amv|mv\s*reaction|full\s*album|playlist|compilation|scenes?|trailer|clips?|tribute|aesthetic|vibes?|cinematic|fan|fans|whatsapp|insta(?:gram)?|tiktok|reels?|movie|mix|ai\s*(?:video|generated)|unplugged|acoustic|dance|choreography)\b/i
+const BAD = /\b(lyrics?|lyrical|audio|cover|karaoke|reaction|remix|slowed|reverb|8d|nightcore|instrumental|tutorial|status|shorts?|mashup|sped\s*up|reprise|visuali[sz]er|live|concert|fan\s*made|fanmade|edit|animated|amv|mv\s*reaction|full\s*album|playlist|compilation|scenes?|trailer|clips?|tribute|aesthetic|vibes?|cinematic|fan|fans|whatsapp|insta(?:gram)?|tiktok|reels?|movie|mix|ai\s*(?:video|generated)|unplugged|acoustic|dance|choreography|teaser|promo|advert(?:isement)?|ads?|commercial)\b/i
 const GOOD = /\b(official|vevo|music video|video song|full video|official video)\b/i
 
 /** Remove "(Official Video)", "[HD]", "| T-Series" style noise so the song name is comparable. */
@@ -51,6 +53,12 @@ export function scoreVideo(want: Wanted, v: VideoCandidate): { score: number; ac
     const diff = Math.abs(v.durationSec - want.durationMs / 1000)
     score += diff <= 20 ? 0.2 : diff <= 60 ? 0.1 : diff > 150 ? -0.2 : 0
   }
+  // vertical Shorts (tagged, or a ~minute-long clip of a much longer song) are never the video we want
+  const short = /#shorts?\b/i.test(v.title) || (!!v.durationSec && v.durationSec <= 61 && want.durationMs > 100_000)
+  if (short) score -= 0.4
+  // resolution: prefer HD 16:9 (an unknown definition is neutral)
+  if (v.hd === true) score += 0.04
+  else if (v.hd === false) score -= 0.08
   // Auto-play only when it is clearly the official video: an "official"-style title, or the artist's own / VEVO channel.
   // Auto-generated "- Topic" channels are a still image, and lyric/audio/live uploads often have burned-in text.
   const chan = normalize(v.channel)
@@ -61,7 +69,7 @@ export function scoreVideo(want: Wanted, v: VideoCandidate): { score: number; ac
   if (topic) score -= 0.4
   // a video far from the song's length is a different cut, a clip or a compilation: never auto-play it
   const lengthOk = !v.durationSec || want.durationMs <= 0 || Math.abs(v.durationSec - want.durationMs / 1000) <= 30
-  return { score, acceptable: titleSim >= 0.6 && artistHit && official && !topic && !variant && lengthOk && score >= 0.62 }
+  return { score, acceptable: titleSim >= 0.6 && artistHit && official && !topic && !variant && lengthOk && !short && score >= 0.62 }
 }
 
 /** Best-first. `acceptable` ones are safe to auto-play; the rest only appear in the "pick one" list. */
@@ -70,6 +78,12 @@ export function rankVideos(want: Wanted, list: VideoCandidate[]): Array<VideoCan
     .map((v) => ({ ...v, ...scoreVideo(want, v) }))
     .filter((v) => v.score > -1)
     .sort((a, b) => b.score - a.score)
+}
+
+/** The single best video (or null when the list is empty), plus the whole ranked list for a picker. */
+export function pickBestVideo(want: Wanted, list: VideoCandidate[]): { best: (VideoCandidate & { score: number; acceptable: boolean }) | null; ranked: Array<VideoCandidate & { score: number; acceptable: boolean }> } {
+  const ranked = rankVideos(want, list)
+  return { best: ranked.find((r) => r.acceptable) ?? null, ranked }
 }
 
 /** ISO-8601 duration (PT1H2M3S) → seconds. */

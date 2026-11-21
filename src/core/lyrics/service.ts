@@ -8,6 +8,7 @@ import { userChoices } from '../userChoices'
 import { rememberTrack } from '../trackIndex'
 import { demoLyrics } from '../demo/lyrics'
 import { LrcLibProvider } from './lrclib'
+import { pickBestLyrics, scoreLyricsListing, type LyricsOption } from './rank'
 import { PublicDomainLyricsProvider } from './public-domain'
 import { LyricsProviderError, type LyricsCandidate, type LyricsProvider, type LyricsQuery } from './provider'
 
@@ -257,6 +258,8 @@ export class LyricsService {
         log.warn(`${p.id} candidates failed`, error)
       }
     }
+    const want = { title: track.title, artist: track.artists[0] ?? '', durationMs: track.durationMs }
+    items.sort((a, b) => scoreLyricsListing(want, b) - scoreLyricsListing(want, a))
     return { items, error: items.length === 0 ? error : undefined }
   }
 
@@ -327,7 +330,7 @@ export class LyricsService {
 
     const q = this.queryFor(track)
     let firstError: LyricsProviderError | null = null
-    let plainFallback: LyricsResult | null = null
+    const options: LyricsOption[] = []
     let skipped = 0
     let failed = 0
 
@@ -339,17 +342,14 @@ export class LyricsService {
       try {
         const r = await this.askProvider(provider, q)
         if (r.kind !== 'found') continue
-        const result = this.build(track.id, provider.id, r)
-        // synced lyrics always win: a plain result from this service is only kept as a fallback while the next
-        // services are asked (one of them may have the same song with timing)
-        if (result.status === 'plain') {
-          plainFallback ??= result
-          continue
+        if (r.instrumental) {
+          const result = this.build(track.id, provider.id, r)
+          this.writeCache(track, result)
+          this.held.delete(track.id)
+          return result
         }
-        if (result.status === 'none') continue
-        this.writeCache(track, result)
-        this.held.delete(track.id)
-        return result
+        // every service is asked: the best candidate is chosen below (synced beats unsynced, validated, closest match)
+        options.push({ provider: provider.id, synced: r.synced, plain: r.plain, matched: r.matched })
       } catch (e) {
         failed++
         firstError ??= e instanceof LyricsProviderError ? e : new LyricsProviderError((e as Error).message, 'unknown')
@@ -357,11 +357,16 @@ export class LyricsService {
       }
     }
 
-    // only unsynced lyrics were found: use them (the UI re-checks for synced ones while the song plays)
-    if (plainFallback) {
-      this.writeCache(track, plainFallback)
-      this.held.delete(track.id)
-      return plainFallback
+    const best = pickBestLyrics({ title: q.title, artist: q.artist, durationMs: q.durationMs }, options)
+    if (best) {
+      const o = best.option
+      // a synced copy that failed validation is used as plain text only (the UI re-checks for synced ones while the song plays)
+      const result = this.build(track.id, o.provider, { kind: 'found', synced: best.lines.length > 0 ? o.synced : undefined, plain: o.plain ?? (o.synced ? stripLrc(o.synced) : undefined), matched: o.matched ?? { title: q.title, artist: q.artist, durationMs: q.durationMs } })
+      if (result.status !== 'none') {
+        this.writeCache(track, result)
+        this.held.delete(track.id)
+        return result
+      }
     }
 
     // Not found anywhere, but only a COMPLETE answer may say "no lyrics" (and be remembered): if a service was down or
