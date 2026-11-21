@@ -23,7 +23,7 @@ const api: any = {
   lyrics: { get: async () => demoLyrics(track.id), refresh: async () => demoLyrics(track.id), candidates: async () => ({ items: [] }), choose: async () => demoLyrics(track.id), clearPin: async () => demoLyrics(track.id) },
   art: { get: async (u: string) => u },
   moments: { list: async () => [], add: async () => [], remove: async () => [] },
-  background: { resolve: async () => ({ spec: { kind: 'none' }, youtube: 'off', hasSongMedia: false, hasGlobalMedia: false }), pick: async () => ({ ok: false }), clear: noop, hasYoutubeKey: async () => false, setYoutubeKey: async () => ({ ok: true }), clearYoutubeKey: noop, youtubeCandidates: async () => ({ items: [] }), karaokeVideos: async () => ({ items: [] }), youtubeChoose: noop },
+  background: { resolve: async () => ({ spec: q.get('video') ? { kind: 'media', url: `/${q.get('video')}.mp4`, media: 'video', name: 'clip', scope: 'song' } : { kind: 'none' }, youtube: 'off', hasSongMedia: false, hasGlobalMedia: false }), pick: async () => ({ ok: false }), clear: noop, hasYoutubeKey: async () => false, setYoutubeKey: async () => ({ ok: true }), clearYoutubeKey: noop, youtubeCandidates: async () => ({ items: [] }), karaokeVideos: async () => ({ items: [] }), youtubeChoose: noop },
   update: { get: async () => ({ state: 'idle' }), check: noop, install: noop, onState: sub },
   studio: {}, lan: { info: async () => ({ running: false, urls: [], qr: null }), onOffer: sub, answer: noop },
   app: { info: async () => ({ version: '0.17.1', platform: 'win32', envClientId: false }), diagnostics: async () => '', copy: async () => true, copyImage: async () => true, shareImage: async () => 'saved', failedShortcuts: async () => [], onCommand: sub }

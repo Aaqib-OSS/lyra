@@ -228,3 +228,130 @@ select option {
   background: var(--bg-1);
   color: var(--fg);
 }
+
+
+/* ==========================================================================
+   PRISM TRACE: the signature lyric motion.
+   - words materialise out of depth (blur, scale and tilt settle with a spring), one after another
+   - a chromatic light-comet rides the leading edge of the sung fill
+   - lines that have been sung recede into the screen instead of just fading
+   ========================================================================== */
+
+.lyrics__inner {
+  perspective: 900px;
+  perspective-origin: 30% 50%;
+}
+
+/* 1 / the comet: the fill gets a luminous cyan-to-magenta edge that only exists while a word is being sung */
+.word {
+  --on: clamp(0, calc(var(--p) * (1 - var(--p)) * 24), 1);
+  --x: calc(var(--p) * 114% - 14%);
+  background:
+    linear-gradient(
+      90deg,
+      transparent calc(var(--x) - 10%),
+      rgba(255, 255, 255, calc(var(--on) * 0.9)) calc(var(--x) + 2%),
+      rgba(110, 235, 255, calc(var(--on) * 1)) calc(var(--x) + 9%),
+      rgba(255, 110, 225, calc(var(--on) * 0.95)) calc(var(--x) + 16%),
+      transparent calc(var(--x) + 26%)
+    ),
+    linear-gradient(90deg, var(--fg) 0, var(--fg) var(--x), var(--word-dim) calc(var(--p) * 114%));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+[data-theme='light'] .word {
+  background:
+    linear-gradient(
+      90deg,
+      transparent calc(var(--x) - 3%),
+      rgba(0, 120, 200, calc(var(--on) * 0.9)) calc(var(--x) + 6%),
+      rgba(200, 40, 160, calc(var(--on) * 0.8)) calc(var(--x) + 12%),
+      transparent calc(var(--x) + 17%)
+    ),
+    linear-gradient(90deg, var(--fg) 0, var(--fg) var(--x), var(--word-dim) calc(var(--p) * 114%));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* 2 / depth: sung lines sink back into the scene, upcoming ones wait just behind the glass */
+.lyric {
+  transform-style: preserve-3d;
+}
+.lyric.is-past {
+  transform: translateZ(-70px) rotateX(9deg) scale(0.9);
+}
+.lyric.is-next {
+  transform: translateZ(-40px) rotateX(-6deg) scale(0.9);
+}
+.lyric.is-active {
+  transform: translateZ(0) scale(1);
+}
+.lyrics[data-anim='fade'] .lyric.is-past,
+.lyrics[data-anim='fade'] .lyric.is-next {
+  transform: none;
+}
+
+/* 3 / the arrival: each word of the new line develops out of a soft blur, staggered like a scanner pass */
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-motion='off']) .lyric.is-active .lyric__text .word {
+    animation: prism-in 0.9s var(--spring) both;
+  }
+.lyric.is-active .lyric__text .word:nth-child(2) { animation-delay: 60ms; }
+.lyric.is-active .lyric__text .word:nth-child(3) { animation-delay: 120ms; }
+.lyric.is-active .lyric__text .word:nth-child(4) { animation-delay: 180ms; }
+.lyric.is-active .lyric__text .word:nth-child(5) { animation-delay: 240ms; }
+.lyric.is-active .lyric__text .word:nth-child(6) { animation-delay: 300ms; }
+.lyric.is-active .lyric__text .word:nth-child(7) { animation-delay: 360ms; }
+.lyric.is-active .lyric__text .word:nth-child(8) { animation-delay: 420ms; }
+.lyric.is-active .lyric__text .word:nth-child(9) { animation-delay: 480ms; }
+.lyric.is-active .lyric__text .word:nth-child(10) { animation-delay: 540ms; }
+.lyric.is-active .lyric__text .word:nth-child(11) { animation-delay: 600ms; }
+.lyric.is-active .lyric__text .word:nth-child(12) { animation-delay: 660ms; }
+.lyric.is-active .lyric__text .word:nth-child(13) { animation-delay: 720ms; }
+.lyric.is-active .lyric__text .word:nth-child(14) { animation-delay: 780ms; }
+.lyric.is-active .lyric__text .word:nth-child(15) { animation-delay: 840ms; }
+.lyric.is-active .lyric__text .word:nth-child(16) { animation-delay: 900ms; }
+}
+
+@keyframes prism-in {
+  0% {
+    opacity: 0;
+    transform: translateY(0.35em) translateZ(60px) rotateX(-28deg) scale(1.12);
+    filter: blur(10px);
+    letter-spacing: 0.06em;
+  }
+  55% {
+    opacity: 1;
+    filter: blur(1.5px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    letter-spacing: inherit;
+  }
+}
+
+/* ---------- HUD: hairline reticles frame the fullscreen scene ---------- */
+.full::before {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.5;
+  --c: rgba(255, 255, 255, 0.55);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 22px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 1px 22px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 22px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 1px 22px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 22px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 1px 22px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 22px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 1px 22px no-repeat;
+  transition: opacity 0.6s var(--ease);
+}
+.full.is-idle::before {
+  opacity: 0;
+}
