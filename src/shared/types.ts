@@ -189,6 +189,18 @@ export interface BackgroundMedia {
   kind: 'video' | 'image'
 }
 
+/** What the user picked by hand for one song; beats automatic ranking. Absent field = automatic. */
+export interface SongChoice {
+  video?: { videoId: string }
+  lyrics?: { provider: string; id: string }
+  /** per-song lyric timing nudge in ms (on top of the global offset) */
+  offsetMs?: number
+  durationMs?: number
+  /** last touched (ms epoch), used to trim the oldest */
+  at: number
+}
+export type SongChoiceField = 'video' | 'lyrics' | 'offsetMs'
+
 export interface YoutubeVideo {
   videoId: string
   title: string

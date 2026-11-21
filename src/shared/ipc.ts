@@ -4,6 +4,8 @@ import type {
   ConnectionStatus,
   LyricsCandidateInfo,
   LyricsResult,
+  SongChoice,
+  SongChoiceField,
   SourceHealth,
   ModeEvent,
   PlaybackSnapshot,
@@ -96,6 +98,9 @@ export const CH = {
   bgKaraoke: 'bg:karaoke',
   studioMic: 'studio:mic',
   bgYtChoose: 'bg:yt-choose',
+  choicesGet: 'choices:get',
+  choicesSet: 'choices:set',
+  choicesClear: 'choices:clear',
   updateGet: 'update:get',
   updateCheck: 'update:check',
   updateInstall: 'update:install'
@@ -218,6 +223,14 @@ export interface LyraApi {
     karaokeVideos(track: Track): Promise<{ items: YoutubeVideo[]; error?: string }>
     /** Pin a specific video for this song (remembered). null = back to automatic. */
     youtubeChoose(trackId: string, videoId: string | null): Promise<void>
+  }
+  /** Everything the user picked by hand for a song (video, lyrics match, timing nudge). Absent = automatic. */
+  choices: {
+    get(track: Track): Promise<SongChoice | null>
+    /** remember a per-song lyric timing nudge (ms; 0 = none). Video / lyrics picks are saved by their own pickers. */
+    setOffset(track: Track, ms: number): Promise<void>
+    /** back to automatic: one field, or everything for the song when omitted */
+    clear(track: Track, field?: SongChoiceField): Promise<void>
   }
   update: {
     get(): Promise<UpdateState>

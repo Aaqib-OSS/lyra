@@ -3,6 +3,8 @@ import { createBackgroundResolver, type SongBg } from '@core/background/resolver
 import { youtube } from '@core/background/youtube'
 import { clearAllCaches } from '@core/cache/persistentCache'
 import { lyricsService } from '@core/lyrics/service'
+import { trackKey } from '@core/songKey'
+import { userChoices } from '@core/userChoices'
 import type { LyraApi, Unsubscribe } from '@shared/ipc'
 import { DEFAULT_SETTINGS, type ConnectionStatus, type ModeEvent, type PlaybackSnapshot, type QueueItem, type SavedMoment, type Settings, type ViewMode } from '@shared/types'
 import { installAndroidPlatform, LocalStore, preloadSecrets, setAppVersion } from './platform'
@@ -385,6 +387,11 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
       }
       songsStore.set({ songs })
     }
+  },
+  choices: {
+    get: async (t) => userChoices().getChoice(trackKey(t)),
+    setOffset: async (t, ms) => void userChoices().setChoice(trackKey(t), { offsetMs: ms }),
+    clear: async (t, field) => userChoices().clearChoice(trackKey(t), field)
   },
   update: {
     get: async () => ({ state: 'disabled', reason: 'Download new versions from the GitHub releases page.' }),

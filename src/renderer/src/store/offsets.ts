@@ -56,5 +56,24 @@ export function nudgeSongOffset(delta: number): void {
   const id = usePlayer.getState().snapshot?.track?.id
   if (!id) return
   const store = useOffsets.getState()
-  store.set(id, (store.map[id] ?? 0) + delta)
+  const ms = (store.map[id] ?? 0) + delta
+  store.set(id, ms)
+  // also remember it per song in the main process (survives a cleared browser store, shared across players)
+  const track = usePlayer.getState().snapshot?.track
+  if (track) void window.lyra?.choices?.setOffset(track, useOffsets.getState().map[id] ?? 0).catch(() => {})
 }
+
+// when a song starts and we hold no nudge for it locally, restore the remembered one
+let lastHydrated: string | undefined
+usePlayer.subscribe((s) => {
+  const track = s.snapshot?.track
+  if (!track || track.id === lastHydrated) return
+  lastHydrated = track.id
+  if (useOffsets.getState().map[track.id] !== undefined) return
+  void window.lyra?.choices
+    ?.get(track)
+    .then((c) => {
+      if (c?.offsetMs && usePlayer.getState().snapshot?.track?.id === track.id && useOffsets.getState().map[track.id] === undefined) useOffsets.getState().set(track.id, c.offsetMs)
+    })
+    .catch(() => {})
+})
