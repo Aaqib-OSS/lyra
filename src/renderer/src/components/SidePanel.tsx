@@ -14,6 +14,7 @@ const TITLES: Record<Exclude<Panel, 'none'>, string> = { queue: 'Queue', moments
 export function SidePanel() {
   const panel = useUi((s) => s.panel)
   const setPanel = useUi((s) => s.setPanel)
+  const phone = document.documentElement.dataset.platform === 'android'
 
   return (
     <AnimatePresence>
@@ -33,11 +34,12 @@ export function SidePanel() {
             className="sidepanel"
             role="dialog"
             aria-label={TITLES[panel]}
-            initial={{ x: '100%', opacity: 0.6 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
+            initial={phone ? { y: '100%' } : { x: '100%', opacity: 0.6 }}
+            animate={phone ? { y: 0 } : { x: 0, opacity: 1 }}
+            exit={phone ? { y: '100%' } : { x: '100%', opacity: 0 }}
             transition={{ type: 'spring', stiffness: 420, damping: 40 }}
           >
+            {phone && <i className="sidepanel__grip" aria-hidden="true" />}
             <header className="sidepanel__head">
               <h3>{TITLES[panel]}</h3>
               <IconButton icon="close" label="Close panel" size={16} onClick={() => setPanel('none')} />

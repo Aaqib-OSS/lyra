@@ -527,3 +527,182 @@
 .health__row[data-state='slow'] .health__dot { background: #ffc94a; box-shadow: 0 0 10px rgba(255, 201, 74, 0.6); }
 .health__row[data-state='down'] .health__dot { background: #ff5d6a; box-shadow: 0 0 10px rgba(255, 93, 106, 0.6); }
 .health__row small { margin-left: auto; color: var(--fg-3); }
+
+/* ==========================================================================
+   LAYOUT PASS (see docs/ui-layout-plan.md)
+   ========================================================================== */
+
+/* ---------- readability: lines never collide, inactive lines stay legible ---------- */
+.lyric { margin-block: 0.08em; }
+.lyrics__inner { perspective: none; }
+.lyric { transform-style: flat; }
+/* depth by size and opacity only: a real 3D depth pulls lines toward the middle and made neighbours collide */
+.lyric.is-past { opacity: 0.42; transform: scale(0.92); }
+.lyric.is-next { transform: scale(0.92); }
+.lyric.is-next[data-dist='1'] { opacity: 0.62; }
+.lyric.is-next[data-dist='2'] { opacity: 0.5; }
+.lyric.is-next[data-dist='3'] { opacity: 0.42; }
+.lyric.is-active { margin-block: 0.18em; }
+.lyrics--mini .lyric { padding-block: 0.22em; }
+/* lyrics grow with the screen: 1080p and 1440p get bigger type, a small window keeps the size you chose */
+.lyrics--full .lyric { font-size: clamp(var(--lyric-size), 4.3vh, calc(var(--lyric-size) * 1.9)); }
+
+/* ---------- fullscreen: the card is limited by the height, so nothing is clipped on a short window ---------- */
+.full__side { width: min(34vw, 46vh, 460px, max(190px, calc(100vh - 360px))); }
+
+/* ---------- Windows header: primary, one menu, then window controls ---------- */
+.mini__tools { align-items: center; gap: 2px; }
+.mini__sep { width: 1px; height: 16px; margin: 0 6px; background: var(--line-2); }
+.menu { position: relative; display: inline-flex; }
+.menu__pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 208px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)), color-mix(in srgb, var(--bg-0) 88%, transparent);
+  box-shadow: 0 0 0 1px var(--line-2), 0 24px 50px -14px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  backdrop-filter: blur(22px) saturate(1.4);
+}
+.menu__pop button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  transition: background 0.15s;
+}
+.menu__pop button:hover, .menu__pop button:focus-visible { background: var(--glass-2); outline: none; }
+.menu__pop svg { color: var(--fg-2); }
+
+/* ---------- ANDROID PHONE: lyrics first, controls in the thumb zone ---------- */
+.mini--phone {
+  padding: env(safe-area-inset-top, 0px) 16px calc(env(safe-area-inset-bottom, 0px) + 10px);
+}
+.phone__bar { height: auto; margin: 0; padding: 10px 0 8px; gap: 8px; align-items: center; }
+.phone__now {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px 6px 6px;
+  margin-left: -6px;
+  border: 0;
+  border-radius: 20px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  transition: background 0.2s;
+}
+.phone__now:active { background: var(--glass); }
+.phone__now .artwork { flex: none; box-shadow: 0 8px 20px -8px var(--glow), 0 0 0 1px var(--line); }
+.phone__text { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.phone__text b { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phone__text i { font-style: normal; font-size: 13px; color: var(--fg-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phone__tools { display: flex; align-items: center; gap: 0; flex: none; }
+.mini--phone .ibtn { width: 44px; height: 44px; border-radius: 14px; }
+.phone__cover { display: flex; justify-content: center; overflow: hidden; }
+.phone__cover .artwork { margin: 2px 0 12px; }
+.mini--phone .mini__lyrics { flex: 1; margin: 0 -16px; padding: 0 16px; min-height: 0; }
+.phone__dock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--bg-0) 55%, transparent) 40%);
+  margin: 0 -16px;
+  padding-inline: 16px;
+}
+.phone__dock .transport--lg { justify-content: space-between; gap: 0; }
+.phone__dock .transport--lg .ibtn { width: 48px; height: 48px; }
+.phone__dock .playbtn { width: 68px !important; height: 68px !important; }
+.phone__actions { display: flex; justify-content: space-around; padding-top: 2px; }
+.phone__act {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 64px;
+  padding: 8px 6px 4px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--fg-2);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s, transform 0.2s var(--spring);
+}
+.phone__act:active { background: var(--glass-2); color: var(--fg); transform: scale(0.94); }
+:root[data-platform='android'] .mini--phone .mini__lyrics .lyrics__footer { position: static; margin: 0; background: transparent; backdrop-filter: none; }
+
+/* landscape phone: strip + dock on the left, lyrics on the right */
+@media (orientation: landscape) and (max-height: 520px) {
+  .mini--phone {
+    display: grid;
+    grid-template-columns: minmax(300px, 42%) 1fr;
+    grid-template-rows: auto 1fr auto;
+    column-gap: 20px;
+  }
+  .mini--phone .phone__bar { grid-column: 1; grid-row: 1; }
+  .mini--phone .phone__cover { display: none; }
+  .mini--phone .mini__lyrics { grid-column: 2; grid-row: 1 / span 3; margin: 0 -16px 0 0; }
+  .mini--phone .phone__dock { grid-column: 1; grid-row: 3; margin: 0; padding-inline: 0; border-top: 0; }
+  .mini--phone .vstat { display: none; }
+}
+.phone__act span { white-space: nowrap; }
+
+/* ---------- SETTINGS: one scrolling tab row, comfortable rows ---------- */
+.stabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-mask: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  mask: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+.stabs::-webkit-scrollbar { display: none; }
+.stabs button { flex: 0 0 auto; scroll-snap-align: center; padding: 0 14px; white-space: nowrap; }
+.srow__label span { line-height: 1.25; }
+.srow { min-height: 46px; }
+
+/* phone: a bottom sheet with big rows; hints replace the tiny (i) pop-overs */
+:root[data-platform='android'] .sidepanel {
+  top: auto;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: min(92%, calc(100% - env(safe-area-inset-top, 0px) - 24px));
+  border-radius: 28px 28px 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.sidepanel__grip { position: absolute; top: 8px; left: 50%; width: 40px; height: 5px; margin-left: -20px; border-radius: 3px; background: var(--line-2); z-index: 2; }
+:root[data-platform='android'] .sidepanel__head { height: 64px; padding-top: 10px; }
+:root[data-platform='android'] .srow { min-height: 58px; padding: 8px 0; }
+:root[data-platform='android'] .srow__label { font-size: 15px; }
+:root[data-platform='android'] .srow__label small { font-size: 12.5px; line-height: 1.35; }
+:root[data-platform='android'] .srow .info { display: none; }
+:root[data-platform='android'] .stabs button { height: 38px; font-size: 13.5px; }
+:root[data-platform='android'] .switch { width: 52px; height: 30px; border-radius: 15px; }
+:root[data-platform='android'] .switch i { width: 24px; height: 24px; top: 3px; left: 3px; }
+:root[data-platform='android'] .switch[aria-checked='true'] i { transform: translateX(22px); }
+:root[data-platform='android'] .seg button { height: 34px; padding: 0 14px; font-size: 13px; }
+:root[data-platform='android'] .pill { min-height: 40px; padding-inline: 16px; }
+:root[data-platform='android'] .settings section { padding-inline: 18px; }
+:root[data-platform='android'] .sl { width: 150px; }

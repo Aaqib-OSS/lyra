@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useIdle } from '@/hooks/useIdle'
 import { usePlayerView } from '@/hooks/usePlayerView'
 import { useWindowDrag } from '@/hooks/useWindowDrag'
@@ -7,8 +8,10 @@ import { useBgState } from '@/store/bgState'
 import { usePlayer } from '@/store/player'
 import { requestMode, useUi } from '@/store/ui'
 import { Artwork } from './Artwork'
+import { Icon, type IconName } from './Icon'
 import { VideoStatus } from './VideoStatus'
 import { IconButton, Transport, VolumeControl, useCaps } from './Controls'
+import { cycleVibe } from '@/hooks/useVibe'
 import { LyricsView } from './LyricsView'
 import { KaraokeScreen } from './KaraokeScreen'
 import { RecordDialog } from './RecordDialog'
@@ -34,6 +37,52 @@ export function LikeButton({ size = 18 }: { size?: number }) {
       className="likebtn"
       onClick={() => void toggle()}
     />
+  )
+}
+
+/** A labelled menu for the secondary actions, so the header is not a row of nine tiny icons. */
+function OverflowMenu({ items }: { items: Array<{ icon: IconName; label: string; run(): void }> }) {
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const away = (e: PointerEvent): void => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false)
+    }
+    const esc = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('pointerdown', away)
+    window.addEventListener('keydown', esc)
+    return () => {
+      window.removeEventListener('pointerdown', away)
+      window.removeEventListener('keydown', esc)
+    }
+  }, [open])
+  return (
+    <div className="menu" ref={box}>
+      <IconButton icon="more" label="More" active={open} size={16} onClick={() => setOpen((o) => !o)} />
+      <AnimatePresence>
+        {open && (
+          <motion.div className="menu__pop" role="menu" initial={{ opacity: 0, y: -6, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
+            {items.map((it) => (
+              <button
+                key={it.label}
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false)
+                  it.run()
+                }}
+              >
+                <Icon name={it.icon} size={16} />
+                {it.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
@@ -65,33 +114,86 @@ export function MiniPlayer() {
   // a touch screen hides after 4 s; with a mouse, give it a little longer
   const [studio, setStudio] = useState(false)
   const [karaoke, setKaraoke] = useState(false)
-  const idle = useIdle(document.documentElement.dataset.platform === 'android' ? 4000 : 6000)
+  const [cover, setCover] = useState(false)
+  const phone = document.documentElement.dataset.platform === 'android'
+  const idle = useIdle(phone ? 4000 : 6000)
+
+  const more: Array<{ icon: IconName; label: string; run(): void }> = [
+    ...(caps.queue ? [{ icon: 'queue' as const, label: 'Queue', run: () => togglePanel('queue') }] : []),
+    { icon: 'bookmark', label: 'Saved lyric moments', run: () => togglePanel('moments') },
+    ...(phone ? [] : [{ icon: 'mic' as const, label: 'Karaoke', run: () => setKaraoke(true) }]),
+    { icon: 'film', label: phone ? 'Record lyric video' : 'Export lyric video', run: () => setStudio(true) },
+    { icon: 'vibe', label: 'Next vibe', run: () => cycleVibe(1) }
+  ]
 
   return (
     <>
     {karaoke && <KaraokeScreen onClose={() => setKaraoke(false)} />}
-    {studio && (document.documentElement.dataset.platform === 'android' ? <RecordDialog onClose={() => setStudio(false)} /> : <StudioDialog onClose={() => setStudio(false)} />)}
-    <div className={`mini ${videoBehind && idle && panel === 'none' ? 'is-idle' : ''}`}>
-      <header className="mini__head" {...drag}>
-        <span className="mini__device" title={device ? `Playing on ${device.name}` : undefined}>
-          {device ? device.name : 'Lyra'}
-        </span>
-        <div className="mini__tools" data-nodrag>
-          {document.documentElement.dataset.platform === 'android' && <AmbientSwitch />}
-          {caps.queue && <IconButton icon="queue" label="Queue" active={panel === 'queue'} size={16} onClick={() => togglePanel('queue')} />}
-          <IconButton icon="bookmark" label="Saved lyric moments" active={panel === 'moments'} size={16} onClick={() => togglePanel('moments')} />
-          {document.documentElement.dataset.platform !== 'android' && <IconButton icon="mic" label="Karaoke" size={16} onClick={() => setKaraoke(true)} />}
-          <IconButton icon="film" label={document.documentElement.dataset.platform === 'android' ? 'Record lyric video' : 'Export lyric video'} size={16} onClick={() => setStudio(true)} />
-          <IconButton icon="settings" label="Settings" active={panel === 'settings'} size={16} onClick={() => togglePanel('settings')} />
-          <IconButton icon="fullscreen" label="Fullscreen lyrics" size={16} onClick={() => requestMode('full')} />
-          <IconButton icon="minus" label="Minimize" size={16} onClick={() => window.lyra.window.minimize()} />
-          <IconButton icon="collapse" label="Collapse to widget" size={16} onClick={() => requestMode('compact')} />
-          <IconButton icon="close" label="Quit Lyra" size={16} onClick={() => window.lyra.window.quit()} />
-        </div>
-      </header>
+    {studio && (phone ? <RecordDialog onClose={() => setStudio(false)} /> : <StudioDialog onClose={() => setStudio(false)} />)}
+    <div className={`mini ${phone ? 'mini--phone' : ''} ${videoBehind && idle && panel === 'none' ? 'is-idle' : ''}`}>
+      {phone ? (
+        <header className="mini__head phone__bar">
+          <button type="button" className="phone__now" aria-expanded={cover} aria-label={cover ? 'Hide the cover' : 'Show the cover'} onClick={() => setCover((c) => !c)} disabled={!track}>
+            {track && <Artwork url={track.artworkUrl} size={46} radius={13} />}
+            <span className="phone__text">
+              <b>{track ? track.title : 'Lyra'}</b>
+              <i>
+                {track ? joinArtists(track.artists) : 'Nothing playing'}
+                {device ? ` · ${device.name}` : ''}
+              </i>
+            </span>
+          </button>
+          <div className="phone__tools" data-nodrag>
+            <AmbientSwitch />
+            {track && <LikeButton size={22} />}
+            <IconButton icon="settings" label="Settings" active={panel === 'settings'} size={22} onClick={() => togglePanel('settings')} />
+          </div>
+        </header>
+      ) : (
+        <header className="mini__head" {...drag}>
+          <span className="mini__device" title={device ? `Playing on ${device.name}` : undefined}>
+            {device ? device.name : 'Lyra'}
+          </span>
+          <div className="mini__tools" data-nodrag>
+            <IconButton icon="settings" label="Settings" active={panel === 'settings'} size={16} onClick={() => togglePanel('settings')} />
+            <IconButton icon="fullscreen" label="Fullscreen lyrics" size={16} onClick={() => requestMode('full')} />
+            <OverflowMenu items={more} />
+            <span className="mini__sep" aria-hidden="true" />
+            <IconButton icon="minus" label="Minimize" size={16} onClick={() => window.lyra.window.minimize()} />
+            <IconButton icon="collapse" label="Collapse to widget" size={16} onClick={() => requestMode('compact')} />
+            <IconButton icon="close" label="Quit Lyra" size={16} onClick={() => window.lyra.window.quit()} />
+          </div>
+        </header>
+      )}
       <VideoStatus />
 
-      {view === 'playing' && track ? (
+      {view === 'playing' && track && phone ? (
+        <>
+          <OfflineBanner />
+          <AnimatePresence initial={false}>
+            {cover && (
+              <motion.div className="phone__cover" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}>
+                <Artwork url={track.artworkUrl} size="min(72vw, 34vh)" radius={22} className="artwork--lift" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className="mini__lyrics">
+            <LyricsView variant="mini" />
+          </div>
+          <div className="mini__card phone__dock" data-nodrag>
+            <ProgressBar showTimes />
+            <Transport size="lg" extras />
+            <div className="phone__actions">
+              {more.map((m) => (
+                <button key={m.label} type="button" className="phone__act" onClick={m.run} aria-label={m.label}>
+                  <Icon name={m.icon} size={20} />
+                  <span>{m.label.replace('Saved lyric moments', 'Saved').replace('Record lyric video', 'Record')}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      ) : view === 'playing' && track ? (
         <>
           <OfflineBanner />
           {!videoBehind && (

@@ -446,7 +446,10 @@ select option {
 :root[data-perf='low'] .artwork::before {
   display: none;
 }
-:root[data-perf='low'] .sidepanel,
+:root[data-perf='low'] .sidepanel {
+  /* no live blur here, so the sheet itself must be (almost) opaque or the player shows through the text */
+  background: color-mix(in srgb, var(--bg-0) 97%, var(--tint1)) !important;
+}
 :root[data-perf='low'] .full:not(.is-cinema) .full__side {
   background: color-mix(in srgb, var(--bg-0) 88%, transparent) !important;
 }
