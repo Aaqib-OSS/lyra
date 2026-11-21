@@ -1,0 +1,100 @@
+/* ==========================================================================
+   DM: the song as a chat thread (fullscreen: one file, layout mechanics are in scene.css).
+   A deep blue chat app. The video is a "story": a rounded picture inside a slowly turning gradient ring. Each lyric line is a
+   message bubble, the one being sung is "typing" first (the thread is the stage 'chat'), the card is the message bar.
+   Graphic: rings, bubbles and colour only.
+   ========================================================================== */
+:root[data-vibe='chat'] {
+  --rimc: #5b8cff;
+  --dm-blue: #5b8cff;
+  --dm-violet: #7a5cff;
+  --dm-pink: #ff5ca8;
+  /* scene geometry (styles/scene.css): the story on the left, the thread on the right, a message bar under the story */
+  --sc-ww: min(34vw, 54vh);
+  --sc-wl: 6vw;
+  --sc-wt: 12vh;
+  --sc-wr: 2.8vh;
+  --sc-cl: 6vw;
+  --sc-cb: 6vh;
+  --sc-ct: auto;
+  --sc-cw: var(--sc-ww);
+  --sc-ll: calc(6vw + var(--sc-ww) + 5vw);
+  --sc-lt: 7vh;
+  --sc-lw: calc(94vw - var(--sc-ww) - 6vw - 5vw);
+  --sc-lb: 7vh;
+  --sc-lbs: 7vh;
+  --sc-art-bg: linear-gradient(160deg, #1b2a55, #0a0e1a);
+  --sc-art-fg: #fff;
+  --sc-eq: #5b8cff;
+}
+:root[data-vibe='chat'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(36vw, 58vh); }
+:root[data-vibe='chat'][data-rim='on']::after { display: none; }
+[data-vibe='chat'] .shell { --accent: #5b8cff; --glow: rgba(91, 140, 255, 0.55); --glow-soft: rgba(91, 140, 255, 0.25); --font: 'Nunito Variable', 'Inter Variable', system-ui, sans-serif; --fg: #fff; --bg-0: #0a0e1a; }
+[data-vibe='chat'] .backdrop .backdrop__field { background: radial-gradient(100% 70% at 50% 0%, #1b2a55, #0a0e1a 72%); }
+:root[data-vibe='chat'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+
+/* ---------------- the story ---------------- */
+.dmfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.dmfx__glow { position: absolute; width: 70vmin; height: 70vmin; border-radius: 50%; filter: blur(60px); opacity: 0.35; animation: dm-glow 14s ease-in-out infinite alternate; }
+.dmfx__glow--a { left: -12vmin; top: 4vh; background: radial-gradient(circle, #5b8cff, transparent 65%); }
+.dmfx__glow--b { right: -14vmin; bottom: -16vmin; background: radial-gradient(circle, #7a5cff, transparent 65%); animation-delay: -6s; }
+@keyframes dm-glow { to { transform: translate(5vmin, -4vmin) scale(1.15); } }
+@property --dm-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.dmfx__ring { display: none; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .dmfx__ring {
+  display: block;
+  position: absolute;
+  left: calc(var(--sc-wl) - 1.3vh);
+  top: calc(var(--sc-wt) - 1.3vh);
+  width: calc(var(--sc-ww) + 2.6vh);
+  height: calc(var(--sc-wh) + 2.6vh);
+  border-radius: calc(var(--sc-wr) + 1.3vh);
+  padding: 0.7vh;
+  background: conic-gradient(from var(--dm-ang), #5b8cff, #7a5cff, #ff5ca8, #5b8cff);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: dm-ring 6s linear infinite;
+  transition: width 0.7s, height 0.7s;
+}
+@keyframes dm-ring { to { --dm-ang: 360deg; } }
+:root[data-calm] .dmfx *, :root[data-calm] .dmfx__ring { animation-play-state: paused; }
+:root[data-motion='off'] .dmfx *, :root[data-motion='off'] .dmfx__ring { animation: none !important; }
+:root[data-perf='low'] .dmfx__glow--b { display: none; }
+[data-vibe='chat'] .scenewin { box-shadow: 0 2vh 6vh rgba(0, 0, 20, 0.5); }
+.scenewin__art span { font: 800 2vh/1 'Nunito Variable', sans-serif; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.85); }
+
+/* ---------------- the card: a message bar ---------------- */
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  flex-direction: row;
+  align-items: center;
+  gap: 1.8vh;
+  padding: 1.1vh 1.8vh 1.1vh 1.1vh !important;
+  border-radius: 4vh !important;
+  background: #1c2338 !important;
+  border: 0 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2vh 5vh rgba(0, 0, 0, 0.45) !important;
+}
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 8.6vh !important; border-radius: 50% !important; box-shadow: 0 0 0 0.4vh var(--dm-blue); }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.7vh; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 800 2.1vh/1.15 'Nunito Variable', sans-serif; letter-spacing: -0.01em; color: #fff; text-shadow: none; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; color: #9fb4ff; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #5b8cff, #7a5cff); }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: linear-gradient(135deg, #3b82ff, #7a5cff) !important; color: #fff !important; box-shadow: 0 0.8vh 2vh rgba(91, 140, 255, 0.5) !important; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+
+/* ---------------- the thread (stage 'chat'): a panel with its own header ---------------- */
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat { max-width: none; padding: 1.4vh 1.6vh; border-radius: 3vh; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { font-size: min(2.3vw, 4.2vh); }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='chat'] .lyrics__notice { align-self: center; background: transparent; border: 0; color: #9fb4ff; font-size: 1.5vh; font-weight: 700; letter-spacing: 0.04em; }
+[data-vibe='chat'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='chat'] .lfb__poster, [data-vibe='chat'] .lfb__eq { display: none; }
+[data-vibe='chat'] .lfb h3 { font-weight: 800; font-size: clamp(20px, 2.6vw, 38px); letter-spacing: -0.02em; color: #fff; }
+[data-vibe='chat'] .lfb p, [data-vibe='chat'] .lfb small { color: #c9d6ff; }
+[data-vibe='chat'] .lfb__actions { justify-content: flex-start; }

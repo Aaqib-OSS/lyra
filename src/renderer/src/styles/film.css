@@ -17,7 +17,7 @@
   --sc-cl: 8vw;
   --sc-cb: 5vh;
   --sc-ct: auto;
-  --sc-cw: min(46vw, 640px);
+  --sc-cw: var(--sc-ww);
   --sc-ll: calc(8vw + var(--sc-ww) + 4vw);
   --sc-lt: var(--sc-wt);
   --sc-lw: calc(95vw - 8vw - var(--sc-ww) - 4vw);

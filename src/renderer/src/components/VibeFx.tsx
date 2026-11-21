@@ -333,6 +333,18 @@ function StickerFx() {
   )
 }
 
+/** DM, fullscreen: the video is a story in a slowly turning gradient ring, soft blue glows behind the thread. */
+function DmFx() {
+  return (
+    <div className="dmfx">
+      <i className="dmfx__glow dmfx__glow--a" />
+      <i className="dmfx__glow dmfx__glow--b" />
+      <SceneWindow />
+      <div className="dmfx__ring" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -456,6 +468,7 @@ export function VibeFx() {
       {vibe === 'filmstrip' && <FilmStripFx />}
       {vibe === 'chrome' && <ChromeFx sparkles={sparkles} />}
       {vibe === 'sticker' && <StickerFx />}
+      {vibe === 'chat' && <DmFx />}
     </div>
   )
 }
