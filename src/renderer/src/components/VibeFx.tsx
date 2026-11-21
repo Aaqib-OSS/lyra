@@ -99,6 +99,26 @@ export function VibeFx() {
         </>
       )}
       {vibe === 'paper' && <div className="vibefx__lines" />}
+      {vibe === 'sketch' && (
+        <>
+          <div className="vibefx__paper" />
+          <svg className="vibefx__pencil" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <path d="M40 150 C90 90 170 80 230 110 C190 120 120 130 70 170" />
+            <path d="M60 160 C120 130 190 130 260 120" />
+            <path d="M250 70 C300 40 340 60 360 100 C330 90 290 90 250 110" />
+            <path d="M110 40 C150 20 190 25 215 55 M120 52 C150 38 185 40 205 62 M130 62 C155 52 180 54 196 70" />
+            <circle cx="205" cy="112" r="15" />
+            <circle cx="205" cy="112" r="6" className="dot" />
+          </svg>
+        </>
+      )}
+      {vibe === 'glitch' && (
+        <>
+          <div className="vibefx__scan" />
+          <div className="vibefx__tear" />
+          <div className="vibefx__rgb" />
+        </>
+      )}
       {vibe === 'neon' && (
         <>
           <div className="vibefx__sun" />

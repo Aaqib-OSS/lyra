@@ -12,7 +12,7 @@ Released 0.19.0 / 0.5.0 and 0.20.0 / 0.6.0. The owner tests on a real PC and And
 3. **Smooth start** (section 3): preload the next track; a short start gate only when needed. Done when: on a normal connection the next song's lyrics + video are ready before it starts in 95 % of cases, and no track is ever delayed more than 1.5 s.
 
 ## Phase 2: one fixed UI per vibe and state (the big design phase)
-**Status:** settings controls removed DONE; lyrics-state test matrix (`test:ui:states`) DONE; designed screens per matrix cell OPEN.
+**Status:** per-vibe state screens DONE for all 16 vibes (0.21.0); settings controls removed DONE; lyrics-state test matrix (`test:ui:states`) DONE; designed screens per matrix cell OPEN.
 Spec: docs/ui-state-matrix.md. Done when: every cell of the matrix has a designed, tested screen for every device class; the UI tests render the whole matrix; Settings has no layout or style controls.
 
 ## Phase 3: personalised cards and themed everything
@@ -24,3 +24,6 @@ Widget on real launchers, Android karaoke (#48), code signing (#53), Apple Music
 
 ## Always
 Keep `npm run test:ui` green; keep Settings short; keep releases flowing through the workflow route in CONTEXT.md.
+
+## Ideas queue (owner likes motion-graphics lyric videos)
+More `zoom`-stage vibes (comic-book pop, film-strip, spray stencil), 3D camera fly-through of words, beat-reactive scale. Reference video: owner's Instagram sketch-typography clip (see CONTEXT.md section 7).

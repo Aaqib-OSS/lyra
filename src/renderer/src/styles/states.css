@@ -117,6 +117,15 @@
 :root[data-vibe='paper'][data-bg-media] .lyrics__stage:has(.lyrics__scroller--plain)::before, :root[data-vibe='paper'][data-bg-media] .lfb::before { content: ''; position: absolute; top: -12px; left: 50%; width: 90px; height: 24px; margin-left: -45px; background: rgba(255,226,120,.8); transform: rotate(-3deg); }
 :root[data-vibe='paper'][data-bg-media] .lyrics__notice { background: transparent; border-color: rgba(45,42,58,.3); }
 :root[data-vibe='paper'][data-bg-media] .lfb { align-items: flex-start; }
+:root[data-vibe='sketch'][data-bg-media] .backdrop__dim { background: rgba(255, 244, 226, 0.34); }
+:root[data-vibe='sketch'] .full.is-cinema .full__side { background: #fffaf0; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; border-radius: 14px; box-shadow: 0 18px 40px -16px rgba(0,0,0,.6), 0 0 0 1px rgba(45,42,58,.15); transform: rotate(-0.5deg); }
+:root[data-vibe='sketch'][data-bg-media] .lyrics__scroller--plain, :root[data-vibe='sketch'][data-bg-media] .lfb { background: #fffaf0; color: #2d2a3a; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; border-radius: 4px; box-shadow: 0 16px 36px -14px rgba(0,0,0,.55); width: min(560px, 92%); margin: 18px auto; transform: rotate(-0.4deg); position: relative; }
+:root[data-vibe='sketch'][data-bg-media] .lyrics__scroller--plain { flex: 0 1 auto; max-height: calc(100% - 36px); align-self: center; -webkit-mask-image: none; mask-image: none; container-type: normal; }
+:root[data-vibe='sketch'][data-bg-media] .lyrics__inner--plain { padding: 16px 22px 20px; }
+:root[data-vibe='sketch'][data-bg-media] .lfb { padding: 22px 26px 16px; max-width: 560px; }
+:root[data-vibe='sketch'][data-bg-media] .lyrics__stage:has(.lyrics__scroller--plain)::before, :root[data-vibe='sketch'][data-bg-media] .lfb::before { content: ''; position: absolute; top: -12px; left: 50%; width: 90px; height: 24px; margin-left: -45px; background: rgba(255,226,120,.8); transform: rotate(-3deg); }
+:root[data-vibe='sketch'][data-bg-media] .lyrics__notice { background: transparent; border-color: rgba(45,42,58,.3); }
+:root[data-vibe='sketch'][data-bg-media] .lfb { align-items: flex-start; }
 [data-vibe='paper'] .lyrics__notice { font-family: 'Caveat', cursive; font-size: 16px; color: var(--fg-2); }
 [data-vibe='paper'] .plain__stanza { font-family: 'Caveat', cursive; font-weight: 600; font-size: max(21px, calc(var(--lyric-size) * 0.85)); line-height: 1.15; letter-spacing: 0; color: #2d2a3a; }
 [data-vibe='paper'] .lfb__poster { display: none; }
@@ -227,3 +236,25 @@
 [data-vibe='trailer'] .lfb h3 { font-family: 'Iowan Old Style', Georgia, serif; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; font-size: clamp(16px, 2.4cqw, 28px); color: #f5e9c8; border-top: 1px solid #c9a24a; border-bottom: 1px solid #c9a24a; padding: .7em 1.4em; max-width: none; text-shadow: 0 0 18px rgba(201,162,74,.55); }
 [data-vibe='trailer'] .lfb p { font-family: 'Iowan Old Style', Georgia, serif; font-style: italic; color: rgba(245,233,200,.85); }
 [data-vibe='trailer'] .lfb__actions { justify-content: center; }
+
+/* ===================== ARTWORK (the default vibe) ===================== */
+/* with a video the ghost title collides with the message, so only the message stays */
+:root .full.is-cinema .lfb__poster { display: none; }
+
+[data-vibe='sketch'] .lfb__poster { display: none; }
+[data-vibe='sketch'] .lyrics__notice { background: #f4ead0; border: 2px solid #1f1511; border-radius: 2px; font-weight: 700; }
+[data-vibe='sketch'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 800; letter-spacing: -0.03em; text-transform: uppercase; font-size: max(13px, calc(var(--lyric-size) * 0.45)); color: #1f1511; }
+[data-vibe='sketch'] .plain__stanza > span:nth-child(odd) { color: #d23a2a; }
+[data-vibe='sketch'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); text-transform: uppercase; font-weight: 900; color: #d23a2a; -webkit-text-stroke: .02em #2a0f08; paint-order: stroke fill; }
+[data-vibe='sketch'] .zoom__word, [data-vibe='glitch'] .zoom__word { paint-order: stroke fill; }
+
+/* ===================== GLITCH ===================== */
+[data-vibe='glitch'] .backdrop__stage { filter: contrast(1.2) saturate(.8) hue-rotate(-12deg); }
+:root[data-vibe='glitch'][data-bg-media] .backdrop__dim { background: rgba(10,5,4,.5); }
+[data-vibe='glitch'] .lyrics__notice { background: #000; border: 1px solid #ff4a2e; border-radius: 0; color: #fff; text-shadow: -1px 0 #ff2a1a, 1px 0 #26f0ff; text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
+[data-vibe='glitch'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 800; letter-spacing: -0.03em; text-transform: uppercase; color: #fff; font-size: max(13px, calc(var(--lyric-size) * 0.45)); text-shadow: -.04em 0 0 #ff2a1a, .04em 0 0 #26f0ff; }
+[data-vibe='glitch'] .lfb { align-items: flex-start; }
+[data-vibe='glitch'] .lfb__poster { display: none; }
+[data-vibe='glitch'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); text-transform: uppercase; font-weight: 900; color: #fff; text-shadow: -.05em 0 0 #ff2a1a, .05em 0 0 #26f0ff; animation: glitch-jit 2.2s steps(1) infinite; }
+[data-vibe='glitch'] .lfb__eq i { background: #ff4a2e; box-shadow: -2px 0 0 #26f0ff; border-radius: 0; }
+:root[data-calm] [data-vibe='glitch'] .lfb h3 { animation: none; }

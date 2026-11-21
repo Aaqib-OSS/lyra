@@ -35,7 +35,9 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'blocks', layout: 'side', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
   { id: 'stadium', layout: 'dock', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },
   { id: 'cassette', layout: 'side', style: 'type', name: 'Cassette', tag: 'Walkman and amber LCD' },
-  { id: 'trailer', layout: 'bar', style: 'kinetic', name: 'Trailer', tag: 'Movie title cards' }
+  { id: 'trailer', layout: 'bar', style: 'kinetic', name: 'Trailer', tag: 'Movie title cards' },
+  { id: 'sketch', layout: 'orb', style: 'zoom', name: 'Sketchbook', tag: 'Giant cut-out words on graphite paper' },
+  { id: 'glitch', layout: 'orb', style: 'zoom', name: 'Glitch', tag: 'RGB-split type on a dying tape' }
 ]
 
 export const ALL_VIBES: readonly Vibe[] = VIBES.map((v) => v.id)
@@ -82,6 +84,8 @@ const WORDS: Partial<Record<Vibe, { re: RegExp; why: string }>> = {
   stadium: { re: /\b(champion|champions|win|winner|victory|team|goal|crowd|stadium|game|score|play|player|fight|roar|legend|glory|title)\b/g, why: 'stadium words' },
   cassette: { re: /\b(tape|radio|vinyl|record|song|songs|rewind|play|memory|memories|old|yesterday|walkman|mixtape|nostalgia|stereo|volume)\b/g, why: 'retro words' },
   trailer: { re: /\b(war|fate|destiny|world|rise|fall|battle|hero|legend|empire|king|queen|storm|thunder|end|begin|beginning|forever|eternal)\b/g, why: 'epic words' },
+  sketch: { re: /\b(love|heart|hearts|eyes|eye|face|tears|cry|crying|tell|told|never|always|save|stay|leave|left|hold|miss|kiss|hand|hands|scared|afraid|feel|feelings)\b/g, why: 'raw, personal words' },
+  glitch: { re: /\b(broken|break|breaking|static|noise|lost|crash|crashing|fall|falling|burn|burning|fire|scream|screaming|run|running|chaos|mess|wrong|numb|signal)\b/g, why: 'broken, noisy words' },
   chrome: { re: /\b(future|shine|shiny|silver|chrome|gold|diamond|mirror|glass|crystal|space|rocket|baby|girl|boy|money)\b/g, why: 'shiny words' }
 }
 
