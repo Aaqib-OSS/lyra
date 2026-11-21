@@ -250,7 +250,8 @@ async function main() {
       page.on('pageerror', (e) => errors.push(e.message.slice(0, 160)))
       const s = encodeURIComponent(JSON.stringify({ vibe: vibeId ?? v.id, lyricStyle: v.style, performance: 'smooth', ...(extra ?? {}) }))
       await page.goto(`${BASE}/?paused=1&t=43500&${d.q}${withVideo ? '&video=night' : ''}&s=${s}`)
-      await page.waitForTimeout(args.layouts ? 4200 : 1900)
+      await page.evaluate(() => document.fonts.ready)
+      await page.waitForTimeout(args.layouts ? 4200 : 2800)
       const m = await page.evaluate(MEASURE)
       const shot = await page.screenshot()
       let contrast = null

@@ -13,6 +13,8 @@ const log = logger('lyrics')
 
 const FOUND_TTL = 30 * 24 * 3600_000
 const NONE_TTL = 12 * 3600_000
+/** unsynced lyrics are a stop-gap: look again for synced ones after a day (and the UI re-checks sooner while the song plays) */
+const PLAIN_TTL = 24 * 3600_000
 /** an old copy is still better than nothing when the services cannot be reached (offline, outage) */
 const STALE_MAX = 365 * 24 * 3600_000
 /** a failure is shared for a moment so several screens asking at once do not each hit the services again */
@@ -88,7 +90,7 @@ export class LyricsService {
     for (const id of [`k:${this.key(track)}`, track.id]) {
       const entry = this.memory.get(id) ?? this.readDisk(id)
       if (!entry) continue
-      const ttl = stale ? STALE_MAX : entry.result.status === 'none' ? NONE_TTL : FOUND_TTL
+      const ttl = stale ? STALE_MAX : entry.result.status === 'none' ? NONE_TTL : entry.result.status === 'plain' ? PLAIN_TTL : FOUND_TTL
       if (now - entry.at > ttl) continue
       this.memory.set(id, entry)
       return { ...entry.result, trackId: track.id }
@@ -299,6 +301,7 @@ export class LyricsService {
 
     const q = this.queryFor(track)
     let firstError: LyricsProviderError | null = null
+    let plainFallback: LyricsResult | null = null
     let skipped = 0
     let failed = 0
 
@@ -311,6 +314,13 @@ export class LyricsService {
         const r = await this.askProvider(provider, q)
         if (r.kind !== 'found') continue
         const result = this.build(track.id, provider.id, r)
+        // synced lyrics always win: a plain result from this service is only kept as a fallback while the next
+        // services are asked (one of them may have the same song with timing)
+        if (result.status === 'plain') {
+          plainFallback ??= result
+          continue
+        }
+        if (result.status === 'none') continue
         this.writeCache(track, result)
         this.held.delete(track.id)
         return result
@@ -319,6 +329,13 @@ export class LyricsService {
         firstError ??= e instanceof LyricsProviderError ? e : new LyricsProviderError((e as Error).message, 'unknown')
         log.warn(`${provider.id} failed`, (e as Error).message)
       }
+    }
+
+    // only unsynced lyrics were found: use them (the UI re-checks for synced ones while the song plays)
+    if (plainFallback) {
+      this.writeCache(track, plainFallback)
+      this.held.delete(track.id)
+      return plainFallback
     }
 
     // Not found anywhere, but only a COMPLETE answer may say "no lyrics" (and be remembered): if a service was down or
