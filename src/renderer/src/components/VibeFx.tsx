@@ -106,6 +106,21 @@ function SunsetCar() {
   )
 }
 
+/** Trailer, fullscreen: a letterboxed screen with a grade, light leaks, an anamorphic streak and film grain. */
+function TrailerFx() {
+  return (
+    <div className="trailerfx">
+      <SceneWindow>
+        <div className="trailerfx__grade" />
+        <i className="trailerfx__leak trailerfx__leak--a" />
+        <i className="trailerfx__leak trailerfx__leak--b" />
+      </SceneWindow>
+      <div className="trailerfx__streak" />
+      <div className="trailerfx__grain" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -207,6 +222,7 @@ export function VibeFx() {
           <div className="vibefx__bar vibefx__bar--t" />
           <div className="vibefx__bar vibefx__bar--b" />
           <div className="vibefx__flare" />
+          <TrailerFx />
         </>
       )}
       {vibe === 'noir' && (

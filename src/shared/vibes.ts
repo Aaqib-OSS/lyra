@@ -35,7 +35,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'blocks', layout: 'side', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
   { id: 'stadium', layout: 'dock', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },
   { id: 'cassette', layout: 'side', style: 'type', name: 'Cassette', tag: 'Walkman and amber LCD' },
-  { id: 'trailer', layout: 'bar', style: 'kinetic', name: 'Trailer', tag: 'Movie title cards' },
+  { id: 'trailer', layout: 'scene', style: 'title', name: 'Trailer', tag: 'Movie title cards' },
   { id: 'sketch', layout: 'orb', style: 'zoom', name: 'Sketchbook', tag: 'Giant cut-out words on graphite paper' },
   { id: 'glitch', layout: 'orb', style: 'zoom', name: 'Glitch', tag: 'RGB-split type on a dying tape' },
   { id: 'comic', layout: 'orb', style: 'zoom', name: 'Pop Comic', tag: 'Halftone, outlines and BAM words' },
