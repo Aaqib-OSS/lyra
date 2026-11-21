@@ -20,6 +20,8 @@ if (params.has('record')) {
   void import('@/main').then(async () => {
     const { startLyricNotifier } = await import('./lyricNotifier')
     startLyricNotifier()
+    const { startAmbientConfig } = await import('./ambientConfig')
+    startAmbientConfig()
     const { useUi, requestMode } = await import('@/store/ui')
     // hardware / gesture Back: close a panel, leave the cinema layout, otherwise let the app go to the background
     window.__lyraNative!.back = () => {

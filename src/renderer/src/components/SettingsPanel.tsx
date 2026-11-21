@@ -563,7 +563,7 @@ function PhoneSection() {
           <Toggle label="Show lyrics on lock screen" checked={lyricsNote.public} onChange={(v) => void changeLyricsNote({ ...lyricsNote, public: v })} />
         </Row>
       )}
-      <Row label="Ambient style" info="Minimal: pure black with dim lyrics. Glow: the cover’s colours as a very dim moving glow. Video: the music video (or your own) played very dim. All keep the screen at minimum brightness.">
+      <Row label="Ambient style" info="Minimal: pure black with dim lyrics, drawn natively (lightest on battery; tap or put the phone in a pocket to leave). Glow: the cover’s colours as a very dim moving glow. Video: the music video (or your own) played very dim. All keep the screen at minimum brightness.">
         <Segmented
           label="Ambient style"
           value={s.ambientStyle}
@@ -590,6 +590,26 @@ function PhoneSection() {
         <button type="button" className="pill" onClick={() => void window.lyra.android?.addAmbientTile()}>
           Add tile
         </button>
+      </Row>
+      <Row label="Open ambient on charge" info="On charge: when you plug the phone in while music plays, the ambient screen opens by itself (needs “Display over other apps”; Android blocks it otherwise). On demand: only from the button, tile or widget. For a permission-free version pick Lyra under Settings → Display → Screen saver." hint="When the charger is connected">
+        <Segmented
+          label="Open ambient on charge"
+          value={s.ambientTrigger}
+          onChange={(v) => set({ ambientTrigger: v })}
+          options={[
+            { v: 'demand', label: 'On demand' },
+            { v: 'charge', label: 'On charge' }
+          ]}
+        />
+      </Row>
+      <Row label="Ambient clock" info="Show a dim clock at the top of the Minimal ambient screen.">
+        <Toggle label="Ambient clock" checked={s.ambientClock} onChange={(v) => set({ ambientClock: v })} />
+      </Row>
+      <Row label="Pixel shift" info="Moves the Minimal ambient screen a few pixels once a minute so an OLED screen is not burned in.">
+        <Toggle label="Pixel shift" checked={s.ambientPixelShift} onChange={(v) => set({ ambientPixelShift: v })} />
+      </Row>
+      <Row label="Lyric on lock-screen card with screen off" info="Keeps updating the lyric on the lock screen / always-on-display media card while the screen is off, once per line, only while music plays. Which phones show it there depends on the maker; Pixel and Samsung always-on displays are drawn by the system." hint="One update per line">
+        <Toggle label="Lock-screen card while screen off" checked={s.ambientCardWhenOff} onChange={(v) => set({ ambientCardWhenOff: v })} />
       </Row>
       <Row label="Floating lyrics" info="Shows a small lyrics widget over other apps while music plays, so you can read along while using something else. It hides while Lyra is open. Needs Android’s “Display over other apps” permission." hint="Over other apps">
         <Toggle label="Floating lyrics widget" checked={overlay} onChange={(v) => void toggleOverlay(v)} />
