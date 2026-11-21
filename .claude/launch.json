@@ -4,8 +4,23 @@
     {
       "name": "website",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["scratch/static-server.js"],
+      "runtimeArgs": [
+        "scratch/static-server.js"
+      ],
       "port": 4173
+    },
+    {
+      "name": "harness",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "node_modules/vite/bin/vite.js",
+        "-c",
+        "scripts/harness/vite.config.ts",
+        "--port",
+        "5199",
+        "--strictPort"
+      ],
+      "port": 5199
     }
   ]
 }
