@@ -48,7 +48,7 @@ export function FullscreenPlayer() {
   const arch = vibeInfo(useEffectiveVibe().vibe).layout
 
   return (
-    <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${sideFlipped ? 'is-side-flipped' : ''} ${cinema ? `is-cinema ${arch === 'side' ? `layout-${layout}` : ''}` : ''}`} data-arch={arch}>
+    <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${sideFlipped ? 'is-side-flipped' : ''} ${cinema ? (arch === 'term' ? 'is-video' : `is-cinema ${arch === 'side' ? `layout-${layout}` : ''}`) : ''}`} data-arch={arch}>
       <VideoStatus />
       <header className="full__top">
         <span className="full__device">{device ? `Playing on ${device.name}` : 'Lyra'}</span>
