@@ -92,6 +92,20 @@ function ArcadeFx() {
   )
 }
 
+/** Sunset Drive, fullscreen: you sit in the car. The video is the windshield, the dashboard glows under it. */
+function SunsetCar() {
+  return (
+    <div className="sunsetfx">
+      <SceneWindow>
+        <div className="sunsetfx__glass" />
+      </SceneWindow>
+      <div className="sunsetfx__mirror" />
+      <div className="sunsetfx__dangle"><i /><b /></div>
+      <div className="sunsetfx__dash" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -159,6 +173,7 @@ export function VibeFx() {
           <div className="vibefx__road" />
           <div className="vibefx__radio"><i /><i /><i /><b>LYRA FM 98.7</b></div>
           <div className="vibefx__stars-hud">★★★<s>★★</s></div>
+          <SunsetCar />
         </>
       )}
       {vibe === 'blocks' && (

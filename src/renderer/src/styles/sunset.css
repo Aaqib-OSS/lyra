@@ -1,0 +1,174 @@
+/* ==========================================================================
+   SUNSET DRIVE: inside a car at dusk (fullscreen: one file, layout mechanics are in scene.css).
+   The video is the windshield, the song scrolls past like a radio dial, the card is the radio in the dashboard.
+   Outside the fullscreen scene (mini player, phone) the old pink dusk with palms stays as the backdrop.
+   Edge effect: the dashboard glow breathes along the bottom, a charm swings from the mirror.
+   ========================================================================== */
+:root[data-vibe='sunset'] {
+  --sun-pink: #ff5e9b;
+  --sun-peach: #ffb089;
+  /* scene geometry (styles/scene.css) */
+  --sc-wl: 8vw;
+  --sc-wt: 6vh;
+  --sc-ww: 84vw;
+  --sc-wh: 38vh;
+  --sc-wr: 9vh 9vh 2.4vh 2.4vh;
+  --sc-cl: 19vw;
+  --sc-cb: 4vh;
+  --sc-ct: auto;
+  --sc-cw: 62vw;
+  --sc-ll: 12vw;
+  --sc-lt: calc(var(--sc-wt) + var(--sc-wh) + 3vh);
+  --sc-lw: 76vw;
+  --sc-lb: 27vh;
+  /* with no video the windshield shows the dusk itself */
+  --sc-art-bg:
+    radial-gradient(circle at 50% 78%, #fff3a6 0 7vh, #ffb347 7vh 9.5vh, rgba(255, 94, 155, 0.5) 9.5vh 16vh, transparent 22vh),
+    linear-gradient(180deg, #2b0a5a 0%, #8a1d86 38%, #ff5e9b 66%, #ffa14a 84%, #2a0b2e 84.2%);
+  --sc-art-fg: #fff;
+  --sc-eq: linear-gradient(180deg, #fff6c4, #ff5e9b);
+}
+:root[data-vibe='sunset'][data-rim='on']::after { display: none; }
+
+/* ---------------- fullscreen: the cabin ---------------- */
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .backdrop .backdrop__field {
+  background:
+    radial-gradient(60% 40% at 50% 100%, rgba(255, 94, 155, 0.22), transparent 70%),
+    linear-gradient(180deg, #0f0518 0%, #1a0a2a 100%);
+}
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) :is(.vibefx__sunset-sun, .vibefx__palm, .vibefx__road, .vibefx__radio, .vibefx__stars-hud) { display: none; }
+.sunsetfx { display: none; }
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .sunsetfx { display: block; position: absolute; inset: 0; pointer-events: none; }
+[data-vibe='sunset'] .scenewin { box-shadow: 0 0 0 0.7vh #07030d, 0 0 0 calc(0.7vh + 2px) rgba(255, 122, 184, 0.45), 0 0 9vh rgba(255, 122, 184, 0.28); }
+.scenewin__art span { display: none; }
+/* the glass: a soft reflection and a darker edge, like a windscreen seen from the seat */
+.sunsetfx__glass {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), transparent 28%), radial-gradient(130% 110% at 50% 40%, transparent 60%, rgba(8, 2, 14, 0.5));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.sunsetfx__mirror {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--sc-wt) - 1vh);
+  width: 16vw;
+  height: 5.2vh;
+  transform: translateX(-50%);
+  border-radius: 1.6vh;
+  background: linear-gradient(180deg, #2b1740, #120720);
+  box-shadow: 0 0 0 0.5vh #07030d, inset 0 0 2vh rgba(255, 122, 184, 0.35);
+}
+.sunsetfx__mirror::after { content: ''; position: absolute; inset: 0.8vh 1vh; border-radius: 1vh; background: linear-gradient(90deg, rgba(255, 140, 90, 0.5), rgba(255, 94, 155, 0.4), rgba(120, 70, 200, 0.4)); opacity: 0.6; }
+.sunsetfx__dangle { position: absolute; left: calc(50% + 11vw); top: calc(var(--sc-wt) + 1.5vh); width: 2px; height: 7vh; transform-origin: 50% 0; background: rgba(255, 255, 255, 0.5); animation: sun-swing 5s ease-in-out infinite; }
+.sunsetfx__dangle b { position: absolute; left: 50%; bottom: -2.4vh; width: 3vh; height: 3vh; margin-left: -1.5vh; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3a6, #ffb347 50%, #ff5e9b); box-shadow: 0 0 2vh rgba(255, 179, 71, 0.7); }
+@keyframes sun-swing { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+/* the dashboard: a dark band with the radio's glow breathing along it */
+.sunsetfx__dash {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26vh;
+  background: linear-gradient(180deg, transparent, rgba(5, 2, 10, 0.85) 45%, #05020a);
+  border-top: 1px solid rgba(255, 122, 184, 0.25);
+}
+.sunsetfx__dash::before {
+  content: '';
+  position: absolute;
+  left: 6vw;
+  right: 6vw;
+  top: -0.6vh;
+  height: 1.2vh;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, #ff5e9b 30%, #ffb347 50%, #ff5e9b 70%, transparent);
+  filter: blur(6px);
+  animation: sun-breathe 4s ease-in-out infinite;
+}
+@keyframes sun-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+:root[data-motion='off'] .sunsetfx *, :root[data-motion='off'] .full__side { animation: none !important; }
+
+/* ---------------- the card: the car radio in the dashboard ---------------- */
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  flex-direction: row;
+  align-items: center;
+  gap: 2.4vh;
+  padding: 1.4vh 2.4vh 1.4vh 1.4vh !important;
+  border-radius: 2.4vh !important;
+  background: linear-gradient(180deg, #2a1640, #120820) !important;
+  border: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 0 1px rgba(255, 122, 184, 0.4), 0 2vh 5vh rgba(0, 0, 0, 0.6), 0 0 5vh rgba(255, 94, 155, 0.18) !important;
+}
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+  flex: none;
+  width: 11vh !important;
+  border-radius: 1.4vh !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 2.4vh rgba(255, 122, 184, 0.45);
+}
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto;
+  grid-template-areas: 'titles controls' 'progress progress';
+  align-items: center;
+  column-gap: 2vw;
+  row-gap: 0.6vh;
+}
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-size: 2.2vh; color: #fff; }
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: var(--sun-peach); }
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #ffb347, #ff5e9b); }
+:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: linear-gradient(180deg, #ffd86b, #ff5e9b) !important; color: #2a0b2e !important; box-shadow: 0 0 2.4vh rgba(255, 122, 184, 0.6) !important; }
+
+/* ---------------- lyrics: the radio dial (stage 'radio'): each line is tuned in, a needle follows the words ---------------- */
+.stage--radio { display: flex; flex-direction: column; justify-content: center; }
+.sign--radio .sign__line { position: relative; align-items: center; gap: 1.6vh; padding-bottom: 5.6vh; }
+.sign--radio .sign__row { justify-content: center; text-align: center; font-style: italic; font-weight: 800; font-size: min(3.8vw, 6.6vh); letter-spacing: -0.04em; }
+.sign--radio .sign__word { color: rgba(255, 220, 235, 0.3); }
+.sign--radio .sign__word.is-in {
+  color: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #ffe3c9 50%, #ffb089 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 0.35em rgba(255, 122, 184, 0.7));
+  animation: sun-tune 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+.sign--radio .sign__word.is-now { background: linear-gradient(180deg, #fff, #ffe8f8 50%, #ff9fd0); -webkit-background-clip: text; background-clip: text; }
+@keyframes sun-tune { 0% { opacity: 0; transform: translateX(2vw); filter: blur(6px) drop-shadow(0 0 0.35em rgba(255, 122, 184, 0.7)); } 100% { opacity: 1; transform: none; } }
+.sign--radio .sign__next { text-align: center; color: rgba(255, 220, 235, 0.45); }
+.sign--radio .sign__refl { display: none; }
+/* the dial: ticks across the width, a needle at the share of the line that has been sung */
+.sign--radio .sign__line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.2vh;
+  height: 1.6vh;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.4) 0 1px, transparent 1px 1.1vw) 0 100% / 100% 50% no-repeat, repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.7) 0 1px, transparent 1px 5.5vw) 0 100% / 100% 100% no-repeat;
+}
+.sign--radio .sign__line::after {
+  content: '';
+  position: absolute;
+  bottom: 0.4vh;
+  left: calc(var(--r, 0) * 100%);
+  width: 3px;
+  height: 3.4vh;
+  border-radius: 2px;
+  background: #ff5e9b;
+  box-shadow: 0 0 1.4vh #ff5e9b;
+  transition: left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ---------------- other lyric states (same regions) ---------------- */
+:root[data-vibe='sunset'][data-mode='full'] .full[data-arch='scene'] .lfb { align-items: center; text-align: center; }
+:root[data-vibe='sunset'][data-mode='full'] .full[data-arch='scene'] .lfb__actions { justify-content: center; }
+:root[data-vibe='sunset'][data-mode='full'] .full[data-arch='scene'] .plain__stanza { text-align: center; }
+/* the radio card sits under these states, so they stop above it */
+:root[data-arch='scene'][data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { bottom: 23vh; }
+:root[data-vibe='sunset'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-wh: 32vh; }

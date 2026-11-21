@@ -31,7 +31,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'paper', layout: 'side', style: 'diary', name: 'Diary', tag: 'Handwritten, highlighted' },
   { id: 'arcade', layout: 'scene', style: 'pixel', name: 'Arcade', tag: '8-bit cabinet' },
   { id: 'noir', layout: 'bar', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
-  { id: 'sunset', layout: 'dock', style: 'kinetic', name: 'Sunset Drive', tag: 'Palms, radio and a pink sky' },
+  { id: 'sunset', layout: 'scene', style: 'radio', name: 'Sunset Drive', tag: 'Dusk drive, car radio' },
   { id: 'blocks', layout: 'side', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
   { id: 'stadium', layout: 'dock', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },
   { id: 'cassette', layout: 'side', style: 'type', name: 'Cassette', tag: 'Walkman and amber LCD' },

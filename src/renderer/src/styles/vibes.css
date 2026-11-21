@@ -402,11 +402,6 @@
 .vibefx__radio b { margin-left: 8px; }
 .vibefx__stars-hud { position: absolute; bottom: 14%; right: 24px; font-size: 20px; color: #fff; text-shadow: 0 0 10px #ff7ab8; letter-spacing: 4px; }
 .vibefx__stars-hud s { text-decoration: none; opacity: 0.3; }
-[data-vibe='sunset'] .kin__word { font-family: 'Unbounded Variable', var(--font); font-weight: 900; font-style: italic; letter-spacing: -0.05em; background: linear-gradient(180deg, #fff6c4 0%, #ffb347 45%, #ff5e9b 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; -webkit-text-stroke: 0.014em rgba(40, 6, 60, 0.9); filter: drop-shadow(0.05em 0.05em 0 #2b0a5a); }
-[data-vibe='sunset'] .kin__word.is-now { background: linear-gradient(180deg, #fff, #ffe8f4 50%, #ff9fcb); -webkit-background-clip: text; background-clip: text; }
-[data-vibe='sunset'] .kin__word.is-now::after { display: none; }
-[data-vibe='sunset'] .kin__word.is-slab { background: #ff5e9b; -webkit-text-fill-color: #fff; filter: none; box-shadow: 0.08em 0.08em 0 #2b0a5a; }
-[data-vibe='sunset'] .kin { font-size: calc(min(14cqw, 21cqh) * var(--k, 1)); }
 
 /* ======================= BLOCKS: a pixel sandbox ======================= */
 :root[data-vibe='blocks'] { --rimc: #6dd14a; }

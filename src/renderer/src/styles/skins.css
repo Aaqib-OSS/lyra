@@ -150,7 +150,6 @@
  * the shared dark glass. !important only on what the layout file also sets.
  */
 :root[data-vibe='dream'] .full .full__side { background: rgba(255,255,255,.16) !important; border: 2px solid rgba(255,255,255,.7) !important; border-radius: 999px !important; box-shadow: 0 0 40px rgba(190,160,255,.5), inset 0 0 22px rgba(255,255,255,.12) !important; }
-:root[data-vibe='sunset'] .full .full__side { background: linear-gradient(90deg, rgba(43,10,90,.85), rgba(255,46,147,.55)) !important; border: 2px solid #ffd1a6 !important; border-radius: 16px !important; box-shadow: 0 0 30px rgba(255,122,184,.45) !important; }
 :root[data-vibe='stadium'] .full .full__side { background: linear-gradient(180deg, #0b3b86, #072a63) !important; border: 0 !important; border-left: 6px solid #ffd23f !important; border-radius: 6px !important; box-shadow: 0 12px 28px -10px rgba(0,0,0,.7) !important; }
 :root[data-vibe='trailer'] .full .full__side { background: rgba(0,0,0,.82) !important; border: 0 !important; border-top: 1px solid #c9a24a !important; border-bottom: 1px solid #c9a24a !important; border-radius: 0 !important; }
 :root[data-vibe='noir'] .full .full__side { background: rgba(0,0,0,.78) !important; border: 0 !important; border-top: 1px solid rgba(255,255,255,.5) !important; border-radius: 0 !important; }

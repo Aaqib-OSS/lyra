@@ -101,7 +101,7 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
-      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel') && <Sign lines={lines} active={active} variant={mode} />}
+      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'radio') && <Sign lines={lines} active={active} variant={mode} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -654,6 +654,7 @@ const SignLine = memo(function SignLine({ line, index, nextTime, next }: { line:
   return (
     <motion.div
       className="sign__line"
+      style={{ ['--r' as string]: words.length ? revealed / words.length : 0 }}
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10, transition: { duration: 0.22 } }}
