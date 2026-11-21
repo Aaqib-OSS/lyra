@@ -1,0 +1,167 @@
+/* ==========================================================================
+   ANDROID x SCENE looks (phone, small phone, landscape phone, tablet, unfolded foldable).
+   Everything for the shared renderer inside the Android WebView lives here; the scene looks on Windows are untouched.
+
+   The phone keeps its own screen (MiniClassic: header, lyrics, dock) and the scene look dresses it:
+     - the look's video window (.backdrop__stage + the frame host .scenewin) is a framed 16:9 window under the header
+       (portrait phone), top-left above the dock (landscape phone) or above the lyrics column (tablet);
+     - the lyrics sit directly under the window, the dock is the player card;
+     - touch targets are >= 44px (small icons get an invisible hit area), nothing depends on hover,
+       and the safe-area insets pad the header, the dock and the sheets.
+   Geometry variables (all set on :root):
+     --aw --ah   window width / height        --al --at   window left / top
+   ========================================================================== */
+:root[data-platform='android'] {
+  --a-safe-t: env(safe-area-inset-top, 0px);
+  --a-safe-b: env(safe-area-inset-bottom, 0px);
+  --a-safe-l: env(safe-area-inset-left, 0px);
+  --a-safe-r: env(safe-area-inset-right, 0px);
+}
+
+/* ---------------- window geometry ---------------- */
+/* portrait phone (default) */
+:root[data-platform='android'][data-arch='scene'] {
+  --ah: min(calc((100vw - 32px) * 0.5625), max(110px, calc(100dvh - 490px)));
+  --aw: calc(var(--ah) / 0.5625);
+  --al: calc((100vw - var(--aw)) / 2);
+  --at: calc(var(--a-safe-t) + 82px);
+  --sc-wr: 16px;
+}
+/* landscape phone: the window sits top-left, above the dock */
+@media (orientation: landscape) and (max-height: 599px) {
+  :root[data-platform='android'][data-arch='scene'] {
+    --ah: max(84px, calc(100dvh - 64px - 196px));
+    --aw: calc(var(--ah) / 0.5625);
+    --al: max(16px, var(--a-safe-l));
+    --at: calc(var(--a-safe-t) + 64px);
+    --sc-wr: 12px;
+  }
+}
+/* tablet / unfolded: the window heads the lyrics column (column = right of the 38% side pane) */
+@media (min-width: 720px) and (min-height: 600px) {
+  :root[data-platform='android'][data-arch='scene'] {
+    --a-pad: clamp(20px, 3vw, 40px);
+    --a-side: max(300px, calc((100vw - 2 * var(--a-pad)) * 0.38));
+    --a-gap: clamp(24px, 4vw, 64px);
+    --al: calc(var(--a-pad) + var(--a-side) + var(--a-gap));
+    --a-colw: calc(100vw - var(--al) - var(--a-pad));
+    --ah: min(calc(var(--a-colw) * 0.5625), 38dvh);
+    --aw: calc(var(--ah) / 0.5625);
+    --at: calc(var(--a-safe-t) + 78px);
+    --sc-wr: 20px;
+  }
+}
+
+:root[data-platform='android'][data-arch='scene']:is([data-mode='full'], [data-mode='mini']) .backdrop__stage {
+  inset: auto;
+  left: var(--al);
+  top: var(--at);
+  width: var(--aw);
+  height: var(--ah);
+  border-radius: var(--sc-wr);
+  overflow: hidden;
+  transform: none !important;
+}
+:root[data-platform='android'][data-arch='scene']:is([data-mode='full'], [data-mode='mini']) .scenewin {
+  display: block;
+  position: absolute;
+  left: var(--al);
+  top: var(--at);
+  width: var(--aw);
+  height: var(--ah);
+  border-radius: var(--sc-wr);
+  overflow: hidden;
+  pointer-events: none;
+}
+/* nothing playing / loading / connect screens have no window */
+:root[data-platform='android'][data-arch='scene']:has(.mini__screen) .scenewin { display: none !important; }
+/* the art panel text scales with the window, not the (desktop) viewport height */
+:root[data-platform='android'] .scenewin__art { gap: calc(var(--ah) * 0.05); }
+:root[data-platform='android'] .scenewin__art span { font-size: max(11px, calc(var(--ah) * 0.075)); }
+:root[data-platform='android'] .scenewin__eq { height: calc(var(--ah) * 0.2); gap: 4px; }
+:root[data-platform='android'] .scenewin__eq i { width: 5px; }
+
+/* the lyrics begin under the window */
+:root[data-platform='android'][data-arch='scene'] .mini--phone .mini__lyrics { margin-top: calc(var(--at) - var(--a-safe-t) - 66px + var(--ah) + 10px); min-height: 150px; }
+:root[data-platform='android'][data-arch='scene'] .mini--phone .phone__cover { display: none; } /* the window replaces the cover toggle */
+:root[data-platform='android'][data-arch='scene'] .mini--phone .phone__now { pointer-events: none; }
+:root[data-platform='android'][data-arch='scene'] .mini--wide .mini__lyrics { margin: calc(var(--at) - var(--a-safe-t) - 66px + var(--ah) + 10px) 0 0; }
+/* when the dock folds away (a video is behind and the screen is idle) the lyrics may use the window's space too */
+:root[data-platform='android'][data-arch='scene'][data-bg-media='mini'] .mini.is-idle .mini__lyrics { height: auto; }
+
+/* landscape phone: header across the top, window + dock on the left, lyrics fill the right */
+@media (orientation: landscape) and (max-height: 599px) {
+  :root[data-platform='android'][data-arch='scene'] .mini--phone .mini__lyrics { margin-top: 0; }
+}
+
+/* ---------------- readable lyrics ---------------- */
+:root[data-platform='android'] .mini--phone .lyrics--mini { --lyric-size: clamp(24px, 7.2vw, 34px); }
+:root[data-platform='android'] .mini--wide .lyrics { --lyric-size: clamp(34px, 4.4vmin, 56px) !important; }
+@media (orientation: landscape) and (max-height: 599px) {
+  :root[data-platform='android'] .mini--phone .lyrics--mini { --lyric-size: clamp(22px, 6.2vh, 30px); }
+}
+
+/* ---------------- touch targets (>= 44px) and safe areas ---------------- */
+:root[data-platform='android'] .ibtn,
+:root[data-platform='android'] .phone__act { min-width: 44px; min-height: 44px; }
+:root[data-platform='android'] .phone__act { min-width: 64px; }
+/* small controls keep their look and get an invisible 44px hit area */
+:root[data-platform='android'] .lyrics__footer button,
+:root[data-platform='android'] .lyrics__footer .pill,
+:root[data-platform='android'] .ambsw .switch { position: relative; }
+:root[data-platform='android'] .lyrics__footer button::after,
+:root[data-platform='android'] .lyrics__footer .pill::after,
+:root[data-platform='android'] .ambsw .switch::after { content: ''; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: 44px; transform: translate(-50%, -50%); }
+:root[data-platform='android'] .lyrics__footer { gap: 14px; }
+:root[data-platform='android'] .mini--phone { padding-left: max(16px, var(--a-safe-l)); padding-right: max(16px, var(--a-safe-r)); padding-bottom: calc(var(--a-safe-b) + 10px); }
+:root[data-platform='android'] .mini--wide { padding-left: max(clamp(20px, 3vw, 40px), var(--a-safe-l)); padding-right: max(clamp(20px, 3vw, 40px), var(--a-safe-r)); }
+/* no hover-only reveals: anything that waits for :hover is shown */
+:root[data-platform='android'] .lyrics__footer, :root[data-platform='android'] .widget__actions { opacity: 1; }
+@media (hover: none) {
+  :root[data-platform='android'] .mini__tools, :root[data-platform='android'] .full__side { opacity: 1; }
+}
+
+/* small phone (360x640): a leaner dock so the lyrics keep room */
+@media (max-height: 680px) and (orientation: portrait) {
+  :root[data-platform='android'] .phone__dock .playbtn { width: 60px !important; height: 60px !important; }
+  :root[data-platform='android'] .phone__act { gap: 1px; }
+  :root[data-platform='android'] .phone__act span { font-size: 10.5px; }
+}
+
+/* the looks size their lyrics in vw / vh (made for a desktop window); on a portrait phone they are set a size bigger */
+@media (orientation: portrait) and (max-width: 719px) {
+  :root[data-platform='android'] .mini--phone .lyrics .stage { zoom: 1.7; }
+}
+@media (orientation: portrait) and (max-width: 719px) and (max-height: 680px) {
+  :root[data-platform='android'] .mini--phone .lyrics .stage { zoom: 1.5; }
+}
+/* looks whose lyrics are a list / log / feed need less zoom, or the list would run under the window */
+@media (orientation: portrait) and (max-width: 719px) {
+  :root[data-platform='android']:is([data-vibe='blocks'], [data-vibe='crt'], [data-vibe='route'], [data-vibe='wallet'], [data-vibe='lock'], [data-vibe='stadium'], [data-vibe='chat'], [data-vibe='lens']) .mini--phone .lyrics .stage { zoom: 1.25; }
+  /* frames that grow beyond the window (film perforations, the editor tab bar, the block clouds) get more air under the header */
+  :root[data-platform='android'][data-arch='scene']:is([data-vibe='film'], [data-vibe='filmstrip'], [data-vibe='blocks'], [data-vibe='editor'], [data-vibe='flap']) { --at: calc(var(--a-safe-t) + 92px); }
+}
+
+/* landscape phone: looks that head their lyrics with a title (lock clock, wallet "Activity") must start under the header */
+@media (orientation: landscape) and (max-height: 599px) {
+  :root[data-platform='android']:is([data-vibe='lock'], [data-vibe='wallet']) .mini--phone .mini__lyrics { padding-top: 60px; }
+}
+
+/* ---------------- settings: the bottom sheet wears the look (light looks stay light) ---------------- */
+/* Android is the Light performance tier, whose generic rule paints every sheet with the dark --bg-0; the scene looks set an opaque paper of their own (skins.css) */
+:root[data-platform='android'][data-arch='scene'][data-perf='low'] .sidepanel { background: var(--panel) !important; }
+:root[data-platform='android'] .sidepanel { max-width: 720px; margin-inline: auto; }
+:root[data-platform='android'] .stabs button,
+:root[data-platform='android'] .settings .seg button,
+:root[data-platform='android'] .settings .pill,
+:root[data-platform='android'] .settings button.ibtn { min-height: 44px; height: auto; }
+:root[data-platform='android'] .settings .seg button { padding-block: 0; }
+:root[data-platform='android'] .settings input[type='range'] { min-height: 44px; }
+:root[data-platform='android'] .settings .switch { position: relative; }
+:root[data-platform='android'] .settings .switch::after { content: ''; position: absolute; inset: -8px -4px; }
+@media (orientation: landscape) and (max-height: 599px) {
+  :root[data-platform='android'] .sidepanel { height: calc(100% - var(--a-safe-t) - 8px); border-radius: 22px 22px 0 0; }
+}
+@media (min-width: 720px) {
+  :root[data-platform='android'] .sidepanel { height: min(88%, 980px); }
+}
