@@ -47,3 +47,19 @@
 [data-vibe='chrome'] .lfb p { color: rgba(255,255,255,.9); }
 [data-vibe='chrome'] .lfb__actions { justify-content: center; }
 [data-vibe='chrome'] .lfb__eq i { background: linear-gradient(180deg, #fff, #8fd1ff 55%, #5a72b8); }
+
+/* every vibe: in a narrow lyrics area the ghost poster title collides with the message, so it steps away */
+@container (max-width: 560px) { .lfb__poster { display: none; } }
+
+/* ===================== DREAM ===================== */
+[data-vibe='dream'] .lyrics__notice { background: rgba(255,255,255,.12); border: 1px solid rgba(255,214,245,.5); color: #fde9ff; border-radius: 99px; }
+[data-vibe='dream'] .plain__stanza { text-shadow: 0 0 14px rgba(255,180,236,.45); padding-left: 1.4em; position: relative; color: #fff; }
+[data-vibe='dream'] .plain__stanza::before { content: '✦'; position: absolute; left: 0; top: 0.05em; color: #ffd6f5; text-shadow: 0 0 10px #ffb4ec; animation: pz-twinkle 3s ease-in-out infinite; }
+[data-vibe='dream'] .lfb { align-items: center; text-align: center; }
+[data-vibe='dream'] .lfb__poster { display: none; }
+[data-vibe='dream'] .lfb h3 { font-family: var(--font); font-style: italic; font-weight: 600; color: #fff; text-shadow: 0 0 18px rgba(255,180,236,.7); }
+[data-vibe='dream'] .lfb h3::before, [data-vibe='dream'] .lfb h3::after { content: '✦'; margin: 0 .5em; color: #ffd6f5; font-size: .7em; animation: pz-twinkle 3s ease-in-out infinite; display: inline-block; }
+[data-vibe='dream'] .lfb p { color: rgba(255,255,255,.85); }
+[data-vibe='dream'] .lfb__actions { justify-content: center; }
+[data-vibe='dream'] .lfb__eq i { background: linear-gradient(180deg, #fff, #ffb4ec 60%, #b79cff); border-radius: 99px; }
+:root[data-calm] [data-vibe='dream'] .plain__stanza::before, :root[data-calm] [data-vibe='dream'] .lfb h3::before, :root[data-calm] [data-vibe='dream'] .lfb h3::after { animation: none; }
