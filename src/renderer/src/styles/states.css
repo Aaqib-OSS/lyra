@@ -212,3 +212,18 @@
 [data-vibe='cassette'] .lfb h3 { font-family: 'VT323', monospace; font-weight: 400; text-transform: uppercase; letter-spacing: .08em; color: #ff9b3d; text-shadow: 0 0 10px rgba(255,155,61,.6); font-size: clamp(22px, 3cqw, 32px); }
 [data-vibe='cassette'] .lfb p { font-family: 'VT323', monospace; font-size: 18px; color: #ffbe7a; }
 [data-vibe='cassette'] .lfb__eq i { background: #ff9b3d; border-radius: 0; }
+
+/* ===================== TRAILER ===================== */
+/* the film is graded like a trailer: lifted contrast, muted colour, warm */
+[data-vibe='trailer'] .backdrop__stage { filter: contrast(1.15) saturate(.7) sepia(.22) brightness(.92); }
+:root[data-vibe='trailer'][data-bg-media] .backdrop__dim { background: rgba(0,0,0,.42); }
+[data-vibe='trailer'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid #c9a24a; border-bottom: 1px solid #c9a24a; border-radius: 0; color: #c9a24a; letter-spacing: .3em; text-transform: uppercase; font-size: 9.5px; padding: 5px 10px; }
+/* unsynced words: a scrolling card of the credits, small caps, evenly spaced, nothing glowing */
+[data-vibe='trailer'] .lyrics__inner--plain { text-align: center; }
+[data-vibe='trailer'] .lyrics__inner--plain .lyrics__notice { margin-inline: auto; }
+[data-vibe='trailer'] .plain__stanza { align-items: center; font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #f5e9c8; font-size: max(13px, calc(var(--lyric-size) * 0.42)); line-height: 1.9; text-shadow: 0 1px 4px #000; }
+[data-vibe='trailer'] .lfb { align-items: center; text-align: center; }
+[data-vibe='trailer'] .lfb__poster, [data-vibe='trailer'] .lfb__eq { display: none; }
+[data-vibe='trailer'] .lfb h3 { font-family: 'Iowan Old Style', Georgia, serif; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; font-size: clamp(16px, 2.4cqw, 28px); color: #f5e9c8; border-top: 1px solid #c9a24a; border-bottom: 1px solid #c9a24a; padding: .7em 1.4em; max-width: none; text-shadow: 0 0 18px rgba(201,162,74,.55); }
+[data-vibe='trailer'] .lfb p { font-family: 'Iowan Old Style', Georgia, serif; font-style: italic; color: rgba(245,233,200,.85); }
+[data-vibe='trailer'] .lfb__actions { justify-content: center; }
