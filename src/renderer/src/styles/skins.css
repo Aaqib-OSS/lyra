@@ -144,3 +144,18 @@
 :root[data-vibe='comic'] .sidepanel .settings section { background: rgba(255,255,255,.7); box-shadow: 0 0 0 2px #111; border-radius: 6px; }
 :root[data-vibe='comic'] .sidepanel h3, :root[data-vibe='comic'] .sidepanel .settings h4 { font-family: 'Unbounded Variable', sans-serif; color: #111; }
 :root[data-vibe='comic'] .sidepanel .stabs button.is-on { background: #ff3b6b; color: #fff; box-shadow: 2px 2px 0 #111; }
+
+/*
+ * The player card itself (cover + title + controls) per vibe in the dock / pill / bar layouts: a signature plate instead of
+ * the shared dark glass. !important only on what the layout file also sets.
+ */
+:root[data-vibe='neon'] .full .full__side { background: rgba(14, 4, 34, .82) !important; border: 2px solid #ff3bd9 !important; border-radius: 18px !important; box-shadow: 0 0 22px rgba(255,59,217,.55), inset 0 0 16px rgba(255,59,217,.18) !important; }
+:root[data-vibe='chrome'] .full .full__side { background: linear-gradient(180deg, #f4f7fc, #b8c3d6 55%, #e9eef8) !important; border: 2px solid #fff !important; border-radius: 22px !important; box-shadow: 0 14px 30px -10px rgba(10,22,70,.6), inset 0 2px 0 #fff !important; --fg: #0b1220; --fg-2: #2a3446; --fg-3: #49556b; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+:root[data-vibe='chrome'] .full .full__side .playbtn { background: #0b1220 !important; color: #fff !important; }
+:root[data-vibe='dream'] .full .full__side { background: rgba(255,255,255,.16) !important; border: 2px solid rgba(255,255,255,.7) !important; border-radius: 999px !important; box-shadow: 0 0 40px rgba(190,160,255,.5), inset 0 0 22px rgba(255,255,255,.12) !important; }
+:root[data-vibe='sunset'] .full .full__side { background: linear-gradient(90deg, rgba(43,10,90,.85), rgba(255,46,147,.55)) !important; border: 2px solid #ffd1a6 !important; border-radius: 16px !important; box-shadow: 0 0 30px rgba(255,122,184,.45) !important; }
+:root[data-vibe='stadium'] .full .full__side { background: linear-gradient(180deg, #0b3b86, #072a63) !important; border: 0 !important; border-left: 6px solid #ffd23f !important; border-radius: 6px !important; box-shadow: 0 12px 28px -10px rgba(0,0,0,.7) !important; }
+:root[data-vibe='trailer'] .full .full__side { background: rgba(0,0,0,.82) !important; border: 0 !important; border-top: 1px solid #c9a24a !important; border-bottom: 1px solid #c9a24a !important; border-radius: 0 !important; }
+:root[data-vibe='noir'] .full .full__side { background: rgba(0,0,0,.78) !important; border: 0 !important; border-top: 1px solid rgba(255,255,255,.5) !important; border-radius: 0 !important; }
+:root[data-vibe='glitch'] .full .full__side { background: rgba(10,5,4,.88) !important; border: 2px solid #ff4a2e !important; border-radius: 2px !important; box-shadow: -4px 0 0 #26f0ff, 4px 0 0 #ff2a1a !important; }
+:root[data-vibe='arcade'] .full .full__side { background: #0d0d30 !important; border: 3px solid #ffe600 !important; border-radius: 0 !important; box-shadow: 6px 6px 0 #ff2d6f !important; }
