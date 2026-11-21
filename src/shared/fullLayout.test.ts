@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveAutoFullLayout } from './fullLayout'
+import { resolveAutoFullLayout, resolveFullscreenFlipSide } from './fullLayout'
 import { getFullscreenShortcutAction } from './shortcuts'
 
 describe('resolveAutoFullLayout', () => {
@@ -18,9 +18,20 @@ describe('resolveAutoFullLayout', () => {
     expect(resolveAutoFullLayout(2560, 1080)).toBe('split')
   })
 
-  it('supports flipping lyrics in Auto Split on ultra-wide viewports', () => {
-    expect(resolveAutoFullLayout(3440, 1440)).toBe('split')
-    expect(getFullscreenShortcutAction('L')).toEqual({ type: 'flip-side' })
+  it('resolves Auto to Split and flips the lyric side for the L shortcut', () => {
+    const action = getFullscreenShortcutAction('L')
+    expect(action).toEqual({ type: 'flip-side' })
+    const before = false
+    const after = resolveFullscreenFlipSide('auto', 3440, 1440, before)
+    expect(after.layout).toBe('split')
+    expect(after.lyricSideFlipped).toBe(!before)
+  })
+
+  it('does not flip the lyric side outside Split layout', () => {
+    expect(resolveFullscreenFlipSide('auto', 1920, 1080, false)).toEqual({
+      layout: 'cinema',
+      lyricSideFlipped: false
+    })
   })
 
   it('uses Cinema for wide landscape windows', () => {
