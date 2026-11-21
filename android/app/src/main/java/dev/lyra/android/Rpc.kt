@@ -46,6 +46,7 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
         }
         MediaMonitor.addListener(listener)
         MediaMonitor.refresh(ctx)
+        io.execute { dev.lyra.android.update.UpdateManager.schedule(ctx) } // idempotent; keeps the 12 h update check scheduled
     }
 
     fun dispose() = MediaMonitor.removeListener(listener)
@@ -253,6 +254,13 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
                     ok(fetch(args.getString(0), args.optJSONObject(1)))
                 } catch (e: Exception) {
                     fail(e.message ?: "fetch failed")
+                }
+            }
+            in dev.lyra.android.update.UpdateRpc.METHODS -> io.execute {
+                try {
+                    ok(dev.lyra.android.update.UpdateRpc.call(ctx, req.optString("method"), args))
+                } catch (e: Exception) {
+                    fail(e.message ?: "update failed")
                 }
             }
             else -> fail("unknown method")

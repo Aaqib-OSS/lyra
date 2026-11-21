@@ -80,6 +80,9 @@ class RecordService : Service() {
         private var uri: Uri? = null
         private var cacheFile: File? = null
 
+        /** true while a recording session is alive (the updater never installs then) */
+        fun isActive(): Boolean = instance != null
+
         /** which sound the last saved video got: "capture", "microphone" or "none" */
         @Volatile var lastSound: String = "not tested"
         @Volatile var lastSoundLevelDbfs: Double? = null

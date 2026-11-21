@@ -5,6 +5,7 @@ import { useBackgroundVersion } from '@/hooks/useBackground'
 import { usePlayer } from '@/store/player'
 import { ShortcutEditor } from './ShortcutEditor'
 import { UpdateRow } from './UpdateRow'
+import { AndroidUpdateRow } from './AndroidUpdateRow'
 import { useSettings } from '@/store/settings'
 import { roomLink, useRoom } from '@/store/room'
 import { useJam } from '@/store/jam'
@@ -1040,7 +1041,7 @@ export function SettingsPanel() {
 
       <section className="about">
         <h4>About</h4>
-        <UpdateRow />
+        {window.lyra.android ? <AndroidUpdateRow /> : <UpdateRow />}
         <p className="about__name">
           <b>Lyra</b> <span>{version ? `v${version}` : ''}</span>
         </p>

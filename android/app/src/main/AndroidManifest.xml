@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- in-app updater (GitHub-release builds only; it switches itself off under F-Droid / Play): install the verified APK -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- lyric video recording: Spotify's sound is captured with the user's screen-recording consent (never the microphone) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
@@ -31,6 +34,8 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
 
+
+        <receiver android:name=".update.UpdateInstallReceiver" android:exported="false" />
 
         <activity
             android:name=".MainActivity"

@@ -21,6 +21,24 @@ import type {
   ViewMode
 } from './types'
 
+/** Android only: state of the in-app updater (see android/.../update/UpdateManager.kt). */
+export interface AndroidUpdateStatus {
+  enabled: boolean
+  /** why the updater is off (F-Droid, Play, debug build), shown instead of the controls */
+  disabledReason: string | null
+  phase: 'idle' | 'checking' | 'available' | 'downloading' | 'verifying' | 'ready' | 'installing' | 'error'
+  installedVersion: string
+  channel: 'stable' | 'beta'
+  unmeteredOnly: boolean
+  autoCheck: boolean
+  autoInstall: boolean
+  lastCheckedAt: number
+  downloadedBytes: number
+  error: string | null
+  canInstallApps: boolean
+  update: { version: string; tag: string; prerelease: boolean; notes: string; sizeBytes: number } | null
+}
+
 /** Invoke channels (renderer -> main). */
 export const CH = {
   settingsGet: 'settings:get',
@@ -263,6 +281,14 @@ export interface LyraApi {
     compatibilityReport(): Promise<string>
     /** ask Android to add the "Lyra ambient" tile to Quick Settings (Android 13+) */
     addAmbientTile(): Promise<boolean>
+    /** in-app updater for GitHub-release builds (disabled under F-Droid / Play); state is kept natively */
+    appUpdate: {
+      status(): Promise<AndroidUpdateStatus>
+      check(): Promise<AndroidUpdateStatus>
+      download(): Promise<AndroidUpdateStatus>
+      install(): Promise<{ status: 'started' | 'deferred' | 'needsPermission' | 'error'; message: string | null; state: AndroidUpdateStatus }>
+      setSettings(s: Partial<Pick<AndroidUpdateStatus, 'channel' | 'unmeteredOnly' | 'autoCheck' | 'autoInstall'>>): Promise<AndroidUpdateStatus>
+    }
     /** needsPermission: Android opened the "Display over other apps" screen; the user must allow it, then try again */
     setOverlay(on: boolean): Promise<{ ok: boolean; needsPermission?: boolean }>
   }
