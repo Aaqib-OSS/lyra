@@ -1,6 +1,7 @@
 import { thumbCrop, type DecodedImage } from '@core/background/bars'
 import { createBackgroundResolver, type SongBg } from '@core/background/resolver'
 import { youtube } from '@core/background/youtube'
+import { clearAllCaches } from '@core/cache/persistentCache'
 import { lyricsService } from '@core/lyrics/service'
 import type { LyraApi, Unsubscribe } from '@shared/ipc'
 import { DEFAULT_SETTINGS, type ConnectionStatus, type ModeEvent, type PlaybackSnapshot, type QueueItem, type SavedMoment, type Settings, type ViewMode } from '@shared/types'
@@ -309,6 +310,7 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
     },
     health: async () => lyricsService.health()
   },
+  cache: { clear: async () => clearAllCaches() },
   art: { get: artDataUrl },
   moments: {
     list: async () => momentsStore.get().items,
