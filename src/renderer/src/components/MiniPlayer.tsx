@@ -11,7 +11,9 @@ import { Artwork } from './Artwork'
 import { Icon, type IconName } from './Icon'
 import { VideoStatus } from './VideoStatus'
 import { IconButton, Transport, VolumeControl, useCaps } from './Controls'
-import { cycleVibe } from '@/hooks/useVibe'
+import { cycleVibe, useEffectiveVibe } from '@/hooks/useVibe'
+import { vibeInfo } from '@shared/vibes'
+import { FullscreenPlayer } from './FullscreenPlayer'
 import { LyricsView } from './LyricsView'
 import { KaraokeScreen } from './KaraokeScreen'
 import { RecordDialog } from './RecordDialog'
@@ -54,7 +56,7 @@ function useWideScreen(): boolean {
 }
 
 /** A labelled menu for the secondary actions, so the header is not a row of nine tiny icons. */
-function OverflowMenu({ items }: { items: Array<{ icon: IconName; label: string; run(): void }> }) {
+export function OverflowMenu({ items }: { items: Array<{ icon: IconName; label: string; run(): void }> }) {
   const [open, setOpen] = useState(false)
   const box = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -114,7 +116,7 @@ function AmbientSwitch() {
   )
 }
 
-export function MiniPlayer() {
+function MiniClassic() {
   const view = usePlayerView()
   const track = usePlayer((s) => s.snapshot?.track ?? null)
   const device = usePlayer((s) => s.snapshot?.device ?? null)
@@ -294,4 +296,12 @@ export function MiniPlayer() {
     </div>
     </>
   )
+}
+
+/** The small window. Looks that compose their own screen (scene) use the same screen as fullscreen, laid out for a tall window. */
+export function MiniPlayer() {
+  const arch = vibeInfo(useEffectiveVibe().vibe).layout
+  const phone = document.documentElement.dataset.platform === 'android'
+  if (!phone && arch === 'scene') return <FullscreenPlayer mini />
+  return <MiniClassic />
 }

@@ -32,7 +32,7 @@
 [data-vibe='cassette'] .shell { --accent: #ff9b3d; --glow: rgba(255, 155, 61, 0.5); --glow-soft: rgba(255, 155, 61, 0.2); --font: 'Courier New', 'Cascadia Code', monospace; --fg: #ffe2b0; --bg-0: #120a05; }
 [data-vibe='cassette'] .backdrop .backdrop__field { background: radial-gradient(100% 80% at 50% 20%, #3a2a1a, #120a05 80%); }
 :root[data-vibe='cassette'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .backdrop__stage { filter: sepia(0.35) saturate(1.1) contrast(1.05); }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .backdrop__stage { filter: sepia(0.35) saturate(1.1) contrast(1.05); }
 
 /* ---------------- the shelf ---------------- */
 .cassettefx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
@@ -54,7 +54,7 @@
 :root[data-perf='low'] .cassettefx__light { display: none; }
 
 /* ---------------- the card: a cassette with two turning reels ---------------- */
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   --fg: #1a120a;
   --fg-2: #4a3622;
   --fg-3: #5a4630;
@@ -68,8 +68,8 @@
   color: #1a120a;
 }
 /* the reels in the tape window along the bottom of the cassette */
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before,
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after {
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before,
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after {
   content: '';
   position: absolute;
   bottom: 2.4vh;
@@ -81,23 +81,23 @@
   box-shadow: 0 0 0 1vh #1a120a, 0 0 0 1.2vh rgba(26, 18, 10, 0.5);
   animation: cs-reel 2.4s linear infinite;
 }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before { left: 22%; right: auto; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after { right: 22%; left: auto; animation-duration: 3.4s; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before { left: 22%; right: auto; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after { right: 22%; left: auto; animation-duration: 3.4s; }
 @keyframes cs-reel { to { transform: rotate(-360deg); } }
 :root[data-calm][data-vibe='cassette'] .full__side::before, :root[data-calm][data-vibe='cassette'] .full__side::after { animation-play-state: paused; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { align-self: flex-start; width: 10vh !important; border-radius: 0.4vh !important; filter: sepia(0.4) contrast(1.05); box-shadow: 0 0 0 0.3vh #1a120a; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 2.2vh/1.15 'Courier New', monospace; letter-spacing: 0.02em; text-transform: uppercase; color: #1a120a; -webkit-text-fill-color: #1a120a; background: none; text-shadow: none; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.4vh 'Courier New', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: #5a4630; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(26, 18, 10, 0.25); border-radius: 0; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #1a120a; border-radius: 0; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #1a120a !important; color: #e7d9b8 !important; border-radius: 0.6vh !important; box-shadow: none !important; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #1a120a; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { align-self: flex-start; width: 10vh !important; border-radius: 0.4vh !important; filter: sepia(0.4) contrast(1.05); box-shadow: 0 0 0 0.3vh #1a120a; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 2.2vh/1.15 'Courier New', monospace; letter-spacing: 0.02em; text-transform: uppercase; color: #1a120a; -webkit-text-fill-color: #1a120a; background: none; text-shadow: none; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.4vh 'Courier New', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: #5a4630; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(26, 18, 10, 0.25); border-radius: 0; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #1a120a; border-radius: 0; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #1a120a !important; color: #e7d9b8 !important; border-radius: 0.6vh !important; box-shadow: none !important; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #1a120a; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- lyrics: label-maker strips (stage 'label') ---------------- */
 .stage--label { display: flex; flex-direction: column; justify-content: center; }

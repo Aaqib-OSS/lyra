@@ -54,7 +54,7 @@
 .scenewin__art span { font: 900 2.6vh/1 'Unbounded Variable', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(22, 20, 18, 0.7); }
 
 /* ---------------- the card: a black sticker ---------------- */
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   flex-direction: row;
   align-items: center;
   gap: 2vh;
@@ -64,18 +64,18 @@
   border: 0 !important;
   box-shadow: 0 0 0 0.4vh var(--st-orange), 0.8vh 1vh 0 0.4vh rgba(0, 0, 0, 0.55) !important;
 }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0.4vh !important; filter: contrast(1.1) saturate(0.85); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35); }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: var(--st-paper); text-shadow: none; }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-orange); }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--st-orange); border-radius: 0; }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { border-radius: 0; }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--st-orange) !important; color: var(--st-ink) !important; border-radius: 0.6vh !important; box-shadow: none !important; }
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0.4vh !important; filter: contrast(1.1) saturate(0.85); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35); }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: var(--st-paper); text-shadow: none; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-orange); }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--st-orange); border-radius: 0; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { border-radius: 0; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--st-orange) !important; color: var(--st-ink) !important; border-radius: 0.6vh !important; box-shadow: none !important; }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- lyrics: sprayed on the wall (stage 'spray') ---------------- */
 .stage--spray { display: flex; flex-direction: column; justify-content: center; }

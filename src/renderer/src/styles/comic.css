@@ -54,7 +54,7 @@
 .comicfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .comicfx__bg { position: absolute; inset: 0; overflow: hidden; }
 /* the burst and the dots are paper: they stop at the edge of the panel so they never lie over the video */
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .comicfx__bg {
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .comicfx__bg {
   clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, var(--sc-wl) var(--sc-wt), calc(var(--sc-wl) + var(--sc-ww)) var(--sc-wt), calc(var(--sc-wl) + var(--sc-ww)) calc(var(--sc-wt) + var(--sc-wh)), var(--sc-wl) calc(var(--sc-wt) + var(--sc-wh)), var(--sc-wl) var(--sc-wt));
 }
 .comicfx__rays { position: absolute; left: 50%; top: 50%; width: 220vmax; height: 220vmax; translate: -50% -50%; background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.28) 0deg 8deg, transparent 8deg 16deg); animation: cm-spin 90s linear infinite; }
@@ -81,13 +81,13 @@
 .comicfx__caption { position: absolute; left: calc(var(--sc-wl) + 1vh); top: calc(var(--sc-wt) + 1vh); padding: 0.8vh 1.4vh; background: var(--cm-yellow); border: 0.4vh solid var(--cm-ink); font: 900 1.7vh/1 'Unbounded Variable', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cm-ink); box-shadow: 0.4vh 0.5vh 0 var(--cm-ink); }
 .comicfx__caption, .comicfx__pow { display: none; }
 :root:has(.full .full__screen) .comicfx__caption { display: none !important; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .comicfx__caption { display: block; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .comicfx__pow { display: grid; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .comicfx__caption { display: block; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .comicfx__pow { display: grid; }
 .scenewin__art span { font: 900 3.4vh/1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; background: #fff; border: 0.5vh solid var(--cm-ink); padding: 1vh 1.6vh; box-shadow: 0.6vh 0.7vh 0 var(--cm-ink); rotate: -3deg; color: var(--cm-ink); }
 .scenewin__eq { display: none; }
 
 /* ---------------- the card: a caption box ---------------- */
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   --fg: #111;
   --fg-2: #2a2a2a;
   --fg-3: #444;
@@ -101,19 +101,19 @@
   box-shadow: 0.9vh 1vh 0 var(--cm-ink) !important;
   color: var(--cm-ink);
 }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0 !important; box-shadow: 0 0 0 0.4vh var(--cm-ink); }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: var(--cm-ink); text-shadow: none; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; color: #2a2a2a; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: #fff; box-shadow: 0 0 0 0.3vh var(--cm-ink); height: 1.1vh; border-radius: 0; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--cm-pink); border-radius: 0; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--cm-pink) !important; color: #fff !important; border-radius: 50% !important; box-shadow: 0 0 0 0.4vh var(--cm-ink), 0.5vh 0.6vh 0 0.4vh var(--cm-ink) !important; }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: var(--cm-ink); }
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0 !important; box-shadow: 0 0 0 0.4vh var(--cm-ink); }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: var(--cm-ink); text-shadow: none; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; color: #2a2a2a; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: #fff; box-shadow: 0 0 0 0.3vh var(--cm-ink); height: 1.1vh; border-radius: 0; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--cm-pink); border-radius: 0; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--cm-pink) !important; color: #fff !important; border-radius: 50% !important; box-shadow: 0 0 0 0.4vh var(--cm-ink), 0.5vh 0.6vh 0 0.4vh var(--cm-ink) !important; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: var(--cm-ink); }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- lyrics: speech bubbles (stage 'bubble') ---------------- */
 .stage--bubble { display: flex; flex-direction: column; justify-content: center; }

@@ -30,7 +30,7 @@
 [data-vibe='dream'] .backdrop .backdrop__field { background: radial-gradient(120% 90% at 50% 0%, #2c1760, #120a28 70%); }
 :root[data-vibe='dream'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
 /* the video, blurred into colour and light */
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .backdrop__stage { filter: blur(30px) saturate(1.5) brightness(0.8); scale: 1.14; }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .backdrop__stage { filter: blur(30px) saturate(1.5) brightness(0.8); scale: 1.14; }
 .dreamfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .dreamfx .vibefx__orb { opacity: 0.45; mix-blend-mode: screen; }
 .scenewin__art span, .scenewin__eq { display: none; }
@@ -45,7 +45,7 @@
 :root[data-perf='low'] .dreamfx__dust:nth-child(2n) { display: none; }
 
 /* ---------------- the card: an orb ---------------- */
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   align-items: center;
   gap: 1.4vh;
   padding: 2vh 2.4vh 2.2vh !important;
@@ -56,19 +56,19 @@
   border: 0 !important;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 3vh 8vh rgba(40, 10, 80, 0.4), 0 0 8vh rgba(255, 180, 236, 0.25) !important;
 }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
   width: 16vh !important;
   border-radius: 50% !important;
   box-shadow: 0 0 0 0.5vh rgba(255, 255, 255, 0.5), 0 0 5vh rgba(255, 180, 236, 0.6);
 }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { align-items: stretch; width: 100%; }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { justify-content: center; text-align: center; }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-weight: 500; font-size: 2.6vh; letter-spacing: 0; color: #fff; text-shadow: 0 0 1.6vh rgba(255, 180, 236, 0.6); }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: rgba(255, 255, 255, 0.78); }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #ffd0f4, #b9c4ff); }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: rgba(255, 255, 255, 0.92) !important; color: #3a1d6e !important; box-shadow: 0 0 3vh rgba(255, 180, 236, 0.7) !important; }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { align-items: stretch; width: 100%; }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { justify-content: center; text-align: center; }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-weight: 500; font-size: 2.6vh; letter-spacing: 0; color: #fff; text-shadow: 0 0 1.6vh rgba(255, 180, 236, 0.6); }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: rgba(255, 255, 255, 0.78); }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #ffd0f4, #b9c4ff); }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: rgba(255, 255, 255, 0.92) !important; color: #3a1d6e !important; box-shadow: 0 0 3vh rgba(255, 180, 236, 0.7) !important; }
 
 /* ---------------- other lyric states (same regions) ---------------- */
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .lfb { align-items: center; text-align: center; }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .lfb__actions { justify-content: center; }
-:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .plain__stanza { text-align: center; }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .lfb { align-items: center; text-align: center; }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .lfb__actions { justify-content: center; }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .plain__stanza { text-align: center; }

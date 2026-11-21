@@ -29,7 +29,7 @@
 [data-vibe='noir'] .backdrop .backdrop__field { background: radial-gradient(110% 90% at 50% 40%, #1c1c1c, #040404 80%); }
 :root[data-vibe='noir'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
 [data-vibe='noir'] .shell { --fg: #f2f2f2; --bg-0: #040404; --accent: #f2f2f2; --glow: rgba(255, 255, 255, 0.35); --glow-soft: rgba(255, 255, 255, 0.15); --font: 'Fraunces Variable', Georgia, serif; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .backdrop__stage { filter: grayscale(1) contrast(1.18) brightness(0.9); }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .backdrop__stage { filter: grayscale(1) contrast(1.18) brightness(0.9); }
 
 /* ---------------- the room ---------------- */
 .noirfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
@@ -54,7 +54,7 @@
 .scenewin__art span, .scenewin__eq { display: none; }
 
 /* ---------------- the card: a ticket stub ---------------- */
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   --fg: #111;
   --fg-2: #333;
   --fg-3: #555;
@@ -71,25 +71,25 @@
   -webkit-mask-composite: source-in;
   mask: radial-gradient(circle at 0 50%, transparent 1vh, #000 1.05vh) intersect, radial-gradient(circle at 100% 50%, transparent 1vh, #000 1.05vh);
 }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 7vh !important; border-radius: 0.3vh !important; filter: grayscale(1) contrast(1.15); box-shadow: 0 0 0 0.2vh #111; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(60px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 0.8vw; row-gap: 0.6vh; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 1.9vh/1.15 'Fraunces Variable', Georgia, serif; letter-spacing: 0.04em; text-transform: uppercase; color: #111; text-shadow: none; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.2vh; letter-spacing: 0.14em; text-transform: uppercase; color: #444; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(17, 17, 17, 0.25); }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #111; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #111 !important; color: #ecebe6 !important; box-shadow: none !important; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #111; }
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 7vh !important; border-radius: 0.3vh !important; filter: grayscale(1) contrast(1.15); box-shadow: 0 0 0 0.2vh #111; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(60px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 0.8vw; row-gap: 0.6vh; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 1.9vh/1.15 'Fraunces Variable', Georgia, serif; letter-spacing: 0.04em; text-transform: uppercase; color: #111; text-shadow: none; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.2vh; letter-spacing: 0.14em; text-transform: uppercase; color: #444; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(17, 17, 17, 0.25); }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #111; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #111 !important; color: #ecebe6 !important; box-shadow: none !important; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #111; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- subtitles (stage 'subtitle'), over the picture ---------------- */
-:root[data-vibe='noir'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .sub__line { font-family: 'Fraunces Variable', Georgia, serif; font-size: min(3vw, 5.6vh); text-shadow: 0 0 0.6vh #000, 0.2vh 0.2vh 0.4vh #000, -0.2vh -0.2vh 0.4vh #000, 0 0.3vh 1.4vh rgba(0, 0, 0, 0.9); }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .sub__line { font-family: 'Fraunces Variable', Georgia, serif; font-size: min(3vw, 5.6vh); text-shadow: 0 0 0.6vh #000, 0.2vh 0.2vh 0.4vh #000, -0.2vh -0.2vh 0.4vh #000, 0 0.3vh 1.4vh rgba(0, 0, 0, 0.9); }
 
 /* ---------------- other lyric states (same regions) ---------------- */
-:root[data-vibe='noir'][data-mode='full'] .full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { top: 22vh; bottom: 10vh; left: 22vw; width: 56vw; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']) .full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { top: 22vh; bottom: 10vh; left: 22vw; width: 56vw; }
 [data-vibe='noir'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.5); border-bottom: 1px solid rgba(255, 255, 255, 0.5); border-radius: 0; color: #f2f2f2; letter-spacing: 0.2em; text-transform: uppercase; font-size: 1.3vh; }
 [data-vibe='noir'] .plain__stanza { align-items: center; font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-size: min(2.2vw, 4vh); line-height: 1.3; color: #f2f2f2; text-shadow: 0 0 0.8vh #000; text-align: center; }
 [data-vibe='noir'] .lfb { align-items: center; text-align: center; }

@@ -41,7 +41,7 @@
 @keyframes dm-glow { to { transform: translate(5vmin, -4vmin) scale(1.15); } }
 @property --dm-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 .dmfx__ring { display: none; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .dmfx__ring {
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .dmfx__ring {
   display: block;
   position: absolute;
   left: calc(var(--sc-wl) - 1.3vh);
@@ -65,7 +65,7 @@
 .scenewin__art span { font: 800 2vh/1 'Nunito Variable', sans-serif; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.85); }
 
 /* ---------------- the card: a message bar ---------------- */
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   flex-direction: row;
   align-items: center;
   gap: 1.8vh;
@@ -75,21 +75,21 @@
   border: 0 !important;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2vh 5vh rgba(0, 0, 0, 0.45) !important;
 }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 8.6vh !important; border-radius: 50% !important; box-shadow: 0 0 0 0.4vh var(--dm-blue); }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.7vh; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 800 2.1vh/1.15 'Nunito Variable', sans-serif; letter-spacing: -0.01em; color: #fff; text-shadow: none; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; color: #9fb4ff; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #5b8cff, #7a5cff); }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: linear-gradient(135deg, #3b82ff, #7a5cff) !important; color: #fff !important; box-shadow: 0 0.8vh 2vh rgba(91, 140, 255, 0.5) !important; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 8.6vh !important; border-radius: 50% !important; box-shadow: 0 0 0 0.4vh var(--dm-blue); }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.7vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 800 2.1vh/1.15 'Nunito Variable', sans-serif; letter-spacing: -0.01em; color: #fff; text-shadow: none; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; color: #9fb4ff; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #5b8cff, #7a5cff); }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: linear-gradient(135deg, #3b82ff, #7a5cff) !important; color: #fff !important; box-shadow: 0 0.8vh 2vh rgba(91, 140, 255, 0.5) !important; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- the thread (stage 'chat'): a panel with its own header ---------------- */
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat { max-width: none; padding: 1.4vh 1.6vh; border-radius: 3vh; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { font-size: min(2.3vw, 4.2vh); }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat { max-width: none; padding: 1.4vh 1.6vh; border-radius: 3vh; background: rgba(255, 255, 255, 0.04); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { font-size: min(2.3vw, 4.2vh); }
 
 /* ---------------- other lyric states (same regions) ---------------- */
 [data-vibe='chat'] .lyrics__notice { align-self: center; background: transparent; border: 0; color: #9fb4ff; font-size: 1.5vh; font-weight: 700; letter-spacing: 0.04em; }
@@ -101,35 +101,35 @@
 
 /* ================= the thread, made like a real messaging app (fullscreen) ================= */
 .chat__shared { display: none; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat {
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat {
   background: #000;
   border-radius: 4vh;
   padding: 1.8vh 2.2vh 2vh;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 3vh 8vh rgba(0, 0, 0, 0.6);
 }
 /* header: the contact, centred, like the top of a conversation */
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head { flex-direction: column; align-items: center; gap: 0.5vh; padding: 0 0 0.8vh; margin: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head img, :root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head i { width: 6vh; height: 6vh; box-shadow: none; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head div { align-items: center; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b { font-size: 1.6vh; font-weight: 600; color: #fff; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b::after { content: ' ›'; color: rgba(255, 255, 255, 0.45); }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head span { display: none; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head { flex-direction: column; align-items: center; gap: 0.5vh; padding: 0 0 0.8vh; margin: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head img, :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head i { width: 6vh; height: 6vh; box-shadow: none; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head div { align-items: center; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b { font-size: 1.6vh; font-weight: 600; color: #fff; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b::after { content: ' ›'; color: rgba(255, 255, 255, 0.45); }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head span { display: none; }
 /* the shared song: an attachment card, like a link preview in a thread */
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__shared { display: flex; align-items: center; gap: 1.6vh; align-self: center; width: min(100%, 38vh); padding: 1vh 1.6vh 1vh 1vh; margin-bottom: 1vh; border-radius: 2.2vh; background: #1c1c1f; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__shared { display: flex; align-items: center; gap: 1.6vh; align-self: center; width: min(100%, 38vh); padding: 1vh 1.6vh 1vh 1vh; margin-bottom: 1vh; border-radius: 2.2vh; background: #1c1c1f; }
 .chat__shared img, .chat__shared i { width: 5.4vh; height: 5.4vh; border-radius: 1.2vh; object-fit: cover; background: #333; flex: none; }
 .chat__shared div { display: flex; flex-direction: column; min-width: 0; }
 .chat__shared b { font-size: 1.6vh; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat__shared span { font-size: 1.2vh; color: rgba(255, 255, 255, 0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* bubbles: big, close-set text, soft grey and blue, with the little tail */
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub { max-width: 88%; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { padding: 1.3vh 2.4vh 1.5vh; border-radius: 3.4vh; font-size: min(2.9vw, 5.4vh); font-weight: 500; line-height: 1.16; letter-spacing: -0.025em; box-shadow: none; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body { background: #26262b; color: #fff; border-bottom-left-radius: 3.4vh; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body { background: #0a84ff; color: #fff; border-bottom-right-radius: 3.4vh; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body::before { content: ''; position: absolute; left: -0.8vh; bottom: 0; width: 2.2vh; height: 2.8vh; background: #26262b; border-bottom-right-radius: 2.4vh 2.2vh; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body::after { content: ''; position: absolute; left: -1.4vh; bottom: 0; width: 1.4vh; height: 2.8vh; background: #000; border-bottom-right-radius: 1.8vh; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body::before { content: ''; position: absolute; right: -0.8vh; bottom: 0; width: 2.2vh; height: 2.8vh; background: #0a84ff; border-bottom-left-radius: 2.4vh 2.2vh; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body::after { content: ''; position: absolute; right: -1.4vh; bottom: 0; width: 1.4vh; height: 2.8vh; background: #000; border-bottom-left-radius: 1.8vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub { max-width: 88%; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { padding: 1.3vh 2.4vh 1.5vh; border-radius: 3.4vh; font-size: min(2.9vw, 5.4vh); font-weight: 500; line-height: 1.16; letter-spacing: -0.025em; box-shadow: none; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body { background: #26262b; color: #fff; border-bottom-left-radius: 3.4vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body { background: #0a84ff; color: #fff; border-bottom-right-radius: 3.4vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body::before { content: ''; position: absolute; left: -0.8vh; bottom: 0; width: 2.2vh; height: 2.8vh; background: #26262b; border-bottom-right-radius: 2.4vh 2.2vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body::after { content: ''; position: absolute; left: -1.4vh; bottom: 0; width: 1.4vh; height: 2.8vh; background: #000; border-bottom-right-radius: 1.8vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body::before { content: ''; position: absolute; right: -0.8vh; bottom: 0; width: 2.2vh; height: 2.8vh; background: #0a84ff; border-bottom-left-radius: 2.4vh 2.2vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body::after { content: ''; position: absolute; right: -1.4vh; bottom: 0; width: 1.4vh; height: 2.8vh; background: #000; border-bottom-left-radius: 1.8vh; }
 /* the words are there, dim, and light up as they are sung (the bubble keeps its size) */
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__text span { opacity: 0.3; transition: opacity 0.2s; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__text span.is-in { opacity: 1; }
-:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__read { font-size: 1.2vh; font-weight: 600; color: rgba(255, 255, 255, 0.5); }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__text span { opacity: 0.3; transition: opacity 0.2s; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__text span.is-in { opacity: 1; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__read { font-size: 1.2vh; font-weight: 600; color: rgba(255, 255, 255, 0.5); }

@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { vibeInfo } from '@shared/vibes'
+import { cycleVibe } from '@/hooks/useVibe'
+import { useWindowDrag } from '@/hooks/useWindowDrag'
 import { useEffectiveVibe } from '@/hooks/useVibe'
 import { useIdle } from '@/hooks/useIdle'
 import { usePlayerView } from '@/hooks/usePlayerView'
@@ -9,13 +12,18 @@ import { requestMode, useUi } from '@/store/ui'
 import { Artwork } from './Artwork'
 import { IconButton, Transport, VolumeControl, useCaps } from './Controls'
 import { LyricsView } from './LyricsView'
-import { LikeButton } from './MiniPlayer'
+import { LikeButton, OverflowMenu } from './MiniPlayer'
+import { KaraokeScreen } from './KaraokeScreen'
+import { StudioDialog } from './StudioDialog'
 import { ProgressBar } from './ProgressBar'
 import { VideoPicker } from './VideoPicker'
 import { VideoStatus } from './VideoStatus'
 import { ConnectScreen, LoadingScreen, NoMusicScreen, OfflineBanner, OfflineScreen } from './StateScreens'
 
-export function FullscreenPlayer() {
+export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
+  const drag = useWindowDrag()
+  const [karaoke, setKaraoke] = useState(false)
+  const [studio, setStudio] = useState(false)
   const view = usePlayerView()
   const track = usePlayer((s) => s.snapshot?.track ?? null)
   const device = usePlayer((s) => s.snapshot?.device ?? null)
@@ -26,9 +34,9 @@ export function FullscreenPlayer() {
   const df = useUi((s) => s.distractionFree)
   const toggleDf = useUi((s) => s.toggleDistractionFree)
 
-  const quiet = idle && panel === 'none'
+  const quiet = !mini && idle && panel === 'none'
   // cinema layout: a video is playing, so get the UI out of its way
-  const cinema = useBgState((s) => s.media === 'full')
+  const cinema = useBgState((s) => s.media === 'full' || (mini && s.media === 'mini'))
   const ytVideo = useBgState((s) => s.kind === 'youtube')
   // each vibe arranges the card and the lyrics its own way
   const arch = vibeInfo(useEffectiveVibe().vibe).layout
@@ -36,16 +44,37 @@ export function FullscreenPlayer() {
   return (
     <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${cinema ? (arch === 'term' ? 'is-video' : 'is-cinema') : ''}`} data-arch={arch}>
       <VideoStatus />
-      <header className="full__top">
-        <span className="full__device">{device ? `Playing on ${device.name}` : 'Lyra'}</span>
-        <div className="full__tools">
-          {cinema && ytVideo && <VideoPicker />}
-          <IconButton icon="type" label="Distraction-free: artwork and lyrics only" active={df} onClick={toggleDf} />
-          {caps.queue && <IconButton icon="queue" label="Queue" active={panel === 'queue'} onClick={() => togglePanel('queue')} />}
-          <IconButton icon="bookmark" label="Saved lyric moments" active={panel === 'moments'} onClick={() => togglePanel('moments')} />
-          <IconButton icon="settings" label="Settings" active={panel === 'settings'} onClick={() => togglePanel('settings')} />
-          <IconButton icon="exitFullscreen" label="Exit fullscreen (Esc)" onClick={() => requestMode('mini')} />
-        </div>
+      {karaoke && <KaraokeScreen onClose={() => setKaraoke(false)} />}
+      {studio && <StudioDialog onClose={() => setStudio(false)} />}
+      <header className="full__top" {...(mini ? drag : {})}>
+        <span className="full__device">{device ? (mini ? device.name : `Playing on ${device.name}`) : 'Lyra'}</span>
+        {mini ? (
+          <div className="full__tools" data-nodrag>
+            <IconButton icon="settings" label="Settings" active={panel === 'settings'} size={16} onClick={() => togglePanel('settings')} />
+            <IconButton icon="fullscreen" label="Fullscreen lyrics" size={16} onClick={() => requestMode('full')} />
+            <OverflowMenu
+              items={[
+                ...(caps.queue ? [{ icon: 'queue' as const, label: 'Queue', run: () => togglePanel('queue') }] : []),
+                { icon: 'bookmark' as const, label: 'Saved lyric moments', run: () => togglePanel('moments') },
+                { icon: 'mic' as const, label: 'Karaoke', run: () => setKaraoke(true) },
+                { icon: 'film' as const, label: 'Export lyric video', run: () => setStudio(true) },
+                { icon: 'vibe' as const, label: 'Next vibe', run: () => cycleVibe(1) }
+              ]}
+            />
+            <IconButton icon="minus" label="Minimize" size={16} onClick={() => window.lyra.window.minimize()} />
+            <IconButton icon="collapse" label="Collapse to widget" size={16} onClick={() => requestMode('compact')} />
+            <IconButton icon="close" label="Quit Lyra" size={16} onClick={() => window.lyra.window.quit()} />
+          </div>
+        ) : (
+          <div className="full__tools">
+            {cinema && ytVideo && <VideoPicker />}
+            <IconButton icon="type" label="Distraction-free: artwork and lyrics only" active={df} onClick={toggleDf} />
+            {caps.queue && <IconButton icon="queue" label="Queue" active={panel === 'queue'} onClick={() => togglePanel('queue')} />}
+            <IconButton icon="bookmark" label="Saved lyric moments" active={panel === 'moments'} onClick={() => togglePanel('moments')} />
+            <IconButton icon="settings" label="Settings" active={panel === 'settings'} onClick={() => togglePanel('settings')} />
+            <IconButton icon="exitFullscreen" label="Exit fullscreen (Esc)" onClick={() => requestMode('mini')} />
+          </div>
+        )}
       </header>
 
       {view === 'playing' && track ? (

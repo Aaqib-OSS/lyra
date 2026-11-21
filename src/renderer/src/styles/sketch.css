@@ -77,10 +77,10 @@
 .sketchfx__tape--r { left: calc(var(--sc-wl) + var(--sc-ww) - 7vh); top: calc(var(--sc-wt) - 2.6vh); transform: rotate(31deg); }
 .scenewin__art span { font-family: 'Caveat', cursive; font-size: 3vh; letter-spacing: 0; text-transform: none; font-weight: 700; }
 :root[data-vibe='sketch'] .sketchfx__tape, :root[data-vibe='sketch'][data-mode='mini'] .sketchfx__frame { display: none; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .sketchfx__tape { display: block; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .sketchfx__tape { display: block; }
 
 /* ---------------- the card: a paper note ---------------- */
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   --fg: #1f1511;
   --fg-2: #3a2a22;
   --fg-3: #55443a;
@@ -94,17 +94,17 @@
   box-shadow: 0.8vh 0.9vh 0 rgba(31, 21, 17, 0.85) !important;
   color: var(--ink);
 }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0.5vh !important; box-shadow: 0 0 0 2px var(--ink); }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Caveat', cursive; font-size: 3vh; font-weight: 700; letter-spacing: 0; color: var(--ink); text-shadow: none; line-height: 1; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: var(--ink-2); }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: repeating-linear-gradient(90deg, rgba(31, 21, 17, 0.4) 0 0.6vh, transparent 0.6vh 1vh); height: 2px; border-radius: 0; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--marker); height: 4px; border-radius: 3px; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--marker) !important; color: #fff7dc !important; box-shadow: 0 0 0 2px var(--ink), 0.4vh 0.5vh 0 var(--ink) !important; }
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: var(--ink); }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0.5vh !important; box-shadow: 0 0 0 2px var(--ink); }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Caveat', cursive; font-size: 3vh; font-weight: 700; letter-spacing: 0; color: var(--ink); text-shadow: none; line-height: 1; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: var(--ink-2); }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: repeating-linear-gradient(90deg, rgba(31, 21, 17, 0.4) 0 0.6vh, transparent 0.6vh 1vh); height: 2px; border-radius: 0; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--marker); height: 4px; border-radius: 3px; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--marker) !important; color: #fff7dc !important; box-shadow: 0 0 0 2px var(--ink), 0.4vh 0.5vh 0 var(--ink) !important; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: var(--ink); }
 
 /* ---------------- lyrics: written in ink (stage 'ink') ---------------- */
 .stage--ink { display: flex; flex-direction: column; justify-content: center; }
@@ -131,5 +131,5 @@
 [data-vibe='sketch'] .lfb__eq i { background: var(--marker); box-shadow: none; }
 
 /* the note is small: no shuffle / repeat, so the title has room */
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='sketch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }

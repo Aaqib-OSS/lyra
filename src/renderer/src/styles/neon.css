@@ -93,7 +93,7 @@
 @keyframes neon-ring { 0% { opacity: 0.85; transform: scale(0.15); } 100% { opacity: 0; transform: scale(2.6); } }
 :root[data-perf='low'] .neonfx__rain i:nth-child(2n), :root[data-perf='low'] .neonfx__ring { display: none; }
 :root[data-motion='off'] .neonfx *, :root[data-motion='off'] .full__side { animation: none !important; }
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .neonfx__sweep {
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .neonfx__sweep {
   display: block;
   position: absolute;
   inset: 0 0 22% 0;
@@ -129,7 +129,7 @@
 @keyframes neon-slide { 0% { transform: translateY(-4vh); opacity: 0; } 8% { opacity: 0.8; } 100% { transform: translateY(26vh); opacity: 0; } }
 
 /* ---------------- the card: glass, hung from a rail by two chains, swaying a little ---------------- */
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   border-radius: 2.4vh !important;
   background: var(--neon-glass) !important;
   -webkit-backdrop-filter: blur(14px) saturate(1.3);
@@ -140,8 +140,8 @@
   animation: neon-sway 7s ease-in-out infinite;
 }
 @keyframes neon-sway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before,
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after {
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before,
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after {
   content: '';
   position: absolute;
   top: -4vh;
@@ -150,20 +150,20 @@
   border-radius: 2px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.35));
 }
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before { left: 22%; }
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after { right: 22%; }
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before { left: 22%; }
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after { right: 22%; }
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
   box-shadow: 0 1.4vh 3vh rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
   font-family: 'Inter Variable', system-ui, sans-serif;
   font-size: 2.3vh;
   font-weight: 700;
   letter-spacing: -0.01em;
   text-shadow: none;
 }
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.6vh; color: rgba(190, 215, 245, 0.72); }
-:root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #fff !important; color: #0a1220 !important; box-shadow: 0 0.8vh 2vh rgba(255, 79, 163, 0.45) !important; }
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.6vh; color: rgba(190, 215, 245, 0.72); }
+:root[data-vibe='neon']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #fff !important; color: #0a1220 !important; box-shadow: 0 0.8vh 2vh rgba(255, 79, 163, 0.45) !important; }
 
 /* ---------------- lyrics: the sign (stage 'sign') ---------------- */
 .stage--sign { display: flex; flex-direction: column; justify-content: center; }

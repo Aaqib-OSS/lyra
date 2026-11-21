@@ -10,7 +10,8 @@ import { join, resolve } from 'node:path'
 const args = Object.fromEntries(process.argv.slice(2).filter((a) => a.startsWith('--')).map((a) => { const [k, v] = a.slice(2).split('='); return [k, v ?? true] }))
 const PORT = Number(args.port ?? process.env.UI_PORT ?? 5199)
 const VIBES = String(args.vibe ?? 'neon').split(',')
-const SIZES = String(args.size ?? '1366x768,1920x1080,1024x600,800x1000').split(',').map((s) => { const [w, h] = s.split('x').map(Number); return { id: s, w, h } })
+const MODE = String(args.mode ?? 'full')
+const SIZES = String(args.size ?? (MODE === 'mini' ? '420x700,380x600' : '1366x768,1920x1080,1024x600,800x1000')).split(',').map((s) => { const [w, h] = s.split('x').map(Number); return { id: s, w, h } })
 // a stand-in video that lives next to the repo (git-ignored): brag-output/brag.mp4, served by the harness through /@fs/
 const BRAG = `&video=${encodeURIComponent('@fs/' + resolve('brag-output', 'brag').split(String.fromCharCode(92)).join('/'))}`
 const STATES = {
@@ -27,7 +28,7 @@ const STATES = {
 // looks whose lyrics are meant to sit on top of the video window
 const OVER_VIDEO = new Set(['trailer', 'dream', 'noir'])
 const KEYS = String(args.state ?? Object.keys(STATES).join(',')).split(',')
-const OUT = resolve('ui-test-out', 'scene')
+const OUT = resolve('ui-test-out', MODE === 'mini' ? 'scene-mini' : 'scene')
 
 const measure = (overVideo) => {
   const r = (e) => { const b = e.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height, r: b.right, b: b.bottom } }
@@ -81,7 +82,7 @@ async function main() {
       const ctx = await browser.newContext({ viewport: { width: sz.w, height: sz.h }, reducedMotion: 'no-preference' })
       for (const k of KEYS) {
         const st = STATES[k]
-        const url = `http://localhost:${PORT}/?mode=full&paused=1&t=21500&${st.q}&s=${encodeURIComponent(JSON.stringify({ vibe, reducedMotion: 'off' }))}`
+        const url = `http://localhost:${PORT}/?mode=${MODE}&paused=1&t=21500&${st.q}&s=${encodeURIComponent(JSON.stringify({ vibe, reducedMotion: 'off' }))}`
         const page = await ctx.newPage()
         await page.goto(url)
         await page.waitForTimeout(st.q.includes('live') ? 3800 : 2200)

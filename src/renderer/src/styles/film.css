@@ -35,7 +35,7 @@
 [data-vibe='film'] .backdrop .backdrop__field { background: radial-gradient(100% 90% at 50% 45%, #2a1c10, #0b0704 85%); }
 :root[data-vibe='film'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
 /* the video is graded like old stock */
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .backdrop__stage { filter: sepia(0.5) contrast(1.1) saturate(1.1) brightness(0.95); }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .backdrop__stage { filter: sepia(0.5) contrast(1.1) saturate(1.1) brightness(0.95); }
 .filmfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 /* the strip: black stock with a row of sprocket holes along both edges; the holes keep moving */
 .filmfx__strip { position: absolute; left: 0; right: 0; top: calc(var(--sc-wt) - 4.6vh); height: calc(var(--sc-wh) + 9.2vh); background: #070503; box-shadow: 0 0 0 1px rgba(232, 184, 115, 0.18), 0 2vh 5vh rgba(0, 0, 0, 0.6); }
@@ -68,7 +68,7 @@
 .scenewin__art span { font: 600 2.2vh/1 'Fraunces Variable', Georgia, serif; letter-spacing: 0.3em; text-transform: uppercase; color: var(--fm-sepia); }
 
 /* ---------------- the card: a film-can label ---------------- */
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   --fg: #1a120a;
   --fg-2: #3a2a18;
   --fg-3: #55402a;
@@ -82,19 +82,19 @@
   box-shadow: inset 0 0 0 0.35vh #1a120a, inset 0 0 0 0.6vh var(--fm-cream), inset 0 0 0 0.75vh rgba(26, 18, 10, 0.7), 0 1.6vh 4vh rgba(0, 0, 0, 0.6) !important;
   color: #1a120a;
 }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0.3vh !important; filter: sepia(0.5) contrast(1.05); box-shadow: 0 0 0 2px #1a120a; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 2.1vh/1.15 'Fraunces Variable', Georgia, serif; letter-spacing: 0.02em; text-transform: uppercase; color: #1a120a; text-shadow: none; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; letter-spacing: 0.16em; text-transform: uppercase; color: #6a4a22; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #8a5a1c; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(26, 18, 10, 0.2); }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #1a120a !important; color: var(--fm-cream) !important; box-shadow: none !important; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #1a120a; }
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0.3vh !important; filter: sepia(0.5) contrast(1.05); box-shadow: 0 0 0 2px #1a120a; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 2.1vh/1.15 'Fraunces Variable', Georgia, serif; letter-spacing: 0.02em; text-transform: uppercase; color: #1a120a; text-shadow: none; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; letter-spacing: 0.16em; text-transform: uppercase; color: #6a4a22; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #8a5a1c; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(26, 18, 10, 0.2); }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #1a120a !important; color: var(--fm-cream) !important; box-shadow: none !important; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #1a120a; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- lyrics: title cards in the next frames (stage 'intertitle') ---------------- */
 [data-vibe='film'] .stage--intertitle { display: flex; flex-direction: column; justify-content: center; }
@@ -108,10 +108,10 @@
 [data-vibe='film'] .sign--intertitle .sign__refl { display: none; }
 :root[data-motion='off'] [data-vibe='film'] .sign--intertitle .sign__line { animation: none; }
 /* the title-card frames are shorter than the whole lyrics area: keep them as tall as the video frame */
-@media (min-aspect-ratio: 1/1) { :root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics { height: var(--sc-wh); } }
+@media (min-aspect-ratio: 1/1) { :root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics { height: var(--sc-wh); } }
 
 /* ---------------- other lyric states (same regions) ---------------- */
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { height: auto; top: calc(var(--sc-wt) + 2vh); bottom: 8vh; }
+:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { height: auto; top: calc(var(--sc-wt) + 2vh); bottom: 8vh; }
 [data-vibe='film'] .lyrics__notice { align-self: flex-start; background: transparent; border: 1px solid rgba(232, 184, 115, 0.6); border-radius: 0; color: var(--fm-sepia); font: 600 1.4vh/1.3 'Fraunces Variable', Georgia, serif; letter-spacing: 0.14em; text-transform: uppercase; }
 [data-vibe='film'] .plain__stanza { font-family: 'Fraunces Variable', Georgia, serif; font-weight: 600; font-size: min(1.9vw, 3.4vh); line-height: 1.35; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fm-cream); }
 [data-vibe='film'] .lfb { align-items: flex-start; text-align: left; }

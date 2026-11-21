@@ -57,7 +57,7 @@
 .scenewin__eq { display: none; }
 
 /* ---------------- the card: the inventory hotbar ---------------- */
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   --fg: #222;
   --fg-2: #444;
   --fg-3: #555;
@@ -71,22 +71,22 @@
   box-shadow: inset -0.5vh -0.5vh 0 #555, inset 0.5vh 0.5vh 0 #fff, 0 0 0 0.5vh #2a2a2a, 1vh 1.2vh 0 0.5vh rgba(0, 0, 0, 0.35) !important;
   color: #222;
 }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 8vh !important; border-radius: 0 !important; image-rendering: pixelated; box-shadow: 0 0 0 0.5vh #fff, 0 0 0 1vh #2a2a2a; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 1.7vh/1.4 'Press Start 2P', monospace; letter-spacing: 0; text-transform: none; color: #222; text-shadow: 0.25vh 0.25vh 0 #bbb; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.1vh/1.5 'Press Start 2P', monospace; color: #444; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: #555; border-radius: 0; height: 1.2vh; box-shadow: inset 0.3vh 0.3vh 0 #2a2a2a; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--bk-grass); border-radius: 0; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #7ccf4f !important; color: #1a3a0a !important; border-radius: 0 !important; box-shadow: inset -0.4vh -0.4vh 0 #3e8a1e, inset 0.4vh 0.4vh 0 #b6f08a, 0 0 0 0.4vh #2a2a2a !important; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #222; border-radius: 0; }
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 8vh !important; border-radius: 0 !important; image-rendering: pixelated; box-shadow: 0 0 0 0.5vh #fff, 0 0 0 1vh #2a2a2a; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 1.7vh/1.4 'Press Start 2P', monospace; letter-spacing: 0; text-transform: none; color: #222; text-shadow: 0.25vh 0.25vh 0 #bbb; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.1vh/1.5 'Press Start 2P', monospace; color: #444; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: #555; border-radius: 0; height: 1.2vh; box-shadow: inset 0.3vh 0.3vh 0 #2a2a2a; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--bk-grass); border-radius: 0; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #7ccf4f !important; color: #1a3a0a !important; border-radius: 0 !important; box-shadow: inset -0.4vh -0.4vh 0 #3e8a1e, inset 0.4vh 0.4vh 0 #b6f08a, 0 0 0 0.4vh #2a2a2a !important; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #222; border-radius: 0; }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- lyrics: the chat log (stage 'chatlog'), a little bigger ---------------- */
-:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .mc__row { font-size: min(1.55vw, 2.9vh); }
+:root[data-vibe='blocks']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .mc__row { font-size: min(1.55vw, 2.9vh); }
 
 /* ---------------- other lyric states (same regions) ---------------- */
 [data-vibe='blocks'] .lyrics__notice { align-self: flex-start; background: rgba(0, 0, 0, 0.6); border: 0; border-radius: 0; color: #ffd84a; font: 1.3vh/1.5 'Press Start 2P', monospace; text-transform: none; }

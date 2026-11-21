@@ -51,12 +51,12 @@
 [data-vibe='sticker'] .scenewin { box-shadow: 0 0 0 1.1vh #fff, 0.6vh 1.6vh 3vh 1.1vh rgba(0, 0, 0, 0.5); }
 .stickerfx__peel { position: absolute; right: calc(100vw - var(--sc-wl) - var(--sc-ww) - 1.1vh); bottom: calc(100vh - var(--sc-wt) - var(--sc-wh) - 1.1vh); width: 9vh; height: 9vh; background: linear-gradient(135deg, transparent 50%, #e9e4f5 50%, #bdb4d6); border-radius: 0 0 0 100%; clip-path: polygon(0 0, 100% 100%, 0 100%); filter: drop-shadow(-0.4vh -0.4vh 0.6vh rgba(0, 0, 0, 0.35)); }
 .stickerfx__peel, .stickerfx__peel--hide { display: none; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .stickerfx__peel { display: block; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .stickerfx__peel { display: block; }
 .scenewin__art span { font: 900 3vh/1 'Nunito Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: #15101f; background: #fff; padding: 0.9vh 1.6vh; border-radius: 1.4vh; rotate: -3deg; box-shadow: 0 0.5vh 0 rgba(0, 0, 0, 0.25); }
 .scenewin__eq { display: none; }
 
 /* ---------------- the card: a label sticker ---------------- */
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   --fg: #15101f;
   --fg-2: #3a2f55;
   --fg-3: #55486f;
@@ -70,19 +70,19 @@
   box-shadow: 0 0 0 0.9vh #fff, 0.5vh 1.4vh 2.4vh 0.9vh rgba(0, 0, 0, 0.45) !important;
   color: #15101f;
 }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 1.4vh !important; box-shadow: 0 0 0 0.5vh #15101f; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.3vh/1.1 'Nunito Variable', sans-serif; letter-spacing: -0.02em; color: #15101f; text-shadow: none; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; font-weight: 800; color: #3a2f55; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(21, 16, 31, 0.2); }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #15101f; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #15101f !important; color: var(--sk-lime) !important; box-shadow: 0 0 0 0.4vh #fff !important; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #15101f; }
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
-:root[data-vibe='sticker'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 1.4vh !important; box-shadow: 0 0 0 0.5vh #15101f; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.3vh/1.1 'Nunito Variable', sans-serif; letter-spacing: -0.02em; color: #15101f; text-shadow: none; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; font-weight: 800; color: #3a2f55; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(21, 16, 31, 0.2); }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #15101f; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #15101f !important; color: var(--sk-lime) !important; box-shadow: 0 0 0 0.4vh #fff !important; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #15101f; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- other lyric states (same regions) ---------------- */
 [data-vibe='sticker'] .lyrics__notice { align-self: flex-start; background: #fff; border: 0; border-radius: 99px; color: #15101f; font: 900 1.5vh/1.2 'Nunito Variable', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; box-shadow: 0 0.4vh 0 rgba(0, 0, 0, 0.3); }

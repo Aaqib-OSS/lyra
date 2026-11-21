@@ -30,16 +30,16 @@
 :root[data-vibe='sunset'][data-rim='on']::after { display: none; }
 
 /* ---------------- fullscreen: the sky ---------------- */
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .backdrop .backdrop__field {
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .backdrop .backdrop__field {
   background:
     radial-gradient(60% 55% at 22% 96%, rgba(255, 190, 110, 0.9), rgba(255, 140, 100, 0.35) 45%, transparent 75%),
     radial-gradient(90% 50% at 60% 100%, rgba(255, 110, 100, 0.35), transparent 70%),
     linear-gradient(180deg, #0e1230 0%, #1b2a55 30%, #2f5a73 52%, #a8625c 78%, #e9965c 100%);
 }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) :is(.vibefx__sunset-sun, .vibefx__palm, .vibefx__road, .vibefx__radio, .vibefx__stars-hud) { display: none; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) :is(.vibefx__sunset-sun, .vibefx__palm, .vibefx__road, .vibefx__radio, .vibefx__stars-hud) { display: none; }
 .sunsetfx { display: none; }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .sunsetfx { display: block; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .sunsetfx { display: block; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 /* soft rays of light from the low sun, slowly swinging */
 .sunsetfx__ray {
   position: absolute;
@@ -82,7 +82,7 @@
 .sunsetfx__glass { position: absolute; inset: 0; background: linear-gradient(150deg, rgba(255, 255, 255, 0.14), transparent 30%), linear-gradient(0deg, rgba(20, 8, 24, 0.28), transparent 40%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
 
 /* ---------------- the card: frosted glass pill ---------------- */
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   flex-direction: row;
   align-items: center;
   gap: 2.2vh;
@@ -94,13 +94,13 @@
   border: 0 !important;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 2vh 6vh rgba(10, 4, 20, 0.4) !important;
 }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
   flex: none;
   width: 10vh !important;
   border-radius: 1.6vh !important;
   box-shadow: 0 1vh 2.4vh rgba(10, 4, 20, 0.45);
 }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome {
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome {
   flex: 1;
   min-width: 0;
   display: grid;
@@ -110,13 +110,13 @@
   column-gap: 2vw;
   row-gap: 0.8vh;
 }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Inter Variable', system-ui, sans-serif; font-size: 2.1vh; font-weight: 650; letter-spacing: -0.01em; color: #fff; text-shadow: none; }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: var(--gold-ink); opacity: 0.8; }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #ffd9a6, #ff9f7a); }
-:root[data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #fff !important; color: #3a1f2a !important; box-shadow: 0 0.8vh 2vh rgba(255, 150, 100, 0.4) !important; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Inter Variable', system-ui, sans-serif; font-size: 2.1vh; font-weight: 650; letter-spacing: -0.01em; color: #fff; text-shadow: none; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: var(--gold-ink); opacity: 0.8; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #ffd9a6, #ff9f7a); }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #fff !important; color: #3a1f2a !important; box-shadow: 0 0.8vh 2vh rgba(255, 150, 100, 0.4) !important; }
 
 /* ---------------- lyrics: bloom (stage 'bloom') ---------------- */
 .stage--bloom { display: flex; flex-direction: column; justify-content: center; }

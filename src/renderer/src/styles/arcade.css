@@ -121,35 +121,35 @@
 :root[data-motion='off'] .arcadefx *, :root[data-motion='off'] .full__side { animation: none !important; }
 
 /* ---------------- the card: PLAYER 1 ---------------- */
-:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   border-radius: 0 !important;
   background: var(--arc-ink) !important;
   border: 3px solid var(--arc-yellow) !important;
   box-shadow: 0.9vh 0.9vh 0 var(--arc-pink), 0 0 0 3px #06061a !important;
   gap: 1.2vh;
 }
-:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before {
+:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before {
   content: 'PLAYER 1';
   display: block;
   font: 1.3vh/1 'Press Start 2P', monospace;
   color: var(--arc-pink);
   animation: arc-blink 1.4s steps(1) infinite;
 }
-:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
   border-radius: 0 !important;
   image-rendering: pixelated;
   box-shadow: 0 0 0 3px #fff, 0.6vh 0.6vh 0 3px var(--arc-pink);
 }
-:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
+:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
   font: 1.5vh/1.5 'Press Start 2P', monospace;
   letter-spacing: 0;
   text-transform: uppercase;
   color: var(--arc-yellow);
   text-shadow: 0.2vh 0.2vh 0 var(--arc-pink);
 }
-:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.1vh/1.6 'Press Start 2P', monospace; color: #d6d6ff; text-transform: uppercase; }
-:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .progress__rail { border-radius: 0; background: #06061a; box-shadow: 0 0 0 2px #fff; height: 1.2vh; }
-:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .progress__fill { border-radius: 0; background: repeating-linear-gradient(90deg, var(--arc-cyan) 0 0.8vh, #0d6a73 0.8vh 1vh); }
+:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.1vh/1.6 'Press Start 2P', monospace; color: #d6d6ff; text-transform: uppercase; }
+:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .progress__rail { border-radius: 0; background: #06061a; box-shadow: 0 0 0 2px #fff; height: 1.2vh; }
+:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .progress__fill { border-radius: 0; background: repeating-linear-gradient(90deg, var(--arc-cyan) 0 0.8vh, #0d6a73 0.8vh 1vh); }
 [data-vibe='arcade'] .playbtn { border-radius: 0; background: var(--arc-yellow); color: #1a1a5a; box-shadow: 0.5vh 0.5vh 0 var(--arc-pink); }
 [data-vibe='arcade'] .full__side .ibtn, [data-vibe='arcade'] .full__side .tbtn { border-radius: 0; }
 

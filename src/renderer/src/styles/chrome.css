@@ -104,7 +104,7 @@
 :root[data-motion='off'] .chromefx *, :root[data-motion='off'] .full__side { animation: none !important; }
 /* the video's chrome bezel (a gradient ring around the scene window) and its reflections */
 .chromefx__bezel { display: none; }
-:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .chromefx__bezel {
+:root[data-vibe='chrome']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .chromefx__bezel {
   display: block;
   position: absolute;
   left: calc(var(--sc-wl) - 1.3vh);
@@ -134,7 +134,7 @@
 @keyframes chrome-gloss { 0%, 55% { background-position: 0 0, -150% 0; } 100% { background-position: 0 0, 150% 0; } }
 
 /* ---------------- the card: brushed metal, dark ink ---------------- */
-:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+:root[data-vibe='chrome']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   --fg: #0b1220;
   --fg-2: #2a3446;
   --fg-3: #495570;
@@ -146,12 +146,12 @@
   animation: chrome-bob 7s ease-in-out infinite;
 }
 @keyframes chrome-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.8vh); } }
-:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+:root[data-vibe='chrome']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
   border: 0.5vh solid #0b1220;
   border-radius: 1.8vh !important;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 1vh 2.4vh rgba(0, 0, 30, 0.35);
 }
-:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
+:root[data-vibe='chrome']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
   font-family: 'Unbounded Variable', 'Inter Variable', sans-serif;
   font-size: 2vh;
   font-weight: 800;
@@ -159,9 +159,9 @@
   color: #0b1220;
   text-shadow: none;
 }
-:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: #3a4660; }
-:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #0b1220 !important; color: #fff !important; box-shadow: 0 0.8vh 2vh rgba(10, 18, 64, 0.5) !important; }
-:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #2f55c8; }
+:root[data-vibe='chrome']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: #3a4660; }
+:root[data-vibe='chrome']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #0b1220 !important; color: #fff !important; box-shadow: 0 0.8vh 2vh rgba(10, 18, 64, 0.5) !important; }
+:root[data-vibe='chrome']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #2f55c8; }
 
 /* ---------------- lyrics: liquid metal (stage 'liquid') ---------------- */
 .stage--liquid { display: flex; flex-direction: column; justify-content: center; }
