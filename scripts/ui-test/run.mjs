@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? true]))
 const OUT = join(root, 'ui-test-out')
-const PORT = Number(process.env.LYRA_UI_PORT ?? 5199)
+const PORT = Number(process.env.UI_PORT ?? process.env.LYRA_UI_PORT ?? 5199) // set UI_PORT when several runs happen at once
 const BASE = `http://localhost:${PORT}`
 
 // the vibe catalogue (id + default lyric style) is read from the source so the test never goes stale
