@@ -23,6 +23,14 @@ jobs:
       - run: npm test
       - name: Build installer
         run: npm run dist
+      - name: Keep the installer as a build artifact (download it from the run page to test before releasing)
+        uses: actions/upload-artifact@v7
+        with:
+          name: Lyra-Windows-${{ github.sha }}
+          path: |
+            release/Lyra-Setup-*.exe
+            release/latest.yml
+          retention-days: 14
       - name: Publish release
         if: ${{ github.ref_type == 'tag' }}
         shell: bash
