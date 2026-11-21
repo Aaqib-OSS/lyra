@@ -40,7 +40,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'glitch', layout: 'scene', style: 'glitch', name: 'Glitch', tag: 'Signal lost: static, tears, colour split' },
   { id: 'comic', layout: 'scene', style: 'bubble', name: 'Pop Comic', tag: 'Halftone page, speech bubbles, POW' },
   { id: 'stencil', layout: 'scene', style: 'spray', name: 'Stencil', tag: 'Sprayed on a concrete wall' },
-  { id: 'film', layout: 'orb', style: 'zoom', name: 'Film Reel', tag: 'Sepia grain, light leaks, projector flicker' }
+  { id: 'film', layout: 'scene', style: 'intertitle', name: 'Film Reel', tag: 'Running film stock, silent-film titles' }
 ]
 
 export const ALL_VIBES: readonly Vibe[] = VIBES.map((v) => v.id)

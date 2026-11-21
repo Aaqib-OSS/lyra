@@ -217,6 +217,29 @@ function StencilFx() {
   )
 }
 
+/** Film Reel, fullscreen: a strip of film in a projector. Sprocket holes keep running, grain, dust, scratches, flicker, light leaks. */
+function FilmFx() {
+  return (
+    <div className="filmfx">
+      <div className="filmfx__leak filmfx__leak--a" />
+      <div className="filmfx__leak filmfx__leak--b" />
+      <div className="filmfx__strip">
+        <div className="filmfx__holes filmfx__holes--t" />
+        <div className="filmfx__holes filmfx__holes--b" />
+        <div className="filmfx__frames" />
+      </div>
+      <SceneWindow>
+        <div className="filmfx__gate" />
+      </SceneWindow>
+      <div className="filmfx__edge">KODAK SAFETY FILM · 5063 · 12A</div>
+      <i className="filmfx__scratch filmfx__scratch--a" />
+      <i className="filmfx__scratch filmfx__scratch--b" />
+      <div className="filmfx__flicker" />
+      <div className="filmfx__grain" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -331,15 +354,7 @@ export function VibeFx() {
       {vibe === 'paper' && <div className="vibefx__lines" />}
       {vibe === 'sketch' && <SketchFx />}
       {vibe === 'stencil' && <StencilFx />}
-      {vibe === 'film' && (
-        <>
-          <div className="vibefx__grain" />
-          <div className="vibefx__leak" />
-          <div className="vibefx__flicker" />
-          <div className="vibefx__strip vibefx__strip--l" />
-          <div className="vibefx__strip vibefx__strip--r" />
-        </>
-      )}
+      {vibe === 'film' && <FilmFx />}
       {vibe === 'comic' && <ComicFx />}
       {vibe === 'glitch' && <GlitchFx />}
       {vibe === 'neon' && <NeonAlley />}

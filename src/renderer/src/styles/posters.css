@@ -96,6 +96,3 @@
 
 /* ---- Stencil: spray-painted edge and an orange tag ---- */
 /* ---- Film Reel: a frame from the strip with grain and flicker ---- */
-[data-vibe='film'] .artwork--lift { outline: 8px solid #0d0804; outline-offset: 0; box-shadow: 0 0 0 10px #3a2615, 0 24px 50px rgba(0,0,0,.8) !important; border-radius: 2px !important; filter: sepia(.55) contrast(1.05); animation: pz-flick 3s steps(1) infinite; }
-[data-vibe='film'] .artwork__deco--a { top: 0; bottom: 0; left: -14px; width: 8px; background: repeating-linear-gradient(180deg, #f6e9cf 0 6px, transparent 6px 14px); display: block; }
-[data-vibe='film'] .artwork__deco--b { top: 0; bottom: 0; right: -14px; width: 8px; background: repeating-linear-gradient(180deg, #f6e9cf 0 6px, transparent 6px 14px); display: block; }

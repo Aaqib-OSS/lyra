@@ -576,30 +576,6 @@
 :root[data-calm] .vibefx__drips::before, :root[data-calm] .vibefx__drips::after { animation: none; opacity: 0; }
 
 /* ======================= FILM REEL: sepia grain, light leaks, projector flicker ======================= */
-:root[data-vibe='film'] { --rimc: #e8b873; }
-[data-vibe='film'] .shell {
-  --accent: #e8b873;
-  --glow: rgba(232, 184, 115, 0.4);
-  --glow-soft: rgba(232, 184, 115, 0.16);
-  --font: 'Fraunces Variable', Georgia, serif;
-  --fg: #f6e9cf;
-  --bg-0: #140d07;
-}
-[data-vibe='film'] .backdrop .backdrop__field { background: radial-gradient(100% 90% at 50% 50%, #3a2615, #140d07 85%); }
-.vibefx__grain { position: absolute; inset: 0; opacity: .5; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E"); animation: pz-grain .5s steps(4) infinite; }
-.vibefx__leak { position: absolute; inset: -10%; background: radial-gradient(40% 60% at 0% 20%, rgba(255, 140, 40, .55), transparent 70%), radial-gradient(35% 50% at 100% 90%, rgba(255, 70, 60, .4), transparent 70%); mix-blend-mode: screen; animation: film-leak 9s ease-in-out infinite; }
-@keyframes film-leak { 0%, 100% { opacity: .35; transform: translateX(0); } 50% { opacity: .75; transform: translateX(3%); } }
-.vibefx__flicker { position: absolute; inset: 0; background: #000; pointer-events: none; opacity: 0; animation: film-flicker 2.6s steps(1) infinite; }
-@keyframes film-flicker { 0%, 100% { opacity: 0; } 10% { opacity: .06; } 12% { opacity: 0; } 55% { opacity: .1; } 57% { opacity: 0; } 83% { opacity: .05; } 85% { opacity: 0; } }
-.vibefx__strip { position: absolute; top: 0; bottom: 0; width: 22px; background: repeating-linear-gradient(180deg, transparent 0 14px, rgba(246, 233, 207, .28) 14px 28px); opacity: .55; }
-.vibefx__strip--l { left: 8px; }
-.vibefx__strip--r { right: 8px; }
 :root[data-calm] .vibefx__grain, :root[data-calm] .vibefx__leak, :root[data-calm] .vibefx__flicker { animation: none; }
-[data-vibe='film'] .zoom__word { font-family: 'Fraunces Variable', Georgia, serif; font-weight: 800; font-style: italic; letter-spacing: -0.03em; text-transform: uppercase; paint-order: stroke fill; }
-[data-vibe='film'] .zoom__word--fill { color: #f6e9cf; text-shadow: 0 0 .4em rgba(232, 184, 115, .5), .04em .05em 0 #2a170a; }
-[data-vibe='film'] .zoom__word--outline { color: #e8b873; -webkit-text-stroke: .012em #2a170a; text-shadow: .05em .05em 0 rgba(0, 0, 0, .6); }
-[data-vibe='film'] .zoom__word--cut { color: #2a170a; background: #f6e9cf; padding: .02em .14em .06em; box-shadow: .05em .06em 0 #8a5a22; }
-[data-vibe='film'] .zoom__word--ghost { color: #ffcf8a; filter: blur(.6px); text-shadow: 0 0 .4em rgba(255, 150, 60, .8); }
-[data-vibe='film'] .zoom__line { color: #f6e9cf; text-shadow: 0 1px 6px #000; font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; }
 
 /* a dark halo behind the sprayed word keeps it readable on the orange glow of the wall */
