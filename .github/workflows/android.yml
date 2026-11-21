@@ -71,10 +71,17 @@ jobs:
         shell: bash
         run: cp android/app/build/outputs/apk/release/app-release.apk "Lyra-Android-${{ steps.v.outputs.version }}.apk"
 
+      # the in-app updater verifies the download against this file before it installs anything
+      - name: Checksum the APK
+        shell: bash
+        run: sha256sum "Lyra-Android-${{ steps.v.outputs.version }}.apk" > "Lyra-Android-${{ steps.v.outputs.version }}.apk.sha256"
+
       - uses: actions/upload-artifact@v7
         with:
           name: Lyra-Android-${{ steps.v.outputs.version }}
-          path: Lyra-Android-*.apk
+          path: |
+            Lyra-Android-*.apk
+            Lyra-Android-*.apk.sha256
 
       - name: Publish release
         if: ${{ github.ref_type == 'tag' || inputs.publish }}
@@ -88,10 +95,10 @@ jobs:
           PRE=""
           case "${{ steps.v.outputs.version }}" in *-*) PRE="--prerelease" ;; esac
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" --clobber   # tag was moved: replace the APK
+            gh release upload "$TAG" "$APK" "$APK.sha256" --clobber   # tag was moved: replace the APK
             [ -z "$PRE" ] && gh release edit "$TAG" --prerelease=false --latest=false || true
           else
-            gh release create "$TAG" "$APK" \
+            gh release create "$TAG" "$APK" "$APK.sha256" \
               --target "${{ github.sha }}" \
               --title "Lyra for Android ${{ steps.v.outputs.version }}" \
               --generate-notes $PRE \

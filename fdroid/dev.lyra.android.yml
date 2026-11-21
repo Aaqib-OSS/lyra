@@ -29,6 +29,7 @@ Builds:
     gradle:
       - yes
     prebuild:
+      - echo "lyraNoUpdater=true" >> ../gradle.properties
       - cd ../..
       - npm ci
       - npm run build:android-ui

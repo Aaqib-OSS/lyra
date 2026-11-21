@@ -423,6 +423,13 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
     compatibilityReport: () => rpc<string>('compatibilityReport'),
     recordVideo: (fromStart) => rpc<{ ok: boolean; error?: string }>('recordVideo', fromStart),
     addAmbientTile: () => rpc<boolean>('addAmbientTile'),
+    appUpdate: {
+      status: () => rpc('updateStatus'),
+      check: () => rpc('updateCheck'),
+      download: () => rpc('updateDownload'),
+      install: () => rpc('updateInstall'),
+      setSettings: (s) => rpc('updateSettings', s)
+    },
     setOverlay: (on) => rpc<{ ok: boolean; needsPermission?: boolean }>('overlaySet', on)
   }
 }

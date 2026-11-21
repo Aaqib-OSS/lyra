@@ -22,3 +22,16 @@ F-Droid is free and run by volunteers. It builds apps from source, signs them wi
 ## Releasing a new version
 1. Bump both numbers in `android/app/version.properties` (`versionCode` must always go up), and add `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
 2. Commit, then push a tag `android-v<versionName>`. The **Android** workflow checks the tag matches the file, builds and signs the APK, and attaches it to a GitHub release.
+
+## In-app updater and F-Droid / IzzyOnDroid
+
+The GitHub-release APK updates itself (`android/app/src/main/java/dev/lyra/android/update/`): WorkManager checks the releases
+every 12 h (Wi-Fi by default), downloads with resume, verifies the SHA-256 from the release's `.apk.sha256` asset and that the
+APK is signed by the installed app's certificate, then installs through a PackageInstaller session. It switches itself off when:
+
+- the build is compiled with `-PlyraNoUpdater` (the F-Droid recipe adds it in `prebuild`), or
+- the installer of record is F-Droid, a F-Droid client (Droid-ify, Neo Store, Foxy), the IzzyOnDroid app or Google Play.
+  IzzyOnDroid serves the same APK as GitHub, so that one is covered by the runtime check.
+
+The manifest still declares `REQUEST_INSTALL_PACKAGES` in those builds (the code path is dead there). If F-Droid reviewers
+object, add `tools:node="remove"` for it in a flavor.

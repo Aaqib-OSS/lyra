@@ -31,6 +31,12 @@ android {
         targetSdk = 36
         versionCode = lyraVersionCode
         versionName = lyraVersion
+        // F-Droid builds pass -PlyraNoUpdater (see fdroid/dev.lyra.android.yml): the in-app updater is compiled out
+        buildConfigField("boolean", "IN_APP_UPDATER", if (project.hasProperty("lyraNoUpdater")) "false" else "true")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     signingConfigs {
@@ -70,5 +76,8 @@ dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
     implementation("androidx.activity:activity-ktx:1.9.3")
 
+    implementation("androidx.work:work-runtime:2.10.0")
+
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303") // the android.jar stubs of org.json do nothing in unit tests
 }
