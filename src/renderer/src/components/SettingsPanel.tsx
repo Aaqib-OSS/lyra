@@ -610,7 +610,6 @@ export function SettingsPanel() {
   const set = useSettings((x) => x.set)
   const status = usePlayer((x) => x.status)
   const vibeWhy = useUi((x) => x.vibeWhy)
-  const vibeNowIsNone = true
   const [version, setVersion] = useState('')
   useEffect(() => {
     void window.lyra.app.info().then((i) => setVersion(i.version))
@@ -761,23 +760,6 @@ export function SettingsPanel() {
             ]}
           />
         </Row>
-        <Row label="Rim light" hint="A soft glow in the album's colour around the window edge">
-          <Toggle label="Rim light" checked={s.rimLight} onChange={up('rimLight')} />
-        </Row>
-        {s.vibe === 'none' && vibeNowIsNone && (
-          <Row label="Lyric style" hint="How the sung line is staged">
-          <Segmented
-            label="Lyric style"
-            value={s.lyricStyle}
-            onChange={up('lyricStyle')}
-            options={[
-              { v: 'classic', label: 'Classic' },
-              { v: 'kinetic', label: 'Kinetic' },
-              { v: 'constellation', label: 'Stars' }
-            ]}
-          />
-        </Row>
-        )}
         <More>
         <Row label="Performance" hint="Light saves battery and GPU: no live blur, no endless motion">
           <Segmented
@@ -812,22 +794,6 @@ export function SettingsPanel() {
         <Row label="Roman letters" hint="Under Hindi and Punjabi lyrics (reading help, not a translation)">
           <Toggle label="Romanized lyrics" checked={s.romanizeLyrics} onChange={up('romanizeLyrics')} />
         </Row>
-        <Row label="Typeface">
-          <Segmented
-            label="Typeface"
-            value={s.lyricFont}
-            onChange={up('lyricFont')}
-            options={[
-              { v: 'sans', label: 'Sans' },
-              { v: 'serif', label: 'Serif' },
-              { v: 'rounded', label: 'Round' },
-              { v: 'mono', label: 'Mono' }
-            ]}
-          />
-        </Row>
-        <Row label="Size">
-          <Slider label="Lyric size" value={s.lyricFontSize} min={24} max={72} step={2} onChange={up('lyricFontSize')} format={(v) => `${v}px`} />
-        </Row>
         <Row
           label="Highlight each word"
           info="Highlights each word as it is sung. Free lyrics only have one time per line, so Lyra estimates the word timing from syllables and pauses: close, but not perfect. If a source has real word timing, that is used instead."
@@ -836,21 +802,6 @@ export function SettingsPanel() {
           <Toggle label="Highlight each word" checked={s.wordByWord} onChange={up('wordByWord')} />
         </Row>
         <More>
-        <Row label="Line spacing">
-          <Slider label="Line spacing" value={s.lineSpacing} min={1} max={2} step={0.05} onChange={up('lineSpacing')} format={(v) => v.toFixed(2)} />
-        </Row>
-        <Row label="Animation">
-          <Segmented
-            label="Lyric animation"
-            value={s.lyricAnimation}
-            onChange={up('lyricAnimation')}
-            options={[
-              { v: 'glide', label: 'Glide' },
-              { v: 'focus', label: 'Focus' },
-              { v: 'fade', label: 'Fade' }
-            ]}
-          />
-        </Row>
         <Row label="Default sync offset" hint="Every song. Fine-tune under the lyrics">
           <Slider label="Sync offset" value={s.lyricOffsetMs} min={-3000} max={3000} step={50} onChange={up('lyricOffsetMs')} format={(v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)}s`} />
         </Row>
@@ -940,22 +891,6 @@ export function SettingsPanel() {
         <Row label="Hide while screen sharing" hint="Excluded from captures & recordings">
           <Toggle label="Hide while screen sharing" checked={s.hideOnScreenShare} onChange={up('hideOnScreenShare')} />
         </Row>
-        <More>
-        <Row label="Fullscreen layout" hint="When a video plays behind the lyrics">
-          <Segmented
-            label="Fullscreen layout"
-            value={s.fullLayout}
-            onChange={up('fullLayout')}
-            options={[
-              { v: 'auto', label: 'Auto' },
-              { v: 'cinema', label: 'Cinema' },
-              { v: 'split', label: 'Split' },
-              { v: 'poster', label: 'Poster' },
-              { v: 'focus', label: 'Focus' }
-            ]}
-          />
-        </Row>
-        </More>
       </section>
       )}
 

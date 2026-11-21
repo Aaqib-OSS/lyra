@@ -12,6 +12,60 @@ export interface CardInput {
   tint2: string
   /** classic: big type on the blurred cover; doodle: a dark card with hand-drawn marks on the words */
   style?: 'classic' | 'doodle'
+  /** the card's own look (colours, paper, handwriting): each vibe has one, see cardTheme */
+  theme?: CardTheme
+}
+
+
+/** How a doodle card looks for one vibe: the paper, the pen and the type. */
+export interface CardTheme {
+  bg: string
+  card: [string, string]
+  border: string
+  borderW: number
+  /** a hard offset shadow (sticker / arcade look); empty for none */
+  shadow: string
+  radius: number
+  ink: string
+  ink2: string
+  /** pen colours: underline, circle, strike-through, handwriting */
+  pen: [string, string, string, string]
+  accentMarks: string
+  font?: string
+  /** the font to wait for before drawing, e.g. '800 40px "Caveat"' */
+  load?: string
+  fontScale?: number
+  pattern: 'none' | 'grid' | 'lines' | 'scan' | 'dots'
+  patternColor: string
+  markBg: string
+  markInk: string
+}
+
+const DARK: CardTheme = {
+  bg: '#050505', card: ['#2c2928', '#1f1d1c'], border: 'rgba(255,255,255,0.08)', borderW: 2, shadow: '', radius: 72, ink: '#ffffff', ink2: 'rgba(255,255,255,0.78)',
+  pen: ['#ee6a62', '#d86bd0', '#e34a45', '#e9a6e4'], accentMarks: 'rgba(190,225,235,0.75)', pattern: 'none', patternColor: '', markBg: '#ffffff', markInk: '#111111'
+}
+
+/** One card per vibe, so the card you share looks like the screen you were looking at. */
+const THEMES: Record<string, Partial<CardTheme>> = {
+  neon: { bg: '#07020f', card: ['#1a0a33', '#0b0418'], border: '#ff3df2', borderW: 6, radius: 44, pen: ['#2ef2ff', '#ff3df2', '#ffe14d', '#7df9ff'], accentMarks: '#ff3df2', pattern: 'grid', patternColor: 'rgba(255,61,242,0.16)' },
+  chrome: { bg: '#0b0e14', card: ['#eef2f8', '#aab4c4'], border: '#ffffff', borderW: 6, radius: 90, ink: '#0b1220', ink2: '#2a3446', pen: ['#2b5cff', '#d6246e', '#0b1220', '#5b3df5'], accentMarks: '#2b5cff', pattern: 'lines', patternColor: 'rgba(255,255,255,0.35)', markBg: '#0b1220', markInk: '#ffffff' },
+  dream: { bg: '#1b1235', card: ['#f6edff', '#d8cbff'], border: '#ffffff', borderW: 5, radius: 110, ink: '#3a2a66', ink2: '#5b4a8a', pen: ['#ff7ab8', '#7a5cff', '#ff7ab8', '#6c4bd8'], accentMarks: '#7a5cff', pattern: 'dots', patternColor: 'rgba(122,92,255,0.18)', markBg: '#3a2a66', markInk: '#ffffff' },
+  crt: { bg: '#000000', card: ['#03150c', '#020d07'], border: '#35ff7a', borderW: 4, radius: 10, ink: '#b9ffcb', ink2: 'rgba(185,255,203,0.75)', pen: ['#35ff7a', '#ffe14d', '#ff5c5c', '#7dffb0'], accentMarks: '#35ff7a', font: "'VT323', monospace", load: '800 40px "VT323"', fontScale: 1.25, pattern: 'scan', patternColor: 'rgba(53,255,122,0.07)', markBg: '#35ff7a', markInk: '#021008' },
+  sticker: { bg: '#ffe94a', card: ['#ffffff', '#ffffff'], border: '#111111', borderW: 12, shadow: '#111111', radius: 48, ink: '#111111', ink2: '#333333', pen: ['#ff3d81', '#2b6bff', '#ff3d81', '#2b6bff'], accentMarks: '#ff8a00', font: "'Unbounded Variable', 'Nunito Variable', sans-serif", load: '800 40px "Unbounded Variable"', fontScale: 0.82, pattern: 'dots', patternColor: 'rgba(17,17,17,0.12)', markBg: '#111111', markInk: '#ffffff' },
+  chat: { bg: '#0a0f1f', card: ['#18213a', '#111a2e'], border: '#2f6bff', borderW: 3, radius: 64, pen: ['#5ad1ff', '#9b8cff', '#ff6b8b', '#9be7ff'], accentMarks: '#5ad1ff', pattern: 'none', markBg: '#2f6bff', markInk: '#ffffff' },
+  paper: { bg: '#e9dfc9', card: ['#fffaf0', '#fbf1dc'], border: '#2d2a3a', borderW: 5, shadow: 'rgba(45,42,58,0.35)', radius: 28, ink: '#2d2a3a', ink2: '#5a5568', pen: ['#e2554d', '#2f6bff', '#e2554d', '#2f6bff'], accentMarks: '#e2554d', font: "'Caveat', cursive", load: '700 40px "Caveat"', fontScale: 1.3, pattern: 'lines', patternColor: 'rgba(60,90,160,0.18)', markBg: '#2d2a3a', markInk: '#fffaf0' },
+  arcade: { bg: '#06061a', card: ['#101046', '#0a0a2e'], border: '#ffe600', borderW: 8, shadow: '#ff2d6f', radius: 0, ink: '#ffffff', ink2: '#c9c9ff', pen: ['#ffe600', '#00e5ff', '#ff2d6f', '#00e5ff'], accentMarks: '#ffe600', font: "'Press Start 2P', monospace", load: '40px "Press Start 2P"', fontScale: 0.5, pattern: 'grid', patternColor: 'rgba(0,229,255,0.12)', markBg: '#ffe600', markInk: '#06061a' },
+  noir: { bg: '#000000', card: ['#0c0c0c', '#050505'], border: '#ffffff', borderW: 3, radius: 6, ink: '#f4f4f4', ink2: 'rgba(244,244,244,0.7)', pen: ['#ffffff', '#cfcfcf', '#ffffff', '#cfcfcf'], accentMarks: '#ffffff', font: "'Iowan Old Style', 'Palatino Linotype', Georgia, serif", fontScale: 1, pattern: 'lines', patternColor: 'rgba(255,255,255,0.04)', markBg: '#ffffff', markInk: '#000000' },
+  sunset: { bg: '#240a3a', card: ['#ff8a5c', '#ff2e93'], border: '#ffd1a6', borderW: 5, radius: 80, ink: '#ffffff', ink2: 'rgba(255,255,255,0.88)', pen: ['#ffe14d', '#2a0b3d', '#2a0b3d', '#fff2b0'], accentMarks: '#ffe14d', pattern: 'lines', patternColor: 'rgba(255,255,255,0.1)', markBg: '#2a0b3d', markInk: '#ffffff' },
+  blocks: { bg: '#4b7d34', card: ['#8a8a8a', '#6b6b6b'], border: '#1d1d1d', borderW: 14, radius: 0, ink: '#ffffff', ink2: '#f0f0f0', pen: ['#ffe14d', '#55ff55', '#ff5555', '#55ffff'], accentMarks: '#55ff55', font: "'VT323', monospace", load: '800 40px "VT323"', fontScale: 1.25, pattern: 'grid', patternColor: 'rgba(0,0,0,0.12)', markBg: '#1d1d1d', markInk: '#ffffff', shadow: '#1d1d1d' },
+  stadium: { bg: '#04122b', card: ['#0b3b86', '#072a63'], border: '#ffd23f', borderW: 6, radius: 18, pen: ['#ffd23f', '#ffffff', '#ff5c5c', '#ffe9a0'], accentMarks: '#ffd23f', pattern: 'lines', patternColor: 'rgba(255,255,255,0.07)', markBg: '#ffd23f', markInk: '#04122b' },
+  cassette: { bg: '#2a1a0e', card: ['#ecdcc0', '#cdb893'], border: '#2a1a0e', borderW: 8, shadow: 'rgba(0,0,0,0.5)', radius: 28, ink: '#2a1a0e', ink2: '#4a3520', pen: ['#c8431b', '#1f5f8b', '#c8431b', '#1f5f8b'], accentMarks: '#c8431b', font: "'VT323', monospace", load: '800 40px "VT323"', fontScale: 1.25, pattern: 'lines', patternColor: 'rgba(42,26,14,0.1)', markBg: '#2a1a0e', markInk: '#ecdcc0' },
+  trailer: { bg: '#000000', card: ['#050505', '#000000'], border: '#c9a24a', borderW: 4, radius: 4, ink: '#f5e9c8', ink2: 'rgba(245,233,200,0.75)', pen: ['#c9a24a', '#f5e9c8', '#c9a24a', '#f5e9c8'], accentMarks: '#c9a24a', font: "'Iowan Old Style', 'Palatino Linotype', Georgia, serif", pattern: 'none', patternColor: '', markBg: '#c9a24a', markInk: '#000000' }
+}
+
+export function cardTheme(vibe: string): CardTheme {
+  return { ...DARK, ...(THEMES[vibe] ?? {}) }
 }
 
 export const CARD_W = 1080
@@ -60,6 +114,7 @@ export async function drawCard(canvas: HTMLCanvasElement, c: CardInput): Promise
   const ctx = canvas.getContext('2d')!
   const family = getComputedStyle(document.body).fontFamily || 'Inter, system-ui, sans-serif'
   const art = await loadImage(c.artworkUrl)
+  if (c.theme?.load) await document.fonts.load(c.theme.load).catch(() => undefined)
   if (c.style === 'doodle') return drawDoodle(ctx, c, art, family)
 
   // background: the song's colours, then a blurred cover, then a dark veil so the type stays readable
@@ -228,9 +283,11 @@ function face(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, 
 }
 
 function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageElement | null, family: string): boolean {
+  const th = c.theme ?? DARK
   const rnd = seeded(c.lines.join('|'))
-  // backdrop: near black, a breath of the song's colour at the corners
-  ctx.fillStyle = '#050505'
+  const linesFont = th.font ?? family
+  // backdrop: the vibe's ground, a breath of the song's colour in the corner
+  ctx.fillStyle = th.bg
   ctx.fillRect(0, 0, CARD_W, CARD_H)
   const glow = ctx.createRadialGradient(CARD_W * 0.8, CARD_H * 0.2, 0, CARD_W * 0.8, CARD_H * 0.2, 900)
   glow.addColorStop(0, c.accent)
@@ -242,49 +299,82 @@ function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageE
 
   // the card
   const cx = 56, cy = 330, cw = CARD_W - 112, ch = 1230
+  if (th.shadow) {
+    ctx.fillStyle = th.shadow
+    roundRect(ctx, cx + 22, cy + 22, cw, ch, th.radius)
+    ctx.fill()
+  }
   const grad = ctx.createLinearGradient(cx, cy, cx, cy + ch)
-  grad.addColorStop(0, '#2c2928')
-  grad.addColorStop(1, '#1f1d1c')
+  grad.addColorStop(0, th.card[0])
+  grad.addColorStop(1, th.card[1])
   ctx.fillStyle = grad
-  roundRect(ctx, cx, cy, cw, ch, 72)
+  roundRect(ctx, cx, cy, cw, ch, th.radius)
   ctx.fill()
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)'
-  ctx.lineWidth = 2
+  // paper: ruled lines, grid, dots or scan lines, clipped to the card
+  if (th.pattern !== 'none') {
+    ctx.save()
+    roundRect(ctx, cx, cy, cw, ch, th.radius)
+    ctx.clip()
+    ctx.strokeStyle = th.patternColor
+    ctx.fillStyle = th.patternColor
+    ctx.lineWidth = 2
+    const step = th.pattern === 'scan' ? 8 : th.pattern === 'lines' ? 74 : th.pattern === 'dots' ? 46 : 60
+    if (th.pattern === 'dots') {
+      for (let y = cy + 30; y < cy + ch; y += step) for (let x = cx + 30; x < cx + cw; x += step) { ctx.beginPath(); ctx.arc(x, y, 4, 0, 7); ctx.fill() }
+    } else {
+      for (let y = cy + step; y < cy + ch; y += step) { ctx.beginPath(); ctx.moveTo(cx, y); ctx.lineTo(cx + cw, y); ctx.stroke() }
+      if (th.pattern === 'grid') for (let x = cx + step; x < cx + cw; x += step) { ctx.beginPath(); ctx.moveTo(x, cy); ctx.lineTo(x, cy + ch); ctx.stroke() }
+    }
+    ctx.restore()
+  }
+  ctx.strokeStyle = th.border
+  ctx.lineWidth = th.borderW
+  roundRect(ctx, cx, cy, cw, ch, th.radius)
   ctx.stroke()
 
   // header: cover + title
   const pad = 70
   const cover = 156
+  const coverR = Math.min(30, th.radius)
   if (art) {
     ctx.save()
-    roundRect(ctx, cx + pad, cy + pad, cover, cover, 30)
+    roundRect(ctx, cx + pad, cy + pad, cover, cover, coverR)
     ctx.clip()
     ctx.drawImage(art, cx + pad, cy + pad, cover, cover)
     ctx.restore()
+    if (th.borderW >= 5) {
+      ctx.strokeStyle = th.border
+      ctx.lineWidth = Math.min(8, th.borderW)
+      roundRect(ctx, cx + pad, cy + pad, cover, cover, coverR)
+      ctx.stroke()
+    }
   }
   const hx = cx + pad + (art ? cover + 44 : 0)
   ctx.textBaseline = 'top'
-  ctx.fillStyle = '#fff'
-  ctx.font = `700 60px ${family}`
+  ctx.fillStyle = th.ink
+  ctx.font = `700 ${Math.round(60 * Math.min(1, (th.fontScale ?? 1) > 1 ? 1 : (th.fontScale ?? 1) * 1.2))}px ${th.font ?? family}`
   ctx.fillText(ellipsize(ctx, c.title, cx + cw - pad - hx), hx, cy + pad + 18)
-  ctx.fillStyle = 'rgba(255,255,255,0.78)'
+  ctx.fillStyle = th.ink2
   ctx.font = `500 46px ${family}`
   ctx.fillText(ellipsize(ctx, c.artist, cx + cw - pad - hx), hx, cy + pad + 96)
 
   // the lines
   const left = cx + pad
   const maxW = cw - pad * 2
-  let size = 118
+  const scale = th.fontScale ?? 1
+  let size = Math.round(118 * scale)
+  const minSize = Math.round(56 * scale)
   let rows: string[] = []
-  for (; size >= 56; size -= 4) {
-    ctx.font = `800 ${size}px ${family}`
+  for (; size >= minSize; size -= 4) {
+    ctx.font = `800 ${size}px ${linesFont}`
     rows = c.lines.flatMap((l) => wrap(ctx, l, maxW))
     if (rows.length * size * 1.42 <= 640) break
   }
+  size = Math.max(size, minSize)
   const lh = size * 1.42
   const top = cy + 330
-  ctx.fillStyle = '#fff'
-  ctx.font = `800 ${size}px ${family}`
+  ctx.fillStyle = th.ink
+  ctx.font = `800 ${size}px ${linesFont}`
   const spots: Array<{ x: number; y: number; w: number; text: string; row: number }> = []
   rows.forEach((row, r) => {
     const parts = row.split(' ')
@@ -306,38 +396,47 @@ function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageE
   const shorts = spots.filter((p) => p !== underlined && p !== circled && p.text.replace(/\W/g, '').length <= 4)
   const struck = shorts.length ? shorts[Math.floor(rnd() * shorts.length)]! : undefined
 
+  const [penUnder, penCircle, penStrike, penHand] = th.pen
   const base = size * 0.92
-  wobbleLine(ctx, underlined.x, underlined.y + base + 12, underlined.x + underlined.w, underlined.y + base + 14, '#ee6a62', 8, rnd)
-  if (circled) scribbleCircle(ctx, circled.x + circled.w / 2, circled.y + size * 0.52, circled.w / 2 + 26, size * 0.62, '#d86bd0', rnd)
+  wobbleLine(ctx, underlined.x, underlined.y + base + 12, underlined.x + underlined.w, underlined.y + base + 14, penUnder, 8, rnd)
+  if (circled) scribbleCircle(ctx, circled.x + circled.w / 2, circled.y + size * 0.52, circled.w / 2 + 26, size * 0.62, penCircle, rnd)
   if (struck) {
-    wobbleLine(ctx, struck.x - 6, struck.y + size * 0.34, struck.x + struck.w + 6, struck.y + size * 0.7, '#e34a45', 9, rnd)
-    wobbleLine(ctx, struck.x - 6, struck.y + size * 0.7, struck.x + struck.w + 6, struck.y + size * 0.34, '#e34a45', 9, rnd)
+    wobbleLine(ctx, struck.x - 6, struck.y + size * 0.34, struck.x + struck.w + 6, struck.y + size * 0.7, penStrike, 9, rnd)
+    wobbleLine(ctx, struck.x - 6, struck.y + size * 0.7, struck.x + struck.w + 6, struck.y + size * 0.34, penStrike, 9, rnd)
     ctx.save()
     ctx.translate(struck.x + struck.w * 0.1, struck.y - size * 0.34)
     ctx.rotate(-0.1)
-    ctx.fillStyle = '#e9a6e4'
-    ctx.font = `600 ${Math.round(size * 0.62)}px ${HAND}`
+    ctx.fillStyle = penHand
+    ctx.font = `600 ${Math.round(size * 0.62 * (scale < 1 ? 1.4 : 1))}px ${HAND}`
     ctx.fillText(SCRIBBLES[Math.floor(rnd() * SCRIBBLES.length)]!, 0, 0)
     ctx.restore()
   }
   const lastY = top + (rows.length - 1) * lh + size * 1.12
-  burst(ctx, left + 90, lastY + 8, 'rgba(190,225,235,0.75)', rnd)
-  face(ctx, cx + cw - pad - 90, lastY + 40, 46, 'rgba(120,200,200,0.85)', rnd() > 0.35, rnd)
+  burst(ctx, left + 90, lastY + 8, th.accentMarks, rnd)
+  face(ctx, cx + cw - pad - 90, lastY + 40, 46, th.accentMarks, rnd() > 0.35, rnd)
 
   // the mark
   const my = cy + ch - pad - 74
-  ctx.fillStyle = '#fff'
+  ctx.fillStyle = th.markBg
   ctx.beginPath(); ctx.arc(left + 37, my + 37, 37, 0, 7); ctx.fill()
-  ctx.fillStyle = '#111'
+  ctx.fillStyle = th.markInk
   ctx.font = `800 44px ${family}`
   ctx.textBaseline = 'middle'
   ctx.fillText('L', left + 26, my + 40)
-  ctx.fillStyle = '#fff'
+  ctx.fillStyle = th.ink
   ctx.font = `800 58px ${family}`
   ctx.fillText('Lyra', left + 90, my + 40)
   ctx.textBaseline = 'top'
-  ctx.fillStyle = 'rgba(255,255,255,0.5)'
+  // the site line sits on the ground, below the card: pick whichever of white / black reads on the ground colour
+  ctx.fillStyle = luminance(th.bg) > 0.5 ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.55)'
   ctx.font = `500 30px ${family}`
   ctx.fillText(SITE, CARD_W / 2 - ctx.measureText(SITE).width / 2, cy + ch + 70)
   return true
+}
+
+function luminance(hex: string): number {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex)
+  if (!m) return 0
+  const n = parseInt(m[1]!, 16)
+  return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255
 }

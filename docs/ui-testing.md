@@ -14,3 +14,7 @@ A screen fails when: text is clipped or leaves the window, controls are outside 
 Failing screenshots land in `ui-test-out/shots/` (git-ignored). Options: `--vibe=neon,dream`, `--device=phone,win-full`, `--video`, `--shots` (keep every screenshot), `--workers=4`.
 
 The harness has switches for edge cases: `?vs=` (video: searching, nokey, none, error, live, preview), `?ly=` (lyrics: offline, resting, error, none, stale), `?lang=hi|pa`, `?android=1`, `?paused=1&t=<ms>` (freeze at a position).
+
+
+## Lyrics-state matrix
+`npm run test:ui:states` renders every vibe on phone, tablet landscape, Windows 1366x768 and the mini player with `?ly=plain`, `?ly=none` and `?ly=offline`; it fails on clipping, contrast, an empty screen, or plain lyrics not shown (`.plain__stanza`).

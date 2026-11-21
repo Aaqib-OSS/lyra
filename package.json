@@ -1,7 +1,7 @@
 {
   "name": "lyra",
   "productName": "Lyra",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Glassmorphism lyrics & playback companion for Spotify",
   "author": "Dhruv Harani",
   "license": "MIT",
@@ -22,6 +22,7 @@
     "dist:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dist-local.ps1",
     "test:ui": "node scripts/ui-test/run.mjs",
     "test:ui:quick": "node scripts/ui-test/run.mjs --quick",
+    "test:ui:states": "node scripts/ui-test/run.mjs --states",
     "test:settings": "node scripts/ui-test/settings.mjs",
     "test:ui:layouts": "node scripts/ui-test/run.mjs --layouts"
   },

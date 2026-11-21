@@ -10,7 +10,7 @@ import { useUi } from '@/store/ui'
 /** The vibe and lyric style in effect: the saved choice, or the one picked for this song by cycle / smart mode. */
 export function effectiveVibe(s: Settings, vibeNow: Vibe | null): { vibe: Vibe; style: LyricStyle } {
   const vibe = s.vibeMode === 'fixed' || !vibeNow ? s.vibe : vibeNow
-  const style = vibe === 'none' ? s.lyricStyle : s.vibeMode === 'fixed' && vibe === s.vibe ? s.lyricStyle : vibeInfo(vibe).style
+  const style = vibeInfo(vibe).style // fixed per vibe: the listener does not pick how the sung line is staged
   return { vibe, style }
 }
 

@@ -1,5 +1,7 @@
 # Fixed UI per vibe: the state matrix
 
+> **Status (0.20.0):** user layout settings removed; `npm run test:ui:states` renders every vibe x phone/tablet/Windows 768/mini x lyrics plain/none/offline. Designed per-cell screens and the video states are still open.
+
 **Decision (owner, 2026-11-21):** users do not arrange the UI. For every vibe we ship one fixed, designed screen for every combination of *state* and *device*, and improve them from feedback. Remove user layout controls from Settings.
 
 ## 1. Axes

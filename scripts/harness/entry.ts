@@ -35,6 +35,7 @@ const lyricsFor = (id: string): unknown => {
   if (ly === 'offline') return { trackId: id, status: 'error', provider: 'lrclib', lines: [], error: { kind: 'network', message: 'offline', retryable: true } }
   if (ly === 'resting') return { trackId: id, status: 'error', provider: 'lrclib', lines: [], error: { kind: 'rate-limit', message: 'resting', retryable: true, retryInSec: 24 } }
   if (ly === 'error') return { trackId: id, status: 'error', provider: 'lrclib', lines: [], error: { kind: 'server', message: 'boom', retryable: true } }
+  if (ly === 'plain') return { trackId: id, status: 'plain', provider: 'lrclib', lines: [], plain: 'First verse goes here\nSecond line of the verse\nAnother line of words\n\nChorus starts right here\nSing it out loud tonight\nHold the final note' }
   if (ly === 'none') return { trackId: id, status: 'none', provider: 'lrclib', lines: [] }
   if (ly === 'stale') return { ...demoLyrics(id), stale: true }
   return demoLyrics(id)
@@ -46,7 +47,7 @@ const api: any = {
   window: { setMode: noop, getMode: async () => (q.get('mode') ?? 'mini'), onMode: sub, onFade: sub, settle() {}, resizeStart() {}, resizeMove() {}, resizeEnd() {}, dragStart() {}, dragMove() {}, dragEnd() {}, hide() {}, minimize() {}, quit() {} },
   spotify: { connect: noop, disconnect: noop, startDemo: noop, useLocal: noop, getStatus: async () => ({ state: 'demo' }), getSnapshot: async () => snap(), onStatus: sub, onPlayback: (cb: (s: PlaybackSnapshot) => void) => { playbackListeners.push(cb); return () => {} } },
   player: { command: async () => ({ ok: true }), isLiked: async () => false, setLiked: async () => ({ ok: true }), queue: async () => DEMO_TRACKS.slice(1).map((t) => ({ id: t.id, title: t.title, artists: t.artists, artworkUrl: t.artworkUrl })), recent: async () => [], openInSpotify: noop },
-  // ?ly= simulates the lyrics outcome: offline | resting | error | none | stale
+  // ?ly= simulates the lyrics outcome: offline | resting | error | none | plain | stale
   lyrics: {
     get: async (t: { id: string }) => lyricsFor(t.id),
     refresh: async (t: { id: string }) => lyricsFor(t.id),
