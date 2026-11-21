@@ -132,6 +132,15 @@
 /* word-by-word fill */
 .word {
   --p: 0;
+  /*
+   * Keep timed chunks inline so adjacent parts of a word share a shaping run.
+   * The default sliced inline background continues across wrapped fragments,
+   * preserving the fill's reading order when a word spans multiple lines.
+   * Vertical padding gives tall glyphs and Indic marks paint room without
+   * inserting horizontal gaps between adjacent chunks.
+   */
+  display: inline;
+  padding-block: 0.08em;
   background: linear-gradient(
     90deg,
     var(--fg) 0,
@@ -141,6 +150,14 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* Keep paint room at the outside edges without separating timed chunks. */
+.word:first-child {
+  padding-inline-start: 0.06em;
+}
+.word:last-child {
+  padding-inline-end: 0.06em;
 }
 
 /* instrumental break */
