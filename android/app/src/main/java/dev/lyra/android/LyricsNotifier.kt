@@ -250,14 +250,14 @@ class LyricsNotificationService : Service() {
             PendingIntent.FLAG_IMMUTABLE
         )
         val b = Notification.Builder(this, CHANNEL)
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(R.drawable.ic_stat_lyra)
             .setContentIntent(open)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setCategory(Notification.CATEGORY_TRANSPORT)
             .setVisibility(if (publicLock) Notification.VISIBILITY_PUBLIC else Notification.VISIBILITY_PRIVATE)
-            .setPublicVersion(Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_media_play).setContentTitle("Lyra").setContentText("Lyrics are on").build())
+            .setPublicVersion(Notification.Builder(this, CHANNEL).setSmallIcon(R.drawable.ic_stat_lyra).setContentTitle("Lyra").setContentText("Lyrics are on").build())
 
         if (now == null || now.isAd) {
             return b.setContentTitle("Lyra").setContentText(if (now?.isAd == true) "Ad playing" else "Nothing playing").build()
@@ -270,12 +270,12 @@ class LyricsNotificationService : Service() {
             .setColor(tint(now.art))
             .setColorized(true)
             .setStyle(Notification.MediaStyle().setMediaSession(ensureSession().sessionToken).setShowActionsInCompactView(0, 1, 2))
-            .addAction(action(android.R.drawable.ic_media_previous, "Previous", "dev.lyra.android.PREV"))
+            .addAction(action(R.drawable.ic_w_prev, "Previous", "dev.lyra.android.PREV"))
             .addAction(
-                if (now.playing) action(android.R.drawable.ic_media_pause, "Pause", "dev.lyra.android.TOGGLE")
-                else action(android.R.drawable.ic_media_play, "Play", "dev.lyra.android.TOGGLE")
+                if (now.playing) action(R.drawable.ic_w_pause, "Pause", "dev.lyra.android.TOGGLE")
+                else action(R.drawable.ic_w_play, "Play", "dev.lyra.android.TOGGLE")
             )
-            .addAction(action(android.R.drawable.ic_media_next, "Next", "dev.lyra.android.NEXT"))
+            .addAction(action(R.drawable.ic_w_next, "Next", "dev.lyra.android.NEXT"))
             .build()
     }
 
