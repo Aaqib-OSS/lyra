@@ -101,9 +101,10 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
-      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title' || mode === 'ink' || mode === 'glitch' || mode === 'bubble' || mode === 'spray' || mode === 'intertitle' || mode === 'note' || mode === 'label') && <Sign lines={lines} active={active} variant={mode} />}
+      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title' || mode === 'ink' || mode === 'glitch' || mode === 'bubble' || mode === 'spray' || mode === 'intertitle' || mode === 'note' || mode === 'label' || mode === 'metro' || mode === 'weave' || mode === 'picto' || mode === 'wall' || mode === 'flap') && <Sign lines={lines} active={active} variant={mode} />}
       {mode === 'bloom' && <Bloom lines={lines} active={active} />}
       {mode === 'log' && <TermLog lines={lines} active={active} />}
+      {(mode === 'lockscreen' || mode === 'wallet' || mode === 'route' || mode === 'editor') && <Feed lines={lines} active={active} variant={mode} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -641,12 +642,12 @@ const Sign = memo(function Sign({ lines, active, variant }: { lines: readonly Ly
   return (
     <div className={`sign sign--${variant}`}>
       <AnimatePresence mode="wait" initial={false}>
-        {live && <SignLine key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} next={next?.text} />}
+        {live && <SignLine key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} next={next?.text} variant={variant} />}
       </AnimatePresence>
     </div>
   )
 })
-const SignLine = memo(function SignLine({ line, index, nextTime, next }: { line: LyricLine; index: number; nextTime: number | undefined; next: string | undefined }) {
+const SignLine = memo(function SignLine({ line, index, nextTime, next, variant }: { line: LyricLine; index: number; nextTime: number | undefined; next: string | undefined; variant: string }) {
   const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
   const revealed = useRevealed(words)
   // one word per line flickers now and then, like a tired tube (picked from the line itself so it stays put)
@@ -654,8 +655,23 @@ const SignLine = memo(function SignLine({ line, index, nextTime, next }: { line:
   const row = (
     <>
       {words.map((w, i) => (
-        <span key={i} className={['sign__word', i < revealed ? 'is-in' : '', i === revealed - 1 ? 'is-now' : '', i === tired ? 'is-tired' : ''].join(' ')}>
-          {w.text}
+        <span
+          key={i}
+          className={['sign__word', i < revealed ? 'is-in' : '', i === revealed - 1 ? 'is-now' : '', i === tired ? 'is-tired' : ''].join(' ')}
+          style={{ ['--wi' as string]: i, ['--wn' as string]: words.length }}
+        >
+          {variant === 'flap'
+            ? Array.from(w.text).map((c, j) => (
+                <span key={j} className="sign__ch" style={{ ['--i' as string]: j }}>
+                  {c}
+                </span>
+              ))
+            : w.text}
+          {variant === 'picto' && pictoFor(w.text) && (
+            <svg className="sign__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d={pictoFor(w.text)!} />
+            </svg>
+          )}
         </span>
       ))}
     </>
@@ -741,5 +757,76 @@ const TermRow = memo(function TermRow({ line, current, nextTime }: { line: Lyric
         ))}
       </span>
     </div>
+  )
+})
+
+// ---------- picto: a small icon of our own beside the words that have one ----------
+const PICTO: Record<string, string> = {
+  moon: 'M20 14A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 10Z',
+  sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z',
+  star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z',
+  fire: 'M12 3c1 3 4 4.5 4 8.5A4 4 0 0 1 8 12c0-1.5.6-2.6 1.5-3.5C10 7 11.5 5.5 12 3Z',
+  drop: 'M12 3s6 6 6 10.5A6 6 0 0 1 6 13.5C6 9 12 3 12 3Z',
+  bolt: 'M13 2 5 13h6l-1 9 8-11h-6l1-9Z',
+  note: 'M9 18V6l10-2v12M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3Zm10-2a3 3 0 1 1-3-3 3 3 0 0 1 3 3Z',
+  road: 'M7 22 10 2m7 20L14 2M12 4v3m0 4v3m0 4v3',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Zm10-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z'
+}
+const PICTO_WORDS: Record<string, string> = {
+  moon: 'moon', moonlight: 'moon', night: 'moon', sun: 'sun', sunshine: 'sun', sunset: 'sun', morning: 'sun', day: 'sun',
+  heart: 'heart', hearts: 'heart', love: 'heart', loved: 'heart', star: 'star', stars: 'star', shine: 'star', shining: 'star',
+  fire: 'fire', burn: 'fire', burning: 'fire', flame: 'fire', hot: 'fire', rain: 'drop', tears: 'drop', cry: 'drop', crying: 'drop',
+  river: 'drop', rivers: 'drop', water: 'drop', ocean: 'drop', sea: 'drop', lightning: 'bolt', thunder: 'bolt', storm: 'bolt',
+  electric: 'bolt', power: 'bolt', song: 'note', sing: 'note', music: 'note', melody: 'note', dance: 'note', dancing: 'note',
+  sound: 'note', road: 'road', roads: 'road', drive: 'road', driving: 'road', highway: 'road', street: 'road', streets: 'road',
+  walk: 'road', eyes: 'eye', eye: 'eye', see: 'eye', look: 'eye', watch: 'eye', watching: 'eye'
+}
+function pictoFor(word: string): string | null {
+  const key = PICTO_WORDS[word.toLowerCase().replace(/[^a-z']/g, '')]
+  return key ? PICTO[key]! : null
+}
+
+// ---------- feed: the song as a growing list of cards / rows (lock screen notifications, wallet payments, code lines, route pins) ----------
+const Feed = memo(function Feed({ lines, active, variant }: { lines: readonly LyricLine[]; active: number; variant: string }) {
+  const ids: number[] = []
+  for (let i = active; i >= 0 && ids.length < 5; i--) if (lines[i] && lines[i]!.text !== '') ids.unshift(i)
+  return (
+    <div className={`feed feed--${variant}`}>
+      <AnimatePresence initial={false}>
+        {ids.map((i, n) => (
+          <FeedRow key={i} line={lines[i]!} index={i} nextTime={lines[i + 1]?.timeMs} age={ids.length - 1 - n} />
+        ))}
+      </AnimatePresence>
+    </div>
+  )
+})
+const FeedRow = memo(function FeedRow({ line, index, nextTime, age }: { line: LyricLine; index: number; nextTime: number | undefined; age: number }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words, age > 0)
+  const mm = String(Math.floor(line.timeMs / 60000)).padStart(1, '0')
+  const ss = String(Math.floor((line.timeMs % 60000) / 1000)).padStart(2, '0')
+  const amount = (words.length * 0.37 + (index % 7) * 0.11).toFixed(2)
+  return (
+    <motion.div
+      layout
+      className={`feed__row ${age === 0 ? 'is-current' : ''}`}
+      data-age={Math.min(age, 4)}
+      style={{ ['--age' as string]: age, ['--ln' as string]: index + 1 }}
+      initial={{ opacity: 0, y: -26, scale: 0.94 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+      transition={{ type: 'spring', stiffness: 360, damping: 30 }}
+    >
+      <span className="feed__time">{mm}:{ss}</span>
+      <span className="feed__txt">
+        {words.map((w, i) => (
+          <span key={i} className={['feed__word', i < revealed ? 'is-in' : '', age === 0 && i === revealed - 1 ? 'is-now' : ''].join(' ')}>
+            {w.text}{' '}
+          </span>
+        ))}
+      </span>
+      <span className="feed__amt">+{amount}</span>
+    </motion.div>
   )
 })

@@ -41,7 +41,17 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'comic', layout: 'scene', style: 'bubble', name: 'Pop Comic', tag: 'Halftone page, speech bubbles, POW' },
   { id: 'stencil', layout: 'scene', style: 'spray', name: 'Stencil', tag: 'Sprayed on a concrete wall' },
   { id: 'film', layout: 'scene', style: 'intertitle', name: 'Film Reel', tag: 'Running film stock, silent-film titles' },
-  { id: 'filmstrip', layout: 'scene', style: 'intertitle', name: 'Film Strip', tag: 'The film advances frame by frame (draft B)' }
+  { id: 'filmstrip', layout: 'scene', style: 'intertitle', name: 'Film Strip', tag: 'The film advances frame by frame (draft B)' },
+  { id: 'lock', layout: 'scene', style: 'lockscreen', name: 'Lock Screen', tag: 'Each line arrives as a notification' },
+  { id: 'wallet', layout: 'scene', style: 'wallet', name: 'Wallet', tag: 'The song as a run of payments' },
+  { id: 'route', layout: 'scene', style: 'route', name: 'Route', tag: 'A pin for every line on a map' },
+  { id: 'editor', layout: 'scene', style: 'editor', name: 'Editor', tag: 'The lyric as code in an editor' },
+  { id: 'metro', layout: 'scene', style: 'metro', name: 'Metro', tag: 'A transit line, a station per word' },
+  { id: 'web', layout: 'scene', style: 'weave', name: 'Web', tag: 'Every line spun on a web' },
+  { id: 'lens', layout: 'scene', style: 'bloom', name: 'Lens', tag: 'Words bulge through a glass lens' },
+  { id: 'picto', layout: 'scene', style: 'picto', name: 'Picto', tag: 'A small icon beside the words that have one' },
+  { id: 'wall', layout: 'scene', style: 'wall', name: 'Drift Wall', tag: 'Words land on a wall that drifts in 3D' },
+  { id: 'flap', layout: 'scene', style: 'flap', name: 'Split-flap', tag: 'An airport board, every letter flips' }
 ]
 
 export const ALL_VIBES: readonly Vibe[] = VIBES.map((v) => v.id)
@@ -92,6 +102,16 @@ const WORDS: Partial<Record<Vibe, { re: RegExp; why: string }>> = {
   glitch: { re: /\b(broken|break|breaking|static|noise|lost|crash|crashing|fall|falling|burn|burning|fire|scream|screaming|run|running|chaos|mess|wrong|numb|signal)\b/g, why: 'broken, noisy words' },
   comic: { re: /\b(boom|bang|pow|wow|crazy|wild|super|hero|power|fight|crash|jump|shout|loud|fire|thunder|yeah|hey|go|run)\b/g, why: 'loud, punchy words' },
   stencil: { re: /\b(street|streets|city|wall|walls|fight|rebel|rise|riot|noise|loud|fire|burn|young|wild|run|running|freedom|revolution|gang|block|hood|concrete|power)\b/g, why: 'street words' },
+  lock: { re: /(phone|call|text|message|messages|night|alone|wait|waiting|miss|missing|late|tonight)/g, why: 'late-night words' },
+  wallet: { re: /(money|pay|paid|cash|gold|rich|cost|price|bank|worth|spend|dollar|dollars|coin|coins)/g, why: 'money words' },
+  route: { re: /(road|roads|map|lost|found|north|south|east|west|home|miles|far|travel|journey|way|walk|walking)/g, why: 'journey words' },
+  editor: { re: /(code|machine|digital|system|data|loop|run|running|signal|binary|wire|robot)/g, why: 'machine words' },
+  metro: { re: /(train|station|track|tracks|line|lines|city|move|moving|ride|riding|stop|stops|travel)/g, why: 'train words' },
+  web: { re: /(web|thread|threads|spin|caught|trap|tangled|silk|spider|net|tie|bound)/g, why: 'web words' },
+  lens: { re: /(eye|eyes|look|see|seeing|vision|focus|blur|glass|mirror|watch|watching)/g, why: 'seeing words' },
+  picto: { re: /(moon|sun|star|stars|heart|fire|rain|love|light|sky|dream)/g, why: 'picture words' },
+  wall: { re: /(wall|walls|stone|build|built|break|brick|door|doors|room|rooms|house)/g, why: 'wall words' },
+  flap: { re: /(fly|flying|flight|gone|leave|leaving|goodbye|travel|airport|sky|plane|going)/g, why: 'departure words' },
   filmstrip: { re: /(film|movie|scene|camera|memory|memories|yesterday|old|golden|shadow|shadows|remember|years|time|story|once|reel)/g, why: 'film words' },
   film: { re: /\b(film|movie|scene|camera|memory|memories|yesterday|old|golden|lights?|shadow|shadows|summer|dance|dancing|remember|years|time|story|once)\b/g, why: 'cinematic, nostalgic words' },
   chrome: { re: /\b(future|shine|shiny|silver|chrome|gold|diamond|mirror|glass|crystal|space|rocket|baby|girl|boy|money)\b/g, why: 'shiny words' }

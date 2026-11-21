@@ -408,6 +408,95 @@ function BlocksFx() {
   )
 }
 
+/** The ten looks inspired by the phone-screen / motion-scene styles: shared shell, each one adds its own few pieces. */
+const NEW_LOOKS = ['lock', 'wallet', 'route', 'editor', 'metro', 'web', 'lens', 'picto', 'wall', 'flap']
+function NewLookFx({ vibe }: { vibe: string }) {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    if (vibe !== 'lock') return
+    const id = setInterval(() => setNow(new Date()), 15000)
+    return () => clearInterval(id)
+  }, [vibe])
+  const web = useMemo(() => {
+    const cx = 200
+    const cy = 230
+    const spokes = Array.from({ length: 16 }, (_, i) => {
+      const a = (i / 16) * Math.PI * 2
+      return `M${cx} ${cy} L${(cx + Math.cos(a) * 900).toFixed(1)} ${(cy + Math.sin(a) * 900).toFixed(1)}`
+    }).join(' ')
+    const rings = Array.from({ length: 9 }, (_, r) => {
+      const rad = 40 + r * 62
+      return Array.from({ length: 16 }, (_, i) => {
+        const a = (i / 16) * Math.PI * 2
+        const sag = 0.93 + 0.05 * Math.sin(i * 1.7 + r)
+        return `${i ? 'L' : 'M'}${(cx + Math.cos(a) * rad * sag).toFixed(1)} ${(cy + Math.sin(a) * rad * sag).toFixed(1)}`
+      }).join(' ') + ' Z'
+    }).join(' ')
+    return spokes + ' ' + rings
+  }, [])
+  const hh = String(now.getHours()).padStart(2, '0')
+  const mm = String(now.getMinutes()).padStart(2, '0')
+  const date = now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
+  return (
+    <div className="nvfx">
+      {vibe === 'lock' && (
+        <div className="nvfx__clock">
+          <b>{hh}:{mm}</b>
+          <span>{date}</span>
+        </div>
+      )}
+      {vibe === 'wallet' && (
+        <div className="nvfx__head">
+          Activity
+          <small>Every line, paid in full</small>
+        </div>
+      )}
+      {vibe === 'route' && (
+        <>
+          <div className="nvfx__map" />
+          <svg className="nvfx__river" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M-20 430 C 200 360 300 490 520 440 S 860 360 1020 410" />
+          </svg>
+          <svg className="nvfx__route" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M60 530 C 200 430 260 390 380 370 S 560 310 700 230 S 900 130 990 60" />
+          </svg>
+        </>
+      )}
+      {vibe === 'editor' && (
+        <>
+          <div className="nvfx__gutter" />
+          <div className="nvfx__tabs">
+            <span>lyrics.ts</span>
+            <span>notes.md</span>
+          </div>
+        </>
+      )}
+      {vibe === 'metro' && (
+        <svg className="nvfx__lines" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M-20 120 H420 L520 220 H1020" stroke="#ff3b6b" />
+          <path d="M-20 440 H240 L340 340 H760 L860 440 H1020" stroke="#35c6ff" />
+          <path d="M620 -20 V150 L700 230 V580" stroke="#ffd23f" />
+        </svg>
+      )}
+      {vibe === 'web' && (
+        <svg className="nvfx__web" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <path d={web} />
+        </svg>
+      )}
+      {vibe === 'lens' && <i className="nvfx__lens" />}
+      {vibe === 'picto' && <div className="nvfx__plus" />}
+      {vibe === 'wall' && <div className="nvfx__panels" />}
+      {vibe === 'flap' && (
+        <div className="nvfx__board">
+          <span>Departures</span>
+          <span>LY 208 · gate 4</span>
+        </div>
+      )}
+      <SceneWindow />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -503,6 +592,7 @@ export function VibeFx() {
       {vibe === 'chrome' && <ChromeFx sparkles={sparkles} />}
       {vibe === 'sticker' && <StickerFx />}
       {vibe === 'chat' && <DmFx />}
+      {NEW_LOOKS.includes(vibe) && <NewLookFx vibe={vibe} />}
     </div>
   )
 }
