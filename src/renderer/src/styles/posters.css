@@ -108,3 +108,12 @@
 
 /* ---- Pop Comic: a boxed panel with a burst ---- */
 [data-vibe='comic'] .artwork--lift { outline: 6px solid #111; outline-offset: 0; box-shadow: 10px 10px 0 6px #111 !important; border-radius: 6px !important; --tilt: -1.5deg; animation: pz-wobble 5s ease-in-out infinite; }
+
+/* ---- Stencil: spray-painted edge and an orange tag ---- */
+[data-vibe='stencil'] .artwork--lift { outline: 4px solid #ff6a00; outline-offset: 0; box-shadow: 8px 8px 0 4px #000 !important; border-radius: 2px !important; --tilt: -1.5deg; animation: pz-wobble 6s ease-in-out infinite; }
+[data-vibe='stencil'] .artwork__deco--a { left: 0; right: 0; bottom: 0; height: 16%; background: #ff6a00; color: #140d06; font: 900 10px/1.6 system-ui, sans-serif; letter-spacing: .3em; text-align: center; display: block; }
+[data-vibe='stencil'] .artwork__deco--a::after { content: 'LYRA'; }
+/* ---- Film Reel: a frame from the strip with grain and flicker ---- */
+[data-vibe='film'] .artwork--lift { outline: 8px solid #0d0804; outline-offset: 0; box-shadow: 0 0 0 10px #3a2615, 0 24px 50px rgba(0,0,0,.8) !important; border-radius: 2px !important; filter: sepia(.55) contrast(1.05); animation: pz-flick 3s steps(1) infinite; }
+[data-vibe='film'] .artwork__deco--a { top: 0; bottom: 0; left: -14px; width: 8px; background: repeating-linear-gradient(180deg, #f6e9cf 0 6px, transparent 6px 14px); display: block; }
+[data-vibe='film'] .artwork__deco--b { top: 0; bottom: 0; right: -14px; width: 8px; background: repeating-linear-gradient(180deg, #f6e9cf 0 6px, transparent 6px 14px); display: block; }

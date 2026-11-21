@@ -80,6 +80,11 @@ const more = async (p) => { for (const d of await p.locator('details.more:not([o
   const dim = p.locator('[aria-label="Background dim"]')
   check('Video: the dim slider exists', (await dim.count()) === 1)
   check('Video: the video switch exists', (await p.locator('[aria-label="Video behind the lyrics"]').count()) === 1)
+  await more(p)
+  const gate = p.locator('[aria-label="Wait a moment for lyrics"]')
+  check('Video: "Wait a moment for lyrics" exists and is OFF by default', (await gate.count()) === 1 && (await gate.getAttribute('aria-checked')) === 'false')
+  await gate.click(); await p.waitForTimeout(150)
+  check('Video: "Wait a moment for lyrics" flips and is saved', (await gate.getAttribute('aria-checked')) === 'true')
   await p.close()
 }
 

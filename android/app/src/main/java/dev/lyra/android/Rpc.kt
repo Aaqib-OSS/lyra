@@ -83,6 +83,11 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
         when (req.optString("method")) {
             "snapshot" -> ui { ok(MediaMonitor.snapshotJson(ctx)) }
             "status" -> ui { ok(MediaMonitor.statusJson(ctx)) }
+            "queue" -> ui { ok(MediaMonitor.queueJson()) }
+            "widgetVibe" -> ui {
+                LyraWidgetUpdater.setVibe(ctx, args.optString(0, ""))
+                ok(true)
+            }
             "command" -> ui { ok(MediaMonitor.command(args.getString(0))) }
             "hasAccess" -> ok(MediaMonitor.hasAccess(ctx))
             "refresh" -> {

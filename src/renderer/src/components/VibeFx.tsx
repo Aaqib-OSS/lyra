@@ -112,6 +112,21 @@ export function VibeFx() {
           </svg>
         </>
       )}
+      {vibe === 'stencil' && (
+        <>
+          <div className="vibefx__concrete" />
+          <div className="vibefx__drips" />
+        </>
+      )}
+      {vibe === 'film' && (
+        <>
+          <div className="vibefx__grain" />
+          <div className="vibefx__leak" />
+          <div className="vibefx__flicker" />
+          <div className="vibefx__strip vibefx__strip--l" />
+          <div className="vibefx__strip vibefx__strip--r" />
+        </>
+      )}
       {vibe === 'comic' && (
         <>
           <div className="vibefx__halftone" />
