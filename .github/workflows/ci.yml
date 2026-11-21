@@ -34,6 +34,8 @@ jobs:
       - run: npm run test:ui:quick
       - run: npm run test:settings
       - run: npm run test:ui:states
+      - name: Install ffmpeg (makes the test clip for the video pause/resume check)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - run: npm run test:video
       - uses: actions/upload-artifact@v7
         if: failure()
