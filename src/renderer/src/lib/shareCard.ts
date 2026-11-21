@@ -1,3 +1,4 @@
+import { KITS, drawDecor, underline } from './cardDoodles'
 /**
  * Draws a shareable lyric card (story size, 1080x1920) on a canvas: the song's colours, a soft blurred cover,
  * a few chosen lines in big type, the song title and a small Lyra mark. Entirely local; nothing is uploaded.
@@ -19,6 +20,8 @@ export interface CardInput {
 
 /** How a doodle card looks for one vibe: the paper, the pen and the type. */
 export interface CardTheme {
+  /** which doodle kit this card draws with (see cardDoodles.ts) */
+  kit?: string
   bg: string
   card: [string, string]
   border: string
@@ -69,8 +72,30 @@ const THEMES: Record<string, Partial<CardTheme>> = {
   trailer: { bg: '#000000', card: ['#050505', '#000000'], border: '#c9a24a', borderW: 4, radius: 4, ink: '#f5e9c8', ink2: 'rgba(245,233,200,0.75)', pen: ['#c9a24a', '#f5e9c8', '#c9a24a', '#f5e9c8'], accentMarks: '#c9a24a', font: "'Iowan Old Style', 'Palatino Linotype', Georgia, serif", pattern: 'none', patternColor: '', markBg: '#c9a24a', markInk: '#000000' }
 }
 
+/** the ten newer looks, each with its own paper and pen */
+Object.assign(THEMES, {
+  lock: { bg: '#2a1a5c', card: ['#6a5aa8', '#4a3a88'], border: 'rgba(255,255,255,0.55)', borderW: 3, radius: 96, pen: ['#ffffff', '#ffd0f4', '#ffffff', '#cfe0ff'], accentMarks: '#ffffff' },
+  wallet: { bg: '#07140e', card: ['#123023', '#0b2017'], border: '#35e08a', borderW: 4, radius: 40, ink: '#e9fff3', ink2: 'rgba(233,255,243,0.75)', pen: ['#35e08a', '#ffd84a', '#ff6b6b', '#8cf5bf'], accentMarks: '#35e08a', markBg: '#35e08a', markInk: '#07140e' },
+  route: { bg: '#07101e', card: ['#10203a', '#0b172b'], border: '#4da3ff', borderW: 4, radius: 40, pen: ['#4da3ff', '#ffd84a', '#ff6b6b', '#9fd0ff'], accentMarks: '#4da3ff', pattern: 'lines', patternColor: 'rgba(77,163,255,0.1)', markBg: '#4da3ff', markInk: '#07101e' },
+  editor: { bg: '#141414', card: ['#1e1e1e', '#181818'], border: '#007acc', borderW: 4, radius: 6, ink: '#d4d4d4', ink2: 'rgba(212,212,212,0.7)', pen: ['#4ec9b0', '#ce9178', '#f44747', '#9cdcfe'], accentMarks: '#569cd6', font: "'Cascadia Code', Consolas, monospace", pattern: 'lines', patternColor: 'rgba(255,255,255,0.04)', markBg: '#007acc', markInk: '#ffffff', fontScale: 0.82 },
+  metro: { bg: '#15151a', card: ['#f4f1ea', '#e9e5da'], border: '#15151a', borderW: 8, shadow: '#ff3b6b', radius: 12, ink: '#15151a', ink2: '#3a3a44', pen: ['#ff3b6b', '#15151a', '#ff3b6b', '#2b6bff'], accentMarks: '#ff3b6b', markBg: '#15151a', markInk: '#f4f1ea' },
+  web: { bg: '#0a0b18', card: ['#161a30', '#10132a'], border: '#cfdcff', borderW: 3, radius: 56, ink: '#eef2ff', ink2: 'rgba(238,242,255,0.75)', pen: ['#cfdcff', '#ff9bd2', '#9bb5ff', '#e9f0ff'], accentMarks: '#cfdcff', pattern: 'grid', patternColor: 'rgba(207,220,255,0.07)' },
+  lens: { bg: '#04161a', card: ['#0b2a2e', '#071f22'], border: '#7fe3d4', borderW: 4, radius: 90, ink: '#e8fffb', ink2: 'rgba(232,255,251,0.75)', pen: ['#7fe3d4', '#ffd84a', '#ff7a7a', '#b8f5ec'], accentMarks: '#7fe3d4', markBg: '#7fe3d4', markInk: '#04161a' },
+  picto: { bg: '#ff7a59', card: ['#ffffff', '#fff6f2'], border: '#14171f', borderW: 8, shadow: '#14171f', radius: 56, ink: '#14171f', ink2: '#3a3f4d', pen: ['#ff7a59', '#2b6bff', '#ff7a59', '#14171f'], accentMarks: '#ff7a59', markBg: '#14171f', markInk: '#ffffff' },
+  wall: { bg: '#18181c', card: ['#2c2c33', '#222228'], border: '#ff9f43', borderW: 6, shadow: '#000000', radius: 18, ink: '#f2f2f5', ink2: 'rgba(242,242,245,0.75)', pen: ['#ff9f43', '#f2f2f5', '#ff9f43', '#ffd0a0'], accentMarks: '#ff9f43', font: "'Unbounded Variable', sans-serif", load: '800 40px "Unbounded Variable"', fontScale: 0.8, markBg: '#ff9f43', markInk: '#18181c' },
+  flap: { bg: '#0d0d10', card: ['#1b1b1f', '#141417'], border: '#ffd23f', borderW: 6, shadow: '#3a3a40', radius: 6, ink: '#f4f4f4', ink2: 'rgba(244,244,244,0.7)', pen: ['#ffd23f', '#f4f4f4', '#ff5c5c', '#ffd23f'], accentMarks: '#ffd23f', font: "'Cascadia Code', Consolas, monospace", fontScale: 0.8, markBg: '#ffd23f', markInk: '#0d0d10' }
+} as Record<string, Partial<CardTheme>>)
+
+/** which doodle kit each look draws with */
+const KIT_OF: Record<string, string> = {
+  neon: 'neon', chrome: 'chrome', dream: 'dream', crt: 'term', sticker: 'sticker', chat: 'chat', paper: 'paper', arcade: 'pixel',
+  noir: 'cine', sunset: 'sun', blocks: 'pixel', stadium: 'sport', cassette: 'tape', sketch: 'paper', glitch: 'term', comic: 'comic',
+  stencil: 'spray', film: 'cine', filmstrip: 'cine', trailer: 'cine', lock: 'soft', wallet: 'grid', route: 'route', editor: 'term',
+  metro: 'comic', web: 'grid', lens: 'soft', picto: 'sticker', wall: 'wall', flap: 'flap'
+}
+
 export function cardTheme(vibe: string): CardTheme {
-  return { ...DARK, ...(THEMES[vibe] ?? {}) }
+  return { ...DARK, ...(THEMES[vibe] ?? {}), kit: KIT_OF[vibe] ?? 'marker' }
 }
 
 export const CARD_W = 1080
@@ -269,24 +294,6 @@ function scribbleCircle(ctx: CanvasRenderingContext2D, cx: number, cy: number, r
   stroke(ctx, pts, color, 7)
 }
 
-function burst(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string, rnd: () => number): void {
-  for (let i = 0; i < 7; i++) {
-    const a = Math.PI * (1.15 + (i / 6) * 0.7)
-    const r1 = 44 + rnd() * 8
-    const r2 = r1 + 26 + rnd() * 18
-    stroke(ctx, [[cx + Math.cos(a) * r1, cy - Math.sin(a) * r1], [cx + Math.cos(a) * r2, cy - Math.sin(a) * r2]], color, 6)
-  }
-}
-
-function face(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, color: string, sad: boolean, rnd: () => number): void {
-  scribbleCircle(ctx, cx, cy, r, r, color, rnd)
-  ctx.fillStyle = color
-  ctx.beginPath(); ctx.arc(cx - r * 0.35, cy - r * 0.2, 4.5, 0, 7); ctx.fill()
-  ctx.beginPath(); ctx.arc(cx + r * 0.35, cy - r * 0.2, 4.5, 0, 7); ctx.fill()
-  const my = cy + r * (sad ? 0.5 : 0.28)
-  stroke(ctx, [[cx - r * 0.4, my], [cx, my + (sad ? -r * 0.3 : r * 0.3)], [cx + r * 0.4, my]], color, 5)
-}
-
 function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageElement | null, family: string): boolean {
   const th = c.theme ?? DARK
   const rnd = seeded(c.lines.join('|'))
@@ -403,7 +410,8 @@ function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageE
 
   const [penUnder, penCircle, penStrike, penHand] = th.pen
   const base = size * 0.92
-  wobbleLine(ctx, underlined.x, underlined.y + base + 12, underlined.x + underlined.w, underlined.y + base + 14, penUnder, 8, rnd)
+  const kit = KITS[th.kit ?? 'marker'] ?? KITS.marker!
+  underline(ctx, kit, underlined.x, underlined.x + underlined.w, underlined.y + base + 13, penUnder, rnd)
   if (circled) scribbleCircle(ctx, circled.x + circled.w / 2, circled.y + size * 0.52, circled.w / 2 + 26, size * 0.62, penCircle, rnd)
   if (struck) {
     wobbleLine(ctx, struck.x - 6, struck.y + size * 0.34, struck.x + struck.w + 6, struck.y + size * 0.7, penStrike, 9, rnd)
@@ -417,8 +425,12 @@ function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageE
     ctx.restore()
   }
   const lastY = top + (rows.length - 1) * lh + size * 1.12
-  burst(ctx, left + 90, lastY + 8, th.accentMarks, rnd)
-  face(ctx, cx + cw - pad - 90, lastY + 40, 46, th.accentMarks, rnd() > 0.35, rnd)
+  const markY = cy + ch - pad - 74
+  drawDecor(ctx, kit, {
+    below: { y: Math.min(lastY + 20, markY - 150), left, right: cx + cw - pad },
+    top: { x: cx + cw - pad - 70, y: cy + 275 },
+    bottom: { x: cx + cw - pad - 70, y: markY + 37 }
+  }, th.accentMarks, penCircle, rnd)
 
   // the mark
   const my = cy + ch - pad - 74
