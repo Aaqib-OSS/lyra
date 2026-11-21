@@ -1,0 +1,124 @@
+{
+  "vibes": [
+    {
+      "id": "none",
+      "name": "Artwork",
+      "tag": "Colours from the cover",
+      "light": false
+    },
+    {
+      "id": "neon",
+      "name": "Neon",
+      "tag": "Synthwave tubes",
+      "light": false
+    },
+    {
+      "id": "chrome",
+      "name": "Chrome",
+      "tag": "Y2K liquid metal",
+      "light": true
+    },
+    {
+      "id": "dream",
+      "name": "Dream",
+      "tag": "Pastel star map",
+      "light": false
+    },
+    {
+      "id": "crt",
+      "name": "Terminal",
+      "tag": "Typed in green",
+      "light": false
+    },
+    {
+      "id": "sticker",
+      "name": "Stickers",
+      "tag": "Die-cut pop",
+      "light": true
+    },
+    {
+      "id": "chat",
+      "name": "DM",
+      "tag": "The song texts you",
+      "light": false
+    },
+    {
+      "id": "paper",
+      "name": "Diary",
+      "tag": "Handwritten, highlighted",
+      "light": true
+    },
+    {
+      "id": "arcade",
+      "name": "Arcade",
+      "tag": "8-bit scoreboard",
+      "light": false
+    },
+    {
+      "id": "noir",
+      "name": "Cinema",
+      "tag": "Subtitles in black & white",
+      "light": false
+    },
+    {
+      "id": "sunset",
+      "name": "Sunset Drive",
+      "tag": "Palms, radio and a pink sky",
+      "light": false
+    },
+    {
+      "id": "blocks",
+      "name": "Blocks",
+      "tag": "A sandbox with a chat log",
+      "light": false
+    },
+    {
+      "id": "stadium",
+      "name": "Stadium",
+      "tag": "Live broadcast scoreboard",
+      "light": false
+    },
+    {
+      "id": "cassette",
+      "name": "Cassette",
+      "tag": "Walkman and amber LCD",
+      "light": true
+    },
+    {
+      "id": "trailer",
+      "name": "Trailer",
+      "tag": "Movie title cards",
+      "light": false
+    },
+    {
+      "id": "sketch",
+      "name": "Sketchbook",
+      "tag": "Giant cut-out words on graphite paper",
+      "light": true
+    },
+    {
+      "id": "glitch",
+      "name": "Glitch",
+      "tag": "RGB-split type on a dying tape",
+      "light": false
+    },
+    {
+      "id": "comic",
+      "name": "Pop Comic",
+      "tag": "Halftone, outlines and BAM words",
+      "light": true
+    },
+    {
+      "id": "stencil",
+      "name": "Stencil",
+      "tag": "Spray-paint words on concrete",
+      "light": false
+    },
+    {
+      "id": "film",
+      "name": "Film Reel",
+      "tag": "Sepia grain, light leaks, projector flicker",
+      "light": false
+    }
+  ]
+}
