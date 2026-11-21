@@ -98,6 +98,7 @@ export const CH = {
   bgKaraoke: 'bg:karaoke',
   studioMic: 'studio:mic',
   bgYtChoose: 'bg:yt-choose',
+  bgYtFailed: 'bg:yt-failed',
   choicesGet: 'choices:get',
   choicesSet: 'choices:set',
   choicesClear: 'choices:clear',
@@ -223,6 +224,8 @@ export interface LyraApi {
     karaokeVideos(track: Track): Promise<{ items: YoutubeVideo[]; error?: string }>
     /** Pin a specific video for this song (remembered). null = back to automatic. */
     youtubeChoose(trackId: string, videoId: string | null): Promise<void>
+    /** Tell the main process a video did not play for this song (its songKey), so it is skipped from now on. */
+    youtubeFailed(songKey: string, videoId: string): Promise<void>
   }
   /** Everything the user picked by hand for a song (video, lyrics match, timing nudge). Absent = automatic. */
   choices: {

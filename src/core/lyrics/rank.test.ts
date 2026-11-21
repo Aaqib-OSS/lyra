@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parseLrc } from '@shared/lrc'
-import { languagePenalty, pickBestLyrics, rankLyrics, scoreLyricsListing, validateSyncedLines, type LyricsOption } from './rank'
+import { languagePenalty, pickBestLyrics, rankListings, rankLyrics, scoreLyricsListing, validateSyncedLines, type LyricsOption } from './rank'
 
 const want = { title: 'Tum Hi Ho', artist: 'Arijit Singh', durationMs: 262_000 }
 const matched = { title: 'Tum Hi Ho', artist: 'Arijit Singh', durationMs: 261_000 }
@@ -111,5 +111,28 @@ describe('scoreLyricsListing (picker rows)', () => {
     ]
     const sorted = [...rows].sort((a, b) => scoreLyricsListing(want, b) - scoreLyricsListing(want, a)).map((r) => r.id)
     expect(sorted).toEqual(['exact', 'plain', 'wrong', 'instr'])
+  })
+})
+
+describe('rankListings', () => {
+  const row = (id: string, o: Partial<{ title: string; artist: string; durationMs: number; synced: boolean; instrumental: boolean }> = {}) => ({
+    id,
+    title: 'Tum Hi Ho',
+    artist: 'Arijit Singh',
+    album: '',
+    durationMs: 262_000,
+    synced: false,
+    instrumental: false,
+    ...o
+  })
+  it('puts the synced right-song row first and marks only it as best', () => {
+    const r = rankListings(want, [row('plain'), row('sync', { synced: true }), row('other', { title: 'Something Else', artist: 'Nobody', synced: true })])
+    expect(r.map((x) => x.id)[0]).toBe('sync')
+    expect(r.filter((x) => x.best).map((x) => x.id)).toEqual(['sync'])
+    expect(r[0]!.why).toEqual(expect.arrayContaining(['right-song', 'synced', 'length-match']))
+  })
+  it('never marks an instrumental or a wrong song as best', () => {
+    expect(rankListings(want, [row('i', { instrumental: true })]).every((x) => !x.best)).toBe(true)
+    expect(rankListings(want, [row('w', { title: 'Totally Different', artist: 'Other' })])[0]!.best).toBe(false)
   })
 })

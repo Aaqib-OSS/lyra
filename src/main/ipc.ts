@@ -7,6 +7,7 @@ import { getArtwork } from './artwork'
 import { DemoSource } from './demo/source'
 import { lyricsService } from '@core/lyrics/service'
 import { clearAllCaches } from '@core/cache/persistentCache'
+import { failedVideos } from '@core/background/failedVideos'
 import { lanViewer } from './lan/server'
 import { registerStudioIpc } from './studio'
 import QRCode from 'qrcode'
@@ -274,7 +275,10 @@ export function registerIpc(): void {
     if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return
     background.chooseYoutube(trackId, { videoId, title: '', channel: '', durationSec: null })
   })
-  handle(CH.choicesGet, (t: Track) => userChoices().getChoice(trackKey(t)))
+  handle(CH.bgYtFailed, (songKey: string, videoId: string) => {
+    if (typeof songKey === 'string' && typeof videoId === 'string') failedVideos().remember(songKey, videoId)
+  })
+  handle(CH.choicesGet,(t: Track) => userChoices().getChoice(trackKey(t)))
   handle(CH.choicesSet, (t: Track, ms: number) => {
     if (typeof ms === 'number' && Number.isFinite(ms)) userChoices().setChoice(trackKey(t), { offsetMs: ms, durationMs: t.durationMs })
   })

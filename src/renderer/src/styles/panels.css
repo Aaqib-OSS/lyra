@@ -711,3 +711,25 @@
 [data-theme='light'] .stabs { border-bottom-color: var(--line-2); }
 [data-theme='light'] .stabs button,
 [data-theme='light'] .settings section { border-color: var(--line-2); }
+
+/* "Why this lyrics / video?" hints in the pickers */
+.badge--best {
+  background: color-mix(in srgb, var(--accent, #7c9cff) 30%, transparent);
+  color: var(--fg);
+  font-weight: 600;
+}
+.badge--synced {
+  background: rgba(120, 220, 160, 0.2);
+}
+.candidate__why,
+.vpick__pop button small.vpick__why {
+  display: block;
+  font-size: 11px;
+  color: var(--fg-3);
+}
+.vpick__pop small.vpick__note {
+  padding: 4px 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--fg-3);
+}

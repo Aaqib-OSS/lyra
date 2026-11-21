@@ -8,7 +8,7 @@ import { userChoices } from '../userChoices'
 import { rememberTrack } from '../trackIndex'
 import { demoLyrics } from '../demo/lyrics'
 import { LrcLibProvider } from './lrclib'
-import { pickBestLyrics, scoreLyricsListing, type LyricsOption } from './rank'
+import { pickBestLyrics, rankListings, type LyricsOption } from './rank'
 import { PublicDomainLyricsProvider } from './public-domain'
 import { LyricsProviderError, type LyricsCandidate, type LyricsProvider, type LyricsQuery } from './provider'
 
@@ -259,8 +259,8 @@ export class LyricsService {
       }
     }
     const want = { title: track.title, artist: track.artists[0] ?? '', durationMs: track.durationMs }
-    items.sort((a, b) => scoreLyricsListing(want, b) - scoreLyricsListing(want, a))
-    return { items, error: items.length === 0 ? error : undefined }
+    const ranked = rankListings(want, items)
+    return { items: ranked, error: ranked.length === 0 ? error : undefined }
   }
 
   /** Pin a specific provider entry to this song (remembered across restarts and across players). */

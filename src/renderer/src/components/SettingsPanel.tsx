@@ -189,6 +189,27 @@ function TvLink() {
   )
 }
 
+/** Storage: forget what Lyra looked up online (lyrics, videos). Your own picks, pasted lyrics and files stay. */
+function StorageRow() {
+  const { t } = useTranslation()
+  const [busy, setBusy] = useState(false)
+  const clear = (): void => {
+    setBusy(true)
+    window.lyra.cache
+      .clear()
+      .then((r) => useUi.getState().toast(r.cleared > 0 ? t('Cleared {n} saved lookups', { n: String(r.cleared) }) : t('The cache was already empty')))
+      .catch(() => useUi.getState().toast(t('Couldn’t clear the cache'), 'error'))
+      .finally(() => setBusy(false))
+  }
+  return (
+    <Row label={t('Storage')} hint={t('Forget saved lyrics and video lookups. Your own picks and files stay.')}>
+      <button type="button" className="pill" disabled={busy} onClick={clear}>
+        {t('Clear cache')}
+      </button>
+    </Row>
+  )
+}
+
 function Row({ label, hint, info, children }: { label: string; hint?: string; info?: string; children: React.ReactNode }) {
   return (
     <div className="srow">
@@ -949,6 +970,7 @@ export function SettingsPanel() {
         <Row label={t('Global shortcuts')} hint={t('Keys that work even when Lyra is in the background')}>
           <Toggle label={t('Global shortcuts')} checked={s.globalShortcuts} onChange={up('globalShortcuts')} />
         </Row>
+        <StorageRow />
         <More label="Advanced">
         <Row label={t('Control system volume')} hint={t('Windows source. Loads a helper that some antivirus tools flag')}>
           <Toggle label={t('Control system volume')} checked={s.systemVolume} onChange={up('systemVolume')} />

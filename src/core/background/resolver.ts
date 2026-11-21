@@ -1,5 +1,7 @@
 import type { BackgroundMedia, BackgroundResolution, BackgroundSpec, Settings, Track, VideoCrop, YoutubeVideo } from '@shared/types'
 import { rememberTrack } from '../trackIndex'
+import { userChoices } from '../userChoices'
+import { avoidFailed, failedVideos } from './failedVideos'
 import { itunes } from './itunes'
 import { youtube } from './youtube'
 
@@ -18,6 +20,17 @@ export interface ResolverHost {
   /** URL the player should use for an Apple preview clip (Electron proxies it so frames can be read). */
   clipUrl(url: string): string
   crop(videoId: string): Promise<VideoCrop | null>
+  /** Overrides for tests; by default the app-wide user-choices and failed-videos stores are used. */
+  pinnedVideo?(songKey: string): string | null
+  failedVideos?(songKey: string): ReadonlySet<string>
+}
+
+const safe = <T>(f: () => T, fallback: T): T => {
+  try {
+    return f()
+  } catch {
+    return fallback // stores unavailable (not started yet): behave as "nothing remembered"
+  }
 }
 
 /**
@@ -30,7 +43,13 @@ export function createBackgroundResolver(host: ResolverHost): (track: Track) => 
     const s = host.settings()
     // your choices belong to the SONG: found by the player's id, or by the song's identity (another player, a re-release)
     const songs = host.songs()
-    const song = songs[track.id] ?? songs[rememberTrack(track)]
+    const sk = rememberTrack(track)
+    const song = songs[track.id] ?? songs[sk]
+    // the video you picked (user-choices store) comes first; what failed for this song before is never used again
+    const pinnedId = safe(() => (host.pinnedVideo ? host.pinnedVideo(sk) : (userChoices().getChoice(sk)?.video?.videoId ?? null)), null)
+    const bad: ReadonlySet<string> = safe(() => (host.failedVideos ? host.failedVideos(sk) : failedVideos().failed(sk)), new Set<string>())
+    const pinned: YoutubeVideo | undefined = pinnedId ? (song?.youtube?.videoId === pinnedId ? song.youtube : { videoId: pinnedId, title: '', channel: '', durationSec: null }) : song?.youtube
+    const wantSec = track.durationMs / 1000
     const songSpec = song?.media ? host.mediaSpec(song.media, 'song') : null
     const globalSpec = s.customBackground ? host.mediaSpec(s.customBackground, 'global') : null
     const base = { hasSongMedia: !!songSpec, hasGlobalMedia: !!globalSpec }
@@ -57,14 +76,20 @@ export function createBackgroundResolver(host: ResolverHost): (track: Track) => 
     if (s.backgroundStyle === 'custom') return { ...base, spec: songSpec ?? globalSpec ?? living, youtube: 'off' }
 
     // pinned choices first: the user's own file for this song (auto), or the video they picked for it
-    if (s.backgroundStyle === 'auto' && songSpec) return { ...base, spec: songSpec, youtube: song?.youtube ? 'pinned' : 'off' }
-    if (song?.youtube) return { ...base, spec: await ytSpec(song.youtube, 'song'), youtube: 'pinned' }
+    if (s.backgroundStyle === 'auto' && songSpec) return { ...base, spec: songSpec, youtube: pinned ? 'pinned' : 'off' }
+    if (pinned) return { ...base, spec: await ytSpec(pinned, 'song'), youtube: 'pinned' }
 
     const asClip = async (): Promise<Extract<BackgroundSpec, { kind: 'preview' }> | null> => {
       const clip = await itunes.find(track)
       return clip ? { kind: 'preview', url: host.clipUrl(clip.url), title: clip.title, width: clip.width } : null
     }
-    const yt = (): ReturnType<typeof youtube.find> => youtube.find(track)
+    const yt = async (): ReturnType<typeof youtube.find> => {
+      const r = await youtube.find(track)
+      if (r.state !== 'found') return r
+      const list = r.list.filter((v) => !bad.has(v.videoId))
+      const video = avoidFailed(r.video, r.list, bad, wantSec)
+      return video ? { state: 'found', video, list } : { state: 'none', list }
+    }
     const report = (r: Awaited<ReturnType<typeof youtube.find>>): Pick<BackgroundResolution, 'youtube' | 'youtubeMessage'> =>
       r.state === 'error' ? { youtube: 'error', youtubeMessage: r.message } : { youtube: r.state === 'found' ? 'found' : r.state }
 

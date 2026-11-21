@@ -152,3 +152,24 @@ export function scoreLyricsListing(want: Wanted, c: LyricsCandidate): number {
   if (c.instrumental) return s - 2
   return s + (c.synced && ok ? 3 : c.synced ? 0.3 : 0)
 }
+
+export type ListingWhy = 'synced' | 'plain' | 'instrumental' | 'length-match' | 'length-off' | 'right-song' | 'other-song'
+
+/**
+ * Picker rows with a "Why this lyrics?" explanation: best-first (same order as [scoreLyricsListing]), the top one
+ * flagged `best` only when it is a trustworthy match for the right song, and plain reason codes for each row.
+ */
+export function rankListings<T extends LyricsCandidate>(want: Wanted, items: readonly T[]): Array<T & { best: boolean; why: ListingWhy[] }> {
+  const rows = items
+    .map((c) => {
+      const m = { title: c.title, artist: c.artist, durationMs: c.durationMs, synced: c.synced }
+      const ok = isAcceptable(want, m)
+      const why: ListingWhy[] = [ok ? 'right-song' : 'other-song']
+      if (c.instrumental) why.push('instrumental')
+      else why.push(c.synced ? 'synced' : 'plain')
+      if (want.durationMs > 0 && c.durationMs > 0) why.push(Math.abs(c.durationMs - want.durationMs) <= 3000 ? 'length-match' : 'length-off')
+      return { c, ok, s: scoreLyricsListing(want, c), why }
+    })
+    .sort((a, b) => b.s - a.s)
+  return rows.map((r, i) => ({ ...r.c, best: i === 0 && r.ok && !r.c.instrumental, why: r.why }))
+}

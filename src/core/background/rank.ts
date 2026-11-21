@@ -86,6 +86,29 @@ export function pickBestVideo(want: Wanted, list: VideoCandidate[]): { best: (Vi
   return { best: ranked.find((r) => r.acceptable) ?? null, ranked }
 }
 
+export type VideoWhy = 'official' | 'own-channel' | 'length-match' | 'length-off' | 'hd' | 'variant' | 'short' | 'topic' | 'title-differs' | 'artist-missing'
+
+/** Plain reason codes for "Why this video?" (the interface turns them into words). Pure, mirrors [scoreVideo]. */
+export function explainVideo(want: Wanted, v: VideoCandidate): VideoWhy[] {
+  const out: VideoWhy[] = []
+  const wantTitle = cleanTitle(want.title)
+  const nTitle = normalize(v.title)
+  const titleSim = Math.max(similarity(wantTitle, cleanVideoTitle(v.title)), nTitle.includes(normalize(wantTitle)) ? 0.9 : 0)
+  const artists = artistVariants(want.artist).map(normalize).filter(Boolean)
+  const hay = `${nTitle} ${normalize(v.channel)}`
+  if (!artists.some((a) => a.split(' ').every((tok) => tok.length < 3 || hay.includes(tok)))) out.push('artist-missing')
+  if (titleSim < 0.6) out.push('title-differs')
+  const chan = normalize(v.channel)
+  if (artists.some((a) => chan.length > 0 && (chan.includes(a) || a.includes(chan))) || /vevo/i.test(v.channel)) out.push('own-channel')
+  if (GOOD.test(v.title)) out.push('official')
+  if (v.durationSec && want.durationMs > 0) out.push(Math.abs(v.durationSec - want.durationMs / 1000) <= 20 ? 'length-match' : 'length-off')
+  if (v.hd === true) out.push('hd')
+  if (BAD.test(v.title) && !BAD.test(want.title)) out.push('variant')
+  if (/#shorts?\b/i.test(v.title) || (!!v.durationSec && v.durationSec <= 61 && want.durationMs > 100_000)) out.push('short')
+  if (/\btopic$/i.test(v.channel.trim())) out.push('topic')
+  return out
+}
+
 /** ISO-8601 duration (PT1H2M3S) → seconds. */
 export function parseIsoDuration(iso: string | undefined): number | null {
   const m = /^P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(iso ?? '')

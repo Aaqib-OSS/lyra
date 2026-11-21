@@ -5,6 +5,8 @@ import { formatTime } from '@/lib/format'
 import { useLyrics } from '@/store/lyrics'
 import { usePlayer } from '@/store/player'
 import { useUi } from '@/store/ui'
+import { useTranslation } from '@/i18n'
+import { lyricsWhy } from '@/lib/whyText'
 import { Icon } from './Icon'
 import { Spinner } from './StateScreens'
 
@@ -14,6 +16,7 @@ export function LyricsMatchPanel() {
   const state = useLyrics((s) => s.state)
   const apply = useLyrics((s) => s.apply)
   const toast = useUi((s) => s.toast)
+  const { t } = useTranslation()
   const [items, setItems] = useState<LyricsCandidateInfo[] | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
@@ -72,6 +75,12 @@ export function LyricsMatchPanel() {
   const reset = async (): Promise<void> => {
     apply(await window.lyra.lyrics.clearPin(track))
     toast('Back to automatic matching')
+  }
+
+  const resetChoices = async (): Promise<void> => {
+    await window.lyra.choices.clear(track)
+    apply(await window.lyra.lyrics.get(track))
+    toast(t('Back to automatic for this song'))
   }
 
   return (
@@ -148,6 +157,7 @@ export function LyricsMatchPanel() {
       {items?.map((c) => {
         const key = `${c.provider}:${c.id}`
         const near = Math.abs(c.durationMs - track.durationMs) <= 3000
+        const why = lyricsWhy(c.why)
         return (
           <button key={key} type="button" className="candidate" disabled={busy !== null} onClick={() => void pick(c)}>
             <div>
@@ -156,10 +166,12 @@ export function LyricsMatchPanel() {
                 {c.artist}
                 {c.album ? ` · ${c.album}` : ''}
               </span>
+              {why.length > 0 && <span className="candidate__why">{why.map((w) => t(w)).join(' · ')}</span>}
             </div>
             <div className="candidate__meta">
               <span className={near ? 'ok' : ''}>{formatTime(c.durationMs)}</span>
-              <span className="badge">{c.instrumental ? 'instrumental' : c.synced ? 'synced' : 'plain'}</span>
+              {c.best && <span className="badge badge--best">{t('Best match')}</span>}
+              <span className={`badge${c.synced && !c.instrumental ? ' badge--synced' : ''}`}>{c.instrumental ? t('instrumental') : c.synced ? t('synced') : t('plain')}</span>
               {busy === key && <Spinner size={12} />}
             </div>
           </button>
@@ -168,9 +180,12 @@ export function LyricsMatchPanel() {
       <p className="list__hint">
         <Icon name="alert" size={12} />
         <span>
-          Prefer entries marked <b>synced</b> with a similar length. Your pick is remembered for this song.
+          {t('Why this lyrics? Entries are ranked by same song, then synced to the music, then closest length. Your pick is remembered for this song.')}
         </span>
       </p>
+      <button type="button" className="linkbtn" onClick={() => void resetChoices()}>
+        {t('Reset my choices for this song')}
+      </button>
     </div>
   )
 }
