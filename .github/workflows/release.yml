@@ -29,7 +29,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # a tag with a dash (v0.18.0-beta.1) is a pre-release: it never becomes "latest", so the updater skips it
+          PRE=""
+          case "${{ github.ref_name }}" in *-*) PRE="--prerelease" ;; esac
           gh release create "${{ github.ref_name }}" \
             release/Lyra-Setup-*.exe release/Lyra-Setup-*.exe.blockmap release/latest.yml \
             --title "Lyra ${{ github.ref_name }}" \
-            --generate-notes
+            --generate-notes $PRE
