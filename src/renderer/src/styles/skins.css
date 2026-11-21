@@ -159,3 +159,12 @@
 :root[data-vibe='noir'] .full .full__side { background: rgba(0,0,0,.78) !important; border: 0 !important; border-top: 1px solid rgba(255,255,255,.5) !important; border-radius: 0 !important; }
 :root[data-vibe='glitch'] .full .full__side { background: rgba(10,5,4,.88) !important; border: 2px solid #ff4a2e !important; border-radius: 2px !important; box-shadow: -4px 0 0 #26f0ff, 4px 0 0 #ff2a1a !important; }
 :root[data-vibe='arcade'] .full .full__side { background: #0d0d30 !important; border: 3px solid #ffe600 !important; border-radius: 0 !important; box-shadow: 6px 6px 0 #ff2d6f !important; }
+
+:root[data-vibe='stencil'] .sidepanel { --panel: #252422; --fg: #f2efe9; --fg-2: rgba(242,239,233,.82); --fg-3: rgba(242,239,233,.62); --line: rgba(255,106,0,.35); --line-2: rgba(255,106,0,.35); --accent: #ff6a00; --glow: #ff6a00; --glow-soft: transparent; background: #252422; color: #f2efe9; border: 3px solid #ff6a00; border-radius: 2px; box-shadow: 8px 8px 0 #000; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-vibe='stencil'] .sidepanel .settings section { background: rgba(255,255,255,.05); box-shadow: 0 0 0 1px rgba(255,106,0,.3); border-radius: 2px; }
+:root[data-vibe='stencil'] .sidepanel h3, :root[data-vibe='stencil'] .sidepanel .settings h4 { font-family: 'Unbounded Variable', sans-serif; color: rgba(242,239,233,.82); text-transform: uppercase; }
+:root[data-vibe='stencil'] .sidepanel .stabs button.is-on { background: #ff6a00; color: #140d06; box-shadow: none; }
+:root[data-vibe='film'] .sidepanel { --panel: #1b1108; --fg: #f6e9cf; --fg-2: rgba(246,233,207,.84); --fg-3: rgba(246,233,207,.64); --line: rgba(232,184,115,.3); --line-2: rgba(232,184,115,.3); --accent: #e8b873; --glow: #e8b873; --glow-soft: transparent; background: #1b1108; color: #f6e9cf; border: 2px solid #e8b873; border-radius: 6px; box-shadow: 0 24px 60px -16px rgba(0,0,0,.8); -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-vibe='film'] .sidepanel .settings section { background: rgba(246,233,207,.05); box-shadow: 0 0 0 1px rgba(232,184,115,.25); border-radius: 4px; }
+:root[data-vibe='film'] .sidepanel h3, :root[data-vibe='film'] .sidepanel .settings h4 { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; color: rgba(246,233,207,.84); }
+:root[data-vibe='film'] .sidepanel .stabs button.is-on { background: #e8b873; color: #1b1108; box-shadow: none; }

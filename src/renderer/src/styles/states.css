@@ -283,3 +283,31 @@
 
 [data-vibe='arcade'] .lfb small, [data-vibe='arcade'] .lfb p { font-size: max(10px, 1em); }
 [data-vibe='arcade'] .lfb small { font-size: 10px; }
+
+
+/* ===================== STENCIL ===================== */
+:root[data-vibe='stencil'][data-bg-media] .backdrop__dim { background: rgba(20, 13, 6, .45); }
+[data-vibe='stencil'] .backdrop__stage { filter: contrast(1.15) saturate(.7); }
+[data-vibe='stencil'] .lyrics__notice { background: #ff6a00; border: 0; border-radius: 0; color: #140d06; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; }
+[data-vibe='stencil'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 900; letter-spacing: -0.03em; text-transform: uppercase; color: #f2efe9; font-size: max(13px, calc(var(--lyric-size) * 0.45)); text-shadow: .06em .06em 0 #000; }
+[data-vibe='stencil'] .plain__stanza > span:nth-child(odd) { color: #ff6a00; }
+[data-vibe='stencil'] .lfb { align-items: flex-start; }
+[data-vibe='stencil'] .lfb__poster { display: none; }
+[data-vibe='stencil'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); font-weight: 900; text-transform: uppercase; color: #140d06; background: #ff6a00; padding: .2em .6em; box-shadow: .1em .1em 0 #000; letter-spacing: -0.02em; max-width: none; }
+[data-vibe='stencil'] .lfb__eq i { background: #ff6a00; border-radius: 0; }
+
+/* ===================== FILM REEL ===================== */
+[data-vibe='film'] .backdrop__stage { filter: sepia(.6) contrast(1.08) saturate(1.1); }
+:root[data-vibe='film'][data-bg-media] .backdrop__dim { background: rgba(30, 14, 4, .42); }
+[data-vibe='film'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid #e8b873; border-bottom: 1px solid #e8b873; border-radius: 0; color: #e8b873; letter-spacing: .24em; text-transform: uppercase; font-size: 10px; padding: 5px 10px; }
+[data-vibe='film'] .lyrics__inner--plain { text-align: center; }
+[data-vibe='film'] .lyrics__inner--plain .lyrics__notice { margin-inline: auto; }
+[data-vibe='film'] .plain__stanza { align-items: center; font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-weight: 600; color: #f6e9cf; text-shadow: 0 1px 4px #000, 0 0 14px rgba(232,184,115,.3); line-height: 1.5; }
+[data-vibe='film'] .lfb { align-items: center; text-align: center; }
+[data-vibe='film'] .lfb__poster, [data-vibe='film'] .lfb__eq { display: none; }
+[data-vibe='film'] .lfb h3 { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #f6e9cf; border-top: 1px solid #e8b873; border-bottom: 1px solid #e8b873; padding: .6em 1.2em; max-width: none; text-shadow: 0 0 16px rgba(232,184,115,.5); }
+[data-vibe='film'] .lfb p { font-style: italic; }
+[data-vibe='film'] .lfb__actions { justify-content: center; }
+
+/* the film perforations sit beside a big cover only; in the small dock they would overlap the title */
+:root[data-vibe='film'] .full:not([data-arch='side']) .artwork__deco--a, :root[data-vibe='film'] .full:not([data-arch='side']) .artwork__deco--b, :root[data-vibe='film'] .full.is-cinema .artwork__deco--a, :root[data-vibe='film'] .full.is-cinema .artwork__deco--b { display: none; }
