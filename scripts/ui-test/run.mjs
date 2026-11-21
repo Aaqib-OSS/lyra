@@ -99,6 +99,8 @@ const MEASURE = () => {
   // text cut off by an ancestor that clips (overflow hidden / clip-path / mask are intentional on the scroller, not on the active line)
   const clipped = []
   for (const { r, el } of textRects) {
+    // history rows of a feed stage (lock, wallet...) fade out and slide under the stage edge on purpose; only the current row must be whole
+    if (el.closest('.feed__row:not(.is-current)')) continue
     for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
       const cs = getComputedStyle(a)
       if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue

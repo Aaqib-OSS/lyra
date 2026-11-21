@@ -1,0 +1,4 @@
+/* Shared floors for small stage text (scene archetype). Floors only: never shrinks bigger text. */
+.feed__word, .feed__txt .feed__word { font-size: max(10px, 1em); }
+.mc__who { font-size: max(10px, 1em); }
+.termlog__ts { font-size: max(10px, 0.7em); }
