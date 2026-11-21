@@ -13,6 +13,8 @@ import { createLogger, readLogTail } from './logger'
 import { moments } from './moments'
 import { background } from './background/service'
 import { youtube } from '@core/background/youtube'
+import { trackKey } from '@core/songKey'
+import { userChoices } from '@core/userChoices'
 import { failedShortcuts } from './shortcuts'
 import { updater } from './updater'
 import { settings } from './settings'
@@ -269,6 +271,17 @@ export function registerIpc(): void {
     if (videoId === null) return background.chooseYoutube(trackId, null)
     if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return
     background.chooseYoutube(trackId, { videoId, title: '', channel: '', durationSec: null })
+  })
+  handle(CH.choicesGet, (t: Track) => userChoices().getChoice(trackKey(t)))
+  handle(CH.choicesSet, (t: Track, ms: number) => {
+    if (typeof ms === 'number' && Number.isFinite(ms)) userChoices().setChoice(trackKey(t), { offsetMs: ms, durationMs: t.durationMs })
+  })
+  handle(CH.choicesClear, (t: Track, field?: 'video' | 'lyrics' | 'offsetMs') => {
+    const key = trackKey(t)
+    userChoices().clearChoice(key, field)
+    // "back to automatic" must also drop the pins the pickers keep
+    if (!field || field === 'video') background.chooseYoutube(t.id, null)
+    if (!field || field === 'lyrics') void lyricsService.clearPin(t)
   })
   handle(CH.updateGet, () => updater.state)
   handle(CH.updateCheck, () => updater.check())

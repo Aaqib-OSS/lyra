@@ -77,6 +77,11 @@ const api: LyraApi = {
     karaokeVideos: (track) => invoke(CH.bgKaraoke, track),
     youtubeChoose: (trackId, videoId) => invoke(CH.bgYtChoose, trackId, videoId)
   },
+  choices: {
+    get: (track) => invoke(CH.choicesGet, track),
+    setOffset: (track, ms) => invoke(CH.choicesSet, track, ms),
+    clear: (track, field) => invoke(CH.choicesClear, track, field)
+  },
   update: {
     get: () => invoke(CH.updateGet),
     check: () => invoke(CH.updateCheck),

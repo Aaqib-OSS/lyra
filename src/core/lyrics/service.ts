@@ -3,6 +3,7 @@ import type { LyricsResult, SourceHealth, Track } from '@shared/types'
 import { logger, platform, type BlobCache, type Store } from '../platform'
 import { CircuitBreaker, backoffDelay, isTemporary, sleep } from '../resilience'
 import { trackKey } from '../songKey'
+import { userChoices } from '../userChoices'
 import { rememberTrack } from '../trackIndex'
 import { demoLyrics } from '../demo/lyrics'
 import { LrcLibProvider } from './lrclib'
@@ -166,7 +167,7 @@ export class LyricsService {
 
     // 2) a match the user picked manually (remembered for the song, whatever player it came from)
     const pins = this.pins().pins
-    const pin = pins[this.key(track)] ?? pins[track.id]
+    const pin = pins[this.key(track)] ?? pins[track.id] ?? userChoices().getChoice(this.key(track))?.lyrics
     if (pin) {
       const cached = this.readCache(track)
       if (cached && !force) return cached
@@ -240,6 +241,7 @@ export class LyricsService {
   async choose(track: Track, provider: string, id: string): Promise<LyricsResult> {
     const store = (this.pinStore ??= platform().store<{ pins: Record<string, Pin> }>('lyrics-pins.json', { pins: {} }))
     store.set({ pins: { ...store.get().pins, [this.key(track)]: { provider, id }, [track.id]: { provider, id } } })
+    userChoices().setChoice(this.key(track), { lyrics: { provider, id }, durationMs: track.durationMs })
     this.clearImport(track) // choosing a service match replaces anything you pasted before
     const result = await this.fetchPinned(track, { provider, id })
     return result ?? { trackId: track.id, status: 'none', provider, lines: [] }
@@ -252,6 +254,7 @@ export class LyricsService {
     delete pins[this.key(track)]
     delete pins[track.id]
     store.set({ pins })
+    userChoices().clearChoice(this.key(track), 'lyrics')
     this.clearImport(track)
     return this.get(track, true)
   }
