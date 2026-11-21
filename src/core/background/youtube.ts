@@ -3,7 +3,7 @@ import { logger, platform } from '../platform'
 import { PersistentCache } from '../cache/persistentCache'
 import { sameLength, trackCacheKey } from '../cache/trackCacheKey'
 import { retry } from '../resilience'
-import { parseIsoDuration, rankKaraoke, rankVideos, type VideoCandidate } from './rank'
+import { explainVideo, parseIsoDuration, pickBestVideo, rankKaraoke, type VideoCandidate } from './rank'
 
 const log = logger('youtube')
 
@@ -164,9 +164,18 @@ class YoutubeService {
       const info = details.get(id)
       return [{ videoId: id, title: decodeEntities(i.snippet?.title ?? ''), channel: decodeEntities(i.snippet?.channelTitle ?? ''), durationSec: info?.sec ?? null, embeddable: info ? info.embeddable : true, hd: info?.hd }]
     })
-    const ranked = rankVideos({ title: track.title, artist, durationMs: track.durationMs }, candidates)
-    const list: YoutubeVideo[] = ranked.map((r) => ({ videoId: r.videoId, title: r.title, channel: r.channel, durationSec: r.durationSec }))
-    const best = ranked.find((r) => r.acceptable)
+    const want = { title: track.title, artist, durationMs: track.durationMs }
+    const { best, ranked } = pickBestVideo(want, candidates)
+    const list: YoutubeVideo[] = ranked.map((r) => ({
+      videoId: r.videoId,
+      title: r.title,
+      channel: r.channel,
+      durationSec: r.durationSec,
+      score: Math.round(r.score * 100) / 100,
+      acceptable: r.acceptable,
+      best: r.videoId === best?.videoId,
+      why: explainVideo(want, r)
+    }))
     return this.remember(track, best ? list.find((l) => l.videoId === best.videoId)! : null, list)
   }
 

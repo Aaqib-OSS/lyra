@@ -12,6 +12,7 @@ import { thumbCrop } from '@core/background/bars'
 import { HOST_RE } from '@core/background/itunes'
 import { createBackgroundResolver, type SongBg } from '@core/background/resolver'
 import { keyForId } from '@core/trackIndex'
+import { failedVideos } from '@core/background/failedVideos'
 import { userChoices } from '@core/userChoices'
 
 const log = createLogger('background')
@@ -236,7 +237,11 @@ class BackgroundService {
 
   chooseYoutube(trackId: string, video: YoutubeVideo | null): void {
     const sk = keyForId(trackId)
-    if (sk) userChoices().setChoice(sk, { video: video ? { videoId: video.videoId } : null })
+    if (sk) {
+      userChoices().setChoice(sk, { video: video ? { videoId: video.videoId } : null })
+      // picking a video by hand gives it another chance; going back to automatic forgets what failed for the song
+      failedVideos().forget(sk, video?.videoId)
+    }
     const songs = this.songs()
     for (const k of this.idsFor(trackId)) {
       if (video) songs[k] = { ...songs[k], youtube: video }

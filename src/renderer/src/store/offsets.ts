@@ -18,12 +18,13 @@ function load(): Record<string, number> {
 interface OffsetStore {
   /** Per-song nudges, on top of the global default offset from Settings. */
   map: Record<string, number>
-  set(trackId: string, ms: number): void
+  /** `remember: false` skips the user-choices write (used when restoring from it). */
+  set(trackId: string, ms: number, remember?: boolean): void
 }
 
 export const useOffsets = create<OffsetStore>((set, get) => ({
   map: load(),
-  set(trackId, ms) {
+  set(trackId, ms, remember = true) {
     const clamped = Math.max(-10_000, Math.min(10_000, ms))
     const next = { ...get().map }
     if (clamped === 0) delete next[trackId]
@@ -37,6 +38,9 @@ export const useOffsets = create<OffsetStore>((set, get) => ({
     } catch {
       /* storage full / disabled: offset still applies for this session */
     }
+    // also remember it per song in the user-choices store (survives a cleared browser store, shared across players)
+    const track = usePlayer.getState().snapshot?.track
+    if (remember && track && track.id === trackId) void window.lyra?.choices?.setOffset(track, clamped).catch(() => {})
   }
 }))
 
@@ -57,10 +61,7 @@ export function nudgeSongOffset(delta: number): void {
   if (!id) return
   const store = useOffsets.getState()
   const ms = (store.map[id] ?? 0) + delta
-  store.set(id, ms)
-  // also remember it per song in the main process (survives a cleared browser store, shared across players)
-  const track = usePlayer.getState().snapshot?.track
-  if (track) void window.lyra?.choices?.setOffset(track, useOffsets.getState().map[id] ?? 0).catch(() => {})
+  store.set(id, ms) // also syncs into the user-choices store
 }
 
 // when a song starts and we hold no nudge for it locally, restore the remembered one
@@ -73,7 +74,7 @@ usePlayer.subscribe((s) => {
   void window.lyra?.choices
     ?.get(track)
     .then((c) => {
-      if (c?.offsetMs && usePlayer.getState().snapshot?.track?.id === track.id && useOffsets.getState().map[track.id] === undefined) useOffsets.getState().set(track.id, c.offsetMs)
+      if (c?.offsetMs && usePlayer.getState().snapshot?.track?.id === track.id && useOffsets.getState().map[track.id] === undefined) useOffsets.getState().set(track.id, c.offsetMs, false)
     })
     .catch(() => {})
 })

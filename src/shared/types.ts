@@ -134,6 +134,9 @@ export interface LyricsCandidateInfo {
   durationMs: number
   synced: boolean
   instrumental: boolean
+  /** from the ranker (picker only): the top trustworthy option, and reason codes (core/lyrics/rank explainListing) */
+  best?: boolean
+  why?: string[]
 }
 
 /** How one lyrics service is doing (Settings shows it, so a problem is never a mystery). */
@@ -206,6 +209,11 @@ export interface YoutubeVideo {
   title: string
   channel: string
   durationSec: number | null
+  /** from the ranker (picker only): `acceptable` = safe to auto-play, `best` = the top such pick, `why` = reason codes (core/background/rank explainVideo) */
+  score?: number
+  acceptable?: boolean
+  best?: boolean
+  why?: string[]
 }
 
 /** fractions (0-0.3) of black bars to trim from each edge of a video */

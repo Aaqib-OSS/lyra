@@ -1,9 +1,11 @@
 import { thumbCrop, type DecodedImage } from '@core/background/bars'
 import { createBackgroundResolver, type SongBg } from '@core/background/resolver'
 import { youtube } from '@core/background/youtube'
+import { failedVideos } from '@core/background/failedVideos'
 import { clearAllCaches } from '@core/cache/persistentCache'
 import { lyricsService } from '@core/lyrics/service'
 import { trackKey } from '@core/songKey'
+import { keyForId } from '@core/trackIndex'
 import { userChoices } from '@core/userChoices'
 import type { LyraApi, Unsubscribe } from '@shared/ipc'
 import { DEFAULT_SETTINGS, type ConnectionStatus, type ModeEvent, type PlaybackSnapshot, type QueueItem, type SavedMoment, type Settings, type ViewMode } from '@shared/types'
@@ -376,7 +378,13 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
     clearYoutubeKey: async () => youtube.clearKey(),
     youtubeCandidates: (t) => youtube.candidates(t),
     karaokeVideos: (t) => youtube.karaoke(t),
+    youtubeFailed: async (songKey, videoId) => failedVideos().remember(songKey, videoId),
     youtubeChoose: async (trackId, videoId) => {
+      const sk = keyForId(trackId)
+      if (sk) {
+        userChoices().setChoice(sk, { video: videoId ? { videoId } : null })
+        failedVideos().forget(sk, videoId ?? undefined)
+      }
       const songs = { ...songsStore.get().songs }
       if (videoId) songs[trackId] = { ...songs[trackId], youtube: { videoId, title: '', channel: '', durationSec: null } }
       else if (songs[trackId]) {
@@ -391,7 +399,12 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
   choices: {
     get: async (t) => userChoices().getChoice(trackKey(t)),
     setOffset: async (t, ms) => void userChoices().setChoice(trackKey(t), { offsetMs: ms }),
-    clear: async (t, field) => userChoices().clearChoice(trackKey(t), field)
+    clear: async (t, field) => {
+      userChoices().clearChoice(trackKey(t), field)
+      // "back to automatic" also drops the pins the pickers keep (same as the desktop app)
+      if (!field || field === 'video') await androidApi.background.youtubeChoose(t.id, null)
+      if (!field || field === 'lyrics') await lyricsService.clearPin(t)
+    }
   },
   update: {
     get: async () => ({ state: 'disabled', reason: 'Download new versions from the GitHub releases page.' }),

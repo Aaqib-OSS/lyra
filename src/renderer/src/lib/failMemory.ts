@@ -21,6 +21,12 @@ export function failedVideos(songKey: string): Set<string> {
 }
 
 export function rememberFailure(songKey: string, videoId: string): void {
+  // the main process keeps the durable copy (its resolver skips the video before the renderer even sees it)
+  try {
+    void window.lyra?.background?.youtubeFailed?.(songKey, videoId)?.catch(() => {})
+  } catch {
+    /* no bridge (tests): the local copy below still works */
+  }
   try {
     const book = read()
     const now = Date.now()

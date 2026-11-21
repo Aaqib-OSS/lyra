@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanVideoTitle, parseIsoDuration, pickBestVideo, rankVideos, type VideoCandidate } from './rank'
+import { cleanVideoTitle, explainVideo, parseIsoDuration, pickBestVideo, rankVideos, type VideoCandidate } from './rank'
 
 const v = (videoId: string, title: string, channel: string, durationSec: number, embeddable = true): VideoCandidate => ({
   videoId,
@@ -118,5 +118,19 @@ describe('pickBestVideo: real-world result lists', () => {
   it('does not penalise "live" when the track itself is a live recording', () => {
     const w = { title: 'Blinding Lights (Live)', artist: 'The Weeknd', durationMs: 240_000 }
     expect(pickBestVideo(w, [v('l', 'The Weeknd - Blinding Lights (Live) (Official Video)', 'The Weeknd', 241)]).best?.videoId).toBe('l')
+  })
+})
+
+describe('explainVideo', () => {
+  const want = { title: 'Barsaat', artist: 'Banjaare', durationMs: 185_000 }
+  it('gives positive codes for the official video', () => {
+    const why = explainVideo(want, { ...v('off', 'Barsaat | Banjaare | Official Video', 'Banjaare', 187), hd: true })
+    expect(why).toEqual(expect.arrayContaining(['own-channel', 'official', 'length-match', 'hd']))
+    expect(why).not.toContain('variant')
+  })
+  it('flags covers, shorts and topic channels', () => {
+    expect(explainVideo(want, v('c', 'Barsaat cover', 'Random', 190))).toContain('variant')
+    expect(explainVideo(want, v('s', 'Barsaat #shorts', 'Random', 30))).toContain('short')
+    expect(explainVideo(want, v('t', 'Barsaat', 'Banjaare - Topic', 185))).toContain('topic')
   })
 })

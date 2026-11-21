@@ -76,7 +76,8 @@ const api: LyraApi = {
     clearYoutubeKey: () => invoke(CH.bgKeyClear),
     youtubeCandidates: (track) => invoke(CH.bgYtCandidates, track),
     karaokeVideos: (track) => invoke(CH.bgKaraoke, track),
-    youtubeChoose: (trackId, videoId) => invoke(CH.bgYtChoose, trackId, videoId)
+    youtubeChoose: (trackId, videoId) => invoke(CH.bgYtChoose, trackId, videoId),
+    youtubeFailed: (songKey, videoId) => invoke(CH.bgYtFailed, songKey, videoId)
   },
   choices: {
     get: (track) => invoke(CH.choicesGet, track),
