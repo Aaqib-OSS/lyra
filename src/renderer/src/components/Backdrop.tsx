@@ -282,7 +282,7 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
       if (d?.event === 'onError') onFailRef.current(`error ${(d as { info?: unknown }).info ?? ''}`)
       else if (d?.event === 'onReady') {
         cmd('setPlaybackQuality', [document.documentElement.dataset.ambient === '1' ? 'large' : 'hd1080'])
-        if (!phone && !runRef.current) cmd('pauseVideo')
+        if (!runRef.current) cmd('pauseVideo')
       } else if (d?.event === 'infoDelivery' && d.info?.playerState === 1) {
         window.clearTimeout(timer.current)
         setReady((was) => {
@@ -304,10 +304,17 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
 
   useEffect(() => {
     if (!ready) return
-    if (phone && run) holdMask()
     if (phone) {
-      // only restart it if the system actually stopped it while the app was away
-      if (run && lastState.current !== 1) cmd('playVideo')
+      // Pause with the music like on the PC. YouTube re-shows its own controls when a paused video resumes, so on the
+      // phone the picture is hidden while paused and for a moment after resuming (the cover shows through meanwhile).
+      if (run) {
+        holdMask(2600)
+        cmd('playVideo')
+      } else {
+        window.clearTimeout(maskTimer.current)
+        setMasked(true)
+        cmd('pauseVideo')
+      }
       return
     }
     cmd(run ? 'playVideo' : 'pauseVideo')

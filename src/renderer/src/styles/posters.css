@@ -32,7 +32,7 @@
 
 /* ---- Neon: a double tube, breathing, with corner brackets ---- */
 [data-vibe='neon'] .artwork--lift { outline: 3px solid #ff3df2; outline-offset: 5px; box-shadow: 0 0 0 2px #2ef2ff, 0 0 26px 4px rgba(255,61,242,.75), 0 0 60px rgba(46,242,255,.35) !important; animation: pz-pulse 2.6s ease-in-out infinite; }
-[data-vibe='neon'] .artwork__deco--a { inset: 4%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M4 28 V4 H28 M72 4 H96 V28 M96 72 V96 H72 M28 96 H4 V72' fill='none' stroke='%232ef2ff' stroke-width='5' stroke-linecap='square'/%3E%3C/svg%3E"); background-size: 100% 100%; }
+[data-vibe='neon'] .artwork__deco--a { inset: 4%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M4 28 V4 H28 M72 4 H96 V28 M96 72 V96 H72 M28 96 H4 V72' fill='none' stroke='%232ef2ff' stroke-width='3' stroke-linecap='square'/%3E%3C/svg%3E"); background-size: 100% 100%; }
 [data-vibe='neon'] .artwork__deco--b { left: 0; right: 0; height: 16%; top: -12%; background: linear-gradient(180deg, transparent, rgba(255,61,242,.35), transparent); animation: pz-scan 3.4s linear infinite; }
 
 /* ---- Chrome: a polished bevel with a sparkle ---- */
@@ -50,7 +50,7 @@
 [data-vibe='crt'] .artwork--lift { outline: 2px solid #35ff7a; outline-offset: 4px; box-shadow: 0 0 22px rgba(53,255,122,.45) !important; filter: sepia(.35) hue-rotate(70deg) saturate(1.4) contrast(1.05); animation: pz-flick 4s steps(1) infinite; }
 [data-vibe='crt'] .artwork__deco--a { inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 2px, transparent 2px 4px); }
 [data-vibe='crt'] .artwork__deco--b { left: 0; right: 0; height: 14%; top: -14%; background: linear-gradient(180deg, transparent, rgba(53,255,122,.3), transparent); animation: pz-scan 4.5s linear infinite; }
-[data-vibe='crt'] .artwork__deco--c { inset: 3%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M4 28 V4 H28 M72 4 H96 V28 M96 72 V96 H72 M28 96 H4 V72' fill='none' stroke='%2335ff7a' stroke-width='5' stroke-linecap='square'/%3E%3C/svg%3E"); background-size: 100% 100%; }
+[data-vibe='crt'] .artwork__deco--c { inset: 3%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M4 28 V4 H28 M72 4 H96 V28 M96 72 V96 H72 M28 96 H4 V72' fill='none' stroke='%2335ff7a' stroke-width='3' stroke-linecap='square'/%3E%3C/svg%3E"); background-size: 100% 100%; }
 
 /* ---- DM: sent as a picture, with a reaction that pops ---- */
 [data-vibe='chat'] .artwork--lift { outline: 3px solid #2f6bff; outline-offset: 0; box-shadow: 0 14px 34px -10px rgba(47,107,255,.6) !important; border-bottom-left-radius: 6px !important; }
@@ -98,3 +98,13 @@
 :root:not([data-vibe='none']) .artwork--lift::before { display: none; }
 :root:not([data-vibe='none']) .artwork--lift .artwork__img, :root:not([data-vibe='none']) .artwork--lift .artwork__empty { border-radius: inherit; }
 :root:not([data-vibe='none']) .artwork--lift .artwork__deco--a, :root:not([data-vibe='none']) .artwork--lift .artwork__deco--b, :root:not([data-vibe='none']) .artwork--lift .artwork__deco--c { border-radius: inherit; }
+
+/* ---- Sketchbook: a pasted photo with red tape and a pencil ring ---- */
+[data-vibe='sketch'] .artwork--lift { outline: 8px solid #f4ead0; outline-offset: 0; box-shadow: 0 0 0 10px #1f1511, 10px 12px 0 10px #d23a2a !important; --tilt: 2deg; animation: pz-wobble 6s ease-in-out infinite; }
+[data-vibe='sketch'] .artwork__deco--a { top: -4%; left: 20%; width: 46%; height: 14%; background: rgba(210,58,42,.85); transform: rotate(-4deg); }
+/* ---- Glitch: split channels and a tearing line ---- */
+[data-vibe='glitch'] .artwork--lift { outline: 2px solid #ff4a2e; outline-offset: 0; box-shadow: -6px 0 0 #ff2a1a, 6px 0 0 #26f0ff !important; animation: pz-flick 3s steps(1) infinite; }
+[data-vibe='glitch'] .artwork__deco--a { left: 0; right: 0; height: 12%; top: -12%; background: linear-gradient(180deg, transparent, rgba(255,255,255,.35), transparent); animation: pz-scan 3.6s linear infinite; }
+
+/* ---- Pop Comic: a boxed panel with a burst ---- */
+[data-vibe='comic'] .artwork--lift { outline: 6px solid #111; outline-offset: 0; box-shadow: 10px 10px 0 6px #111 !important; border-radius: 6px !important; --tilt: -1.5deg; animation: pz-wobble 5s ease-in-out infinite; }

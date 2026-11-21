@@ -17,7 +17,7 @@ function sanitize(s: Settings): Settings {
     lyricFontSize: clamp(s.lyricFontSize, 24, 72),
     lineSpacing: clamp(s.lineSpacing, 1, 2),
     fullLayout: (['auto', 'cinema', 'split', 'poster', 'focus'] as const).includes(s.fullLayout) ? s.fullLayout : d.fullLayout,
-    lyricStyle: (['classic', 'kinetic', 'constellation', 'sticker', 'chat', 'type', 'diary', 'subtitle', 'chatlog', 'lowerthird'] as const).includes(s.lyricStyle) ? s.lyricStyle : d.lyricStyle,
+    lyricStyle: (['classic', 'zoom', 'kinetic', 'constellation', 'sticker', 'chat', 'type', 'diary', 'subtitle', 'chatlog', 'lowerthird'] as const).includes(s.lyricStyle) ? s.lyricStyle : d.lyricStyle,
     vibe: (ALL_VIBES as readonly string[]).includes(s.vibe) ? s.vibe : d.vibe,
     vibeMode: (['fixed', 'cycle', 'smart'] as const).includes(s.vibeMode) ? s.vibeMode : d.vibeMode,
     songVibes: Object.fromEntries(Object.entries(s.songVibes && typeof s.songVibes === 'object' ? s.songVibes : {}).filter(([, v]) => (ALL_VIBES as readonly string[]).includes(v as string)).slice(-300)),

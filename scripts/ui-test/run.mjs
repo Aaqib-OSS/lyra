@@ -62,7 +62,7 @@ async function up() {
 let server
 async function ensureServer() {
   if (await up()) return
-  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore', shell: process.platform === 'win32' })
+  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore', shell: process.platform === 'win32', detached: process.platform !== 'win32' })
   for (let i = 0; i < 80 && !(await up()); i++) await new Promise((r) => setTimeout(r, 500))
   if (!(await up())) throw new Error('the harness server did not start')
 }
@@ -82,7 +82,7 @@ const MEASURE = () => {
   const label = (el) => (el.getAttribute('aria-label') || el.className?.toString?.().split(' ')[0] || el.tagName).slice(0, 40)
 
   // the lyric text actually on screen: the current line in a list, or the staged phrase
-  const stageSel = ['.lyric.is-active .lyric__text', '.stage .kin__word.is-in', '.stage .stk__word.is-in', '.stage .con__star.is-in span', '.stage .bub.is-live .bub__text span.is-in', '.stage .term__now', '.stage .diary__now', '.stage .sub__line span.is-in', '.stage .mc__row.is-live', '.stage .lt__bar p span.is-in']
+  const stageSel = ['.lyric.is-active .lyric__text', '.stage .kin__word.is-in', '.stage .zoom__word', '.stage .stk__word.is-in', '.stage .con__star.is-in span', '.stage .bub.is-live .bub__text span.is-in', '.stage .term__now', '.stage .diary__now', '.stage .sub__line span.is-in', '.stage .mc__row.is-live', '.stage .lt__bar p span.is-in']
   const textRects = []
   for (const sel of stageSel) for (const el of document.querySelectorAll(sel)) {
     if (!shown(el)) continue
@@ -94,7 +94,7 @@ const MEASURE = () => {
     }
   }
   // contrast is judged on what is being sung right now (older / dimmed words are dim on purpose)
-  const nowSel = ['.lyric.is-active .lyric__text', '.stage .kin__word.is-now', '.stage .stk__word.is-now', '.stage .con__star.is-now span', '.stage .bub.is-live .bub__text', '.stage .term__now', '.stage .diary__now', '.stage .sub__line', '.stage .mc__row.is-live', '.stage .lt__bar p']
+  const nowSel = ['.lyric.is-active .lyric__text', '.stage .kin__word.is-now', '.stage .zoom__word', '.stage .stk__word.is-now', '.stage .con__star.is-now span', '.stage .bub.is-live .bub__text', '.stage .term__now', '.stage .diary__now', '.stage .sub__line', '.stage .mc__row.is-live', '.stage .lt__bar p']
   const nowRects = []
   for (const sel of nowSel) for (const el of document.querySelectorAll(sel)) {
     if (!shown(el)) continue
@@ -278,7 +278,7 @@ async function main() {
   }
   await Promise.all(Array.from({ length: Number(args.workers) || 4 }, worker))
   await browser.close()
-  server?.kill()
+  try { if (server) process.kill(process.platform === 'win32' ? server.pid : -server.pid) } catch {}
 
   results.sort((a, b) => (a.vibe + a.device).localeCompare(b.vibe + b.device))
   writeFileSync(join(OUT, 'report.json'), JSON.stringify(results, null, 2))
@@ -289,4 +289,4 @@ async function main() {
   console.log(`\nreport + failing screenshots: ${OUT}`)
   process.exit(bad.length ? 1 : 0)
 }
-main().catch((e) => { console.error(e); server?.kill(); process.exit(2) })
+main().catch((e) => { console.error(e); try { if (server) process.kill(process.platform === 'win32' ? server.pid : -server.pid) } catch {}; process.exit(2) })

@@ -85,6 +85,9 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
   const live = line && line.text !== '' ? line : undefined
   return (
     <div className={`stage stage--${mode}`} aria-live="off">
+      {mode === 'zoom' && (
+        <AnimatePresence>{live && <Zoom key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} />}</AnimatePresence>
+      )}
       {mode === 'kinetic' && (
         <AnimatePresence>{live && <Kinetic key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} />}</AnimatePresence>
       )}
@@ -162,6 +165,53 @@ const Kinetic = memo(function Kinetic({ line, index, nextTime }: { line: LyricLi
           })}
         </div>
       ))}
+    </motion.div>
+  )
+})
+
+// ---------- zoom: one giant word at a time, thrown at the camera ----------
+
+const ZOOM_LOOKS = ['fill', 'outline', 'cut', 'ghost'] as const
+
+/**
+ * Motion-graphics lyrics: the word being sung fills the screen, flies in from far too close (big, blurred, tilted) and
+ * snaps into place; the next word replaces it. The whole line sits small underneath so you can always read along.
+ */
+const Zoom = memo(function Zoom({ line, index, nextTime }: { line: LyricLine; index: number; nextTime: number | undefined }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words)
+  const cur = Math.max(0, revealed - 1)
+  const w = words[cur]
+  const h = hash(index * 31 + cur, w?.text ?? '')
+  const look = ZOOM_LOOKS[h % ZOOM_LOOKS.length]!
+  const rot = ((h >> 3) % 9) - 4
+  const len = Math.max(2, w?.text.length ?? 2)
+  const k = Math.min(1, 6.5 / len)
+  return (
+    <motion.div className="zoom" initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0, filter: 'blur(14px)', transition: { duration: 0.25 } }}>
+      <AnimatePresence mode="popLayout" initial={false}>
+        {w && (
+          <motion.span
+            key={`${index}-${cur}`}
+            className={`zoom__word zoom__word--${look}`}
+            data-text={w.text}
+            style={{ ['--k' as string]: k }}
+            initial={{ scale: 2.7, opacity: 0, filter: 'blur(20px)', rotate: rot * 2.2, x: (h % 2 ? -1 : 1) * 60 }}
+            animate={{ scale: 1, opacity: 1, filter: 'blur(0px)', rotate: rot, x: 0 }}
+            exit={{ scale: 0.72, opacity: 0, filter: 'blur(10px)' }}
+            transition={{ duration: 0.26, ease: [0.2, 0.9, 0.2, 1] }}
+          >
+            {w.text}
+          </motion.span>
+        )}
+      </AnimatePresence>
+      <div className="zoom__line" aria-hidden="true">
+        {words.map((x, i) => (
+          <span key={i} className={i < revealed ? (i === cur ? 'is-now' : 'is-in') : ''}>
+            {x.text}
+          </span>
+        ))}
+      </div>
     </motion.div>
   )
 })

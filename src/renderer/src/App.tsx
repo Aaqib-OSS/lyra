@@ -4,6 +4,7 @@ import { Backdrop } from '@/components/Backdrop'
 import { VibeFx } from '@/components/VibeFx'
 import { isImportError } from '@shared/lrc'
 import { cycleVibe, useVibeConductor } from '@/hooks/useVibe'
+import { usePrefetchNext } from '@/hooks/usePrefetchNext'
 import { CompactWidget } from '@/components/CompactWidget'
 import { FullscreenPlayer } from '@/components/FullscreenPlayer'
 import { MiniPlayer } from '@/components/MiniPlayer'
@@ -230,6 +231,7 @@ export default function App() {
   const [faded, setFaded] = useState(false)
   useThemeVars()
   useVibeConductor()
+  usePrefetchNext()
   useHotkeys()
   const dropping = useLyricDrop()
 
