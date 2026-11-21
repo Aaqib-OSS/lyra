@@ -1,4 +1,4 @@
-/* Lyra website: live demo engine, release links, reveal + tilt effects. No dependencies. */
+/* Lyra website: the live demo engine (play, skip, click a line to seek). No dependencies. */
 const REPO = 'DhruvHarani1/lyra'
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -200,10 +200,10 @@ document.addEventListener('click', (e) => {
   if (a.dataset.act === 'prev') go(-1)
 })
 
-document.querySelector('.tabs').addEventListener('click', (e) => {
+document.getElementById('demo-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('button')
   if (!b) return
-  document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('is-on', x === b))
+  document.querySelectorAll('#demo-tabs button').forEach((x) => x.classList.toggle('is-on', x === b))
   document.getElementById('demo-box').dataset.view = b.dataset.view
   requestAnimationFrame(() => place(true))
 })
@@ -214,138 +214,3 @@ setInterval(clocks, 15000)
 requestAnimationFrame(frame)
 addEventListener('resize', () => place(true))
 
-/* ---------- scroll reveal ---------- */
-const io = new IntersectionObserver(
-  (es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }),
-  { threshold: 0.12 }
-)
-document.querySelectorAll('.reveal').forEach((el, i) => {
-  el.style.transitionDelay = `${(i % 4) * 70}ms`
-  io.observe(el)
-})
-
-/* ---------- 3D tilt on the hero devices ---------- */
-if (!reduce && matchMedia('(pointer: fine)').matches) {
-  const stage = document.getElementById('hero-stage')
-  stage.addEventListener('pointermove', (e) => {
-    const r = stage.getBoundingClientRect()
-    const x = (e.clientX - r.left) / r.width - 0.5
-    const y = (e.clientY - r.top) / r.height - 0.5
-    stage.querySelectorAll('.tilt').forEach((t, i) => {
-      const k = i ? 1.4 : 1
-      t.style.transform = `rotateY(${x * 14 * k}deg) rotateX(${-y * 10 * k}deg)`
-    })
-  })
-  stage.addEventListener('pointerleave', () => stage.querySelectorAll('.tilt').forEach((t) => (t.style.transform = '')))
-}
-
-/* ---------- downloads: newest Windows and Android releases from GitHub ---------- */
-const isAndroid = /android/i.test(navigator.userAgent)
-if (isAndroid) {
-  const w = document.getElementById('cta-win'), a = document.getElementById('cta-and')
-  a.classList.remove('btn--ghost'); w.classList.add('btn--ghost')
-  a.parentElement.prepend(a)
-}
-;(async () => {
-  try {
-    const rs = await (await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=30`)).json()
-    const pick = (re, ext) => {
-      const r = rs.find((x) => !x.draft && re.test(x.tag_name) && x.assets.some((a) => a.name.endsWith(ext)))
-      return r && { v: r.tag_name.replace(/^\D+/, ''), url: r.assets.find((a) => a.name.endsWith(ext)).browser_download_url, size: r.assets.find((a) => a.name.endsWith(ext)).size }
-    }
-    const win = pick(/^v\d/, '.exe'), and = pick(/^android-v/, '.apk')
-    const mb = (n) => `${(n / 1048576).toFixed(0)} MB`
-    if (win) {
-      document.getElementById('dl-win').href = win.url
-      document.getElementById('cta-win').href = win.url
-      document.getElementById('dl-win-v').textContent = `Version ${win.v} · ${mb(win.size)} · Windows 10 / 11`
-      document.getElementById('v-win').textContent = `Windows ${win.v}`
-    }
-    if (and) {
-      document.getElementById('dl-and').href = and.url
-      document.getElementById('cta-and').href = and.url
-      document.getElementById('dl-and-v').textContent = `Version ${and.v} · ${mb(and.size)} · Android 8+`
-      document.getElementById('v-and').textContent = `Android ${and.v}`
-    }
-  } catch { /* offline or rate limited: the buttons keep pointing at the releases page */ }
-})()
-
-/* ---------- reel: recordings of the real app ---------- */
-const reelVideo = document.getElementById('reel-video')
-document.getElementById('reel-tabs').addEventListener('click', (e) => {
-  const b = e.target.closest('button')
-  if (!b) return
-  const k = b.dataset.clip
-  document.querySelectorAll('#reel-tabs button').forEach((x) => x.classList.toggle('is-on', x === b))
-  document.getElementById('reel-box').classList.toggle('is-tall', k === 'widget')
-  b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' })
-  reelVideo.poster = `assets/poster-${k}.jpg`
-  reelVideo.src = `assets/clip-${k}.mp4`
-  reelVideo.play().catch(() => {})
-})
-// play only while visible (saves battery and bandwidth)
-new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? reelVideo.play().catch(() => {}) : reelVideo.pause())), { threshold: 0.25 }).observe(reelVideo)
-
-/* ---------- whole song: pause when scrolled away ---------- */
-{
-  const v = document.getElementById('song-video')
-  new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting && !v.paused) v.pause() }), { threshold: 0.1 }).observe(v)
-}
-
-/* ---------- Vega: newest release links ---------- */
-;(async () => {
-  try {
-    const rs = await (await fetch('https://api.github.com/repos/DhruvHarani1/vega/releases?per_page=10')).json()
-    const r = rs.find((x) => !x.draft && x.assets.some((a) => a.name.endsWith('.exe')))
-    if (!r) return
-    const exe = r.assets.find((a) => a.name.endsWith('.exe')), apk = r.assets.find((a) => a.name.endsWith('.apk'))
-    const mb = (n) => `${(n / 1048576).toFixed(0)} MB`
-    const v = r.tag_name.replace(/^\D+/, '')
-    document.getElementById('vega-win').href = exe.browser_download_url
-    document.getElementById('vega-win').textContent = `Download for Windows · ${v}`
-    if (apk) {
-      document.getElementById('vega-and').href = apk.browser_download_url
-      document.getElementById('vega-and').textContent = `Download for Android · ${v}`
-    }
-    document.getElementById('vega-meta').textContent = `Version ${v} · Windows ${mb(exe.size)}${apk ? ` · Android ${mb(apk.size)}` : ''} · free and open source`
-  } catch { /* keep the releases page links */ }
-})()
-
-/* ---------- smooth scrolling (mouse wheel and in-page links) ---------- */
-if (!reduce && matchMedia('(hover: hover) and (pointer: fine)').matches) {
-  const root = document.documentElement
-  root.classList.add('has-smooth')
-  let target = scrollY, cur = scrollY, raf = 0
-  const max = () => root.scrollHeight - innerHeight
-  const clamp = (v) => Math.max(0, Math.min(max(), v))
-  const tick = () => {
-    const d = target - cur
-    if (Math.abs(d) < 0.4) { cur = target; scrollTo(0, cur); raf = 0; return }
-    cur += d * 0.11
-    scrollTo(0, cur)
-    raf = requestAnimationFrame(tick)
-  }
-  const go = (y) => { target = clamp(y); if (!raf) raf = requestAnimationFrame(tick) }
-  addEventListener('wheel', (e) => {
-    if (e.ctrlKey || e.defaultPrevented || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
-    // leave nested scrollers (video controls, horizontally scrolling tabs) alone
-    if (e.target.closest && e.target.closest('video, .tabs--scroll')) return
-    e.preventDefault()
-    const k = e.deltaMode === 1 ? 34 : e.deltaMode === 2 ? innerHeight : 1
-    if (!raf) { cur = target = scrollY }
-    go(target + e.deltaY * k * 0.9)
-  }, { passive: false })
-  // keyboard, scrollbar drag, find-in-page: follow the real position when we are not animating
-  addEventListener('scroll', () => { if (!raf) cur = target = scrollY }, { passive: true })
-  document.addEventListener('click', (e) => {
-    const a = e.target.closest && e.target.closest('a[href^="#"]')
-    if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return
-    const id = a.getAttribute('href').slice(1)
-    const el = id ? document.getElementById(id) : document.body
-    if (!el) return
-    e.preventDefault()
-    if (!raf) cur = scrollY
-    go(id && id !== 'top' ? el.getBoundingClientRect().top + scrollY - 70 : 0)
-    history.replaceState(null, '', id ? `#${id}` : location.pathname)
-  })
-}

@@ -3,83 +3,172 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lyra — beautiful synced lyrics for Windows and Android, and Vega the music app</title>
-  <meta name="description" content="Lyra shows word-by-word synced lyrics over the music video of whatever you are playing. Free, open source, no account. Windows and Android." />
-  <meta name="theme-color" content="#050505" />
+  <title>Lyra — lyrics that move with the music · Windows, Android · 20 looks</title>
+  <meta name="description" content="Lyra shows word-by-word synced lyrics over the music video of whatever you play, in 20 hand-designed looks. Free, open source, no account. Windows and Android." />
+  <meta name="theme-color" content="#06050a" />
   <meta property="og:title" content="Lyra — lyrics that move with the music" />
-  <meta property="og:description" content="Word-by-word synced lyrics, music-video backgrounds, an ambient screen saver. Free and open source." />
+  <meta property="og:description" content="20 designed looks, word-by-word lyrics, music-video backgrounds. Free and open source." />
   <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/shots/sheet-vibes.jpg" />
   <link rel="icon" href="assets/icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="site.css" />
+  <link rel="stylesheet" href="demo.css" />
 </head>
 <body>
   <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="grain" aria-hidden="true"></div>
+  <div class="spot" id="spot" aria-hidden="true"></div>
 
-  <header class="nav">
-    <a class="brand" href="#top"><img src="assets/icon.png" alt="" width="28" height="28" /> Lyra</a>
+  <header class="nv">
+    <a class="brand" href="./"><img src="assets/icon.png" alt="" width="26" height="26" /> Lyra</a>
     <nav>
-      <a href="#real">Screenshots</a>
-      <a href="#reel">Videos</a>
-      <a href="#song">Full song</a>
-      <a href="#demo">Live demo</a>
-      <a href="#features">Features</a>
-      <a href="#phone">Android</a>
-      <a href="#vega">Vega</a>
-      <a href="#open">Open source</a>
+      <a href="#looks">20 looks</a>
+      <a href="#states">Every state</a>
+      <a href="#cards">Cards</a>
+      <a href="#demo">Try it</a>
+      <a href="#android">Android</a>
+      <a href="vibes">Gallery</a>
+      <a href="whats-new">What’s new</a>
     </nav>
-    <a class="btn btn--sm" href="#download">Download</a>
+    <a class="btn btn--sm btn--acc" href="#download">Download</a>
   </header>
 
   <main id="top">
     <!-- HERO -->
-    <section class="hero">
-      <p class="eyebrow reveal"><span class="dot"></span> Free · open source · no account</p>
-      <h1 class="reveal">Lyrics that <em>move</em><br />with the music.</h1>
-      <p class="lead reveal">Lyra reads what you are playing and shows it word by word, over the music video itself. A floating widget on Windows. A screen saver on your phone.</p>
-      <div class="cta reveal">
-        <a class="btn btn--big" id="cta-win" href="https://github.com/DhruvHarani1/lyra/releases/latest" data-os="windows">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3 5.5 10.5 4.4v7H3zM11.5 4.3 21 3v8.4h-9.5zM3 12.5h7.5v7L3 18.5zM11.5 12.5H21V21l-9.5-1.3z"/></svg>
-          Download for Windows
-        </a>
-        <a class="btn btn--big btn--ghost" id="cta-and" href="https://github.com/DhruvHarani1/lyra/releases" data-os="android">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M17.6 9.5 19.3 6.6a.4.4 0 0 0-.7-.4l-1.7 3A10.3 10.3 0 0 0 12 8.2c-1.7 0-3.3.4-4.9 1.1l-1.7-3a.4.4 0 0 0-.7.4l1.7 2.9A9.2 9.2 0 0 0 2.5 17h19a9.2 9.2 0 0 0-3.9-7.5zM8 14.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
-          Download for Android
-        </a>
+    <section class="hx">
+      <div class="hx__copy">
+        <p class="eyebrow reveal"><span class="dot"></span> Free · open source · no account · now with 20 looks</p>
+        <h1 id="hero-h1" aria-label="Lyrics that move with the music."><span class="w">Lyrics</span> <span class="w">that</span> <span class="w hot">move</span><br /><span class="w">with</span> <span class="w">the</span> <span class="w">music.</span></h1>
+        <p class="lead reveal">Lyra reads what you play and shows it word by word, over the music video itself, in a look designed for the mood: neon tubes, a pencil sketchbook, a terminal, a stadium scoreboard, a film strip.</p>
+        <div class="cta reveal">
+          <a class="btn btn--big btn--acc" id="cta-win" href="https://github.com/DhruvHarani1/lyra/releases/latest">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3 5.5 10.5 4.4v7H3zM11.5 4.3 21 3v8.4h-9.5zM3 12.5h7.5v7L3 18.5zM11.5 12.5H21V21l-9.5-1.3z"/></svg>
+            Download for Windows
+          </a>
+          <a class="btn btn--big btn--ghost" id="cta-and" href="https://github.com/DhruvHarani1/lyra/releases">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M17.6 9.5 19.3 6.6a.4.4 0 0 0-.7-.4l-1.7 3A10.3 10.3 0 0 0 12 8.2c-1.7 0-3.3.4-4.9 1.1l-1.7-3a.4.4 0 0 0-.7.4l1.7 2.9A9.2 9.2 0 0 0 2.5 17h19a9.2 9.2 0 0 0-3.9-7.5zM8 14.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+            Download for Android
+          </a>
+        </div>
+        <p class="hx__meta reveal"><span id="v-win">Windows 10/11</span> · <span id="v-and">Android 8+</span> · MIT licensed</p>
+        <div class="hx__vibe reveal" aria-live="polite">Now showing <b id="hx-name">Neon</b> <button type="button" id="hx-next">Next look →</button></div>
       </div>
-      <p class="meta reveal"><span id="v-win">Windows 10/11</span> · <span id="v-and">Android 8+</span> · MIT licensed</p>
 
-      <div class="stage reveal" id="hero-stage">
-        <div class="widget tilt" data-bind="mini"></div>
-        <div class="phone tilt phone--float" data-bind="phone"></div>
+      <div class="hx__stage" id="hx-stage">
+        <figure class="chip-float chip-float--b" style="margin:0"><img id="hx-card-a" src="assets/shots/card-sticker.jpg" alt="Share card in the Stickers look" loading="lazy" /></figure>
+        <div class="dev dev--win tilt"><span class="bar-dots"><i></i><i></i><i></i></span><img id="hx-full" src="assets/shots/neon-full.jpg" alt="Lyra fullscreen in the Neon look" width="1600" height="900" fetchpriority="high" /></div>
+        <div class="dev dev--phone"><img id="hx-phone" src="assets/shots/neon-phone.jpg" alt="Lyra on an Android phone" width="780" height="1688" /></div>
+        <div class="dev dev--mini"><img id="hx-mini" src="assets/shots/neon-mini.jpg" alt="Lyra mini player" width="840" height="1400" /></div>
+        <figure class="chip-float chip-float--a" style="margin:0"><img id="hx-card-b" src="assets/shots/card-neon.jpg" alt="Share card in the Neon look" loading="lazy" /></figure>
+      </div>
+      <div class="hx__glow" aria-hidden="true"></div>
+    </section>
+
+    <!-- TICKER -->
+    <div class="tick" aria-hidden="true"><div class="tick__track" id="tick"></div></div>
+
+    <!-- STATS -->
+    <section class="sx" style="padding-top:60px">
+      <div class="stats reveal">
+        <div><b data-count="20">20</b><span>hand-designed looks, each with its own type, colour and motion</span></div>
+        <div><b data-count="4">4</b><span>screens designed for every look: synced, unsynced, no lyrics, video</span></div>
+        <div><b data-count="3">3</b><span>sizes: full screen, mini player, Android phone and tablet</span></div>
+        <div><b>0</b><span>accounts, trackers or ads. Open source, MIT licence</span></div>
       </div>
     </section>
 
-    <!-- MARQUEE -->
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee__track">
-        <span>Word by word</span><span>Music-video backgrounds</span><span>Ambient screen saver</span><span>Lock-screen lyrics</span><span>Tap a line to seek</span><span>Cover-colour glow</span><span>No account</span><span>Open source</span>
-        <span>Word by word</span><span>Music-video backgrounds</span><span>Ambient screen saver</span><span>Lock-screen lyrics</span><span>Tap a line to seek</span><span>Cover-colour glow</span><span>No account</span><span>Open source</span>
+    <!-- 20 LOOKS -->
+    <section class="sx" id="looks">
+      <div class="sx__head">
+        <p class="mono reveal">01 · The looks</p>
+        <h2 class="reveal">One song.<br /><em>Twenty</em> ways to see it.</h2>
+        <p class="lead reveal">A look is not a theme colour. It changes the type, the way each word arrives, the background, the player card, the cover frame, the Settings panel and even the card you share. Pick a favourite, cycle with one key, or let Lyra choose by the song.</p>
       </div>
-    </div>
-
-    <!-- REAL APP -->
-    <section class="section real" id="real">
-      <h2 class="reveal">The real app. <span class="mute">Not a mock-up.</span></h2>
-      <p class="sub reveal">Screenshots straight from Lyra, playing a song with its music video behind the lyrics.</p>
-      <div class="real__grid">
-        <figure class="shot shot--wide reveal"><img src="assets/app-full.jpg" alt="Lyra in fullscreen, with synced lyrics over the music video" width="1920" height="1200" loading="lazy" /><figcaption>Fullscreen: every word lights up as it is sung</figcaption></figure>
-        <figure class="shot shot--tall reveal"><img src="assets/app-mini.jpg" alt="Lyra widget with the video filling the whole player" width="630" height="1050" loading="lazy" /><figcaption>Widget: the video fills the player</figcaption></figure>
+      <div class="show">
+        <div class="show__list" id="show-list" role="tablist" aria-label="Looks"></div>
+        <div class="show__stage reveal">
+          <div class="show__bar">
+            <div class="seg" id="seg-dev" role="tablist" aria-label="Device">
+              <button class="is-on" data-dev="full">Full screen</button>
+              <button data-dev="phone">Android</button>
+              <button data-dev="mini">Mini player</button>
+            </div>
+            <div class="seg" id="seg-vid" role="tablist" aria-label="Background">
+              <button class="is-on" data-vid="1">With video</button>
+              <button data-vid="0">Without</button>
+            </div>
+          </div>
+          <div class="show__canvas" id="show-canvas" data-dev="full"><img id="show-img" src="assets/shots/neon-full.jpg" alt="" /></div>
+          <div class="show__info"><div><h3 id="show-name">Neon</h3><div class="tags" id="show-tags"></div></div><p id="show-tag">Synthwave tubes</p></div>
+        </div>
       </div>
     </section>
 
-    <!-- REEL -->
-    <section class="section" id="reel">
-      <h2 class="reveal">See it <span class="mute">in motion.</span></h2>
-      <p class="sub reveal">Screen recordings of Lyra on Windows, different songs, different moods.</p>
+    <!-- EVERY STATE -->
+    <section class="sx" id="states">
+      <div class="sx__head">
+        <p class="mono reveal">02 · Every state, designed</p>
+        <h2 class="reveal">No lyrics? <em>Still</em> beautiful.</h2>
+        <p class="lead reveal">Most players show an empty box when something is missing. In Lyra each look has its own screen for synced words, words without timing, no lyrics found, and a video playing behind. Scroll through the four states of one look.</p>
+      </div>
+      <div class="story" id="story">
+        <div class="story__steps">
+          <div class="story__step is-on" data-s="full"><i>STATE 01</i><h3>Synced, with the video</h3><p>Every word lights up as it is sung, over the official video, which pauses and resumes with the music.</p></div>
+          <div class="story__step" data-s="plain"><i>STATE 02</i><h3>Words without timing</h3><p>Some songs only have plain lyrics. They are shown as a calm, static page that never pretends to follow the song, and Lyra keeps looking for a synced version.</p></div>
+          <div class="story__step" data-s="nolyrics"><i>STATE 03</i><h3>No lyrics found</h3><p>A designed screen instead of an error: the reason in plain words, a live retry countdown, and ways out: search again, pick a match, paste your own.</p></div>
+          <div class="story__step" data-s="full-novideo"><i>STATE 04</i><h3>No video available</h3><p>The look carries the scene on its own, so a missing video never leaves a hole.</p></div>
+        </div>
+        <div class="story__art"><img id="story-img" src="assets/shots/sketch-full.jpg" alt="" /></div>
+      </div>
+    </section>
+
+    <!-- CARDS -->
+    <section class="sx" id="cards">
+      <div class="sx__head">
+        <p class="mono reveal">03 · Made to share</p>
+        <h2 class="reveal">A card for <em>every</em> look.</h2>
+        <p class="lead reveal">Tap a lyric to make a story-size card. It wears the look you are in: hand-drawn doodle marks on a stencil, a terminal printout, a sticker, a diary page, a scoreboard. Everything is drawn on your device.</p>
+      </div>
+      <div class="rail reveal" id="rail-cards"></div>
+    </section>
+
+    <!-- SETTINGS + POSTERS -->
+    <section class="sx" id="skins">
+      <div class="sx__head">
+        <p class="mono reveal">04 · Down to the details</p>
+        <h2 class="reveal">Even <em>Settings</em><br />wears the look.</h2>
+        <p class="lead reveal">The cover gets an animated frame (a taped polaroid, a neon tube, a film edge), and the Settings panel is re-skinned in paper, border, type and pen colour. Nothing to configure: the look is designed, so you do not have to.</p>
+      </div>
+      <div class="rail rail--wide reveal" id="rail-settings"></div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="sx" id="features">
+      <div class="sx__head">
+        <p class="mono reveal">05 · Under the hood</p>
+        <h2 class="reveal">Quietly <em>smart.</em></h2>
+      </div>
+      <div class="bento">
+        <article class="bc bc--xw reveal"><span class="k">Word by word</span><h3>Every word, on time</h3><p>Words fill in as they are sung, in English, Hindi, Punjabi and more, even when the lyrics only come line by line. Synced lyrics always win over plain ones.</p><div class="wbw" aria-hidden="true"><span>Streetlights</span> <span>hum</span> <span>a</span> <span>quiet</span> <span>tune</span></div></article>
+        <article class="bc reveal"><span class="k">Video</span><h3>Pauses with the song</h3><p>Pause the music and the video freezes within a blink. Resume and it moves again.</p><div class="pause" aria-hidden="true"><i></i><span></span></div></article>
+        <article class="bc reveal"><span class="k">Smooth start</span><h3>Ready before the song</h3><p>While one song plays, Lyra quietly prepares the next one: lyrics, video and the Apple preview clip.</p></article>
+        <article class="bc reveal"><span class="k">Resilient</span><h3>Fails gracefully</h3><p>Automatic retries, a memory of videos that failed before, stale lyrics shown while a service is down.</p></article>
+        <article class="bc reveal"><span class="k">Smart pick</span><h3>Chooses the look</h3><p>Night, city, tears, trophies: Lyra reads the words and the cover and picks a look that fits. Or cycle with <kbd>V</kbd>.</p></article>
+        <article class="bc bc--w reveal"><span class="k">Private</span><h3>No account. No tracking.</h3><p>Lyra only reads the now-playing card. Your own lyrics, videos and choices stay on your device.</p></article>
+        <article class="bc bc--w reveal"><span class="k">Open</span><h3>Everything is open source</h3><p>MIT licensed, with automated tests that render every look on every screen size before each release.</p></article>
+      </div>
+    </section>
+
+    <!-- REAL RECORDINGS -->
+    <section class="sx sx--center" id="reel">
+      <div class="sx__head">
+        <p class="mono reveal">06 · In motion</p>
+        <h2 class="reveal">See it <em>move.</em></h2>
+        <p class="lead reveal">Screen recordings of Lyra on Windows: different songs, different moods.</p>
+      </div>
       <div class="tabs tabs--scroll reveal" id="reel-tabs" role="tablist">
         <button role="tab" class="is-on" data-clip="blinding">Blinding Lights</button>
         <button role="tab" data-clip="levitating">Levitating</button>
@@ -89,26 +178,27 @@
         <button role="tab" data-clip="barsaat">Barsaat · Hindi</button>
         <button role="tab" data-clip="widget">Widget</button>
       </div>
-      <div class="reel reveal" id="reel-box">
-        <video id="reel-video" muted loop playsinline autoplay preload="metadata" poster="assets/poster-blinding.jpg"><source src="assets/clip-blinding.mp4" type="video/mp4" /></video>
-      </div>
+      <div class="reel reveal" id="reel-box"><video id="reel-video" muted loop playsinline autoplay preload="metadata" poster="assets/poster-blinding.jpg"><source src="assets/clip-blinding.mp4" type="video/mp4" /></video></div>
     </section>
 
-    <!-- WHOLE SONG -->
-    <section class="section" id="song">
-      <h2 class="reveal">Watch a <em>whole</em> song.</h2>
-      <p class="sub reveal">Barsaat by Banjaare, start to finish, with the Hindi lyrics lighting up word by word over the video. Press play and turn your sound up.</p>
-      <div class="song reveal" id="song-box">
-        <video id="song-video" controls playsinline preload="metadata" poster="assets/poster-song.jpg"><source src="assets/song-barsaat.mp4" type="video/mp4" /></video>
+    <section class="sx sx--center" id="song">
+      <div class="sx__head">
+        <p class="mono reveal">07 · A whole song</p>
+        <h2 class="reveal">Press play. <em>Turn it up.</em></h2>
+        <p class="lead reveal">Barsaat by Banjaare, start to finish, with the Hindi lyrics lighting up word by word over the video.</p>
       </div>
+      <div class="song reveal"><video id="song-video" controls playsinline preload="metadata" poster="assets/poster-song.jpg"><source src="assets/song-barsaat.mp4" type="video/mp4" /></video></div>
       <p class="song__note reveal">The song and the video belong to Banjaare and Sony Music. They are shown here only to demo Lyra.</p>
     </section>
 
     <!-- LIVE DEMO -->
-    <section class="section" id="demo">
-      <h2 class="reveal">Try it. <span class="mute">It is the real thing.</span></h2>
-      <p class="sub reveal">This preview runs the same way the app does. Play, skip, and click any lyric line to jump there.</p>
-      <div class="tabs reveal" role="tablist">
+    <section class="sx sx--center" id="demo">
+      <div class="sx__head">
+        <p class="mono reveal">08 · Try it</p>
+        <h2 class="reveal">It is the <em>real thing.</em></h2>
+        <p class="lead reveal">This preview runs the way the app does. Play, skip, and click any lyric line to jump there.</p>
+      </div>
+      <div class="tabs reveal" id="demo-tabs" role="tablist">
         <button role="tab" class="is-on" data-view="full">Fullscreen</button>
         <button role="tab" data-view="mini">Widget</button>
         <button role="tab" data-view="phone">Phone ambient</button>
@@ -121,135 +211,94 @@
       </div>
     </section>
 
-    <!-- FEATURES -->
-    <section class="section" id="features">
-      <h2 class="reveal">Made to be <span class="mute">looked at.</span></h2>
-      <div class="bento">
-        <article class="card card--wide reveal">
-          <h3>Every word, on time</h3>
-          <p>Words fill in as they are sung. It works for English, Hindi, Punjabi and more, even when the lyrics only come line by line.</p>
-          <div class="wbw" aria-hidden="true"><span>Streetlights</span> <span>hum</span> <span>a</span> <span>quiet</span> <span>tune</span></div>
-        </article>
-        <article class="card reveal">
-          <h3>The video behind it</h3>
-          <p>The official music video plays softly behind the lyrics. Your own clips work too.</p>
-          <div class="vid" aria-hidden="true"><i></i><i></i><i></i></div>
-        </article>
-        <article class="card reveal">
-          <h3>Colours from the cover</h3>
-          <p>The whole interface takes on the colours of the album art, and cross-fades between songs.</p>
-          <div class="swatches" aria-hidden="true"><i style="--c:#ff7a59"></i><i style="--c:#c64cff"></i><i style="--c:#3fd0ff"></i><i style="--c:#ffd84a"></i></div>
-        </article>
-        <article class="card card--wide reveal">
-          <h3>A screen saver for your music</h3>
-          <p>On Android, ambient mode turns your phone into a dim, drifting lyrics clock on the charger. It adapts to room light and stays easy on the battery.</p>
-          <div class="clock" aria-hidden="true"><b id="amb-clock">21:07</b><small>Saturday, 18 October</small></div>
-        </article>
-        <article class="card reveal">
-          <h3>On the lock screen</h3>
-          <p>The current line sits in a media card in the notification shade and on the lock screen.</p>
-        </article>
-        <article class="card reveal">
-          <h3>Tap to jump</h3>
-          <p>Scroll the lyrics, tap any line, and the song seeks there.</p>
-        </article>
-        <article class="card reveal">
-          <h3>Private by design</h3>
-          <p>No account, no tracking, no ads. Lyra only reads the now-playing card.</p>
-        </article>
+    <!-- ANDROID -->
+    <section class="sx" id="android">
+      <div class="split">
+        <div>
+          <p class="mono reveal">09 · Android</p>
+          <h2 class="reveal" style="margin-top:18px">Your phone,<br /><em>on the desk.</em></h2>
+          <p class="lead reveal" style="margin-top:22px">Works with any player that shows a media card. The phone layout puts the lyrics first, tablets and unfolded foldables get a two-pane screen, and ambient mode turns the screen into a calm lyrics clock on the charger.</p>
+          <ul class="ticks reveal">
+            <li>A home-screen widget in the colours of your look</li>
+            <li>Lyrics on the lock screen and in the notification</li>
+            <li>Auto brightness from the light sensor, screen on only while music plays</li>
+            <li>Floating lyrics over other apps, Quick Settings tile, app shortcut</li>
+          </ul>
+        </div>
+        <div class="split__art reveal"><div class="stack"><img src="assets/shots/sketch-phone.jpg" alt="Lyra on Android in the Sketchbook look" loading="lazy" /><img src="assets/shots/glitch-phone.jpg" alt="Lyra on Android in the Glitch look" loading="lazy" /></div></div>
       </div>
-    </section>
-
-    <!-- PHONE -->
-    <section class="section split" id="phone">
-      <div class="split__text">
-        <p class="eyebrow reveal">Android</p>
-        <h2 class="reveal">Your phone,<br /><span class="mute">on the desk.</span></h2>
-        <p class="sub reveal">Works with Spotify, YouTube Music and any player that shows a media card. Turn ambient mode on and the screen becomes a calm, lyrics-first display.</p>
-        <ul class="ticks reveal">
-          <li>Auto brightness from the light sensor</li>
-          <li>Screen stays on only while music plays</li>
-          <li>Floating lyrics widget over other apps</li>
-          <li>Quick Settings tile, home-screen widget, app shortcut</li>
-        </ul>
-      </div>
-      <div class="split__art reveal"><div class="phone tilt" data-bind="phone2"></div></div>
     </section>
 
     <!-- VEGA -->
-    <section class="section vega" id="vega">
-      <p class="eyebrow reveal"><span class="dot"></span> New · Lyra's sister app</p>
-      <h2 class="reveal">Meet <em>Vega</em>.<br /><span class="mute">Your own music app.</span></h2>
-      <p class="sub reveal">Lyra shows lyrics for what Spotify plays. Vega is the other half: a complete music app that plays your own library and the open web, with Lyra's lyrics player built in. No Spotify needed.</p>
-      <div class="cta reveal">
-        <a class="btn btn--big" id="vega-web" href="https://vega-musicv1.vercel.app" target="_blank" rel="noopener">Open in your browser</a>
+    <section class="sx sx--center" id="vega">
+      <div class="sx__head">
+        <p class="eyebrow reveal"><span class="dot"></span> Lyra’s sister app</p>
+        <h2 class="reveal">Meet <em>Vega.</em><br /><span class="mute">Your own music app.</span></h2>
+        <p class="lead reveal">Lyra shows lyrics for what Spotify plays. Vega is the other half: a complete music app that plays your own library and the open web, with Lyra’s lyrics player built in. No Spotify needed.</p>
+      </div>
+      <div class="cta reveal" style="justify-content:center">
+        <a class="btn btn--big btn--acc" href="https://vega-musicv1.vercel.app" target="_blank" rel="noopener">Open in your browser</a>
         <a class="btn btn--big btn--ghost" id="vega-win" href="https://github.com/DhruvHarani1/vega/releases/latest">Download for Windows</a>
         <a class="btn btn--big btn--ghost" id="vega-and" href="https://github.com/DhruvHarani1/vega/releases/latest">Download for Android</a>
       </div>
-      <p class="meta reveal" id="vega-meta">Free · open source · no account needed</p>
-      <figure class="vshot reveal">
-        <img src="assets/vega-home.jpg" alt="Vega home screen: daily mix, liked songs, live radio, discover, library, insights" width="1600" height="1000" loading="lazy" />
-      </figure>
+      <p class="hx__meta reveal" id="vega-meta" style="margin-top:16px">Free · open source · no account needed</p>
+      <figure class="vshot reveal"><img src="assets/vega-home.jpg" alt="Vega home screen" width="1600" height="1000" loading="lazy" /></figure>
       <div class="vgrid">
-        <article class="vcard reveal"><i>01</i><h3>Search anything</h3><p>One search over your files, Audius, Jamendo and more. Press <kbd>Ctrl</kbd>+<kbd>K</kbd> to jump anywhere.</p></article>
-        <article class="vcard reveal"><i>02</i><h3>Your library</h3><p>Point it at a music folder. Tags, covers and durations are read for you, and it all works offline.</p></article>
-        <article class="vcard reveal"><i>03</i><h3>Playlists and radio</h3><p>Playlists you can reorder, smart playlists, live radio, and a radio from any song.</p></article>
-        <article class="vcard reveal"><i>04</i><h3>Insights</h3><p>Top artists, genres and tracks, your listening clock and streaks. Stays on your device.</p></article>
+        <article class="vcard reveal"><i>01</i><h3>Search anything</h3><p>One search over your files, Audius, Jamendo and more. <kbd>Ctrl</kbd>+<kbd>K</kbd> jumps anywhere.</p></article>
+        <article class="vcard reveal"><i>02</i><h3>Your library</h3><p>Point it at a music folder. Tags, covers and durations are read for you, and it works offline.</p></article>
+        <article class="vcard reveal"><i>03</i><h3>Playlists and radio</h3><p>Reorderable playlists, smart playlists, live radio, and a radio from any song.</p></article>
+        <article class="vcard reveal"><i>04</i><h3>Insights</h3><p>Top artists, genres, your listening clock and streaks. Stays on your device.</p></article>
         <article class="vcard reveal"><i>05</i><h3>Made for you</h3><p>Daily mixes and discover lists learned from what you actually play.</p></article>
-        <article class="vcard reveal"><i>06</i><h3>Lyra inside</h3><p>The lyrics button opens Lyra's fullscreen player: word-by-word lyrics, video backgrounds, karaoke.</p></article>
-      </div>
-      <div class="cta reveal">
-        <a class="btn btn--ghost" href="https://github.com/DhruvHarani1/vega" target="_blank" rel="noopener">Vega on GitHub</a>
-        <a class="btn btn--ghost" href="https://github.com/DhruvHarani1/vega/issues" target="_blank" rel="noopener">Help build it</a>
+        <article class="vcard reveal"><i>06</i><h3>Lyra inside</h3><p>The lyrics button opens Lyra’s fullscreen player: word-by-word lyrics, video backgrounds, karaoke.</p></article>
       </div>
     </section>
 
     <!-- DOWNLOAD -->
-    <section class="section" id="download">
-      <h2 class="reveal">Get Lyra.</h2>
-      <p class="sub reveal">Free forever. Pick your device.</p>
+    <section class="sx sx--center" id="download">
+      <div class="sx__head">
+        <p class="mono reveal">10 · Get it</p>
+        <h2 class="reveal">Get <em>Lyra.</em></h2>
+        <p class="lead reveal">Free forever. Pick your device.</p>
+      </div>
       <div class="dl">
         <article class="dl__card reveal">
           <h3>Windows</h3>
           <p class="dl__v" id="dl-win-v">Windows 10 / 11</p>
-          <a class="btn btn--big" id="dl-win" href="https://github.com/DhruvHarani1/lyra/releases/latest">Download installer</a>
+          <a class="btn btn--big btn--acc" id="dl-win" href="https://github.com/DhruvHarani1/lyra/releases/latest">Download installer</a>
           <ol>
             <li>Install the <b>Spotify desktop app</b> and play a song.</li>
             <li>Run the installer. Lyra opens as a small floating widget.</li>
-            <li>Click it to expand, press <kbd>F</kbd> for fullscreen.</li>
+            <li>Click it to expand, press <kbd>F</kbd> for fullscreen, <kbd>V</kbd> for the next look.</li>
           </ol>
           <p class="note">If Windows SmartScreen warns, choose <b>More info → Run anyway</b>. The app is open source and not yet code-signed.</p>
         </article>
         <article class="dl__card reveal">
           <h3>Android</h3>
           <p class="dl__v" id="dl-and-v">Android 8.0 or newer</p>
-          <a class="btn btn--big" id="dl-and" href="https://github.com/DhruvHarani1/lyra/releases">Download APK</a>
+          <a class="btn btn--big btn--acc" id="dl-and" href="https://github.com/DhruvHarani1/lyra/releases">Download APK</a>
           <ol>
             <li>Open the APK and allow installs from your browser or files app.</li>
             <li>Grant <b>Notification access</b> so Lyra can see what is playing.</li>
-            <li>Play a song. Switch ambient mode on from the moon icon.</li>
+            <li>Play a song. Pick a look from the Look tab in Settings.</li>
           </ol>
-          <p class="note">Google Play Protect may block installs made straight from a browser. If you see <b>App blocked to protect your device</b> (no “install anyway” button): open the Play Store, tap your picture → <b>Play Protect</b> → the gear → switch off <b>Scan apps with Play Protect</b>, install Lyra, then switch it back on. Or install with <code>adb install</code>, or use Obtainium. Lyra asks for Notification access to see what is playing, which is why Google is careful; the code is open on GitHub.</p>
+          <p class="note">Google Play Protect may block installs made straight from a browser. If you see <b>App blocked to protect your device</b>: open the Play Store, tap your picture → <b>Play Protect</b> → the gear → switch off <b>Scan apps with Play Protect</b>, install Lyra, then switch it back on. Or use <code>adb install</code>, or Obtainium. Lyra asks for Notification access to see what is playing, which is why Google is careful; the code is open on GitHub.</p>
         </article>
-      </div>
-    </section>
-
-    <!-- OPEN SOURCE -->
-    <section class="section open" id="open">
-      <h2 class="reveal">Open source,<br /><span class="mute">all of it.</span></h2>
-      <p class="sub reveal">MIT licensed. Read the code, build it yourself, send a pull request. Lyrics come from LRCLIB, the free community lyrics database.</p>
-      <div class="cta reveal">
-        <a class="btn btn--ghost" href="https://github.com/DhruvHarani1/lyra" target="_blank" rel="noopener">View on GitHub</a>
-        <a class="btn btn--ghost" href="https://github.com/DhruvHarani1/lyra/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
       </div>
     </section>
   </main>
 
-  <footer class="foot">
-    <span>© Lyra and Vega · MIT licence</span>
-    <span>Lyra is not affiliated with Spotify. Song names in this demo are made up.</span>
+  <footer class="ft">
+    <div class="ft__in">
+      <div><p class="ft__big">Lyra.</p><p class="lead" style="font-size:15px">Lyrics that move with the music. Free and open source.</p></div>
+      <div><h4>Explore</h4><a href="#looks">20 looks</a><a href="vibes">Gallery</a><a href="whats-new">What’s new</a><a href="#demo">Live demo</a></div>
+      <div><h4>Get it</h4><a href="#download">Windows</a><a href="#download">Android</a><a href="#vega">Vega</a></div>
+      <div><h4>Project</h4><a href="https://github.com/DhruvHarani1/lyra" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/DhruvHarani1/lyra/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a><a href="https://github.com/DhruvHarani1/lyra/issues" target="_blank" rel="noopener">Report a bug</a></div>
+    </div>
+    <div class="ft__fine"><span>© Lyra and Vega · MIT licence</span><span>Lyra is not affiliated with Spotify. Song names in this demo are made up. Lyrics come from LRCLIB.</span></div>
   </footer>
 
-  <script src="main.js" defer></script>
+  <script src="vibes-data.js"></script>
+  <script src="demo.js" defer></script>
+  <script src="site.js" defer></script>
 </body>
 </html>
