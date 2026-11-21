@@ -40,6 +40,19 @@ export function LikeButton({ size = 18 }: { size?: number }) {
   )
 }
 
+/** True on tablets and an unfolded foldable (wide AND tall); a landscape phone is wide but short, so it keeps the phone layout. */
+function useWideScreen(): boolean {
+  const q = '(min-width: 720px) and (min-height: 600px)'
+  const [wide, setWide] = useState(() => window.matchMedia(q).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(q)
+    const on = (): void => setWide(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return wide
+}
+
 /** A labelled menu for the secondary actions, so the header is not a row of nine tiny icons. */
 function OverflowMenu({ items }: { items: Array<{ icon: IconName; label: string; run(): void }> }) {
   const [open, setOpen] = useState(false)
@@ -116,6 +129,7 @@ export function MiniPlayer() {
   const [karaoke, setKaraoke] = useState(false)
   const [cover, setCover] = useState(false)
   const phone = document.documentElement.dataset.platform === 'android'
+  const wide = useWideScreen() && phone
   const idle = useIdle(phone ? 4000 : 6000)
 
   const more: Array<{ icon: IconName; label: string; run(): void }> = [
@@ -130,9 +144,12 @@ export function MiniPlayer() {
     <>
     {karaoke && <KaraokeScreen onClose={() => setKaraoke(false)} />}
     {studio && (phone ? <RecordDialog onClose={() => setStudio(false)} /> : <StudioDialog onClose={() => setStudio(false)} />)}
-    <div className={`mini ${phone ? 'mini--phone' : ''} ${videoBehind && idle && panel === 'none' ? 'is-idle' : ''}`}>
+    <div className={`mini ${phone ? 'mini--phone' : ''} ${wide ? 'mini--wide' : ''} ${videoBehind && idle && panel === 'none' ? 'is-idle' : ''}`}>
       {phone ? (
         <header className="mini__head phone__bar">
+          {wide ? (
+            <span className="phone__brand">Lyra</span>
+          ) : (
           <button type="button" className="phone__now" aria-expanded={cover} aria-label={cover ? 'Hide the cover' : 'Show the cover'} onClick={() => setCover((c) => !c)} disabled={!track}>
             {track && <Artwork url={track.artworkUrl} size={46} radius={13} />}
             <span className="phone__text">
@@ -143,9 +160,10 @@ export function MiniPlayer() {
               </i>
             </span>
           </button>
+          )}
           <div className="phone__tools" data-nodrag>
             <AmbientSwitch />
-            {track && <LikeButton size={22} />}
+            {track && !wide && <LikeButton size={22} />}
             <IconButton icon="settings" label="Settings" active={panel === 'settings'} size={22} onClick={() => togglePanel('settings')} />
           </div>
         </header>
@@ -167,7 +185,43 @@ export function MiniPlayer() {
       )}
       <VideoStatus />
 
-      {view === 'playing' && track && phone ? (
+      {view === 'playing' && track && wide ? (
+        <>
+          <OfflineBanner />
+          <div className="wide__body">
+            <aside className="wide__side">
+              <div className="wide__cover">
+                <Artwork url={track.artworkUrl} size="100%" radius={26} className="artwork--lift" />
+              </div>
+              <div className="wide__titles">
+                <div>
+                  <b title={track.title}>{track.title}</b>
+                  <i>
+                    {joinArtists(track.artists)}
+                    {device ? ` · ${device.name}` : ''}
+                  </i>
+                </div>
+                <LikeButton size={24} />
+              </div>
+              <div className="mini__card phone__dock wide__dock" data-nodrag>
+                <ProgressBar showTimes />
+                <Transport size="lg" extras />
+                <div className="phone__actions">
+                  {more.map((m) => (
+                    <button key={m.label} type="button" className="phone__act" onClick={m.run} aria-label={m.label}>
+                      <Icon name={m.icon} size={22} />
+                      <span>{m.label.replace('Saved lyric moments', 'Saved').replace('Record lyric video', 'Record')}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </aside>
+            <div className="mini__lyrics">
+              <LyricsView variant="mini" />
+            </div>
+          </div>
+        </>
+      ) : view === 'playing' && track && phone ? (
         <>
           <OfflineBanner />
           <AnimatePresence initial={false}>

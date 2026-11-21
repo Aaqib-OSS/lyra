@@ -68,6 +68,7 @@ object LyricsNotifier {
         offsetMs = offset
         status = state
         LyricsNotificationService.instance?.refresh()
+        LyraWidgetUpdater.refreshSoon()
     }
 
     /** Index of the line active at [positionMs], -1 before the first. */

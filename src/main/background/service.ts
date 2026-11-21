@@ -1,7 +1,7 @@
 import { BrowserWindow, app, dialog, net, protocol } from 'electron'
 import { nativeImage } from 'electron'
 import { createHash } from 'node:crypto'
-import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
+import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { extname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { BackgroundMedia, BackgroundResolution, BackgroundSpec, Track, YoutubeVideo } from '@shared/types'
@@ -26,7 +26,61 @@ export function registerBackgroundScheme(): void {
   protocol.registerSchemesAsPrivileged([{ scheme: BG_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, corsEnabled: true } }])
 }
 
+const CLIP_MAX_FILES = 60
+const CLIP_MAX_BYTES = 8 * 1024 * 1024
+
 class BackgroundService {
+  /** Apple preview clips already (being) saved on disk: playing from a local file never stutters and loops for free */
+  private readonly clipJobs = new Map<string, Promise<string | null>>()
+  private get clipDir(): string {
+    const d = join(app.getPath('userData'), 'clipcache')
+    mkdirSync(d, { recursive: true })
+    return d
+  }
+  private clipFile(target: string): string {
+    return join(this.clipDir, `${createHash('sha256').update(target).digest('hex').slice(0, 24)}.mp4`)
+  }
+  /** Save a clip once (shared by everyone who asks while it downloads); resolves to the local file, or null when it failed. */
+  warmClip(target: string): Promise<string | null> {
+    if (!HOST_RE.test(target)) return Promise.resolve(null)
+    const file = this.clipFile(target)
+    if (existsSync(file)) return Promise.resolve(file)
+    let job = this.clipJobs.get(file)
+    if (!job) {
+      job = (async () => {
+        try {
+          const res = await net.fetch(target)
+          if (!res.ok) return null
+          const buf = Buffer.from(await res.arrayBuffer())
+          if (buf.length < 10_000 || buf.length > CLIP_MAX_BYTES) return null
+          const tmp = `${file}.part`
+          writeFileSync(tmp, buf)
+          renameSync(tmp, file)
+          this.pruneClips()
+          return file
+        } catch (e) {
+          log.warn('clip download failed', (e as Error).message)
+          return null
+        } finally {
+          this.clipJobs.delete(file)
+        }
+      })()
+      this.clipJobs.set(file, job)
+    }
+    return job
+  }
+  private pruneClips(): void {
+    try {
+      const files = readdirSync(this.clipDir)
+        .filter((f) => f.endsWith('.mp4'))
+        .map((f) => ({ f, t: statSync(join(this.clipDir, f)).mtimeMs }))
+        .sort((a, b) => b.t - a.t)
+      for (const x of files.slice(CLIP_MAX_FILES)) rmSync(join(this.clipDir, x.f), { force: true })
+    } catch {
+      /* cache housekeeping is best effort */
+    }
+  }
+
   private store: JsonStore<{ songs: Record<string, SongBg> }> | null = null
 
   private get dir(): string {
@@ -78,6 +132,9 @@ class BackgroundService {
         if (u.hostname === 'preview') {
           const target = Buffer.from(name, 'base64url').toString('utf8')
           if (!HOST_RE.test(target)) return new Response('forbidden', { status: 403 })
+          // from disk when the clip is saved (or about to be: wait a few seconds for the download rather than stream a stuttering copy)
+          const local = existsSync(this.clipFile(target)) ? this.clipFile(target) : await Promise.race([this.warmClip(target), new Promise<null>((r) => setTimeout(() => r(null), 4000))])
+          if (local) return cors(await net.fetch(pathToFileURL(local).toString(), { headers: range(req) }))
           return cors(await net.fetch(target, { headers: range(req) }))
         }
         return new Response('not found', { status: 404 })
@@ -105,8 +162,19 @@ class BackgroundService {
       })
   })
 
-  resolve(track: Track): Promise<BackgroundResolution> {
-    return this.resolver(track)
+  async resolve(track: Track): Promise<BackgroundResolution> {
+    const r = await this.resolver(track)
+    // start saving the clip now, while the renderer is still setting up: by the time the video asks for it, it is local
+    for (const sp of [r.spec, r.fallback]) {
+      if (sp?.kind !== 'preview') continue
+      try {
+        const t = Buffer.from(new URL(sp.url).pathname.replace(/^\//, ''), 'base64url').toString('utf8')
+        void this.warmClip(t)
+      } catch {
+        /* not a clip url */
+      }
+    }
+    return r
   }
 
   /** Let the user choose a file; it is COPIED into Lyra's own folder (nothing outside it is ever read later). */

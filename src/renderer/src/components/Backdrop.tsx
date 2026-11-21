@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, type MutableRefObject } from 'react'
 import type { BackgroundSpec } from '@shared/types'
 import { useArtwork, useTinyArt } from '@/hooks/useArtwork'
 import { useBackground } from '@/hooks/useBackground'
+import { failedVideos, rememberFailure } from '@/lib/failMemory'
+import { trackKey } from '@core/songKey'
 import { useReducedMotion } from '@/hooks/useMotion'
 import { getPosition, usePlayer } from '@/store/player'
 import { useBgState, type VideoProblem } from '@/store/bgState'
@@ -128,6 +130,8 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
   const [front, setFront] = useState<0 | 1>(0)
   const frontRef = useRef<0 | 1>(0)
   const swapping = useRef(false)
+  const [shown, setShown] = useState(false) // fade in only once frames really play: no black box while the clip loads
+  useEffect(() => setShown(false), [url])
   const runRef = useRef(run)
   runRef.current = run
 
@@ -181,7 +185,9 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
           ref={els[i]!}
           {...common}
           autoPlay={i === 0}
-          style={{ opacity: front === i ? 1 : 0, ['objectViewBox' as string]: view }}
+          style={{ opacity: front === i && shown ? 1 : 0, transition: 'opacity .6s ease', ['objectViewBox' as string]: view }}
+          onPlaying={() => setShown(true)}
+          onLoadedData={() => setShown(true)}
           onLoadedMetadata={(e) => {
             // very short clips just loop natively
             if (i === 0 && e.currentTarget.duration <= 4) e.currentTarget.loop = true
@@ -353,7 +359,12 @@ export function Backdrop({ rich = false, animated = false }: { rich?: boolean; a
   const [ytWhy, setYtWhy] = useState('')
   // ...but first the next best videos of the song are tried (one that blocks embedding is common, a re-upload often plays)
   const [ytSkip, setYtSkip] = useState(0)
-  const tries: BackgroundSpec[] = res?.spec.kind === 'youtube' ? [res.spec, ...(res.alternates ?? [])] : []
+  const track = usePlayer((s) => s.snapshot?.track ?? null)
+  const songId = track ? trackKey(track) : ''
+  // videos that failed for this song before (blocked, never started) are tried last, so the problem does not repeat
+  const bad = songId ? failedVideos(songId) : new Set<string>()
+  const ordered: BackgroundSpec[] = res?.spec.kind === 'youtube' ? [res.spec, ...(res.alternates ?? [])] : []
+  const tries = [...ordered.filter((t) => t.kind !== 'youtube' || !bad.has(t.videoId)), ...ordered.filter((t) => t.kind === 'youtube' && bad.has(t.videoId))]
   const baseSpec = tries.length ? (tries[ytSkip] ?? tries[tries.length - 1]!) : (res?.spec ?? null)
   useEffect(() => {
     setYtFailed(null)
@@ -366,6 +377,7 @@ export function Backdrop({ rich = false, animated = false }: { rich?: boolean; a
   const fail = (why?: string): void => {
     if (spec?.kind === 'youtube') {
       console.warn('[background] YouTube video failed:', spec.videoId, why)
+      if (songId && spec.scope !== 'song') rememberFailure(songId, spec.videoId) // a video the user pinned is never given up on
       if (ytSkip < tries.length - 1) {
         setYtSkip(ytSkip + 1) // try the next video of this song
         return

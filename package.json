@@ -1,7 +1,7 @@
 {
   "name": "lyra",
   "productName": "Lyra",
-  "version": "0.18.1",
+  "version": "0.19.0",
   "description": "Glassmorphism lyrics & playback companion for Spotify",
   "author": "Dhruv Harani",
   "license": "MIT",
@@ -19,7 +19,11 @@
     "build:helper": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-helper.ps1",
     "dist": "npm run build && electron-builder --win nsis --publish never",
     "icons": "electron scripts/icon-from-image.js",
-    "dist:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dist-local.ps1"
+    "dist:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dist-local.ps1",
+    "test:ui": "node scripts/ui-test/run.mjs",
+    "test:ui:quick": "node scripts/ui-test/run.mjs --quick",
+    "test:settings": "node scripts/ui-test/settings.mjs",
+    "test:ui:layouts": "node scripts/ui-test/run.mjs --layouts"
   },
   "build": {
     "appId": "dev.lyra.companion",
@@ -99,6 +103,7 @@
     "electron": "^44.9.0",
     "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
+    "playwright": "^1.63.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"

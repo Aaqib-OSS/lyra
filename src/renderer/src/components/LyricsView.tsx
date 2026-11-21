@@ -86,7 +86,12 @@ function SyncedLyrics({ result, variant }: { result: LyricsResult; variant: 'min
   const showRomanization = useSettings((x) => x.settings.romanizeLyrics)
   const durationMs = usePlayer((x) => x.snapshot?.track?.durationMs)
   const estimated = wordByWord && !result.wordSynced
-  const lines = useMemo(() => (estimated ? estimateWords(result.lines, durationMs) : result.lines), [estimated, result.lines, durationMs])
+  const lines = useMemo(() => {
+    if (estimated) return estimateWords(result.lines, durationMs)
+    // switched off: drop real word timing too, so the whole line lights up at once
+    if (!wordByWord) return result.lines.map((l) => (l.words ? { ...l, words: undefined } : l))
+    return result.lines
+  }, [estimated, wordByWord, result.lines, durationMs])
   const active = useActiveLine(lines)
   const reduced = useReducedMotion()
   const scroller = useRef<HTMLDivElement>(null)

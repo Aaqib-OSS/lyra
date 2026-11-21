@@ -18,3 +18,24 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  # Renders every vibe on phone, tablet and desktop sizes in a real browser and clicks every setting.
+  # Fails on clipped text, controls outside the window, colliding lyrics, poor contrast, dead switches.
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ui:quick
+      - run: npm run test:settings
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: ui-test-failures
+          path: ui-test-out
+          retention-days: 7

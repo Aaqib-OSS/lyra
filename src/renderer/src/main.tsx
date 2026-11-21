@@ -19,6 +19,7 @@ import './styles/polish.css'
 import './styles/redesign.css'
 import './styles/stage.css'
 import './styles/vibes.css'
+import './styles/layouts.css'
 import { effectiveVibe } from './hooks/useVibe'
 import { useSettings } from './store/settings'
 import { usePlayer } from './store/player'
@@ -38,6 +39,7 @@ const applyLook = (): void => {
   root.dataset.motion = st.reducedMotion === 'on' ? 'off' : 'on'
   root.dataset.vibe = effectiveVibe(st, useUi.getState().vibeNow).vibe
   root.dataset.rim = st.rimLight ? 'on' : 'off'
+  root.dataset.mode = useUi.getState().mode
   root.dataset.perf = st.performance === 'light' || (st.performance === 'auto' && weakDevice()) ? 'low' : 'high'
   syncCalm()
 }

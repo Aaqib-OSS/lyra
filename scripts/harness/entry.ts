@@ -13,10 +13,24 @@ let settings: Settings = { ...DEFAULT_SETTINGS, onboarded: true, source: 'api', 
 const startedAt = Date.now() - Number(q.get('t') ?? 40000)
 const playing = q.get('paused') !== '1'
 const snap = (): PlaybackSnapshot => ({
-  track, isPlaying: playing, positionMs: Date.now() - startedAt, sampledAt: Date.now(),
+  track, isPlaying: playing, positionMs: playing ? Date.now() - startedAt : Number(q.get('t') ?? 40000), sampledAt: Date.now(),
   device: { name: 'Studio PC', type: 'Computer', volume: 70 } as never, shuffle: false, repeat: 'off', isAdOrUnknown: false
 })
+// ?lang=hi|pa plays original sample lyrics in Devanagari / Gurmukhi (for glyph clipping and Roman-line checks)
+const SAMPLE: Record<string, string[]> = {
+  hi: ['रात के सन्नाटे में तेरी याद आई', 'चाँदनी बिखरी है सारी राहों में', 'दिल ने फिर तुझको पुकारा है', 'धड़कनों में गूँजती है एक कहानी', 'तू जहाँ भी है मेरी दुआओं में है', 'ख़्वाबों की बारिश में भीगा सा मन', 'लौट आ कि अब भी इंतज़ार है', 'हर लम्हा तेरे नाम कर दिया', 'साँसों की डोर तुझसे बँधी है', 'आसमान तक फैली हैं आशाएँ', 'चाँद भी आज थका सा लगता है', 'बस एक बार मुड़कर देख ले'],
+  pa: ['ਰਾਤ ਦੀ ਚੁੱਪ ਵਿੱਚ ਤੇਰੀ ਯਾਦ ਆਈ', 'ਚਾਂਦਨੀ ਖਿੱਲਰੀ ਹੈ ਸਾਰੀਆਂ ਰਾਹਾਂ ਵਿੱਚ', 'ਦਿਲ ਨੇ ਫਿਰ ਤੈਨੂੰ ਪੁਕਾਰਿਆ ਹੈ', 'ਧੜਕਣਾਂ ਵਿੱਚ ਗੂੰਜਦੀ ਹੈ ਇੱਕ ਕਹਾਣੀ', 'ਤੂੰ ਜਿੱਥੇ ਵੀ ਹੈਂ ਮੇਰੀਆਂ ਦੁਆਵਾਂ ਵਿੱਚ ਹੈਂ', 'ਖ਼ਾਬਾਂ ਦੀ ਬਾਰਿਸ਼ ਵਿੱਚ ਭਿੱਜਿਆ ਮਨ', 'ਮੁੜ ਆ ਕਿ ਹੁਣ ਵੀ ਇੰਤਜ਼ਾਰ ਹੈ', 'ਹਰ ਪਲ ਤੇਰੇ ਨਾਮ ਕਰ ਦਿੱਤਾ', 'ਸਾਹਾਂ ਦੀ ਡੋਰ ਤੇਰੇ ਨਾਲ ਬੱਝੀ ਹੈ', 'ਅਸਮਾਨ ਤੱਕ ਫੈਲੀਆਂ ਨੇ ਆਸਾਂ', 'ਚੰਨ ਵੀ ਅੱਜ ਥੱਕਿਆ ਜਿਹਾ ਲੱਗਦਾ ਹੈ', 'ਬੱਸ ਇੱਕ ਵਾਰ ਮੁੜ ਕੇ ਵੇਖ ਲੈ']
+}
+const sampleLyrics = (id: string, lang: string): unknown => ({
+  trackId: id,
+  status: 'synced',
+  provider: 'demo',
+  wordSynced: false,
+  lines: SAMPLE[lang]!.map((text, i) => ({ timeMs: 7000 + i * 6000, text }))
+})
 const lyricsFor = (id: string): unknown => {
+  const lang = q.get('lang')
+  if (lang && SAMPLE[lang]) return sampleLyrics(id, lang)
   const ly = q.get('ly')
   if (ly === 'offline') return { trackId: id, status: 'error', provider: 'lrclib', lines: [], error: { kind: 'network', message: 'offline', retryable: true } }
   if (ly === 'resting') return { trackId: id, status: 'error', provider: 'lrclib', lines: [], error: { kind: 'rate-limit', message: 'resting', retryable: true, retryInSec: 24 } }

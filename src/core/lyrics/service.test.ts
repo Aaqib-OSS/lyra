@@ -148,3 +148,45 @@ describe('your own lyrics and your choices', () => {
     expect(fromWindows.lines[0]!.text).toBe('pinned one')
   })
 })
+
+describe('synced lyrics always win', () => {
+  const plainRes = (): ProviderResult => ({ kind: 'found', plain: 'just words\nno timing', matched: { title: 't', artist: 'a', durationMs: 1000 } })
+
+  it('keeps asking the next service when the first one only has plain text', async () => {
+    const a = new Fake('a', () => plainRes())
+    const b = new Fake('b', () => found())
+    const r = await svc(a, b).get(track())
+    expect(r.status).toBe('synced')
+    expect(r.provider).toBe('b')
+    expect(a.calls).toBe(1)
+  })
+
+  it('uses plain text only when no service has it synced', async () => {
+    const a = new Fake('a', () => plainRes())
+    const b = new Fake('b', () => ({ kind: 'none' }))
+    const r = await svc(a, b).get(track())
+    expect(r.status).toBe('plain')
+    expect(r.plain).toContain('just words')
+  })
+
+  it('a plain result is replaced when a synced one appears on a later check', async () => {
+    let round = 0
+    const a = new Fake('a', () => (round++ === 0 ? plainRes() : found()))
+    const s = svc(a)
+    const first = await s.get(track())
+    expect(first.status).toBe('plain')
+    const second = await s.get(track(), true) // what the UI does a few seconds later
+    expect(second.status).toBe('synced')
+    // and the synced one is what is remembered
+    expect((await s.get(track())).status).toBe('synced')
+  })
+
+  it('plain text expires sooner than synced (so a synced entry is looked for again tomorrow)', async () => {
+    const a = new Fake('a', () => plainRes())
+    const s = svc(a)
+    await s.get(track())
+    clock += 25 * 3600_000
+    await s.get(track())
+    expect(a.calls).toBe(2)
+  })
+})

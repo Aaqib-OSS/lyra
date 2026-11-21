@@ -86,6 +86,9 @@ export class LrcLibProvider implements LyricsProvider {
     const artists = artistVariants(q.artist)
     const dur = Math.round(q.durationMs / 1000)
 
+    // Synced lyrics always win: a plain result is only a fallback, kept while we look for a synced one.
+    let plain: ProviderResult | null = null
+
     // 1) exact signature lookups (best precision), most specific variant first
     const tried = new Set<string>()
     for (const [i, title] of titles.entries()) {
@@ -97,15 +100,22 @@ export class LrcLibProvider implements LyricsProvider {
         if (dur > 0) params.set('duration', String(dur))
         if (i === 0 && artist === artists[0] && q.album) params.set('album_name', q.album)
         const r = await this.get<LrcLibRecord>(`/get?${params}`, signal)
-        if (r.body && isAcceptable(want, asCandidate(r.body))) return this.toResult(r.body)
+        if (r.body && isAcceptable(want, asCandidate(r.body))) {
+          const res = this.toResult(r.body)
+          if (r.body.syncedLyrics || r.body.instrumental) return res
+          if (res.kind === 'found') plain ??= res
+        }
       }
     }
 
-    // 2) broader searches; take the best acceptable candidate
+    // 2) broader searches: the best ACCEPTABLE candidate, synced ones first, then by closeness
     const pool = await this.searchPool(q, signal)
-    const best = pool
+    const ranked = pool
       .filter((r) => isAcceptable(want, asCandidate(r)))
-      .sort((a, b) => scoreCandidate(want, asCandidate(b)) - scoreCandidate(want, asCandidate(a)))[0]
+      .sort((a, b) => Number(!!b.syncedLyrics) - Number(!!a.syncedLyrics) || scoreCandidate(want, asCandidate(b)) - scoreCandidate(want, asCandidate(a)))
+    const best = ranked[0]
+    if (best && (best.syncedLyrics || best.instrumental)) return this.toResult(best)
+    if (plain) return plain
     return best ? this.toResult(best) : { kind: 'none' }
   }
 
