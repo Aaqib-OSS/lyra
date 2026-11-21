@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -14,43 +15,63 @@ import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.os.SystemClock
 import android.util.SizeF
 import android.widget.RemoteViews
 
 /**
- * The home-screen "Lyra live lyrics" widget.
+ * The home-screen widgets. Five of them share one engine ([LyraWidgetUpdater]):
  *
- *  - three layouts that the launcher picks by size (Android 12+): a slim player, a lyrics card and a big lyrics card
- *  - the background is a gradient built from the cover's own colours, redrawn for every song
- *  - the current lyric line and the next one change in time with the song (LyricsNotifier keeps the timed lines)
- *  - previous / play-pause / next work from the home screen; tapping the card opens Lyra
+ *  - [LyraWidget]       "Lyra live lyrics", resizable: slim player / lyrics card / big lyrics card (launcher picks by size, Android 12+)
+ *  - [LyraMiniWidget]   2 x 1: cover, current lyric line, play / pause
+ *  - [LyraTickerWidget] 4 x 1: one big live lyric line with a progress bar
+ *  - [LyraPlayWidget]   1 x 1: play / pause on the dimmed cover
+ *  - [LyraCoverWidget]  2 x 2: the cover art with the current line on it
  *
- * The widget is drawn by [LyraWidgetUpdater], which follows the media session and wakes itself at the next lyric line.
+ * Every widget has its own look ([WidgetThemes]): follow the vibe in effect (default), the cover's colours, Material You
+ * (the phone's wallpaper colours, Android 12+) or any one vibe. The look is chosen when the widget is added and can be
+ * changed later (long-press, Reconfigure) in [WidgetConfigActivity].
+ *
+ * The widgets are drawn by [LyraWidgetUpdater], which follows the media session and wakes itself at the next lyric line,
+ * and does nothing at all while the screen is off.
  */
-class LyraWidget : AppWidgetProvider() {
+abstract class LyraBaseWidget : AppWidgetProvider() {
     override fun onEnabled(context: Context) {
         LyraWidgetUpdater.attach(context)
     }
 
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         LyraWidgetUpdater.attach(context)
-        LyraWidgetUpdater.refresh()
+        LyraWidgetUpdater.refresh(force = true)
     }
 
     override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, newOptions: android.os.Bundle) {
-        LyraWidgetUpdater.refresh()
+        LyraWidgetUpdater.attach(context)
+        LyraWidgetUpdater.refresh(force = true)
+    }
+
+    override fun onDeleted(context: Context, ids: IntArray) {
+        WidgetThemes.forget(context, ids)
     }
 
     override fun onDisabled(context: Context) {
-        LyraWidgetUpdater.detach()
+        // another Lyra widget may still be on the screen: refresh() detaches only when none is left
+        LyraWidgetUpdater.refresh()
     }
 }
+
+class LyraWidget : LyraBaseWidget()
+class LyraMiniWidget : LyraBaseWidget()
+class LyraTickerWidget : LyraBaseWidget()
+class LyraPlayWidget : LyraBaseWidget()
+class LyraCoverWidget : LyraBaseWidget()
 
 /** Previous / play-pause / next pressed on the widget. */
 class LyraWidgetAction : BroadcastReceiver() {
@@ -69,12 +90,22 @@ class LyraWidgetAction : BroadcastReceiver() {
 class WidgetPalette(val top: Int, val bottom: Int, val text: Int, val text2: Int, val accent: Int, val light: Boolean)
 
 object WidgetPalettes {
-    private fun p(top: String, bottom: String, text: String, accent: String, light: Boolean = false): WidgetPalette {
-        val t = Color.parseColor(text)
+    private fun p(top: String, bottom: String, text: String, accent: String, light: Boolean = false): WidgetPalette =
+        make(Color.parseColor(top), Color.parseColor(bottom), Color.parseColor(text), Color.parseColor(accent), light)
+
+    fun make(top: Int, bottom: Int, text: Int, accent: Int, light: Boolean): WidgetPalette {
         // the secondary text is the main text at 72 % opacity
-        val t2 = Color.argb(184, Color.red(t), Color.green(t), Color.blue(t))
-        return WidgetPalette(Color.parseColor(top), Color.parseColor(bottom), t, t2, Color.parseColor(accent), light)
+        val t2 = Color.argb(184, Color.red(text), Color.green(text), Color.blue(text))
+        return WidgetPalette(top, bottom, text, t2, accent, light)
     }
+
+    /** The vibes that have a widget look, in the order the picker lists them: id to display name. */
+    val vibeNames: List<Pair<String, String>> = listOf(
+        "neon" to "Neon", "chrome" to "Chrome", "dream" to "Dream", "crt" to "CRT", "sticker" to "Sticker",
+        "chat" to "Chat", "paper" to "Paper", "arcade" to "Arcade", "noir" to "Noir", "sunset" to "Sunset",
+        "blocks" to "Blocks", "stadium" to "Stadium", "cassette" to "Cassette", "trailer" to "Trailer",
+        "sketch" to "Sketchbook", "glitch" to "Glitch", "comic" to "Pop Comic"
+    )
 
     /** null for the default "Artwork" vibe (and unknown ids): the widget then uses the cover's colours. */
     fun of(vibe: String?): WidgetPalette? = when (vibe) {
@@ -97,6 +128,65 @@ object WidgetPalettes {
         "comic" -> p("#FFF6C9", "#FFD400", "#111111", "#FF3B6B", true)
         else -> null
     }
+
+    /** Material You: the phone's own wallpaper colours (Android 12+), dark and high-contrast so the text always reads. */
+    fun material(ctx: Context): WidgetPalette? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+        return make(
+            ctx.getColor(android.R.color.system_accent1_800),
+            ctx.getColor(android.R.color.system_neutral1_900),
+            ctx.getColor(android.R.color.system_neutral1_50),
+            ctx.getColor(android.R.color.system_accent1_200),
+            false
+        )
+    }
+}
+
+/** The look chosen for each widget (stored per widget id). */
+object WidgetThemes {
+    const val AUTO = "auto"
+    const val ARTWORK = "artwork"
+    const val MATERIAL = "material"
+    private const val PREFS = "lyra_widget"
+
+    /** What the picker offers: key, name, one line of description. Material You only where the phone has it. */
+    fun options(): List<Triple<String, String, String>> {
+        val l = ArrayList<Triple<String, String, String>>()
+        l.add(Triple(AUTO, "Follow the app", "Wears the vibe you are using in Lyra"))
+        l.add(Triple(ARTWORK, "Artwork", "Colours picked from the cover"))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) l.add(Triple(MATERIAL, "Material You", "Colours from your wallpaper"))
+        for ((id, name) in WidgetPalettes.vibeNames) l.add(Triple(id, name, "A fixed vibe look"))
+        return l
+    }
+
+    fun get(ctx: Context, id: Int): String =
+        ctx.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("theme_$id", AUTO) ?: AUTO
+
+    fun set(ctx: Context, id: Int, key: String) {
+        ctx.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("theme_$id", key).apply()
+    }
+
+    fun forget(ctx: Context, ids: IntArray) {
+        val e = ctx.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+        for (i in ids) e.remove("theme_$i")
+        e.apply()
+    }
+
+    /** The palette for a choice; null means "use the cover's colours". [vibe] is the vibe in effect in the app. */
+    fun palette(ctx: Context, key: String, vibe: String?): WidgetPalette? = when (key) {
+        ARTWORK -> null
+        MATERIAL -> WidgetPalettes.material(ctx)
+        AUTO -> WidgetPalettes.of(vibe)
+        else -> WidgetPalettes.of(key)
+    }
+
+    /** A short stable name for the palette actually used (cache key). */
+    fun effectiveKey(ctx: Context, key: String, vibe: String?): String = when {
+        key == MATERIAL && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> "material"
+        key == AUTO -> if (WidgetPalettes.of(vibe) != null) vibe!! else ARTWORK
+        key == ARTWORK || WidgetPalettes.of(key) == null -> ARTWORK
+        else -> key
+    }
 }
 
 object LyraWidgetUpdater {
@@ -104,24 +194,43 @@ object LyraWidgetUpdater {
     const val ACTION_TOGGLE = "dev.lyra.android.widget.TOGGLE"
     const val ACTION_NEXT = "dev.lyra.android.widget.NEXT"
 
+    // layout kinds
+    private const val K_COMPACT = 1
+    private const val K_MEDIUM = 2
+    private const val K_LARGE = 3
+    private const val K_MINI = 4
+    private const val K_TICKER = 5
+    private const val K_PLAY = 6
+    private const val K_COVER = 7
+
+    private val providers = listOf(
+        LyraWidget::class.java, LyraMiniWidget::class.java, LyraTickerWidget::class.java,
+        LyraPlayWidget::class.java, LyraCoverWidget::class.java
+    )
+
     private val main = Handler(Looper.getMainLooper())
     private var appCtx: Context? = null
     private var attached = false
-    private var lastDraw = 0L
     private val listener = { refresh() }
-    private val tick = Runnable {
-        refresh()
+    private val tick = Runnable { refresh() }
+
+    // Nothing is drawn while the screen is off; it catches up the moment the screen comes on.
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_SCREEN_OFF) main.removeCallbacks(tick)
+            else refresh(force = true)
+        }
     }
 
-    // per-song cache so a redraw every second costs almost nothing
+    // per-song caches so a redraw every second costs almost nothing
     private var cachedId: String? = null
-    private var cachedVibe: String? = null
-    private var vibe: String? = null
-    private var pal: WidgetPalette? = null
+    private var cachedArtKey: String? = null
     private var cachedArt: Bitmap? = null
-    private var cachedBg: Bitmap? = null
-    private var cachedBgCompact: Bitmap? = null
-
+    private var accent: Int = Color.parseColor("#6a3d8a")
+    private val bgCache = HashMap<String, Bitmap>()
+    // what each widget id last showed, to skip identical redraws
+    private val lastSig = HashMap<Int, String>()
+    private var vibe: String? = null
     private const val PREFS = "lyra_widget"
 
     /** The web UI tells us which vibe is in effect; it is remembered so the widget keeps it after a reboot. */
@@ -140,13 +249,20 @@ object LyraWidgetUpdater {
             attached = true
             MediaMonitor.addListener(listener)
             MediaMonitor.refresh(ctx)
+            val f = IntentFilter().apply { addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_SCREEN_ON) }
+            appCtx!!.registerReceiver(screenReceiver, f)
         }
     }
 
     fun detach() {
-        attached = false
+        if (attached) {
+            attached = false
+            try { appCtx?.unregisterReceiver(screenReceiver) } catch (_: Exception) { }
+        }
         MediaMonitor.removeListener(listener)
         main.removeCallbacks(tick)
+        lastSig.clear()
+        bgCache.clear()
     }
 
     /** Called when new lyric lines arrive from the app. */
@@ -155,28 +271,40 @@ object LyraWidgetUpdater {
         main.postDelayed(tick, delayMs)
     }
 
-    fun refresh() {
+    private fun screenOn(ctx: Context): Boolean =
+        (ctx.getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive
+
+    /** Redraw every placed widget. [force] ignores the "nothing changed" shortcut (a new widget, a resize, a theme change). */
+    fun refresh(force: Boolean = false) {
         val ctx = appCtx ?: return
         main.removeCallbacks(tick)
         val mgr = AppWidgetManager.getInstance(ctx)
-        val ids = mgr.getAppWidgetIds(ComponentName(ctx, LyraWidget::class.java))
-        if (ids.isEmpty()) {
+        val placed = providers.map { it to mgr.getAppWidgetIds(ComponentName(ctx, it)) }
+        if (placed.all { it.second.isEmpty() }) {
             detach()
             return
         }
+        if (!screenOn(ctx)) return // the screen-on receiver brings us back
         val now = try { MediaMonitor.now() } catch (_: Exception) { null }
         val state = describe(now)
-        try {
-            mgr.updateAppWidget(ids, build(ctx, state))
-        } catch (_: Exception) {
-            // a launcher that refuses the update must never crash the app
+        refreshArt(ctx, state)
+        for ((cls, ids) in placed) {
+            for (id in ids) {
+                val key = WidgetThemes.get(ctx, id)
+                val sig = "${state.id}|${state.title}|${state.lyric}|${state.nextLine}|${state.playing}|${state.progress / 12}|$key|$vibe"
+                if (!force && lastSig[id] == sig) continue
+                try {
+                    mgr.updateAppWidget(id, build(ctx, cls, state, key))
+                    lastSig[id] = sig
+                } catch (_: Exception) {
+                    // a launcher that refuses the update must never crash the app
+                }
+            }
         }
-        lastDraw = SystemClock.elapsedRealtime()
         if (now != null && now.playing) main.postDelayed(tick, nextDelay(now))
     }
 
     // ---------- what to show ----------
-
     private class State(
         val title: String,
         val artist: String,
@@ -230,60 +358,78 @@ object LyraWidgetUpdater {
     }
 
     // ---------- drawing ----------
-
-    private fun build(ctx: Context, s: State): RemoteViews {
-        refreshCaches(ctx, s)
-        val medium = fill(ctx, RemoteViews(ctx.packageName, R.layout.lyra_widget_medium), s, 2)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return medium
-        val compact = fill(ctx, RemoteViews(ctx.packageName, R.layout.lyra_widget_compact), s, 1)
-        val large = fill(ctx, RemoteViews(ctx.packageName, R.layout.lyra_widget_large), s, 3)
-        return RemoteViews(
-            mapOf(
-                SizeF(110f, 56f) to compact,
-                SizeF(250f, 110f) to medium,
-                SizeF(250f, 200f) to large
-            )
-        )
+    private fun build(ctx: Context, cls: Class<*>, s: State, themeKey: String): RemoteViews {
+        val pal = WidgetThemes.palette(ctx, themeKey, vibe)
+        val eff = WidgetThemes.effectiveKey(ctx, themeKey, vibe)
+        fun view(layout: Int, kind: Int): RemoteViews = fill(ctx, RemoteViews(ctx.packageName, layout), s, kind, pal, eff)
+        return when (cls) {
+            LyraMiniWidget::class.java -> view(R.layout.lyra_widget_mini, K_MINI)
+            LyraTickerWidget::class.java -> view(R.layout.lyra_widget_ticker, K_TICKER)
+            LyraPlayWidget::class.java -> view(R.layout.lyra_widget_play, K_PLAY)
+            LyraCoverWidget::class.java -> view(R.layout.lyra_widget_cover, K_COVER)
+            else -> {
+                val medium = view(R.layout.lyra_widget_medium, K_MEDIUM)
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) medium
+                else RemoteViews(
+                    mapOf(
+                        SizeF(110f, 56f) to view(R.layout.lyra_widget_compact, K_COMPACT),
+                        SizeF(250f, 110f) to medium,
+                        SizeF(250f, 200f) to view(R.layout.lyra_widget_large, K_LARGE)
+                    )
+                )
+            }
+        }
     }
 
-    private fun fill(ctx: Context, v: RemoteViews, s: State, kind: Int): RemoteViews {
-        val pl = pal
-        if (pl != null) {
-            // the vibe's own text colours (a light vibe such as Sketchbook needs dark ink, not white)
-            v.setTextColor(R.id.lw_title, pl.text)
-            v.setTextColor(R.id.lw_artist, pl.text2)
-            if (kind >= 2) v.setTextColor(R.id.lw_lyric, pl.text)
-            if (kind == 3) v.setTextColor(R.id.lw_next_line, pl.text2)
-            v.setInt(R.id.lw_play, "setColorFilter", pl.text)
-            if (kind >= 2) {
-                v.setInt(R.id.lw_prev, "setColorFilter", pl.text)
-                v.setInt(R.id.lw_next, "setColorFilter", pl.text)
-            }
-        } else {
-            val soft = Color.argb(179, 255, 255, 255)
-            v.setTextColor(R.id.lw_title, Color.WHITE)
-            v.setTextColor(R.id.lw_artist, soft)
-            if (kind >= 2) v.setTextColor(R.id.lw_lyric, Color.WHITE)
-            if (kind == 3) v.setTextColor(R.id.lw_next_line, soft)
-            v.setInt(R.id.lw_play, "setColorFilter", 0)
-            if (kind >= 2) {
-                v.setInt(R.id.lw_prev, "setColorFilter", 0)
-                v.setInt(R.id.lw_next, "setColorFilter", 0)
-            }
+    private fun fill(ctx: Context, v: RemoteViews, s: State, kind: Int, pl: WidgetPalette?, effKey: String): RemoteViews {
+        val text = pl?.text ?: Color.WHITE
+        val text2 = pl?.text2 ?: Color.argb(179, 255, 255, 255)
+        val overCover = kind == K_COVER || kind == K_PLAY // text sits on the photo + scrim: always white
+        val ink = if (overCover) Color.WHITE else text
+        val ink2 = if (overCover) Color.argb(220, 255, 255, 255) else text2
+        // only touch the views a layout really has
+        fun has(vararg kinds: Int) = kind in kinds
+        val hasTitle = !has(K_PLAY)
+        val hasArtist = has(K_COMPACT, K_MEDIUM, K_LARGE)
+        val hasLyric = !has(K_COMPACT, K_PLAY)
+        val hasNext = has(K_LARGE)
+        val hasProgress = has(K_MEDIUM, K_LARGE, K_TICKER)
+        val hasPrevNext = has(K_MEDIUM, K_LARGE)
+        val hasArt = has(K_COMPACT, K_MEDIUM, K_LARGE, K_MINI, K_TICKER)
+
+        if (hasTitle) v.setTextColor(R.id.lw_title, ink)
+        if (hasArtist) v.setTextColor(R.id.lw_artist, ink2)
+        if (hasLyric) v.setTextColor(R.id.lw_lyric, if (kind == K_COVER) ink2 else ink)
+        if (hasNext) v.setTextColor(R.id.lw_next_line, ink2)
+        if (hasPrevNext) {
+            v.setInt(R.id.lw_prev, "setColorFilter", if (pl != null) text else 0)
+            v.setInt(R.id.lw_next, "setColorFilter", if (pl != null) text else 0)
         }
-        v.setTextViewText(R.id.lw_title, s.title)
-        v.setTextViewText(R.id.lw_artist, s.artist)
-        if (kind >= 2) {
-            v.setTextViewText(R.id.lw_lyric, s.lyric)
-            v.setProgressBar(R.id.lw_progress, 1000, s.progress, false)
+
+        // play / pause: a solid disc with an icon that always contrasts (ink disc on light looks, white disc otherwise)
+        val inkDisc = pl?.light == true && !overCover
+        v.setInt(R.id.lw_play, "setBackgroundResource", if (inkDisc) R.drawable.widget_btn_bg_main_ink else R.drawable.widget_btn_bg_main)
+        v.setImageViewResource(
+            R.id.lw_play,
+            if (inkDisc) (if (s.playing) R.drawable.ic_w_pause else R.drawable.ic_w_play)
+            else (if (s.playing) R.drawable.ic_w_pause_dark else R.drawable.ic_w_play_dark)
+        )
+
+        // texts. The ticker folds the artist into its small line
+        if (hasTitle) v.setTextViewText(R.id.lw_title, if (kind == K_TICKER && s.artist.isNotEmpty()) "${s.title} \u00b7 ${s.artist}" else s.title)
+        if (hasArtist) v.setTextViewText(R.id.lw_artist, s.artist)
+        if (hasLyric) v.setTextViewText(R.id.lw_lyric, s.lyric)
+        if (hasNext) v.setTextViewText(R.id.lw_next_line, s.nextLine)
+        if (hasProgress) v.setProgressBar(R.id.lw_progress, 1000, s.progress, false)
+
+        if (hasArt) {
+            val art = cachedArt
+            if (art != null) v.setImageViewBitmap(R.id.lw_art, art) else v.setImageViewResource(R.id.lw_art, R.drawable.ic_ambient)
         }
-        if (kind == 3) v.setTextViewText(R.id.lw_next_line, s.nextLine)
-        val art = cachedArt
-        if (art != null) v.setImageViewBitmap(R.id.lw_art, art) else v.setImageViewResource(R.id.lw_art, R.drawable.ic_ambient)
-        v.setImageViewBitmap(R.id.lw_bg, (if (kind == 1) cachedBgCompact else cachedBg) ?: return v)
-        v.setImageViewResource(R.id.lw_play, if (s.playing) R.drawable.ic_w_pause_dark else R.drawable.ic_w_play_dark)
+        v.setImageViewBitmap(R.id.lw_bg, background(ctx, s, kind, pl, effKey) ?: return v)
+
         v.setOnClickPendingIntent(R.id.lw_play, broadcast(ctx, ACTION_TOGGLE, 1))
-        if (kind >= 2) {
+        if (hasPrevNext) {
             v.setOnClickPendingIntent(R.id.lw_prev, broadcast(ctx, ACTION_PREV, 2))
             v.setOnClickPendingIntent(R.id.lw_next, broadcast(ctx, ACTION_NEXT, 3))
         }
@@ -295,19 +441,70 @@ object LyraWidgetUpdater {
     private fun broadcast(ctx: Context, action: String, code: Int): PendingIntent =
         PendingIntent.getBroadcast(ctx, code, Intent(ctx, LyraWidgetAction::class.java).setAction(action), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
-    /** Rebuild the rounded cover and the colour background only when the song changes. */
-    private fun refreshCaches(ctx: Context, s: State) {
-        pal = WidgetPalettes.of(vibe)
-        if (s.id == cachedId && cachedVibe == vibe && cachedBg != null) return
+    /** The rounded cover and the cover's accent colour, rebuilt only when the song changes. */
+    private fun refreshArt(ctx: Context, s: State) {
+        if (s.id == cachedId && (cachedArt != null || s.art == null)) return
         cachedId = s.id
-        cachedVibe = vibe
+        bgCache.clear()
         val dp = ctx.resources.displayMetrics.density
         val src = s.art
         cachedArt = src?.let { rounded(it, (96 * dp).toInt(), 18 * dp) }
-        val accent = src?.let { accentOf(it) } ?: Color.parseColor("#6a3d8a")
-        val vp = pal
-        cachedBg = gradient((420 * dp).toInt().coerceAtMost(900), (200 * dp).toInt().coerceAtMost(500), accent, 26 * dp, vp)
-        cachedBgCompact = gradient((260 * dp).toInt().coerceAtMost(700), (96 * dp).toInt().coerceAtMost(300), accent, 22 * dp, vp)
+        accent = src?.let { accentOf(it) } ?: Color.parseColor("#6a3d8a")
+    }
+
+    /** The card behind the text, one per (song, look, layout), cached. Sizes are capped to keep the update small. */
+    private fun background(ctx: Context, s: State, kind: Int, pl: WidgetPalette?, effKey: String): Bitmap? {
+        val key = "${s.id}|$effKey|$kind"
+        bgCache[key]?.let { return it }
+        val dp = ctx.resources.displayMetrics.density
+        val bmp = when (kind) {
+            K_COMPACT -> gradient((260 * dp).toInt().coerceAtMost(700), (96 * dp).toInt().coerceAtMost(300), accent, 22 * dp, pl)
+            K_MINI -> gradient((200 * dp).toInt().coerceAtMost(600), (64 * dp).toInt().coerceAtMost(220), accent, 20 * dp, pl)
+            K_TICKER -> gradient((420 * dp).toInt().coerceAtMost(900), (64 * dp).toInt().coerceAtMost(220), accent, 20 * dp, pl)
+            K_COVER -> coverCard(s.art, (200 * dp).toInt().coerceAtMost(520), 22 * dp, 0.62f, accent, pl)
+            K_PLAY -> coverCard(s.art, (100 * dp).toInt().coerceAtMost(300), 20 * dp, 0f, accent, pl, dim = 120)
+            else -> gradient((420 * dp).toInt().coerceAtMost(900), (200 * dp).toInt().coerceAtMost(500), accent, 26 * dp, pl)
+        }
+        bgCache[key] = bmp
+        return bmp
+    }
+
+    /** The cover filling a rounded card. [scrim] darkens the bottom part (for text), [dim] darkens everything. Without a cover, the gradient. */
+    private fun coverCard(src: Bitmap?, size: Int, radius: Float, scrim: Float, accent: Int, pal: WidgetPalette?, dim: Int = 0): Bitmap {
+        if (src == null) return gradient(size, size, accent, radius, pal)
+        val out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val c = Canvas(out)
+        val rect = RectF(0f, 0f, size.toFloat(), size.toFloat())
+        val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        c.drawRoundRect(rect, radius, radius, p)
+        p.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
+        val side = minOf(src.width, src.height)
+        val left = (src.width - side) / 2
+        val top = (src.height - side) / 2
+        p.isFilterBitmap = true
+        c.drawBitmap(src, Rect(left, top, left + side, top + side), rect, p)
+        if (dim > 0) {
+            val d = Paint(Paint.ANTI_ALIAS_FLAG)
+            d.color = Color.argb(dim, 0, 0, 0)
+            d.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
+            c.drawRect(rect, d)
+        }
+        if (scrim > 0f) {
+            val sp = Paint(Paint.ANTI_ALIAS_FLAG)
+            sp.shader = LinearGradient(0f, size * (1f - scrim), 0f, size.toFloat(), Color.TRANSPARENT, Color.argb(215, 0, 0, 0), Shader.TileMode.CLAMP)
+            sp.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP)
+            c.drawRect(0f, size * (1f - scrim), size.toFloat(), size.toFloat(), sp)
+        }
+        if (pal != null) {
+            // a thin edge in the look's accent colour, like the border of its player card
+            val edge = Paint(Paint.ANTI_ALIAS_FLAG)
+            edge.style = Paint.Style.STROKE
+            edge.strokeWidth = 3f
+            edge.color = pal.accent
+            edge.alpha = 200
+            c.drawRoundRect(RectF(2f, 2f, size - 2f, size - 2f), radius, radius, edge)
+        }
+        return out
     }
 
     /** A square, rounded copy of the cover. */
@@ -320,7 +517,7 @@ object LyraWidgetUpdater {
         val side = minOf(src.width, src.height)
         val left = (src.width - side) / 2
         val top = (src.height - side) / 2
-        c.drawBitmap(src, android.graphics.Rect(left, top, left + side, top + side), RectF(0f, 0f, size.toFloat(), size.toFloat()), p)
+        c.drawBitmap(src, Rect(left, top, left + side, top + side), RectF(0f, 0f, size.toFloat(), size.toFloat()), p)
         return out
     }
 
@@ -341,7 +538,7 @@ object LyraWidgetUpdater {
         return best
     }
 
-    /** Dark, rich two-tone gradient from the accent colour, with rounded corners. */
+    /** Dark, rich two-tone gradient from the accent colour (or the look's own colours), with rounded corners. */
     private fun gradient(w: Int, h: Int, accent: Int, radius: Float, vibePal: WidgetPalette? = null): Bitmap {
         val hsv = FloatArray(3)
         Color.colorToHSV(accent, hsv)

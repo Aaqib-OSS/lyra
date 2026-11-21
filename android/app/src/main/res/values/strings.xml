@@ -5,4 +5,12 @@
     <string name="shortcut_ambient_long">Ambient lyrics on / off</string>
     <string name="lyra_widget_description">Live lyrics, the cover and the controls. Resizes from a small player to a big lyrics card.</string>
     <string name="lyra_widget_name">Lyra live lyrics</string>
+    <string name="lyra_widget_mini_name">Lyra mini player</string>
+    <string name="lyra_widget_mini_description">Cover, the current lyric line and play / pause. 2 x 1.</string>
+    <string name="lyra_widget_ticker_name">Lyra lyrics ticker</string>
+    <string name="lyra_widget_ticker_description">One big live lyric line with a progress bar. 4 x 1.</string>
+    <string name="lyra_widget_play_name">Lyra play button</string>
+    <string name="lyra_widget_play_description">A play / pause button on the dimmed cover. 1 x 1.</string>
+    <string name="lyra_widget_cover_name">Lyra cover art</string>
+    <string name="lyra_widget_cover_description">The cover art with the current line on it. 2 x 2.</string>
 </resources>
