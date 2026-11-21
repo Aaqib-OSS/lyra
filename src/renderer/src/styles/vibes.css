@@ -73,7 +73,8 @@
 }
 [data-vibe='neon'] .kin__word.is-now {
   color: #d9fbff;
-  text-shadow: 0 0 6px #fff, 0 0 18px #26f0ff, 0 0 46px #26f0ff, 0 0 90px #26f0ff;
+  /* a tight tube glow: a wide bloom lights up the area around the letters and costs readability */
+  text-shadow: 0 0 3px #fff, 0 0 9px #26f0ff, 0 0 22px rgba(38, 240, 255, 0.5);
   animation: neon-flicker 3.4s linear infinite;
 }
 @keyframes neon-flicker {
@@ -645,9 +646,49 @@
 @keyframes trailer-flare { 0%, 60%, 100% { opacity: 0; transform: translateX(-20%) scaleX(0.4); } 75% { opacity: 0.9; transform: translateX(10%) scaleX(1); } }
 [data-vibe='trailer'] .kin { align-items: center; text-align: center; font-size: calc(min(9cqw, 15cqh) * var(--k, 1)); line-height: 1.05; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; }
 [data-vibe='trailer'] .kin__row { justify-content: center; gap: 0.5em; }
-[data-vibe='trailer'] .kin__word { font-family: 'Fraunces Variable', Georgia, serif; font-weight: 500; letter-spacing: 0.18em; color: #f1e6d4; text-shadow: 0 0 24px rgba(255, 217, 160, 0.35); }
+[data-vibe='trailer'] .kin__word { font-family: 'Fraunces Variable', Georgia, serif; font-weight: 720; letter-spacing: 0.18em; color: #f1e6d4; text-shadow: 0 0 24px rgba(255, 217, 160, 0.35); }
 [data-vibe='trailer'] .kin__word.is-in:not(.is-now) { opacity: 0.35; }
 [data-vibe='trailer'] .kin__word.is-now { color: #fff; opacity: 1; text-shadow: 0 0 20px #ffd9a0, 0 0 60px rgba(255, 217, 160, 0.6); }
 [data-vibe='trailer'] .kin__word.is-now::after { display: none; }
 [data-vibe='trailer'] .kin__word.is-slab { background: none; color: #ffd9a0; padding: 0; transform: none; border-top: 2px solid #ffd9a0; border-bottom: 2px solid #ffd9a0; }
 [data-vibe='trailer'] .kin__word.is-big { font-size: 1.2em; }
+
+/* neon and sunset set big, bright type in front of a bright sun: a soft dark halo behind the stage keeps it readable */
+[data-vibe='neon'] .stage::before,
+[data-vibe='sunset'] .stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 62% 58% at 50% 50%, rgba(10, 0, 24, 0.62), transparent 78%);
+}
+[data-vibe='neon'] .vibefx__sun { opacity: 0.42; }
+[data-vibe='sunset'] .vibefx__sunset-sun { opacity: 0.78; }
+
+/* ---------- contrast fixes found by the UI test ---------- */
+/* diary: ink on paper has no light comet (a white band washes out dark text) */
+[data-vibe='paper'] .word {
+  background: linear-gradient(90deg, var(--fg) 0, var(--fg) var(--x), var(--word-dim) calc(var(--p) * 114%));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+/* bright backdrops (sky, sun) get a dark scrim behind list-style lyrics in the small windows */
+[data-vibe='blocks'] .mini__lyrics::before,
+[data-vibe='sunset'] .mini__lyrics::before {
+  content: '';
+  position: absolute;
+  inset: 0 -24px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 4, 30, 0.1), rgba(10, 4, 30, 0.58) 30%, rgba(10, 4, 30, 0.66));
+}
+[data-vibe='blocks'] .lyric__text { filter: drop-shadow(2px 2px 0 #3f3f3f); }
+/* trailer: a tight glow only; a wide one lights the area inside the letters and softens them */
+[data-vibe='trailer'] .kin__word.is-now { text-shadow: 0 0 10px rgba(255, 217, 160, 0.55); }
+[data-vibe='trailer'] .kin__word { text-shadow: none; }
+
+/* diary is a light vibe: its ink must not be forced to white by the generic "active word" rule, and plain text inherits the ink colour */
+[data-vibe='paper'] .shell { color: var(--fg); }
+[data-vibe='paper'] .root:not([data-theme='light']) .lyric.is-active .word { --fg: #2d2a3a; --word-dim: rgba(45, 42, 58, 0.34); filter: none; }
+/* trailer and cinema are near-black stages: the blurred cover would only wash a tan patch behind the words */
+[data-vibe='trailer'] .backdrop:not(.backdrop--media) .backdrop__img { display: none; }

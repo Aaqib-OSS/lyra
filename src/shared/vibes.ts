@@ -1,7 +1,19 @@
 import type { LyricStyle, Vibe } from './types'
 
+/**
+ * Where the card and the lyrics go in fullscreen (and with a video behind):
+ *  side  card on the left, lyrics on the right (the classic arrangement)
+ *  dock  the card becomes a slim bar along the bottom, the lyrics own the stage above it
+ *  orb   a small floating pill in the corner, the lyrics fill the whole screen
+ *  bar   controls live inside the bottom letterbox bar, the lyrics are subtitles above
+ *  chat  one centred column like a messaging app, the controls are the message bar
+ *  term  a framed sidebar next to a framed log, like two terminal panes
+ */
+export type LayoutArch = 'side' | 'dock' | 'orb' | 'bar' | 'chat' | 'term'
+
 export interface VibeInfo {
   id: Vibe
+  layout: LayoutArch
   /** how the lyrics are staged by default in this vibe */
   style: LyricStyle
   name: string
@@ -9,21 +21,21 @@ export interface VibeInfo {
 }
 
 export const VIBES: readonly VibeInfo[] = [
-  { id: 'none', style: 'classic', name: 'Artwork', tag: 'Colours from the cover' },
-  { id: 'neon', style: 'kinetic', name: 'Neon', tag: 'Synthwave tubes' },
-  { id: 'chrome', style: 'kinetic', name: 'Chrome', tag: 'Y2K liquid metal' },
-  { id: 'dream', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
-  { id: 'crt', style: 'type', name: 'Terminal', tag: 'Typed in green' },
-  { id: 'sticker', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
-  { id: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' },
-  { id: 'paper', style: 'diary', name: 'Diary', tag: 'Handwritten, highlighted' },
-  { id: 'arcade', style: 'kinetic', name: 'Arcade', tag: '8-bit scoreboard' },
-  { id: 'noir', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
-  { id: 'sunset', style: 'kinetic', name: 'Sunset Drive', tag: 'Palms, radio and a pink sky' },
-  { id: 'blocks', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
-  { id: 'stadium', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },
-  { id: 'cassette', style: 'type', name: 'Cassette', tag: 'Walkman and amber LCD' },
-  { id: 'trailer', style: 'kinetic', name: 'Trailer', tag: 'Movie title cards' }
+  { id: 'none', layout: 'side', style: 'classic', name: 'Artwork', tag: 'Colours from the cover' },
+  { id: 'neon', layout: 'dock', style: 'kinetic', name: 'Neon', tag: 'Synthwave tubes' },
+  { id: 'chrome', layout: 'dock', style: 'kinetic', name: 'Chrome', tag: 'Y2K liquid metal' },
+  { id: 'dream', layout: 'orb', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
+  { id: 'crt', layout: 'term', style: 'type', name: 'Terminal', tag: 'Typed in green' },
+  { id: 'sticker', layout: 'side', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
+  { id: 'chat', layout: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' },
+  { id: 'paper', layout: 'side', style: 'diary', name: 'Diary', tag: 'Handwritten, highlighted' },
+  { id: 'arcade', layout: 'dock', style: 'kinetic', name: 'Arcade', tag: '8-bit scoreboard' },
+  { id: 'noir', layout: 'bar', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
+  { id: 'sunset', layout: 'dock', style: 'kinetic', name: 'Sunset Drive', tag: 'Palms, radio and a pink sky' },
+  { id: 'blocks', layout: 'side', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
+  { id: 'stadium', layout: 'dock', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },
+  { id: 'cassette', layout: 'side', style: 'type', name: 'Cassette', tag: 'Walkman and amber LCD' },
+  { id: 'trailer', layout: 'bar', style: 'kinetic', name: 'Trailer', tag: 'Movie title cards' }
 ]
 
 export const ALL_VIBES: readonly Vibe[] = VIBES.map((v) => v.id)

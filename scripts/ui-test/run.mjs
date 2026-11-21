@@ -19,7 +19,8 @@ const BASE = `http://localhost:${PORT}`
 
 // the vibe catalogue (id + default lyric style) is read from the source so the test never goes stale
 const vibesSrc = readFileSync(join(root, 'src/shared/vibes.ts'), 'utf8')
-const VIBES = [...vibesSrc.matchAll(/\{ id: '(\w+)', style: '(\w+)'/g)].map((m) => ({ id: m[1], style: m[2] }))
+const VIBES = [...vibesSrc.matchAll(/\{ id: '(\w+)', layout: '\w+', style: '(\w+)'/g)].map((m) => ({ id: m[1], style: m[2] }))
+if (!VIBES.length) throw new Error('could not read the vibe list from src/shared/vibes.ts')
 
 const DEVICES = [
   { id: 'phone', w: 390, h: 844, q: 'android=1&mode=mini', touch: true },
@@ -188,13 +189,13 @@ const CONTRAST = async ({ png, rects }) => {
       ;(gx >= x0 && gx <= x1 && gy >= y0 && gy <= y1 ? inside : ring).push(L)
     }
     if (!ring.length || !inside.length) continue
-    const bg = med(ring.slice())
-    // text pixels are the ones that stand out from the background; their typical value is the text colour
-    const text = inside.map((L) => [Math.abs(L - bg), L]).filter((p) => p[0] > 0.1).sort((p, q) => q[0] - p[0])
-    if (text.length < 6) { results.push(1); continue }
-    // the ink is the strongest quarter of those pixels (a highlighter or glow behind the letters must not count as ink)
-    const tl = med(text.slice(0, Math.max(6, Math.ceil(text.length * 0.25))).map((p) => p[1]))
-    results.push((Math.max(tl, bg) + 0.05) / (Math.min(tl, bg) + 0.05))
+    // ink vs what is right behind the letters, both measured INSIDE the text box (so a label / highlighter behind the
+    // text counts as the background, and a glow outside the text does not distort it)
+    inside.sort((p, q) => p - q)
+    const at = (f) => inside[Math.min(inside.length - 1, Math.floor(inside.length * f))]
+    const light = (at(0.92) + 0.05) / (at(0.3) + 0.05) // light ink on a darker ground
+    const dark = (at(0.7) + 0.05) / (at(0.08) + 0.05) // dark ink on a lighter ground
+    results.push(Math.max(light, dark))
   }
   return results.length ? results.reduce((a, b) => a + b, 0) / results.length : null
 }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { resolveAutoFullLayout } from '@shared/fullLayout'
+import { vibeInfo } from '@shared/vibes'
+import { useEffectiveVibe } from '@/hooks/useVibe'
 import { useIdle } from '@/hooks/useIdle'
 import { usePlayerView } from '@/hooks/usePlayerView'
 import { joinArtists } from '@/lib/format'
@@ -42,9 +44,11 @@ export function FullscreenPlayer() {
     ? resolveAutoFullLayout(viewport.width, viewport.height)
     : selectedLayout
   const ytVideo = useBgState((s) => s.kind === 'youtube')
+  // each vibe arranges the card and the lyrics its own way
+  const arch = vibeInfo(useEffectiveVibe().vibe).layout
 
   return (
-    <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${sideFlipped ? 'is-side-flipped' : ''} ${cinema ? `is-cinema layout-${layout}` : ''}`}>
+    <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${sideFlipped ? 'is-side-flipped' : ''} ${cinema ? `is-cinema ${arch === 'side' ? `layout-${layout}` : ''}` : ''}`} data-arch={arch}>
       <VideoStatus />
       <header className="full__top">
         <span className="full__device">{device ? `Playing on ${device.name}` : 'Lyra'}</span>
@@ -61,7 +65,7 @@ export function FullscreenPlayer() {
       {view === 'playing' && track ? (
         <div className="full__body">
           <aside className="full__side">
-            <Artwork url={track.artworkUrl} size={cinema ? 'clamp(84px, 12vh, 124px)' : 'min(34vw, 46vh, 460px)'} radius={cinema ? 14 : 18} className="artwork--lift" />
+            <Artwork url={track.artworkUrl} size={arch === 'term' ? 'clamp(120px, 24vh, 240px)' : arch !== 'side' ? 'clamp(54px, 8.5vh, 84px)' : cinema ? 'clamp(84px, 12vh, 124px)' : 'min(34vw, 46vh, 460px)'} radius={arch === 'orb' ? 999 : arch !== 'side' ? 12 : cinema ? 14 : 18} className="artwork--lift" />
             <div className="full__chrome">
               <div className="full__titlerow">
                 <div className="full__titles">
