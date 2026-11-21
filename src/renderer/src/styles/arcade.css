@@ -141,13 +141,13 @@
   box-shadow: 0 0 0 3px #fff, 0.6vh 0.6vh 0 3px var(--arc-pink);
 }
 :root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
-  font: 1.5vh/1.5 'Press Start 2P', monospace;
+  font: max(10.5px, 1.5vh)/1.5 'Press Start 2P', monospace;
   letter-spacing: 0;
   text-transform: uppercase;
   color: var(--arc-yellow);
   text-shadow: 0.2vh 0.2vh 0 var(--arc-pink);
 }
-:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.1vh/1.6 'Press Start 2P', monospace; color: #d6d6ff; text-transform: uppercase; }
+:root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: max(10.5px, 1.1vh)/1.6 'Press Start 2P', monospace; color: #d6d6ff; text-transform: uppercase; }
 :root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .progress__rail { border-radius: 0; background: #06061a; box-shadow: 0 0 0 2px #fff; height: 1.2vh; }
 :root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .progress__fill { border-radius: 0; background: repeating-linear-gradient(90deg, var(--arc-cyan) 0 0.8vh, #0d6a73 0.8vh 1vh); }
 [data-vibe='arcade'] .playbtn { border-radius: 0; background: var(--arc-yellow); color: #1a1a5a; box-shadow: 0.5vh 0.5vh 0 var(--arc-pink); }
@@ -181,7 +181,7 @@
 @keyframes arc-pop { 0% { transform: translateY(-0.4em) scale(1.35); } 100% { transform: none; } }
 @keyframes arc-flash { 50% { color: #fff; } }
 @keyframes arc-score { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-1.4em); } }
-.sign--pixel .sign__next { font: min(1.2vw, 2vh) / 1.6 'Press Start 2P', monospace; text-transform: uppercase; color: #6a6ad0; }
+.sign--pixel .sign__next { font: max(10.5px, min(1.2vw, 2vh)) / 1.6 'Press Start 2P', monospace; text-transform: uppercase; color: #6a6ad0; }
 .sign--pixel .sign__refl { display: none; }
 :root[data-calm] .sign--pixel .sign__word.is-now { animation: none; }
 

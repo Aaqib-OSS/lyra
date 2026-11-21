@@ -96,7 +96,7 @@
 .termlog__row { display: flex; gap: 1.4vh; align-items: baseline; font-size: min(2.6vw, 4.8vh); line-height: 1.12; color: rgba(185, 255, 208, 0.38); letter-spacing: 0.03em; text-shadow: 0 0 0.6vh rgba(53, 255, 122, 0.2); }
 .termlog__row.is-current { color: #d8ffe6; text-shadow: 0 0 1.2vh rgba(53, 255, 122, 0.8); animation: tm-line 0.2s steps(3) 1; }
 @keyframes tm-line { from { opacity: 0; transform: translateY(1vh); } to { opacity: 1; transform: none; } }
-.termlog__ts { flex: none; color: var(--tm-green); opacity: 0.7; font-size: 0.7em; }
+.termlog__ts { flex: none; color: var(--tm-green); opacity: 0.7; font-size: max(10.5px, 0.7em); }
 .termlog__text { min-width: 0; }
 .termlog__word { color: rgba(185, 255, 208, 0.4); }
 .termlog__word.is-in { color: #d8ffe6; }
@@ -115,3 +115,9 @@
 [data-vibe='crt'] .lfb p, [data-vibe='crt'] .lfb small { font-family: 'VT323', monospace; font-size: max(15px, 1.5vw); color: rgba(185, 255, 208, 0.85); letter-spacing: 0.03em; }
 [data-vibe='crt'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='crt'] .lfb__eq i { background: var(--tm-green); border-radius: 0; box-shadow: 0 0 1vh var(--tm-green); }
+
+/* narrow window (mini player): art + titles + progress + controls do not fit in one row, so the progress bar drops under the titles */
+@media (max-width: 560px) {
+  :root[data-vibe='crt']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; row-gap: 0.6vh; }
+  :root[data-vibe='crt']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { height: 11.6vh !important; }
+}

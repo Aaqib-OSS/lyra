@@ -100,7 +100,7 @@
 :root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Caveat', cursive; font-size: 3vh; font-weight: 700; letter-spacing: 0; color: var(--ink); text-shadow: none; line-height: 1; }
-:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: var(--ink-2); }
+:root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.5vh); color: var(--ink-2); }
 :root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: repeating-linear-gradient(90deg, rgba(31, 21, 17, 0.4) 0 0.6vh, transparent 0.6vh 1vh); height: 2px; border-radius: 0; }
 :root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--marker); height: 4px; border-radius: 3px; }
 :root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--marker) !important; color: #fff7dc !important; box-shadow: 0 0 0 2px var(--ink), 0.4vh 0.5vh 0 var(--ink) !important; }
@@ -108,14 +108,14 @@
 
 /* ---------------- lyrics: written in ink (stage 'ink') ---------------- */
 .stage--ink { display: flex; flex-direction: column; justify-content: center; }
-.sign--ink .sign__line { gap: 1.6vh; rotate: -1.4deg; }
+.sign--ink .sign__line { gap: 1.6vh; rotate: -1.4deg; box-sizing: border-box; padding-inline: 1.4vh; }
 .sign--ink .sign__row { font-family: 'Caveat', cursive; font-weight: 700; font-size: min(6.6vw, 11.4vh); line-height: 0.98; letter-spacing: 0; gap: 0 0.22em; }
 .sign--ink .sign__word { position: relative; color: rgba(31, 21, 17, 0.36); }
 .sign--ink .sign__word.is-in { color: var(--ink); animation: sk-write 0.42s ease-out 1; }
 @keyframes sk-write { from { clip-path: inset(-10% 100% -10% 0); } to { clip-path: inset(-10% -4% -10% 0); } }
 .sign--ink .sign__word.is-now::after { content: ''; position: absolute; left: -2%; right: -2%; bottom: 0.04em; height: 0.12em; border-radius: 0.1em; background: var(--marker); transform-origin: 0 50%; animation: sk-marker 0.45s ease-out 1; rotate: -1deg; }
 @keyframes sk-marker { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.sign--ink .sign__next { font-family: 'Caveat', cursive; font-weight: 600; font-size: min(3.4vw, 5.6vh); color: rgba(31, 21, 17, 0.4); letter-spacing: 0; }
+.sign--ink .sign__next { font-family: 'Caveat', cursive; font-weight: 600; font-size: max(10.5px, min(3.4vw, 5.6vh)); color: rgba(31, 21, 17, 0.4); letter-spacing: 0; }
 .sign--ink .sign__refl { display: none; }
 :root[data-motion='off'] .sign--ink .sign__word, :root[data-motion='off'] .sign--ink .sign__word::after { animation: none; }
 

@@ -70,7 +70,7 @@
 :root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: var(--st-paper); text-shadow: none; }
-:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-orange); }
+:root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.4vh); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-orange); }
 :root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--st-orange); border-radius: 0; }
 :root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { border-radius: 0; }
 :root[data-vibe='stencil']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--st-orange) !important; color: var(--st-ink) !important; border-radius: 0.6vh !important; box-shadow: none !important; }
@@ -88,7 +88,7 @@
 /* a drip runs down from the word being sung */
 .sign--spray .sign__word.is-now::after { content: ''; position: absolute; left: 30%; top: 86%; width: 0.07em; height: 0; border-radius: 0 0 0.06em 0.06em; background: var(--st-orange); animation: st-wdrip 2.2s ease-in 0.3s 1 forwards; }
 @keyframes st-wdrip { 0% { height: 0; opacity: 0; } 15% { opacity: 1; } 100% { height: 0.9em; opacity: 0.9; } }
-.sign--spray .sign__next { font: 800 min(2vw, 3.4vh) / 1.15 'Unbounded Variable', sans-serif; text-transform: uppercase; letter-spacing: -0.01em; color: rgba(242, 239, 233, 0.4); }
+.sign--spray .sign__next { font: 800 max(10.5px, min(2vw, 3.4vh)) / 1.15 'Unbounded Variable', sans-serif; text-transform: uppercase; letter-spacing: -0.01em; color: rgba(242, 239, 233, 0.4); }
 .sign--spray .sign__refl { display: none; }
 :root[data-motion='off'] .sign--spray .sign__word, :root[data-motion='off'] .sign--spray .sign__word::after { animation: none; }
 

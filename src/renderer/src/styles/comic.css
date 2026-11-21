@@ -107,7 +107,7 @@
 :root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: var(--cm-ink); text-shadow: none; }
-:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; color: #2a2a2a; }
+:root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.4vh); font-weight: 700; color: #2a2a2a; }
 :root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: #fff; box-shadow: 0 0 0 0.3vh var(--cm-ink); height: 1.1vh; border-radius: 0; }
 :root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--cm-pink); border-radius: 0; }
 :root[data-vibe='comic']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--cm-pink) !important; color: #fff !important; border-radius: 50% !important; box-shadow: 0 0 0 0.4vh var(--cm-ink), 0.5vh 0.6vh 0 0.4vh var(--cm-ink) !important; }
@@ -125,7 +125,7 @@
 .sign--bubble .sign__word.is-in { color: var(--cm-ink); }
 .sign--bubble .sign__word.is-now { color: #fff; background: var(--cm-pink); padding: 0 0.2em; margin: 0 -0.1em; box-shadow: 0.1em 0.1em 0 var(--cm-ink); animation: cm-pop 0.28s cubic-bezier(0.2, 1.6, 0.4, 1) 1; rotate: -2deg; }
 @keyframes cm-pop { 0% { scale: 0.6; } 100% { scale: 1; } }
-.sign--bubble .sign__next { font: 800 min(1.6vw, 2.8vh) / 1.2 'Unbounded Variable', sans-serif; text-transform: uppercase; color: rgba(17, 17, 17, 0.55); letter-spacing: -0.01em; }
+.sign--bubble .sign__next { font: 800 max(10.5px, min(1.6vw, 2.8vh)) / 1.2 'Unbounded Variable', sans-serif; text-transform: uppercase; color: rgba(17, 17, 17, 0.55); letter-spacing: -0.01em; }
 .sign--bubble .sign__refl { display: none; }
 :root[data-motion='off'] .sign--bubble .sign__line, :root[data-motion='off'] .sign--bubble .sign__word { animation: none; }
 

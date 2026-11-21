@@ -64,7 +64,7 @@
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { align-items: stretch; width: 100%; }
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { justify-content: center; text-align: center; }
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-weight: 500; font-size: 2.6vh; letter-spacing: 0; color: #fff; text-shadow: 0 0 1.6vh rgba(255, 180, 236, 0.6); }
-:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: rgba(255, 255, 255, 0.78); }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.5vh); color: rgba(255, 255, 255, 0.78); }
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #ffd0f4, #b9c4ff); }
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: rgba(255, 255, 255, 0.92) !important; color: #3a1d6e !important; box-shadow: 0 0 3vh rgba(255, 180, 236, 0.7) !important; }
 

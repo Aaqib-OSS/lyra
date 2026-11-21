@@ -72,7 +72,7 @@
 :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 800 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: #fff; text-shadow: none; }
-:root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.3vh; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sd-gold); }
+:root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.3vh); letter-spacing: 0.14em; text-transform: uppercase; color: var(--sd-gold); }
 :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(255, 255, 255, 0.25); border-radius: 0; }
 :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--sd-green); border-radius: 0; }
 :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--sd-gold) !important; color: #072a63 !important; border-radius: 0.6vh !important; box-shadow: none !important; }
@@ -92,3 +92,9 @@
 [data-vibe='stadium'] .lfb p, [data-vibe='stadium'] .lfb small { color: rgba(255, 255, 255, 0.88); }
 [data-vibe='stadium'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='stadium'] .lfb__eq i { background: var(--sd-green); border-radius: 0; box-shadow: none; }
+
+/* narrow window (mini player): art + titles + progress + controls do not fit in one row, so the progress bar drops under the titles */
+@media (max-width: 560px) {
+  :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; row-gap: 0.6vh; }
+  :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { height: 12vh !important; }
+}

@@ -76,7 +76,7 @@
 :root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.3vh/1.1 'Nunito Variable', sans-serif; letter-spacing: -0.02em; color: #15101f; text-shadow: none; }
-:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; font-weight: 800; color: #3a2f55; }
+:root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.5vh); font-weight: 800; color: #3a2f55; }
 :root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(21, 16, 31, 0.2); }
 :root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #15101f; }
 :root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #15101f !important; color: var(--sk-lime) !important; box-shadow: 0 0 0 0.4vh #fff !important; }

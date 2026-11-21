@@ -81,7 +81,7 @@
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 800 2.1vh/1.15 'Nunito Variable', sans-serif; letter-spacing: -0.01em; color: #fff; text-shadow: none; }
-:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; color: #9fb4ff; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.4vh); color: #9fb4ff; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #5b8cff, #7a5cff); }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: linear-gradient(135deg, #3b82ff, #7a5cff) !important; color: #fff !important; box-shadow: 0 0.8vh 2vh rgba(91, 140, 255, 0.5) !important; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
@@ -92,7 +92,7 @@
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { font-size: min(2.3vw, 4.2vh); }
 
 /* ---------------- other lyric states (same regions) ---------------- */
-[data-vibe='chat'] .lyrics__notice { align-self: center; background: transparent; border: 0; color: #9fb4ff; font-size: 1.5vh; font-weight: 700; letter-spacing: 0.04em; }
+[data-vibe='chat'] .lyrics__notice { align-self: center; background: transparent; border: 0; color: #9fb4ff; font-size: max(10.5px, 1.5vh); font-weight: 700; letter-spacing: 0.04em; }
 [data-vibe='chat'] .lfb { align-items: flex-start; text-align: left; }
 [data-vibe='chat'] .lfb__poster, [data-vibe='chat'] .lfb__eq { display: none; }
 [data-vibe='chat'] .lfb h3 { font-weight: 800; font-size: clamp(20px, 2.6vw, 38px); letter-spacing: -0.02em; color: #fff; }
@@ -111,15 +111,15 @@
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head { flex-direction: column; align-items: center; gap: 0.5vh; padding: 0 0 0.8vh; margin: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head img, :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head i { width: 6vh; height: 6vh; box-shadow: none; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head div { align-items: center; }
-:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b { font-size: 1.6vh; font-weight: 600; color: #fff; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b { font-size: max(10.5px, 1.6vh); font-weight: 600; color: #fff; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b::after { content: ' ›'; color: rgba(255, 255, 255, 0.45); }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__head span { display: none; }
 /* the shared song: an attachment card, like a link preview in a thread */
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__shared { display: flex; align-items: center; gap: 1.6vh; align-self: center; width: min(100%, 38vh); padding: 1vh 1.6vh 1vh 1vh; margin-bottom: 1vh; border-radius: 2.2vh; background: #1c1c1f; }
 .chat__shared img, .chat__shared i { width: 5.4vh; height: 5.4vh; border-radius: 1.2vh; object-fit: cover; background: #333; flex: none; }
 .chat__shared div { display: flex; flex-direction: column; min-width: 0; }
-.chat__shared b { font-size: 1.6vh; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chat__shared span { font-size: 1.2vh; color: rgba(255, 255, 255, 0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat__shared b { font-size: max(10.5px, 1.6vh); font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat__shared span { font-size: max(10.5px, 1.2vh); color: rgba(255, 255, 255, 0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* bubbles: big, close-set text, soft grey and blue, with the little tail */
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub { max-width: 88%; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { padding: 1.3vh 2.4vh 1.5vh; border-radius: 3.4vh; font-size: min(2.9vw, 5.4vh); font-weight: 500; line-height: 1.16; letter-spacing: -0.025em; box-shadow: none; }
@@ -132,4 +132,9 @@
 /* the words are there, dim, and light up as they are sung (the bubble keeps its size) */
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__text span { opacity: 0.3; transition: opacity 0.2s; }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__text span.is-in { opacity: 1; }
-:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__read { font-size: 1.2vh; font-weight: 600; color: rgba(255, 255, 255, 0.5); }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__read { font-size: max(10.5px, 1.2vh); font-weight: 600; color: rgba(255, 255, 255, 0.5); }
+
+/* narrow window (mini player): the thread is too short for the shared-song card plus the live bubbles, which were squeezed out of view; the song is in the card below anyway */
+@media (max-width: 560px) {
+  :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__shared { display: none; }
+}
