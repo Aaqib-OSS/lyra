@@ -41,6 +41,20 @@ const lyricsFor = (id: string): unknown => {
   if (ly === 'stale') return { ...demoLyrics(id), stale: true }
   return demoLyrics(id)
 }
+// ?kv= simulates the karaoke search: found (default) | none | nokey; ?ksim=1 swaps YouTube for a fake 200 s video clock
+if (q.get('ksim')) (window as any).__karaokeSim = true
+const karaokeItems = (): { items: unknown[]; error?: string } => {
+  const kv = q.get('kv') ?? 'found'
+  if (kv === 'none') return { items: [] }
+  if (kv === 'nokey') return { items: [], error: 'Add a YouTube API key in Settings → Background first.' }
+  return {
+    items: [
+      { videoId: 'aaaaaaaaaaa', title: `${track.title} (Karaoke Version)`, channel: 'Sing King', durationSec: Math.round(track.durationMs / 1000) },
+      { videoId: 'bbbbbbbbbbb', title: `${track.title} (Karaoke With Lead Vocals)`, channel: 'Karafun Karaoke', durationSec: Math.round(track.durationMs / 1000) + 2, guide: true },
+      { videoId: 'ccccccccccc', title: `${track.title} (Instrumental)`, channel: 'Some Channel', durationSec: Math.round(track.durationMs / 1000) + 24 }
+    ]
+  }
+}
 const sub = () => () => {}
 const noop = async () => undefined
 const api: any = {
@@ -71,9 +85,9 @@ const api: any = {
       const youtube = vs === 'nokey' ? 'no-key' : vs === 'none' ? 'none' : vs === 'error' ? 'error' : 'off'
       return Promise.resolve({ ...base, youtube, youtubeMessage: 'HTTP 403', spec: { kind: 'living' } })
     },
-    pick: async () => ({ ok: false }), clear: noop, hasYoutubeKey: async () => false, setYoutubeKey: async () => ({ ok: true }), clearYoutubeKey: noop, youtubeCandidates: async () => ({ items: [] }), karaokeVideos: async () => ({ items: [] }), youtubeChoose: noop },
+    pick: async () => ({ ok: false }), clear: noop, hasYoutubeKey: async () => false, setYoutubeKey: async () => ({ ok: true }), clearYoutubeKey: noop, youtubeCandidates: async () => ({ items: [] }), karaokeVideos: async () => karaokeItems(), youtubeChoose: noop },
   update: { get: async () => ({ state: 'idle' }), check: noop, install: noop, onState: sub },
-  studio: {}, lan: { info: async () => ({ running: false, urls: [], qr: null }), onOffer: sub, answer: noop },
+  studio: { setMic: noop }, lan: { info: async () => ({ running: false, urls: [], qr: null }), onOffer: sub, answer: noop },
   app: { info: async () => ({ version: '0.17.1', platform: 'win32', envClientId: false }), diagnostics: async () => '', copy: async () => true, copyImage: async () => true, shareImage: async () => 'saved', failedShortcuts: async () => [], onCommand: sub }
 }
 ;(window as any).lyra = api

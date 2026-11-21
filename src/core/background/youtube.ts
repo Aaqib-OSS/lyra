@@ -22,6 +22,14 @@ interface Entry {
   list: YoutubeVideo[]
 }
 
+interface KaraokeEntry {
+  /** length of the song the search was made for (0 = unknown, e.g. a pre-fetch for the next song) */
+  durationMs: number
+  candidates: VideoCandidate[]
+  /** set only on a result that is not cached */
+  error?: string
+}
+
 export type YoutubeResult =
   | { state: 'found'; video: YoutubeVideo; list: YoutubeVideo[] }
   | { state: 'none'; list: YoutubeVideo[] }
@@ -40,7 +48,13 @@ function decodeEntities(t: string): string {
 }
 
 class YoutubeService {
-  private readonly karaokeCache = new Map<string, { at: number; items: YoutubeVideo[] }>()
+  /** raw karaoke search results per song, ranked on read (see karaoke()) */
+  private readonly karaokeCache = new PersistentCache<KaraokeEntry>({
+    name: 'karaoke-cache-v1.json',
+    version: 1,
+    maxEntries: 600,
+    ttl: (e) => (e.candidates.length ? 30 * 24 * 3600_000 : 3 * 24 * 3600_000)
+  })
   /** keyed by the SONG (artist|title), not the player's track id: the second play of a song costs no quota */
   private readonly cache = new PersistentCache<Entry>({
     name: 'youtube-cache-v3.json',
@@ -179,18 +193,41 @@ class YoutubeService {
   async karaoke(track: Track): Promise<{ items: YoutubeVideo[]; error?: string }> {
     const key = this.loadKey()
     if (!key) return { items: [], error: 'Add a YouTube API key in Settings → Background first.' }
-    const hit = this.karaokeCache.get(track.id)
-    if (hit && Date.now() - hit.at < 24 * 3600_000) return { items: hit.items }
-    if (Date.now() < this.cooldownUntil) return { items: [], error: 'YouTube quota is used up for now; trying again later.' }
     const artist = track.artists[0] ?? ''
-    const s = await this.call('search', { part: 'snippet', type: 'video', videoEmbeddable: 'true', maxResults: '10', q: `${track.title} ${artist} karaoke instrumental` }, key)
-    if (!s.ok) {
-      if (s.quota) this.cooldownUntil = Date.now() + QUOTA_COOLDOWN
-      return { items: [], error: s.message }
-    }
-    const found = (s.json.items ?? []) as Array<{ id?: { videoId?: string }; snippet?: { title?: string; channelTitle?: string } }>
+    // the persistent cache holds the RAW candidates (survives restarts, shared by the song's key), and they are ranked
+    // on every read: the real song length, a pre-fetch for the next song (length unknown) and later ranking
+    // improvements all apply without another search
+    const ckey = trackCacheKey(track)
+    const accept = (e: KaraokeEntry): boolean => sameLength(e.durationMs, track.durationMs) || e.durationMs === 0
+    const entry = this.karaokeCache.get(ckey, accept) ?? (await this.karaokeFetch(track, ckey, artist, key))
+    if (entry.error) return { items: [], error: entry.error }
+    return { items: this.rankKaraokeEntry(track, artist, entry) }
+  }
+
+  private rankKaraokeEntry(track: Track, artist: string, entry: KaraokeEntry): YoutubeVideo[] {
+    const ranked = rankKaraoke({ title: track.title, artist, durationMs: track.durationMs || entry.durationMs }, entry.candidates)
+    // acceptable ones first, then the rest by score (they appear in the "choose another" list)
+    return [...ranked.filter((r) => r.acceptable), ...ranked.filter((r) => !r.acceptable)].map((r) => ({ videoId: r.videoId, title: r.title, channel: r.channel, durationSec: r.durationSec, guide: r.guide }))
+  }
+
+  /** One search + details call per song; concurrent callers (screen + pre-fetch) share it. Errors are not cached. */
+  private karaokeFetch(track: Track, ckey: string, artist: string, key: string): Promise<KaraokeEntry> {
+    return this.karaokeCache.getOrFetch(ckey, async () => {
+      const fail = (error: string): { value: KaraokeEntry; cache: false } => ({ value: { durationMs: track.durationMs, candidates: [], error }, cache: false })
+      if (Date.now() < this.cooldownUntil) return fail('YouTube quota is used up for now; trying again later.')
+      const s = await this.call('search', { part: 'snippet', type: 'video', videoEmbeddable: 'true', maxResults: '12', q: `${track.title} ${artist} karaoke instrumental` }, key)
+      if (!s.ok) {
+        if (s.quota) this.cooldownUntil = Date.now() + QUOTA_COOLDOWN
+        return fail(s.message)
+      }
+      return { durationMs: track.durationMs, candidates: await this.karaokeCandidates(s.json, key) }
+    })
+  }
+
+  private async karaokeCandidates(json: { items?: unknown[] }, key: string): Promise<VideoCandidate[]> {
+    const found = (json.items ?? []) as Array<{ id?: { videoId?: string }; snippet?: { title?: string; channelTitle?: string } }>
     const ids = found.map((i) => i.id?.videoId).filter((x): x is string => !!x)
-    if (ids.length === 0) return { items: [] }
+    if (ids.length === 0) return []
     const d = await this.call('videos', { part: 'contentDetails,status', id: ids.join(',') }, key)
     const details = new Map<string, { sec: number | null; embeddable: boolean; hd: boolean | undefined }>()
     if (d.ok) {
@@ -198,17 +235,12 @@ class YoutubeService {
         details.set(v.id, { sec: parseIsoDuration(v.contentDetails?.duration), embeddable: !!v.status?.embeddable && v.status?.privacyStatus === 'public', hd: v.contentDetails?.definition ? v.contentDetails.definition === 'hd' : undefined })
       }
     }
-    const candidates: VideoCandidate[] = found.flatMap((i) => {
+    return found.flatMap((i) => {
       const id = i.id?.videoId
       if (!id) return []
       const info = details.get(id)
       return [{ videoId: id, title: decodeEntities(i.snippet?.title ?? ''), channel: decodeEntities(i.snippet?.channelTitle ?? ''), durationSec: info?.sec ?? null, embeddable: info ? info.embeddable : true, hd: info?.hd }]
     })
-    const ranked = rankKaraoke({ title: track.title, artist, durationMs: track.durationMs }, candidates)
-    // acceptable ones first, then the rest by score (they appear in the "choose another" list)
-    const items: YoutubeVideo[] = [...ranked.filter((r) => r.acceptable), ...ranked.filter((r) => !r.acceptable)].map((r) => ({ videoId: r.videoId, title: r.title, channel: r.channel, durationSec: r.durationSec }))
-    this.karaokeCache.set(track.id, { at: Date.now(), items })
-    return { items }
   }
 
   /** Candidates for the "wrong video?" picker (uses the cached search when there is one). */

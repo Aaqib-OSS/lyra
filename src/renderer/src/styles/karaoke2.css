@@ -1,0 +1,523 @@
+/*
+ * Karaoke screen (replaces karaoke.css). A full-screen stage that wears the active vibe: every colour comes from the
+ * vibe's own variables (--accent, --fg, --fg-2, --fg-3, --bg-0), with plain fallbacks. Only transform, opacity and
+ * clip-path animate; the per-word fill is a CSS custom property (--p) written by the stage at about 30 Hz.
+ */
+.k2 {
+  --k-accent: var(--accent, #ffd166);
+  --k-fg: var(--fg, #fff);
+  --k-dim: color-mix(in srgb, var(--k-fg) 34%, transparent);
+  --k-size: clamp(26px, 5.4vw, 60px);
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  color: var(--k-fg);
+  overflow: hidden;
+  background:
+    radial-gradient(90% 60% at 50% 0%, color-mix(in srgb, var(--k-accent) 20%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-0, #0b0b12) 92%, #000), color-mix(in srgb, var(--bg-0, #0b0b12) 70%, #000));
+}
+.k2-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 8px;
+}
+.k2-head b {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--k-accent);
+}
+.k2-head span {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: var(--fg-2, var(--k-fg));
+}
+/* the karaoke video supplies the music; YouTube's player must be on screen to play, so it is small and last */
+.k2-frame {
+  order: 99;
+  align-self: center;
+  flex: none;
+  width: 176px;
+  height: 99px;
+  margin: 0 0 10px;
+  border: 0;
+  border-radius: 10px;
+  opacity: 0.85;
+  background: #000;
+}
+.k2-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(100%, 680px);
+  align-self: center;
+}
+.k2-body h4 {
+  margin: 6px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3, var(--k-dim));
+}
+.k2-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-2, var(--k-fg));
+  opacity: 0.8;
+}
+.k2-hint--warn {
+  opacity: 1;
+  color: color-mix(in srgb, var(--k-accent) 75%, var(--k-fg));
+}
+.k2-keys {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--fg-3, var(--k-dim));
+}
+.k2-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.k2-ver {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 44px;
+  padding: 8px 12px;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--k-fg) 14%, transparent);
+  background: color-mix(in srgb, var(--k-fg) 5%, transparent);
+}
+.k2-ver.is-on {
+  border-color: var(--k-accent);
+  background: color-mix(in srgb, var(--k-accent) 16%, transparent);
+}
+.k2-ver.is-bad {
+  opacity: 0.45;
+}
+.k2-ver__t {
+  font-size: 14px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.k2-ver__m {
+  font-size: 12px;
+  color: var(--fg-3, var(--k-dim));
+}
+.k2-paste,
+.k2-nudge,
+.k2-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.k2-paste input {
+  flex: 1;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 12px;
+  color: inherit;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--k-fg) 18%, transparent);
+  background: color-mix(in srgb, var(--k-fg) 6%, transparent);
+}
+.k2-nudge span {
+  font-size: 13px;
+  color: var(--fg-2, var(--k-fg));
+}
+.k2-go {
+  min-height: 44px;
+  padding: 0 22px;
+}
+.k2-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--k-accent) 60%, transparent);
+  background: color-mix(in srgb, var(--k-accent) 8%, transparent);
+}
+.k2-fallback p {
+  margin: 0;
+}
+
+/* pre-roll */
+.k2-center {
+  flex: 1;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 6px;
+}
+.k2-center h1 {
+  margin: 0;
+  font-size: 120px;
+  line-height: 1;
+  color: var(--k-accent);
+  animation: k2-pop 0.9s ease-out;
+}
+.k2-center h2 {
+  margin: 0;
+}
+
+/* singing */
+.k2-sing {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 0 clamp(14px, 4vw, 48px) 12px;
+  cursor: pointer;
+}
+.k2-hud {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.k2-meter {
+  margin-left: auto;
+  width: 90px;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--k-fg) 14%, transparent);
+  overflow: hidden;
+}
+.k2-meter i {
+  display: block;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: var(--k-accent);
+}
+.grade {
+  animation: k2-pop 0.5s ease-out;
+}
+.grade--perfect {
+  color: #ffd166;
+}
+.grade--great {
+  color: #7cf29a;
+}
+.grade--ok {
+  color: #a9d7ff;
+}
+.grade--miss {
+  color: #ff8a8a;
+}
+
+.k2-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.k2-lines {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(8px, 2vh, 20px);
+}
+.k2-line {
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.k2-line--empty {
+  min-height: 1em;
+}
+.k2-line--past {
+  font-size: calc(var(--k-size) * 0.45);
+  opacity: 0.25;
+}
+.k2-line--next {
+  font-size: calc(var(--k-size) * 0.58);
+  color: var(--fg-2, var(--k-fg));
+  opacity: 0.6;
+}
+.k2-line--later {
+  font-size: calc(var(--k-size) * 0.48);
+  color: var(--fg-2, var(--k-fg));
+  opacity: 0.32;
+}
+/* the next line gets larger while the singer waits: before the first line and in instrumental breaks */
+.k2-line--up {
+  font-size: calc(var(--k-size) * 0.85);
+  color: var(--k-fg);
+  opacity: 0.92;
+}
+.k2-line--now {
+  font-size: var(--k-size);
+  padding: 4px 0;
+}
+.k2-w {
+  position: relative;
+  display: inline-block;
+  --p: 0;
+}
+.k2-w__t {
+  color: var(--k-dim);
+}
+.k2-w__f {
+  position: absolute;
+  inset: 0;
+  color: var(--k-accent);
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+  will-change: clip-path;
+  pointer-events: none;
+}
+
+/* count-in: a ring that fills over each beat around a big number */
+.k2-count {
+  --beat: 0;
+  position: absolute;
+  left: 50%;
+  top: 2%;
+  width: clamp(84px, 14vh, 128px);
+  aspect-ratio: 1;
+  translate: -50% 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: clamp(40px, 7vh, 64px);
+  font-weight: 900;
+  color: var(--k-accent);
+  background: conic-gradient(var(--k-accent) calc(var(--beat) * 360deg), color-mix(in srgb, var(--k-fg) 14%, transparent) 0);
+  opacity: 0;
+  scale: 0.8;
+  transition: opacity 0.2s ease, scale 0.2s ease;
+  pointer-events: none;
+}
+.k2-count::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg-0, #0b0b12) 90%, #000);
+}
+.k2-count span {
+  position: relative;
+  animation: k2-pop 0.9s ease-out;
+}
+.k2-count.is-on {
+  opacity: 1;
+  scale: 1;
+}
+.k2-break {
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  translate: -50% 0;
+  display: flex;
+  gap: 10px;
+  pointer-events: none;
+}
+.k2-break i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--k-accent);
+  animation: k2-breathe 1.2s ease-in-out infinite;
+}
+.k2-break i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.k2-break i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.k2-bar {
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--k-fg) 12%, transparent);
+}
+.k2-bar i {
+  display: block;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: var(--k-accent);
+}
+.k2-paused {
+  position: absolute;
+  inset: auto 0 96px;
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-2, var(--k-fg));
+  pointer-events: none;
+}
+.k2-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+}
+.k2-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 13px;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--k-fg) 18%, transparent);
+  background: color-mix(in srgb, var(--k-fg) 7%, transparent);
+}
+.k2-btn:hover,
+.k2-btn:focus-visible {
+  border-color: var(--k-accent);
+}
+.k2-btn--round {
+  width: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+.k2-offset {
+  font-size: 12px;
+  min-width: 3.2em;
+  text-align: center;
+  color: var(--fg-2, var(--k-fg));
+}
+
+/* results */
+.k2-results {
+  text-align: center;
+}
+.k2-results h2 {
+  margin: 0;
+  font-size: 30px;
+}
+.k2-results .k2-actions {
+  justify-content: center;
+}
+.k2-stars {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 40px;
+  color: color-mix(in srgb, var(--k-fg) 20%, transparent);
+}
+.k2-stars .is-on {
+  color: var(--k-accent);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--k-accent) 60%, transparent);
+}
+.k2-review {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 38vh;
+  overflow: auto;
+  padding-right: 4px;
+  text-align: left;
+}
+.review {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--k-fg) 7%, transparent);
+  font-size: 13px;
+}
+.review span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.review--perfect b {
+  color: #ffd166;
+}
+.review--great b {
+  color: #7cf29a;
+}
+.review--ok b {
+  color: #a9d7ff;
+}
+.review--miss b {
+  color: #ff8a8a;
+}
+
+@keyframes k2-pop {
+  from {
+    transform: scale(1.35);
+    opacity: 0.2;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes k2-breathe {
+  0%,
+  100% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .k2-frame {
+    width: 128px;
+    height: 72px;
+  }
+  .k2-keys {
+    display: none;
+  }
+}
+@media (max-height: 520px) {
+  /* hiding the frame would stop YouTube's player: keep it, just tiny */
+  .k2-frame {
+    width: 96px;
+    height: 54px;
+    margin-bottom: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .k2 *,
+  .k2 *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
