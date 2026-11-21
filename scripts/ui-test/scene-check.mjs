@@ -25,7 +25,7 @@ const STATES = {
   I: { name: 'Ad', q: 'vs=none&ad=1' }
 }
 // looks whose lyrics are meant to sit on top of the video window
-const OVER_VIDEO = new Set(['trailer'])
+const OVER_VIDEO = new Set(['trailer', 'dream', 'noir'])
 const KEYS = String(args.state ?? Object.keys(STATES).join(',')).split(',')
 const OUT = resolve('ui-test-out', 'scene')
 

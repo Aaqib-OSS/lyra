@@ -4,25 +4,6 @@ import { useEffectiveVibe } from '@/hooks/useVibe'
 
 const PALM = 'M50 300 C48 220 52 150 60 90 C40 100 18 96 0 80 C24 78 44 82 58 74 C52 52 36 40 14 36 C40 30 62 44 66 66 C74 46 92 34 112 34 C96 44 82 58 76 80 C96 84 116 82 140 70 C120 92 94 98 70 98 C62 150 58 220 62 300 Z'
 
-function Scoreboard() {
-  const track = usePlayer((x) => x.snapshot?.track ?? null)
-  const [t, setT] = useState(0)
-  useEffect(() => {
-    const id = setInterval(() => setT(getPosition()), 1000)
-    return () => clearInterval(id)
-  }, [])
-  const dur = track?.durationMs ?? 1
-  const mm = String(Math.floor(t / 60000)).padStart(2, '0')
-  const ss = String(Math.floor((t % 60000) / 1000)).padStart(2, '0')
-  return (
-    <div className="vibefx__score-bug">
-      <span className="live">LIVE</span>
-      <span className="clock">{mm}:{ss}</span>
-      <span className="teams">{track?.title ?? 'Lyra'}<em>vs</em>{track?.artists[0] ?? ''}</span>
-      <span className="half">{t < dur / 2 ? '1ST HALF' : '2ND HALF'}</span>
-    </div>
-  )
-}
 
 /** The framed window of a scene vibe (see styles/scene.css): a panel when there is no video, plus the vibe's own frame layers. */
 function SceneWindow({ children }: { children?: ReactNode }) {
@@ -382,6 +363,37 @@ function NoirFx() {
   )
 }
 
+/** Stadium, fullscreen: a night match. Floodlight beams sweep, the video is the jumbotron with an LED dot grid, a lamp row on its top. */
+function StadiumFx() {
+  return (
+    <div className="stadiumfx">
+      <i className="stadiumfx__beam stadiumfx__beam--a" />
+      <i className="stadiumfx__beam stadiumfx__beam--b" />
+      <div className="stadiumfx__turf" />
+      <div className="stadiumfx__lamps" />
+      <SceneWindow>
+        <div className="stadiumfx__led" />
+      </SceneWindow>
+      <div className="stadiumfx__bar" />
+    </div>
+  )
+}
+
+/** Cassette, fullscreen: a tape deck on a wooden shelf. Warm light, a small TV for the video, a length of tape running along the bottom. */
+function CassetteFx() {
+  return (
+    <div className="cassettefx">
+      <div className="cassettefx__wood" />
+      <div className="cassettefx__light" />
+      <SceneWindow>
+        <div className="cassettefx__glass" />
+        <div className="cassettefx__scan" />
+      </SceneWindow>
+      <div className="cassettefx__tape" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -461,23 +473,8 @@ export function VibeFx() {
           <div className="vibefx__xp" />
         </>
       )}
-      {vibe === 'stadium' && (
-        <>
-          <div className="vibefx__pitch" />
-          <div className="vibefx__flood vibefx__flood--l" />
-          <div className="vibefx__flood vibefx__flood--r" />
-          <Scoreboard />
-        </>
-      )}
-      {vibe === 'cassette' && (
-        <svg className="vibefx__tape" viewBox="0 0 320 200" aria-hidden="true">
-          <rect x="4" y="4" width="312" height="192" rx="18" />
-          <rect x="40" y="26" width="240" height="64" rx="8" className="lbl" />
-          <text x="160" y="66" textAnchor="middle">SIDE A</text>
-          <g className="reels"><circle cx="100" cy="132" r="26" className="reel" /><circle cx="220" cy="132" r="26" className="reel" /><path d="M100 112v40M80 132h40M220 112v40M200 132h40" /></g>
-          <rect x="120" y="164" width="80" height="22" rx="4" className="win" />
-        </svg>
-      )}
+      {vibe === 'stadium' && <StadiumFx />}
+      {vibe === 'cassette' && <CassetteFx />}
       {vibe === 'trailer' && (
         <>
           <div className="vibefx__bar vibefx__bar--t" />

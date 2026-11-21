@@ -108,7 +108,7 @@
 [data-vibe='film'] .sign--intertitle .sign__refl { display: none; }
 :root[data-motion='off'] [data-vibe='film'] .sign--intertitle .sign__line { animation: none; }
 /* the title-card frames are shorter than the whole lyrics area: keep them as tall as the video frame */
-:root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics { height: var(--sc-wh); }
+@media (min-aspect-ratio: 1/1) { :root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics { height: var(--sc-wh); } }
 
 /* ---------------- other lyric states (same regions) ---------------- */
 :root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { height: auto; top: calc(var(--sc-wt) + 2vh); bottom: 8vh; }
