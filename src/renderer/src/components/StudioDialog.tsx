@@ -6,6 +6,7 @@ import { decodeAudio, exportFromFile } from '@/lib/studio/fileExport'
 import { exportSmooth } from '@/lib/studio/twoPhase'
 import { dimensions, exportVideo, type ExportOptions, type Fps, type FontChoice, type Highlight, type LayoutStyle, type Look, type Quality, type Ratio, type TextPosition, type MotionStyle } from '@/lib/studio/recorder'
 import { autoChorus } from '@/lib/studio/sections'
+import { PRESETS, clampToCapability, presetOf, recommendPreset, type DeviceCaps, type SpeedPreset } from '@/lib/studio/encodePolicy'
 import { StageSource } from '@/lib/studio/stage'
 import { useLyrics } from '@/store/lyrics'
 import { usePlayer } from '@/store/player'
@@ -28,6 +29,13 @@ const QUALITIES: Array<{ v: Quality; label: string }> = [
 type Phase = { name: 'setup' } | { name: 'running'; stage: string; seconds: number; total: number } | { name: 'done'; path: string; droppedPct?: number; fps?: number; sourceQuality?: string; askedFps?: number; coverPath?: string | null } | { name: 'error'; message: string }
 type Preset = 'chorus' | 'whole' | 'first30' | 'custom'
 type Source = 'live' | 'file'
+
+const deviceCaps = (): DeviceCaps => ({ cores: navigator.hardwareConcurrency ?? 4, memoryGb: (navigator as Navigator & { deviceMemory?: number }).deviceMemory })
+/** the last preset the user picked, else the one that suits this PC (never above Balanced on its own) */
+const startPreset = (): SpeedPreset => {
+  const saved = localStorage.getItem('lyra.studio.preset')
+  return saved === 'fast' || saved === 'balanced' || saved === 'high' ? saved : recommendPreset(deviceCaps())
+}
 
 const fmt = (s: number): string => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 const tag = (s: string): string => s.replace(/[^\p{L}\p{N}]+/gu, '').slice(0, 24)
@@ -54,9 +62,10 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
   const [source, setSource] = useState<Source>('live')
   const [own, setOwn] = useState<OwnSong>({ audio: null, audioName: '', durationMs: 0, lrc: null, lrcName: '', coverUrl: null, title: '', artist: '' })
   const [ratio, setRatio] = useState<Ratio>('9:16')
-  const [quality, setQuality] = useState<Quality>('1080p')
+  const [quality, setQuality] = useState<Quality>(() => PRESETS[startPreset()].quality)
   // a PC that dropped frames last time starts at 30 fps
-  const [fps, setFps] = useState<Fps>(() => (localStorage.getItem('lyra.studio.slowPc') ? 30 : 60))
+  const [fps, setFps] = useState<Fps>(() => (localStorage.getItem('lyra.studio.slowPc') ? 30 : PRESETS[startPreset()].fps))
+  const caps = useMemo(deviceCaps, [])
   const [look, setLook] = useState<Look>({ style: 'scroll', font: 'sans', highlight: 'white', position: 'middle', romanize: useSettings.getState().settings.romanizeLyrics })
   const [motionStyle, setMotionStyle] = useState<MotionStyle>('gradient')
   const [filmGrain, setFilmGrain] = useState(false)
@@ -159,10 +168,12 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
     }
   }
 
-  const { w, h } = dimensions(ratio, quality)
+  // what this PC is asked to do: the choice, lowered if the machine could not keep it smooth
+  const eff = clampToCapability(quality, fps, caps, source === 'live' && method === 'instant')
+  const { w, h } = dimensions(ratio, eff.quality)
   const partMs = Math.max(0, range.endMs - range.startMs)
   const autoUsable = source === 'live' && (spec?.kind === 'preview' || spec?.kind === 'media' || spec?.kind === 'youtube')
-  const approxMb = Math.round(((quality === '720p' ? 5 : quality === '1080p' ? 9 : 16) * (fps === 60 ? 1.4 : 1) * (partMs / 1000 + 3)) / 8)
+  const approxMb = Math.round(((eff.quality === '720p' ? 5 : eff.quality === '1080p' ? 9 : 16) * (eff.fps === 60 ? 1.4 : 1) * (partMs / 1000 + 3)) / 8)
   const media: { url: string; kind: 'video' | 'image' } | null =
     bg === 'file' && file
       ? { url: file.url, kind: file.kind }
@@ -185,8 +196,8 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
           motionStyle: bg === 'motion' ? motionStyle : undefined,
           filmGrain: bg === 'motion' && filmGrain,
           ratio,
-          quality,
-          fps,
+          quality: eff.quality,
+          fps: eff.fps,
           startMs: range.startMs,
           endMs: range.endMs,
           showSong,
@@ -197,7 +208,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
         }
         const r = await (method === 'smooth' ? exportSmooth(opts, onProgress, ctl.signal) : exportVideo(opts, onProgress, ctl.signal))
         if (r.droppedPct >= 8) localStorage.setItem('lyra.studio.slowPc', '1')
-        setPhase({ name: 'done', path: r.path, droppedPct: r.droppedPct, fps: r.fps, sourceQuality: r.sourceQuality, askedFps: fps, coverPath: r.coverPath })
+        setPhase({ name: 'done', path: r.path, droppedPct: r.droppedPct, fps: r.fps, sourceQuality: r.sourceQuality, askedFps: eff.fps, coverPath: r.coverPath })
       } else {
         const r = await exportFromFile(
           {
@@ -207,8 +218,8 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
             lines: ownLines,
             coverUrl: own.coverUrl,
             ratio,
-            quality,
-            fps,
+            quality: eff.quality,
+            fps: eff.fps,
             look,
             motionStyle: bg === 'motion' ? motionStyle : undefined,
             filmGrain: bg === 'motion' && filmGrain,
@@ -345,6 +356,17 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                 </div>
 
                 <div className="studio__group">
+                  <span>Speed</span>
+                  {seg<string>('Speed', presetOf(quality, fps), (Object.keys(PRESETS) as SpeedPreset[]).map((k) => ({ v: k, label: PRESETS[k].label })), (k) => {
+                    const p = PRESETS[k as SpeedPreset]
+                    setQuality(p.quality)
+                    setFps(p.fps)
+                    localStorage.setItem('lyra.studio.preset', k)
+                  })}
+                  <small>
+                    {presetOf(quality, fps) === 'custom' ? 'Custom mix of quality and smoothness.' : PRESETS[presetOf(quality, fps) as SpeedPreset].hint}
+                    {eff.changed ? ` This PC is capped at ${eff.quality} · ${eff.fps} fps${method === 'instant' && source === 'live' ? ' for live drawing (the Smooth method can go higher)' : ''}.` : ''}
+                  </small>
                   <span>Quality</span>
                   {seg<Quality>('Quality', quality, QUALITIES, setQuality)}
                   {source === 'live' && (
@@ -357,7 +379,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                   <span>Smoothness</span>
                   {seg<string>('Smoothness', String(fps), [{ v: '60', label: '60 fps · smooth' }, { v: '30', label: '30 fps · smaller file' }], (v) => setFps(v === '30' ? 30 : 60))}
                   <small>
-                    {w}×{h} · {fps} fps · about {approxMb} MB
+                    {w}×{h} · {eff.fps} fps · about {approxMb} MB
                   </small>
                 </div>
 

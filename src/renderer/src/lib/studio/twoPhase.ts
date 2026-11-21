@@ -5,8 +5,11 @@ import logoUrl from '@/assets/logo.png'
 import { useBgState } from '@/store/bgState'
 import { useLyrics } from '@/store/lyrics'
 import { getPosition, usePlayer } from '@/store/player'
-import { loudnessGainOf, seekVideo } from './fileExport'
-import { dimensions, encoderConfig, loadImage, loadVideo, lookInputs, offsetNow, pickEncoder, softCeiling, type ExportOptions, type Fps, type Progress } from './recorder'
+import { seekVideo } from './fileExport'
+import { loudnessGainFromEnergies } from './loudness'
+import { PcmStore } from './pcmStore'
+import { isKeyFrame, maxQueueFor, throttleProgress, waitForRoom, type ChunkWriter } from './encodePolicy'
+import { closeEncoder, dimensions, encoderConfig, loadImage, loadVideo, lookInputs, offsetNow, openWriter, pickEncoder, releaseMedia, softCeiling, type ExportOptions, type Fps, type Progress } from './recorder'
 import { createScene } from './scene'
 import { detectBars } from './stage'
 
@@ -56,6 +59,12 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
   signal.addEventListener('abort', abort)
   let capture: MediaStream | null = null
   const bitmaps = new Map<number, Promise<ImageBitmap | null>>()
+  const store = new PcmStore()
+  let writerRef: ChunkWriter | null = null
+  let vencRef: VideoEncoder | null = null
+  let aencRef: AudioEncoder | null = null
+  let mediaRef: HTMLVideoElement | HTMLImageElement | null = null
+  let canvasRef: HTMLCanvasElement | null = null
   try {
     // ---------- pictures and video first
     const art = await loadImage(track.artworkUrl)
@@ -64,6 +73,7 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     if (opts.mediaUrl && opts.mediaKind === 'video') media = await loadVideo(opts.mediaUrl)
     else if (opts.mediaUrl && opts.mediaKind === 'image') media = await loadImage(opts.mediaUrl)
     else if (opts.clipUrl) media = await loadVideo(opts.clipUrl)
+    mediaRef = media
     const mediaVideo = media instanceof HTMLVideoElement ? media : null
     mediaVideo?.pause()
 
@@ -77,19 +87,12 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     }
 
     // ---------- step 1: record (sound, song position, background pictures)
-    const left: Float32Array[] = []
-    const right: Float32Array[] = []
-    let stored = 0 // sound frames kept so far
+    let stored = 0 // sound frames kept so far (also store.frames)
     let sampleRate = 48000
     let recording = false
     let t0 = 0
     let audioTrack: MediaStreamTrack | undefined
     let reader: ReadableStreamDefaultReader<AudioData> | null = null
-    const keep = (l: Float32Array, r: Float32Array): void => {
-      left.push(l)
-      right.push(r)
-      stored += l.length
-    }
 
     const helper = await window.lyra.studio.audioStart()
     let offAudio: (() => void) | null = null
@@ -100,18 +103,10 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
         if (frames === 0) return
         const i16 = new Int16Array(pcm.buffer, pcm.byteOffset, frames * 2)
         // the capture sends nothing while Spotify is silent: fill those gaps with silence so sound and picture stay in step
-        const gap = Math.round(((performance.now() - t0) / 1000) * 48000) - (stored + frames)
-        for (let rest = gap; rest > 2400; rest -= 24000) {
-          const n = Math.min(24000, rest)
-          keep(new Float32Array(n), new Float32Array(n))
-        }
-        const l = new Float32Array(frames)
-        const r = new Float32Array(frames)
-        for (let i = 0; i < frames; i++) {
-          l[i] = i16[i * 2]! / 32768
-          r[i] = i16[i * 2 + 1]! / 32768
-        }
-        keep(l, r)
+        const gap = Math.round(((performance.now() - t0) / 1000) * 48000) - (store.frames + frames)
+        for (let rest = gap; rest > 2400; rest -= 24000) store.appendSilence(Math.min(24000, rest))
+        store.appendInterleaved(i16) // copied into 16-bit pages: no float conversion, no per-chunk allocations
+        stored = store.frames
       })
     } else {
       // the whole PC's sound as a second choice
@@ -138,7 +133,8 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
           const r = new Float32Array(n)
           if (value.numberOfChannels > 1) value.copyTo(r, { planeIndex: 1, format: 'f32-planar' })
           else r.set(l)
-          keep(l, r)
+          store.appendFloat(l, value.numberOfChannels > 1 ? r : null)
+          stored = store.frames
         }
         value.close()
       }
@@ -147,7 +143,8 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     // restart the song at the start of the part
     await usePlayer.getState().command({ type: 'seek', positionMs: startMs })
     if (!usePlayer.getState().snapshot?.isPlaying) await usePlayer.getState().command({ type: 'play' })
-    for (let i = 0; i < 40 && Math.abs(getPosition() - startMs) > 1500; i++) await new Promise((r) => setTimeout(r, 150))
+    for (let i = 0; i < 40 && !aborted && Math.abs(getPosition() - startMs) > 1500; i++) await new Promise((r) => setTimeout(r, 150))
+    if (aborted) throw new Error('cancelled')
     if (Math.abs(getPosition() - startMs) > 3000) throw new Error('Could not jump to the start of the part. Press play and try again.')
 
     const framesOnDisk = opts.youtube ? await window.lyra.studio.frameCaptureStart() : false
@@ -213,16 +210,8 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     void window.lyra.studio.stageStop()
     if (aborted) throw new Error('cancelled')
 
-    // ---------- the recorded sound as two long arrays
+    // ---------- the recorded sound stays in its 16-bit pages (about 46 MB for 4 minutes instead of ~184 MB at the peak)
     if (stored < sampleRate) throw new Error('No sound was recorded. Make sure the song is playing out loud on this PC.')
-    const L = new Float32Array(stored)
-    const R = new Float32Array(stored)
-    for (let off = 0, i = 0; i < left.length; off += left[i]!.length, i++) {
-      L.set(left[i]!, off)
-      R.set(right[i]!, off)
-    }
-    left.length = 0
-    right.length = 0
     const audioSecs = stored / sampleRate
     const frames = Math.round(audioSecs * FPS)
 
@@ -253,11 +242,14 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     const canvas = document.createElement('canvas')
     canvas.width = w
     canvas.height = h
+    canvasRef = canvas
     const ctx = canvas.getContext('2d', { alpha: false })!
 
     const vcfg = await pickEncoder(encoderConfig(w, h, opts.quality, FPS))
+    const writer = openWriter(file.id)
+    writerRef = writer
     const muxer = new Muxer({
-      target: new StreamTarget({ onData: (chunk: Uint8Array, position: number) => void window.lyra.studio.write(file.id, position, chunk.slice()) }),
+      target: new StreamTarget({ onData: (chunk: Uint8Array, position: number) => writer.write(chunk, position) }),
       video: { codec: 'avc', width: w, height: h, frameRate: FPS },
       audio: { codec: 'aac', numberOfChannels: 2, sampleRate },
       fastStart: false,
@@ -265,29 +257,38 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     })
     let encError: Error | null = null
     const venc = new VideoEncoder({ output: (c, m) => muxer.addVideoChunk(c, m), error: (e) => (encError = e) })
+    vencRef = venc
     venc.configure(vcfg)
     const aenc = new AudioEncoder({ output: (c, m) => muxer.addAudioChunk(c, m), error: (e) => (encError = e) })
+    aencRef = aenc
     aenc.configure({ codec: 'mp4a.40.2', sampleRate, numberOfChannels: 2, bitrate: 192_000 })
 
     // the sound: exact, with a short fade at both ends, brought to about -14 LUFS with a soft ceiling
-    const gain = loudnessGainOf([L, R], 0, stored)
+    const gain = loudnessGainFromEnergies(store.blockEnergies())
     const block = 4800
     const fadeIn = Math.round(sampleRate * 0.08)
     const fadeOut = Math.round(sampleRate * 0.3)
-    for (let s = 0; s < stored && !aborted && !encError; s += block) {
+    const bl = new Float32Array(block)
+    const br = new Float32Array(block)
+    for (let s = 0; s < stored && !aborted && !encError && !writer.error; s += block) {
       const n = Math.min(block, stored - s)
+      store.read(s, n, bl, br)
       const data = new Float32Array(n * 2)
       for (let i = 0; i < n; i++) {
         const idx = s + i
         const g = Math.max(0, Math.min(1, idx / fadeIn, (stored - idx) / fadeOut))
-        data[i] = softCeiling(L[idx]! * gain) * g
-        data[n + i] = softCeiling(R[idx]! * gain) * g
+        data[i] = softCeiling(bl[i]! * gain) * g
+        data[n + i] = softCeiling(br[i]! * gain) * g
       }
       const ad = new AudioData({ format: 'f32-planar', sampleRate, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round((s / sampleRate) * 1e6), data })
-      aenc.encode(ad)
-      ad.close()
-      while (aenc.encodeQueueSize > 30) await new Promise((r) => setTimeout(r, 4))
+      try {
+        aenc.encode(ad)
+      } finally {
+        ad.close()
+      }
+      await waitForRoom(aenc, 30, () => aborted || !!encError)
     }
+    store.clear() // the sound is in the encoder now
 
     // pictures
     const posAt = (t: number): number => {
@@ -315,12 +316,14 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
       }
       return p
     }
+    const queueMax = Math.min(8, maxQueueFor(w, h))
     let pic = -1 // the background picture index on screen now
     let barsChecked = false
     let cover: Promise<Blob | null> | null = null
     const coverAt = Math.round(frames * 0.33)
 
-    for (let f = 0; f < frames && !aborted && !encError; f++) {
+    const progress = throttleProgress(onProgress, 250)
+    for (let f = 0; f < frames && !aborted && !encError && !writer.error; f++) {
       const t = f / FPS
       if (offStage && frameTimes && frameTimes.length) {
         // the newest picture that had arrived by now
@@ -352,11 +355,14 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
       scene.draw(ctx, posAt(t) + offsetNow(), t)
       if (f === coverAt && !cover) cover = new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', 0.93))
       const vf = new VideoFrame(canvas, { timestamp: Math.round(t * 1e6) })
-      venc.encode(vf, { keyFrame: f % (FPS * 2) === 0 })
-      vf.close()
-      while (venc.encodeQueueSize > 8) await new Promise((r) => setTimeout(r, 4))
+      try {
+        venc.encode(vf, { keyFrame: isKeyFrame(f, FPS) })
+      } finally {
+        vf.close()
+      }
+      await waitForRoom(venc, queueMax, () => aborted || !!encError)
       if (f % 15 === 0) {
-        onProgress({ stage: 'rendering', seconds: t, total: audioSecs })
+        progress.push({ stage: 'rendering', seconds: t, total: audioSecs })
         await new Promise((r) => setTimeout(r, 0)) // let the window breathe
       }
     }
@@ -365,16 +371,24 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
       for (let i = 0; i < n; i++) {
         scene.endCard(ctx, (i + 1) / n, audioSecs + i / FPS)
         const vf = new VideoFrame(canvas, { timestamp: Math.round((audioSecs + i / FPS) * 1e6) })
-        venc.encode(vf, { keyFrame: i === 0 })
-        vf.close()
-        while (venc.encodeQueueSize > 8) await new Promise((r) => setTimeout(r, 4))
+        try {
+          venc.encode(vf, { keyFrame: i === 0 })
+        } finally {
+          vf.close()
+        }
+        await waitForRoom(venc, queueMax, () => aborted || !!encError)
       }
     }
     onProgress({ stage: 'finishing', seconds: audioSecs, total: audioSecs })
     if (encError) throw encError as Error
-    await venc.flush()
-    await aenc.flush()
-    muxer.finalize()
+    if (writer.error) throw writer.error
+    if (!aborted) {
+      await venc.flush()
+      await aenc.flush()
+      if (encError) throw encError as Error
+      muxer.finalize()
+      await writer.close()
+    } else await writer.abandon()
     await window.lyra.studio.close(file.id)
     if (aborted) {
       await window.lyra.studio.discard(file.path)
@@ -387,10 +401,17 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     }
     return { path: file.path, seconds: audioSecs, droppedPct: 0, fps: FPS, sourceQuality, coverPath }
   } catch (e) {
+    await writerRef?.abandon()
     await window.lyra.studio.close(file.id).catch(() => undefined)
-    if ((e as Error).message === 'cancelled') await window.lyra.studio.discard(file.path).catch(() => undefined)
+    // a half-written file has no index at its end and can not be played: never leave one behind
+    await window.lyra.studio.discard(file.path).catch(() => undefined)
     throw e
   } finally {
+    closeEncoder(vencRef)
+    closeEncoder(aencRef)
+    releaseMedia(mediaRef)
+    store.clear()
+    if (canvasRef) canvasRef.width = canvasRef.height = 0
     signal.removeEventListener('abort', abort)
     capture?.getTracks().forEach((t) => t.stop())
     void window.lyra.studio.audioStop()

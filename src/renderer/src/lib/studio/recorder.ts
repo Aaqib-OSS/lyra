@@ -1,4 +1,5 @@
 import { Muxer, StreamTarget } from 'mp4-muxer'
+import { AdaptiveLoad, ChunkWriter, droppedPercent, isKeyFrame, maxQueueFor, planTick, throttleProgress, waitForRoom, type Fps, type Quality } from './encodePolicy'
 import type { LyricLine, Track } from '@shared/types'
 import { estimateWords } from '@shared/wordTiming'
 import { getPosition, usePlayer } from '@/store/player'
@@ -11,7 +12,7 @@ import { createScene } from './scene'
 import { StageSource } from './stage'
 
 export type Ratio = '9:16' | '4:5' | '1:1' | '16:9'
-export type Quality = '720p' | '1080p' | '1440p'
+export type { Quality, Fps } from './encodePolicy'
 export type LayoutStyle = 'scroll' | 'focus' | 'subtitle'
 export type FontChoice = 'sans' | 'serif' | 'rounded' | 'mono'
 export type Highlight = 'white' | 'accent' | 'gold'
@@ -70,7 +71,6 @@ export interface Progress {
 
 const RATIOS: Record<Ratio, [number, number]> = { '9:16': [9, 16], '4:5': [4, 5], '1:1': [1, 1], '16:9': [16, 9] }
 const SHORT_SIDE: Record<Quality, number> = { '720p': 720, '1080p': 1080, '1440p': 1440 }
-export type Fps = 30 | 60
 const BITRATE: Record<Quality, number> = { '720p': 5_000_000, '1080p': 9_000_000, '1440p': 16_000_000 }
 /** 60 fps needs about 40% more bits than 30 for the same sharpness */
 export const bitrateFor = (q: Quality, fps: Fps): number => Math.round(BITRATE[q] * (fps === 60 ? 1.4 : 1))
@@ -114,6 +114,32 @@ export function loadVideo(src: string): Promise<HTMLVideoElement | null> {
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms))
 
+/** A writer that sends the muxer's output to the file in big, ordered pieces (see ChunkWriter). */
+export function openWriter(fileId: number): ChunkWriter {
+  return new ChunkWriter((position, data) => window.lyra.studio.write(fileId, position, data))
+}
+
+/** Gives back what a video or picture element holds (the decoder, the decoded frames) as soon as the export is over. */
+export function releaseMedia(m: HTMLVideoElement | HTMLImageElement | null): void {
+  if (!m) return
+  if (m instanceof HTMLVideoElement) {
+    m.pause()
+    m.removeAttribute('src')
+    m.load()
+  } else {
+    m.removeAttribute('src')
+  }
+}
+
+/** Closes an encoder that is still open (a closed or never-configured one is left alone). */
+export function closeEncoder(e: { state: string; close(): void } | null): void {
+  try {
+    if (e && e.state !== 'closed') e.close()
+  } catch {
+    /* already gone */
+  }
+}
+
 /**
  * Records the song as it plays: restarts it from the beginning, captures the PC's sound (loopback) and paints a
  * lyric video frame by frame, then writes an MP4 straight to the chosen file. Real time: a 4-minute song takes
@@ -147,6 +173,11 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     aborted = true
   }
   signal.addEventListener('abort', abort)
+  let writerRef: ChunkWriter | null = null
+  let vencRef: VideoEncoder | null = null
+  let aencRef: AudioEncoder | null = null
+  let mediaRef: HTMLVideoElement | HTMLImageElement | null = null
+  let canvasRef: HTMLCanvasElement | null = null
   try {
     // pictures and video first, so the first frame already has them
     const art = await loadImage(track.artworkUrl)
@@ -155,6 +186,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     if (opts.mediaUrl && opts.mediaKind === 'video') media = await loadVideo(opts.mediaUrl)
     else if (opts.mediaUrl && opts.mediaKind === 'image') media = await loadImage(opts.mediaUrl)
     else if (opts.clipUrl) media = await loadVideo(opts.clipUrl)
+    mediaRef = media
     // a YouTube background plays in a hidden window; its frames arrive here
     let stage: StageSource | null = null
     let sourceQuality = ''
@@ -192,6 +224,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     const canvas = document.createElement('canvas')
     canvas.width = w
     canvas.height = h
+    canvasRef = canvas
     const ctx = canvas.getContext('2d', { alpha: false })!
 
     // warm-up: draw a few frames before the clock starts (the first ones are slow while the browser compiles code and
@@ -233,8 +266,10 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     }
 
     // output file (streamed to disk in pieces: a long video never sits in memory)
+    const writer = openWriter(file.id)
+    writerRef = writer
     const muxer = new Muxer({
-      target: new StreamTarget({ onData: (chunk: Uint8Array, position: number) => void window.lyra.studio.write(file.id, position, chunk.slice()) }),
+      target: new StreamTarget({ onData: (chunk: Uint8Array, position: number) => writer.write(chunk, position) }),
       video: { codec: 'avc', width: w, height: h, frameRate: FPS },
       audio: { codec: 'aac', numberOfChannels: channels, sampleRate },
       fastStart: false,
@@ -242,8 +277,10 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     })
     let encError: Error | null = null
     const venc = new VideoEncoder({ output: (c, m) => muxer.addVideoChunk(c, m), error: (e) => (encError = e) })
+    vencRef = venc
     venc.configure(vcfg)
     const aenc = new AudioEncoder({ output: (c, m) => muxer.addAudioChunk(c, m), error: (e) => (encError = e) })
+    aencRef = aenc
     aenc.configure({ codec: 'mp4a.40.2', sampleRate, numberOfChannels: channels, bitrate: channels === 1 ? 128_000 : 192_000 })
 
     // audio pump: sound that arrives before recording starts is thrown away
@@ -309,7 +346,8 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     // restart the song from the top and wait until it really is at the start
     await usePlayer.getState().command({ type: 'seek', positionMs: startMs })
     if (!usePlayer.getState().snapshot?.isPlaying) await usePlayer.getState().command({ type: 'play' })
-    for (let i = 0; i < 40 && Math.abs(getPosition() - startMs) > 1500; i++) await sleep(150)
+    for (let i = 0; i < 40 && !aborted && Math.abs(getPosition() - startMs) > 1500; i++) await sleep(150)
+    if (aborted) throw new Error('cancelled')
     if (Math.abs(getPosition() - startMs) > 3000) throw new Error('Could not jump to the start of the part. Press play and try again.')
 
     // video frames at a constant rate. Frame number n is stamped n / FPS exactly; if the PC is late, the previous
@@ -318,7 +356,6 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     recording = true
     let nextIndex = 0 // the next frame number to write
     let fresh = 0 // frames drawn new (the rest are repeats)
-    let lastReport = 0
     let lastSync = 0
     const startPos = getPosition()
     const trackId = track.id
@@ -327,9 +364,16 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     let cover: Promise<Blob | null> | null = null
     const emit = (index: number, key: boolean): void => {
       const frame = new VideoFrame(canvas, { timestamp: Math.round(index * frameMs * 1000) })
-      venc.encode(frame, { keyFrame: key })
-      frame.close()
+      try {
+        venc.encode(frame, { keyFrame: key })
+      } finally {
+        frame.close()
+      }
     }
+    // frames waiting in the encoder are capped by a memory budget (1440p holds ~8), not a fixed 40
+    const maxQueue = maxQueueFor(w, h)
+    const adaptive = new AdaptiveLoad(frameMs)
+    const progress = throttleProgress(onProgress, 500)
     let stopClock = (): void => undefined
     let done = false
     await new Promise<void>((resolve) => {
@@ -339,7 +383,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
         const secs = nowMs / 1000
         const snap = usePlayer.getState().snapshot
         const pos = getPosition()
-        const over = aborted || encError || secs >= total || snap?.track?.id !== trackId || pos >= endMs || (secs > 3 && pos < startPos - 2000 && startMs === 0) || (secs > 3 && pos < startMs - 2000)
+        const over = aborted || encError || writer.error || secs >= total || snap?.track?.id !== trackId || pos >= endMs || (secs > 3 && pos < startPos - 2000 && startMs === 0) || (secs > 3 && pos < startMs - 2000)
         if (snap && !snap.isPlaying) stalled += 1
         else stalled = 0
         if (over || stalled > 400) {
@@ -347,20 +391,24 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
           return resolve()
         }
         const target = Math.floor((nowMs + 4) / frameMs) // the frame that belongs on screen now (a few ms early is fine)
-        if (nextIndex <= target && venc.encodeQueueSize < 40) {
+        const plan = planTick({ target, nextIndex, queueSize: venc.encodeQueueSize, maxQueue, maxRepeat: FPS * 10, drawEvery: adaptive.drawEvery })
+        if (plan.kind !== 'wait') {
           try {
-            // frames we are late for: repeat the last picture (cheap), at most ten seconds' worth in one go
-            const gap = Math.min(target - nextIndex, FPS * 10)
-            for (let k = 0; k < gap; k++) {
-              emit(nextIndex, nextIndex % (FPS * 2) === 0)
-              nextIndex++
+            if (plan.kind === 'repeat') {
+              // the PC is struggling: skip drawing this one and show the previous picture again (cheap)
+              for (let k = 0; k < plan.count; k++) emit(nextIndex + k, isKeyFrame(nextIndex + k, FPS))
+              nextIndex = target + 1
+            } else {
+              // frames we are late for: repeat the last picture (cheap), at most ten seconds' worth in one go
+              for (let k = 0; k < plan.repeats; k++) emit(nextIndex + k, isKeyFrame(nextIndex + k, FPS))
+              const d0 = performance.now()
+              scene.draw(ctx, pos + offsetNow(), (target * frameMs) / 1000)
+              adaptive.record(performance.now() - d0)
+              if (!cover && secs > Math.min(total * 0.33, 25) && secs > 4) cover = new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', 0.93))
+              emit(target, isKeyFrame(target, FPS))
+              nextIndex = target + 1
+              fresh++
             }
-            nextIndex = target
-            scene.draw(ctx, pos + offsetNow(), (target * frameMs) / 1000)
-            if (!cover && secs > Math.min(total * 0.33, 25) && secs > 4) cover = new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', 0.93))
-            emit(target, target % (FPS * 2) === 0)
-            nextIndex = target + 1
-            fresh++
           } catch (e) {
             encError = e as Error
             done = true
@@ -370,10 +418,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
             lastSync = nowMs
             void window.lyra.studio.stageSync(pos / 1000)
           }
-          if (nowMs - lastReport > 500) {
-            lastReport = nowMs
-            onProgress({ stage: 'recording', seconds: secs, total })
-          }
+          progress.push({ stage: 'recording', seconds: secs, total })
         }
       }
       // paced by a worker's clock: it keeps ticking when the window is covered or minimized, unlike animation frames
@@ -393,7 +438,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
       for (let i = 0; i < n; i++) {
         scene.endCard(ctx, (i + 1) / n, (nextIndex * frameMs) / 1000 + i / FPS)
         emit(nextIndex + i, i === 0)
-        while (venc.encodeQueueSize > 8) await sleep(8)
+        await waitForRoom(venc, 8, () => aborted || !!encError)
       }
     }
     offAudio?.()
@@ -406,9 +451,14 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     }
     await pump.catch(() => undefined)
     if (encError) throw encError as Error
-    await venc.flush()
-    await aenc.flush()
-    muxer.finalize()
+    if (writer.error) throw writer.error
+    if (!aborted) {
+      await venc.flush()
+      await aenc.flush()
+      if (encError) throw encError as Error
+      muxer.finalize()
+      await writer.close() // every byte is on its way to the file, and a failed write is reported here
+    } else await writer.abandon()
     const seconds = (performance.now() - t0) / 1000
     await window.lyra.studio.close(file.id)
     let coverPath: string | null = null
@@ -422,12 +472,19 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     }
     // how many of the frames were drawn new; the rest are repeats of the previous picture (the PC was too busy)
     const expected = Math.max(1, nextIndex)
-    return { path: file.path, seconds, droppedPct: recordedSecs < 5 ? 0 : Math.max(0, Math.round((1 - fresh / expected) * 100)), fps: FPS, sourceQuality, coverPath }
+    return { path: file.path, seconds, droppedPct: droppedPercent(fresh, expected, recordedSecs), fps: FPS, sourceQuality, coverPath }
   } catch (e) {
+    await writerRef?.abandon()
     await window.lyra.studio.close(file.id).catch(() => undefined)
-    if ((e as Error).message === 'cancelled') await window.lyra.studio.discard(file.path).catch(() => undefined)
+    // a half-written file has no index at its end and can not be played: never leave one behind
+    await window.lyra.studio.discard(file.path).catch(() => undefined)
     throw e
   } finally {
+    closeEncoder(vencRef)
+    closeEncoder(aencRef)
+    releaseMedia(mediaRef)
+    if (canvasRef) canvasRef.width = canvasRef.height = 0 // frees the picture buffer now
+
     signal.removeEventListener('abort', abort)
     capture?.getTracks().forEach((t) => t.stop())
     void window.lyra.studio.audioStop()

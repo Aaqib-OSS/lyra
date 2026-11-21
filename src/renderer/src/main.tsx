@@ -54,6 +54,7 @@ import { vibeInfo } from '@shared/vibes'
 import { useSettings } from './store/settings'
 import { usePlayer } from './store/player'
 import { useUi } from './store/ui'
+import { useBgState } from './store/bgState'
 
 // Let CSS honour the in-app settings: reduced motion, rim light and the vibe in effect (a cycled / smart vibe is
 // temporary and lives in the UI store; the OS reduced-motion preference is handled by media queries).
@@ -79,11 +80,13 @@ const applyLook = (): void => {
 /** "Calm": nothing is playing or the window is hidden, so every endless animation pauses. */
 const syncCalm = (): void => {
   const playing = usePlayer.getState().snapshot?.isPlaying ?? false
-  const calm = !playing || document.visibilityState === 'hidden'
+  // a running export draws its own pictures: the app's endless CSS animations behind the dialog only steal frame time
+  const calm = !playing || document.visibilityState === 'hidden' || useBgState.getState().exporting
   if (calm) document.documentElement.dataset.calm = ''
   else delete document.documentElement.dataset.calm
 }
 usePlayer.subscribe(syncCalm)
+useBgState.subscribe(syncCalm)
 document.addEventListener('visibilitychange', syncCalm)
 useSettings.subscribe(applyLook)
 useUi.subscribe(applyLook)
