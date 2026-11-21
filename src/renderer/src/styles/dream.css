@@ -1,0 +1,74 @@
+/* ==========================================================================
+   DREAM: soft, slow, pastel (fullscreen: one file, layout mechanics are in scene.css).
+   The video is a blurred dreamscape behind everything (colour and light only, no detail to fight the words), soft aurora
+   orbs drift over it, the words are stars joined by thin lines as they are sung (stage 'constellation'), the card is a glowing
+   orb: a round cover with a slowly turning ring. Edge effect: a breathing pastel aurora glow around the screen.
+   ========================================================================== */
+:root[data-vibe='dream'] {
+  --rimc: #ffb4ec;
+  /* scene geometry (styles/scene.css): the dreamscape is the whole screen, the words above the orb card */
+  --sc-wl: 0px;
+  --sc-wt: 0px;
+  --sc-ww: 100vw;
+  --sc-wh: 100vh;
+  --sc-wr: 0px;
+  --sc-cw: min(30vw, 400px);
+  --sc-cl: calc(50vw - var(--sc-cw) / 2);
+  --sc-cb: 4vh;
+  --sc-ct: auto;
+  --sc-ll: 8vw;
+  --sc-lt: 8vh;
+  --sc-lw: 84vw;
+  --sc-lb: 44vh;
+  --sc-lbs: 44vh;
+  --sc-art-bg: radial-gradient(70% 60% at 30% 30%, rgba(255, 143, 208, 0.7), transparent 70%), radial-gradient(70% 60% at 75% 70%, rgba(143, 155, 255, 0.7), transparent 70%), #1c1040;
+  --sc-art-fg: #fff;
+  --sc-eq: #ffd0f4;
+}
+:root[data-vibe='dream'][data-rim='on']::after { display: none; }
+[data-vibe='dream'] .shell { --accent: #ffb4ec; --glow: rgba(255, 180, 236, 0.6); --glow-soft: rgba(255, 180, 236, 0.28); --font: 'Fraunces Variable', Georgia, serif; --fg: #fff; --bg-0: #160d2e; }
+[data-vibe='dream'] .backdrop .backdrop__field { background: radial-gradient(120% 90% at 50% 0%, #2c1760, #120a28 70%); }
+:root[data-vibe='dream'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+/* the video, blurred into colour and light */
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .backdrop__stage { filter: blur(30px) saturate(1.5) brightness(0.8); scale: 1.14; }
+.dreamfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.dreamfx .vibefx__orb { opacity: 0.45; mix-blend-mode: screen; }
+.scenewin__art span, .scenewin__eq { display: none; }
+[data-vibe='dream'] .scenewin { box-shadow: none; }
+/* the edge: an aurora glow that breathes and slowly changes colour */
+.dreamfx__aurora { position: absolute; inset: 0; box-shadow: inset 0 0 14vh rgba(255, 180, 236, 0.4), inset 0 0 36vh rgba(143, 155, 255, 0.25); animation: dr-aurora 12s ease-in-out infinite alternate; }
+@keyframes dr-aurora { 0% { opacity: 0.55; filter: hue-rotate(0deg); } 100% { opacity: 1; filter: hue-rotate(60deg); } }
+.dreamfx__dust { position: absolute; width: 0.5vh; height: 0.5vh; border-radius: 50%; background: #fff; box-shadow: 0 0 1vh #ffd0f4; opacity: 0; animation: dr-dust linear infinite; }
+@keyframes dr-dust { 0% { transform: translate(0, 0); opacity: 0; } 20%, 70% { opacity: 0.8; } 100% { transform: translate(4vw, -30vh); opacity: 0; } }
+:root[data-calm] .dreamfx *, :root[data-calm] .dreamfx { animation-play-state: paused; }
+:root[data-motion='off'] .dreamfx * { animation: none !important; }
+:root[data-perf='low'] .dreamfx__dust:nth-child(2n) { display: none; }
+
+/* ---------------- the card: an orb ---------------- */
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  align-items: center;
+  gap: 1.4vh;
+  padding: 2vh 2.4vh 2.2vh !important;
+  border-radius: 4vh !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(1.5);
+  backdrop-filter: blur(26px) saturate(1.5);
+  border: 0 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 3vh 8vh rgba(40, 10, 80, 0.4), 0 0 8vh rgba(255, 180, 236, 0.25) !important;
+}
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+  width: 16vh !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 0 0.5vh rgba(255, 255, 255, 0.5), 0 0 5vh rgba(255, 180, 236, 0.6);
+}
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { align-items: stretch; width: 100%; }
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { justify-content: center; text-align: center; }
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-weight: 500; font-size: 2.6vh; letter-spacing: 0; color: #fff; text-shadow: 0 0 1.6vh rgba(255, 180, 236, 0.6); }
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: rgba(255, 255, 255, 0.78); }
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #ffd0f4, #b9c4ff); }
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: rgba(255, 255, 255, 0.92) !important; color: #3a1d6e !important; box-shadow: 0 0 3vh rgba(255, 180, 236, 0.7) !important; }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .lfb { align-items: center; text-align: center; }
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .lfb__actions { justify-content: center; }
+:root[data-vibe='dream'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .plain__stanza { text-align: center; }

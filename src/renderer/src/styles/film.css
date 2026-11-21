@@ -97,16 +97,16 @@
 :root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
 /* ---------------- lyrics: title cards in the next frames (stage 'intertitle') ---------------- */
-.stage--intertitle { display: flex; flex-direction: column; justify-content: center; }
-.sign--intertitle .sign__line { height: 100%; justify-content: center; align-items: center; text-align: center; padding: 3vh 2.4vw; border: 0.3vh solid rgba(232, 184, 115, 0.55); outline: 0.3vh solid rgba(232, 184, 115, 0.3); outline-offset: -1.2vh; background: radial-gradient(90% 90% at 50% 50%, #1a1208, #0b0704); animation: fm-cut 0.5s steps(1) 1; gap: 1.6vh; }
+[data-vibe='film'] .stage--intertitle { display: flex; flex-direction: column; justify-content: center; }
+[data-vibe='film'] .sign--intertitle .sign__line { height: 100%; justify-content: center; align-items: center; text-align: center; padding: 3vh 2.4vw; border: 0.3vh solid rgba(232, 184, 115, 0.55); outline: 0.3vh solid rgba(232, 184, 115, 0.3); outline-offset: -1.2vh; background: radial-gradient(90% 90% at 50% 50%, #1a1208, #0b0704); animation: fm-cut 0.5s steps(1) 1; gap: 1.6vh; }
 @keyframes fm-cut { 0% { opacity: 0; } 10% { opacity: 1; transform: translateX(0.6vw); } 20% { opacity: 0.4; } 30% { opacity: 1; transform: translateX(-0.3vw); } 100% { opacity: 1; transform: none; } }
-.sign--intertitle .sign__row { justify-content: center; font-family: 'Fraunces Variable', Georgia, serif; font-weight: 600; font-size: min(2.7vw, 4.9vh); line-height: 1.22; letter-spacing: 0.1em; text-transform: uppercase; gap: 0 0.5em; padding-inline-end: 0; }
-.sign--intertitle .sign__word { color: rgba(242, 230, 207, 0.25); }
-.sign--intertitle .sign__word.is-in { color: var(--fm-cream); text-shadow: 0 0 1.2vh rgba(232, 184, 115, 0.4); }
-.sign--intertitle .sign__word.is-now { color: #fff; text-shadow: 0 0 1.6vh rgba(232, 184, 115, 0.75); }
-.sign--intertitle .sign__next { display: none; }
-.sign--intertitle .sign__refl { display: none; }
-:root[data-motion='off'] .sign--intertitle .sign__line { animation: none; }
+[data-vibe='film'] .sign--intertitle .sign__row { justify-content: center; font-family: 'Fraunces Variable', Georgia, serif; font-weight: 600; font-size: min(2.7vw, 4.9vh); line-height: 1.22; letter-spacing: 0.1em; text-transform: uppercase; gap: 0 0.5em; padding-inline-end: 0; }
+[data-vibe='film'] .sign--intertitle .sign__word { color: rgba(242, 230, 207, 0.25); }
+[data-vibe='film'] .sign--intertitle .sign__word.is-in { color: var(--fm-cream); text-shadow: 0 0 1.2vh rgba(232, 184, 115, 0.4); }
+[data-vibe='film'] .sign--intertitle .sign__word.is-now { color: #fff; text-shadow: 0 0 1.6vh rgba(232, 184, 115, 0.75); }
+[data-vibe='film'] .sign--intertitle .sign__next { display: none; }
+[data-vibe='film'] .sign--intertitle .sign__refl { display: none; }
+:root[data-motion='off'] [data-vibe='film'] .sign--intertitle .sign__line { animation: none; }
 /* the title-card frames are shorter than the whole lyrics area: keep them as tall as the video frame */
 :root[data-vibe='film'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics { height: var(--sc-wh); }
 

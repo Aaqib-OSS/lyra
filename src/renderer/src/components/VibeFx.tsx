@@ -240,6 +240,56 @@ function FilmFx() {
   )
 }
 
+/** Film Strip (draft B): the film moves. The strip advances one frame at a time, right to left, as the song plays. */
+function FilmStripFx() {
+  const duration = usePlayer((x) => x.snapshot?.track?.durationMs ?? 0)
+  useEffect(() => {
+    const root = document.documentElement
+    const N = 5
+    const tick = (): void => {
+      const p = duration > 0 ? Math.min(0.999, getPosition() / duration) : 0
+      root.style.setProperty('--film-k', String(Math.floor(p * N)))
+    }
+    tick()
+    const id = setInterval(tick, 400)
+    return () => {
+      clearInterval(id)
+      root.style.removeProperty('--film-k')
+    }
+  }, [duration])
+  return (
+    <div className="filmstripfx">
+      <div className="filmstripfx__strip">
+        <div className="filmstripfx__holes filmstripfx__holes--t" />
+        <div className="filmstripfx__holes filmstripfx__holes--b" />
+        <div className="filmstripfx__frames" />
+      </div>
+      <SceneWindow>
+        <div className="filmstripfx__gate" />
+      </SceneWindow>
+      <div className="filmstripfx__edge">KODAK SAFETY FILM · 5063 · 12A</div>
+      <div className="filmstripfx__grain" />
+    </div>
+  )
+}
+
+/** Dream, fullscreen: the video is a blurred dreamscape, soft orbs drift over it, an aurora glow breathes at the edge. */
+function DreamFx() {
+  const dust = useMemo(() => Array.from({ length: 18 }, (_, i) => ({ left: (i * 37 + 9) % 100, top: 30 + ((i * 23) % 65), dur: 9 + (i % 6) * 2, delay: -((i * 1.3) % 12) })), [])
+  return (
+    <div className="dreamfx">
+      <i className="vibefx__orb vibefx__orb--a" />
+      <i className="vibefx__orb vibefx__orb--b" />
+      <i className="vibefx__orb vibefx__orb--c" />
+      <SceneWindow />
+      {dust.map((d, i) => (
+        <i key={i} className="dreamfx__dust" style={{ left: `${d.left}%`, top: `${d.top}%`, animationDuration: `${d.dur}s`, animationDelay: `${d.delay}s` }} />
+      ))}
+      <div className="dreamfx__aurora" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -359,13 +409,8 @@ export function VibeFx() {
       {vibe === 'glitch' && <GlitchFx />}
       {vibe === 'neon' && <NeonAlley />}
       {vibe === 'crt' && <div className="vibefx__scan" />}
-      {vibe === 'dream' && (
-        <>
-          <i className="vibefx__orb vibefx__orb--a" />
-          <i className="vibefx__orb vibefx__orb--b" />
-          <i className="vibefx__orb vibefx__orb--c" />
-        </>
-      )}
+      {vibe === 'dream' && <DreamFx />}
+      {vibe === 'filmstrip' && <FilmStripFx />}
       {vibe === 'chrome' && <ChromeFx sparkles={sparkles} />}
       {vibe === 'sticker' && <div className="vibefx__dots" />}
     </div>

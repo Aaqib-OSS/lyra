@@ -24,7 +24,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'none', layout: 'side', style: 'classic', name: 'Artwork', tag: 'Colours from the cover' },
   { id: 'neon', layout: 'scene', style: 'sign', name: 'Neon', tag: 'Rain alley, neon signs' },
   { id: 'chrome', layout: 'scene', style: 'liquid', name: 'Chrome', tag: 'Y2K liquid metal' },
-  { id: 'dream', layout: 'orb', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
+  { id: 'dream', layout: 'scene', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
   { id: 'crt', layout: 'term', style: 'type', name: 'Terminal', tag: 'Typed in green' },
   { id: 'sticker', layout: 'side', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
   { id: 'chat', layout: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' },
@@ -40,7 +40,8 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'glitch', layout: 'scene', style: 'glitch', name: 'Glitch', tag: 'Signal lost: static, tears, colour split' },
   { id: 'comic', layout: 'scene', style: 'bubble', name: 'Pop Comic', tag: 'Halftone page, speech bubbles, POW' },
   { id: 'stencil', layout: 'scene', style: 'spray', name: 'Stencil', tag: 'Sprayed on a concrete wall' },
-  { id: 'film', layout: 'scene', style: 'intertitle', name: 'Film Reel', tag: 'Running film stock, silent-film titles' }
+  { id: 'film', layout: 'scene', style: 'intertitle', name: 'Film Reel', tag: 'Running film stock, silent-film titles' },
+  { id: 'filmstrip', layout: 'scene', style: 'intertitle', name: 'Film Strip', tag: 'The film advances frame by frame (draft B)' }
 ]
 
 export const ALL_VIBES: readonly Vibe[] = VIBES.map((v) => v.id)
@@ -91,6 +92,7 @@ const WORDS: Partial<Record<Vibe, { re: RegExp; why: string }>> = {
   glitch: { re: /\b(broken|break|breaking|static|noise|lost|crash|crashing|fall|falling|burn|burning|fire|scream|screaming|run|running|chaos|mess|wrong|numb|signal)\b/g, why: 'broken, noisy words' },
   comic: { re: /\b(boom|bang|pow|wow|crazy|wild|super|hero|power|fight|crash|jump|shout|loud|fire|thunder|yeah|hey|go|run)\b/g, why: 'loud, punchy words' },
   stencil: { re: /\b(street|streets|city|wall|walls|fight|rebel|rise|riot|noise|loud|fire|burn|young|wild|run|running|freedom|revolution|gang|block|hood|concrete|power)\b/g, why: 'street words' },
+  filmstrip: { re: /(film|movie|scene|camera|memory|memories|yesterday|old|golden|shadow|shadows|remember|years|time|story|once|reel)/g, why: 'film words' },
   film: { re: /\b(film|movie|scene|camera|memory|memories|yesterday|old|golden|lights?|shadow|shadows|summer|dance|dancing|remember|years|time|story|once)\b/g, why: 'cinematic, nostalgic words' },
   chrome: { re: /\b(future|shine|shiny|silver|chrome|gold|diamond|mirror|glass|crystal|space|rocket|baby|girl|boy|money)\b/g, why: 'shiny words' }
 }
