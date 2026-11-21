@@ -27,7 +27,7 @@ async function open(query, viewport = { width: 440, height: 900 }) {
 }
 const tab = async (p, name) => { await p.locator('.stabs button', { hasText: new RegExp(`^${name}$`) }).click(); await p.waitForTimeout(250) }
 const root$ = (p, attr) => p.evaluate((a) => document.documentElement.dataset[a], attr)
-const more = async (p) => { for (const d of await p.locator('details.more:not([open]) > summary').all()) await d.click() }
+const more = async (p) => { for (let i = 0; i < 12 && (await p.locator('details.more:not([open]) > summary').count()) > 0; i++) await p.locator('details.more:not([open]) > summary').first().click() }
 
 // ---------- Look ----------
 {
@@ -43,7 +43,7 @@ const more = async (p) => { for (const d of await p.locator('details.more:not([o
   await p.locator('[aria-label="Vibe mode"] button', { hasText: 'Fixed' }).click()
   await p.locator('[aria-label="Theme"] button', { hasText: 'Light' }).click(); await p.waitForTimeout(200)
   check('Look: Theme Light', (await p.evaluate(() => document.documentElement.getAttribute('data-theme') ?? document.body.getAttribute('data-theme') ?? document.querySelector('[data-theme]')?.getAttribute('data-theme'))) === 'light')
-  await p.locator('[aria-label="Theme"] button', { hasText: 'Artwork' }).click()
+  await p.locator('[aria-label="Theme"] button', { hasText: 'Auto' }).click()
   check('Look: no rim-light / lyric-style switches (the look is designed per vibe)', (await p.locator('[aria-label="Rim light"], [aria-label="Lyric style"]').count()) === 0)
   await more(p)
   await p.locator('[aria-label="Performance"] button', { hasText: 'Light' }).click(); await p.waitForTimeout(150)
