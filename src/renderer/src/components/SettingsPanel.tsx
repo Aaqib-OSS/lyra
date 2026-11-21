@@ -12,6 +12,7 @@ import { useJam } from '@/store/jam'
 import QRCode from 'qrcode'
 import { VIBES } from '@shared/vibes'
 import { useUi } from '@/store/ui'
+import { CarModeRow } from '@/components/CarMode'
 import { setLanguage, useTranslation, type Language } from '@/i18n'
 
 /** Copy text and tell the user it worked (or didn't). */
@@ -787,7 +788,12 @@ export function SettingsPanel() {
       </nav>
 
       <div id="settings-panel" ref={panelRef} role="tabpanel" aria-labelledby={`settings-tab-${tab}`} tabIndex={0}>
-      {android && show('phone') && <PhoneSection />}
+      {android && show('phone') && (
+        <>
+          <PhoneSection />
+          <CarModeRow />
+        </>
+      )}
 
       {show('look') && (
       <section>

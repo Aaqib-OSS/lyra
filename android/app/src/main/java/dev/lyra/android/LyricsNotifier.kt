@@ -225,7 +225,8 @@ class LyricsNotificationService : Service() {
             val d = display(now)
 
             // card contents: only touch the session when the text / cover changed (this is what the system redraws)
-            val publicLock = LyricsNotifier.publicOnLock(this)
+            // in a car dock the session (readable by a car stereo) carries song and artist only, unless the user opted in
+            val publicLock = LyricsNotifier.publicOnLock(this) && !dev.lyra.android.car.CarModeSupport.suppressLyricsOnSession(this)
             val metaSig = "${now.id}|${d.title}|${d.text}|${now.durationMs}|$publicLock"
             if (metaSig != lastMetaSig) {
                 lastMetaSig = metaSig

@@ -1,0 +1,112 @@
+/* Car mode (phone screen docked in a car, for passengers or when parked). Opt-in: data-car='1' on <html>.
+   Rules of the road: no scrolling, no motion beyond a short fade, type never below 24px, touch targets >= 96px,
+   40px apart, dark low-glare palette at night and a plain high-contrast one by day. */
+
+:root[data-platform='android'][data-car='1'] {
+  --car-bg: #05070a;
+  --car-fg: #f4f6f8;
+  --car-dim: #9aa2b0;
+  --car-btn: #1b2330;
+  --car-btn-fg: #f4f6f8;
+  --car-accent: #ffd35a;
+  --car-line: #263041;
+  background: var(--car-bg);
+}
+:root[data-platform='android'][data-car='1'][data-car-night='0'] {
+  --car-bg: #f5f2ea;
+  --car-fg: #0a0b0d;
+  --car-dim: #4b505a;
+  --car-btn: #dcd8cc;
+  --car-btn-fg: #0a0b0d;
+  --car-accent: #8a5a00;
+  --car-line: #c7c2b3;
+}
+
+:root[data-car='1'] body,
+:root[data-car='1'] #root { background: var(--car-bg); overflow: hidden; }
+
+/* no rim glow / vignette from the normal player */
+:root[data-car='1']::before, :root[data-car='1']::after { display: none !important; }
+
+.car {
+  --car-u: min(7vw, 10vh);
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: clamp(12px, 2.4vmin, 28px);
+  padding: max(env(safe-area-inset-top), 16px) max(env(safe-area-inset-right), 24px) max(env(safe-area-inset-bottom), 12px) max(env(safe-area-inset-left), 24px);
+  background: var(--car-bg);
+  color: var(--car-fg);
+  font-family: 'Inter Variable', system-ui, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.car__head { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 64px; border-bottom: 2px solid var(--car-line); padding-bottom: 12px; }
+.car__song { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.car__song b { font-size: 28px; font-weight: 700; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.car__song span { font-size: 24px; color: var(--car-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.car__done {
+  flex: none; min-width: 120px; height: 64px; padding: 0 28px; border: 2px solid var(--car-line); border-radius: 32px;
+  background: transparent; color: var(--car-fg); font: 700 24px/1 'Inter Variable', system-ui, sans-serif;
+}
+
+/* three lines, vertically centred, nothing scrolls */
+.car__lyrics { display: flex; flex-direction: column; justify-content: center; gap: clamp(12px, 3vmin, 32px); min-height: 0; overflow: hidden; text-align: center; }
+.car__line { margin: 0; overflow: hidden; overflow-wrap: anywhere; text-wrap: balance; line-height: 1.16; }
+.car__line--prev, .car__line--next {
+  color: var(--car-dim); font-size: max(24px, calc(var(--car-u) * 0.5)); font-weight: 500;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.car__line--now {
+  color: var(--car-fg); font-weight: 800; letter-spacing: -0.01em;
+  font-size: max(32px, var(--car-u));
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
+  animation: car-in 140ms ease-out;
+}
+.car__line--now[data-len='xs'] { font-size: max(32px, calc(var(--car-u) * 1.25)); }
+.car__line--now[data-len='s']  { font-size: max(32px, var(--car-u)); }
+.car__line--now[data-len='m']  { font-size: max(30px, calc(var(--car-u) * 0.8)); }
+.car__line--now[data-len='l']  { font-size: max(28px, calc(var(--car-u) * 0.62)); }
+@keyframes car-in { from { opacity: 0.2; } to { opacity: 1; } }
+:root[data-reduced] .car__line--now { animation: none; }
+@media (prefers-reduced-motion: reduce) { .car__line--now { animation: none; } }
+
+.car__note { margin: 0; font-size: max(32px, calc(var(--car-u) * 0.7)); font-weight: 700; color: var(--car-dim); }
+
+.car__controls { display: flex; align-items: center; justify-content: center; gap: clamp(24px, 6vw, 96px); }
+.car__btn {
+  width: clamp(76px, 20vmin, 140px); height: clamp(76px, 20vmin, 140px); border: 0; border-radius: 50%;
+  background: var(--car-btn); color: var(--car-btn-fg); display: grid; place-items: center; padding: 0;
+}
+.car__btn svg { width: 46%; height: 46%; fill: currentColor; }
+.car__btn--play { width: clamp(92px, 25vmin, 168px); height: clamp(92px, 25vmin, 168px); background: var(--car-accent); color: #0a0b0d; }
+.car__btn:active, .car__done:active { filter: brightness(1.25); }
+.car__btn:focus-visible, .car__done:focus-visible { outline: 4px solid var(--car-accent); outline-offset: 4px; }
+
+.car__foot { font-size: 24px; line-height: 1.2; color: var(--car-dim); text-align: center; padding-bottom: 4px; }
+
+/* portrait phones: width is the scarce thing, so the type scales with it */
+@media (orientation: portrait) { .car { --car-u: min(11vw, 7vh); } }
+
+/* short wide screens (a head-unit-sized phone in landscape, 800x480): header and footer shrink, buttons stay big */
+@media (max-height: 520px) and (orientation: landscape) {
+  .car { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr) auto; column-gap: 32px; row-gap: 8px; }
+  .car__head { grid-column: 1 / -1; min-height: 64px; padding-bottom: 6px; }
+  .car__song b { font-size: 26px; }
+  .car__lyrics { grid-column: 1; grid-row: 2; }
+  .car__controls { grid-column: 2; grid-row: 2; flex-direction: column; gap: 16px; }
+  .car__btn { width: 80px; height: 80px; }
+  .car__btn--play { width: 100px; height: 100px; }
+  .car__foot { grid-column: 1 / -1; grid-row: 3; font-size: 24px; }
+}
+
+/* the calm entry point when the phone is docked in a car */
+.car-offer {
+  position: fixed; right: 12px; top: calc(env(safe-area-inset-top) + 64px); z-index: 50; min-height: 56px; padding: 0 24px;
+  border: 2px solid rgba(255,255,255,.35); border-radius: 32px; background: rgba(10,12,16,.9); color: #fff;
+  font: 700 24px/1 'Inter Variable', system-ui, sans-serif;
+}

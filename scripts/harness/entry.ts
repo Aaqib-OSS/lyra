@@ -5,6 +5,9 @@ import { demoLyrics } from '@core/demo/lyrics'
 
 const q = new URLSearchParams(location.search)
 if (q.get('android')) document.documentElement.dataset.platform = 'android'
+// ?car=1 opens Car mode; ?carnight=0 gives the daytime palette; ?dock=1 shows the "Car mode" offer instead
+if (q.get('car')) document.documentElement.dataset.car = '1'
+if (q.get('carnight')) document.documentElement.dataset.carNight = q.get('carnight') === '0' ? '0' : '1'
 if (q.get('overlay')) document.documentElement.dataset.overlay = '1'
 const idx = Number(q.get('track') ?? 0)
 let track = DEMO_TRACKS[idx] ?? DEMO_TRACKS[0]!
@@ -107,3 +110,4 @@ const api: any = {
 await import('@/main')
 const panel = q.get('panel')
 if (panel) { const { useUi } = await import('@/store/ui'); useUi.getState().setPanel(panel as never) }
+if (q.get('dock')) { const { useCar } = await import('@/store/car'); useCar.getState().setEnv({ dock: true }) }
