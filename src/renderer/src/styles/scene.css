@@ -1,0 +1,98 @@
+/* ==========================================================================
+   SCENE layout (fullscreen, Windows): a vibe that composes its own screen.
+   The video plays in a framed window, the lyrics get a region, the player card gets a spot. Each vibe sets the geometry
+   as CSS variables on :root[data-vibe=...] and paints the frame, card and lyrics in its own file; this file is the
+   mechanics every scene shares (and the overrides that beat the generic cinema / dock rules):
+     --sc-wl --sc-wt --sc-ww [--sc-wh] --sc-wr   the video window (left, top, width, height, radius)
+     --sc-cl|--sc-cr --sc-ct|--sc-cb --sc-cw     the player card (use `auto` for the unused side)
+     --sc-ll --sc-lt --sc-lw --sc-lb             the lyrics region (left, top, width, bottom)
+   ========================================================================== */
+:root[data-arch='scene'] { --sc-wh: calc(var(--sc-ww) * 0.625); --sc-wr: 16px; --sc-cl: auto; --sc-cr: auto; --sc-ct: auto; --sc-cb: auto; }
+/* the video: a window, not the whole screen */
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .backdrop__stage {
+  inset: auto;
+  left: var(--sc-wl);
+  top: var(--sc-wt);
+  width: var(--sc-ww);
+  height: var(--sc-wh);
+  border-radius: var(--sc-wr);
+  overflow: hidden;
+  transform: none !important;
+  transition: width 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), height 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* the frame host (VibeFx SceneWindow): same box, sits above the video, passes clicks through */
+.scenewin { display: none; }
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .scenewin {
+  display: block;
+  position: absolute;
+  left: var(--sc-wl);
+  top: var(--sc-wt);
+  width: var(--sc-ww);
+  height: var(--sc-wh);
+  border-radius: var(--sc-wr);
+  overflow: hidden;
+  pointer-events: none;
+  transition: width 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), height 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* no video: the window shows the vibe's own panel (colours via --sc-art-bg / --sc-art-fg) */
+.scenewin__art {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4vh;
+  background: var(--sc-art-bg, #111);
+  color: var(--sc-art-fg, #fff);
+}
+.scenewin__art span { font: 700 1.6vh/1 'Inter Variable', system-ui, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.85; }
+:root:not([data-bg-media]) .scenewin__art { display: flex; }
+.scenewin__eq { display: flex; gap: 0.6vh; align-items: flex-end; height: 5vh; }
+.scenewin__eq i { width: 0.8vh; border-radius: 3px; background: var(--sc-eq, currentColor); animation: sc-eq 1.1s ease-in-out infinite; }
+@keyframes sc-eq { 0%, 100% { height: 18%; } 50% { height: 100%; } }
+:root[data-motion='off'] .scenewin__eq i { animation: none; height: 60%; }
+/* the body uses the screen's coordinates (the header sits above it) */
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] { --art: 100%; }
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__body { position: absolute; inset: 0; }
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics {
+  left: var(--sc-ll);
+  right: auto;
+  width: var(--sc-lw);
+  top: var(--sc-lt);
+  bottom: var(--sc-lb);
+}
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { bottom: 6vh; }
+/* the card */
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  left: var(--sc-cl) !important;
+  right: var(--sc-cr) !important;
+  top: var(--sc-ct) !important;
+  bottom: var(--sc-cb) !important;
+  width: var(--sc-cw) !important;
+  height: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  transform: none;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.6vh;
+  padding: 1.8vh !important;
+}
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1 !important;
+}
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { display: flex; flex-direction: column; gap: 1.2vh; grid-template-columns: none; }
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { justify-content: center; }
+/* a video behind changes nothing here: no scrims, and the card never hides when the pointer rests */
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full.is-cinema[data-arch='scene']::before,
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics::before { display: none; }
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full.is-cinema[data-arch='scene'] .full__top { background: none; }
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full.is-idle[data-arch='scene'] .full__side,
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full.is-df[data-arch='scene'] .full__side { opacity: 1; pointer-events: auto; }
+/* portrait window: window on top, lyrics under it, card at the bottom */
+@media (max-aspect-ratio: 1/1) {
+  :root[data-arch='scene'] { --sc-wl: 5vw; --sc-wt: 9vh; --sc-ww: 90vw; }
+}

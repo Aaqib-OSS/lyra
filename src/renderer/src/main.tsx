@@ -24,8 +24,11 @@ import './styles/skins.css'
 import './styles/posters.css'
 import './styles/states.css'
 import './styles/cards.css'
+import './styles/scene.css'
 import './styles/neon.css'
+import './styles/chrome.css'
 import { effectiveVibe } from './hooks/useVibe'
+import { vibeInfo } from '@shared/vibes'
 import { useSettings } from './store/settings'
 import { usePlayer } from './store/player'
 import { useUi } from './store/ui'
@@ -42,7 +45,9 @@ const applyLook = (): void => {
   const st = useSettings.getState().settings
   const root = document.documentElement
   root.dataset.motion = st.reducedMotion === 'on' ? 'off' : 'on'
-  root.dataset.vibe = effectiveVibe(st, useUi.getState().vibeNow).vibe
+  const vibe = effectiveVibe(st, useUi.getState().vibeNow).vibe
+  root.dataset.vibe = vibe
+  root.dataset.arch = vibeInfo(vibe).layout
   root.dataset.rim = st.rimLight ? 'on' : 'off'
   root.dataset.mode = useUi.getState().mode
   root.dataset.perf = st.performance === 'light' || (st.performance === 'auto' && weakDevice()) ? 'low' : 'high'

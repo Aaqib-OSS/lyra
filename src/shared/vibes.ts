@@ -23,7 +23,7 @@ export interface VibeInfo {
 export const VIBES: readonly VibeInfo[] = [
   { id: 'none', layout: 'side', style: 'classic', name: 'Artwork', tag: 'Colours from the cover' },
   { id: 'neon', layout: 'scene', style: 'sign', name: 'Neon', tag: 'Rain alley, neon signs' },
-  { id: 'chrome', layout: 'dock', style: 'kinetic', name: 'Chrome', tag: 'Y2K liquid metal' },
+  { id: 'chrome', layout: 'scene', style: 'liquid', name: 'Chrome', tag: 'Y2K liquid metal' },
   { id: 'dream', layout: 'orb', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
   { id: 'crt', layout: 'term', style: 'type', name: 'Terminal', tag: 'Typed in green' },
   { id: 'sticker', layout: 'side', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },

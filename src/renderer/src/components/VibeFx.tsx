@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { getPosition, usePlayer } from '@/store/player'
 import { useEffectiveVibe } from '@/hooks/useVibe'
 
@@ -20,6 +20,44 @@ function Scoreboard() {
       <span className="clock">{mm}:{ss}</span>
       <span className="teams">{track?.title ?? 'Lyra'}<em>vs</em>{track?.artists[0] ?? ''}</span>
       <span className="half">{t < dur / 2 ? '1ST HALF' : '2ND HALF'}</span>
+    </div>
+  )
+}
+
+/** The framed window of a scene vibe (see styles/scene.css): a panel when there is no video, plus the vibe's own frame layers. */
+function SceneWindow({ children }: { children?: ReactNode }) {
+  return (
+    <div className="scenewin">
+      <div className="scenewin__art">
+        <span>No video</span>
+        <div className="scenewin__eq">
+          {[0, 0.2, 0.1, 0.3, 0.15].map((d, i) => (
+            <i key={i} style={{ animationDelay: `${d}s` }} />
+          ))}
+        </div>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+/** Chrome: liquid-metal blobs drift in the dark blue, a highlight runs around the screen edge, the video sits in a chrome bezel. */
+function ChromeFx({ sparkles }: { sparkles: { x: number; y: number; s: number; d: number }[] }) {
+  return (
+    <div className="chromefx">
+      <i className="chromefx__blob chromefx__blob--a" />
+      <i className="chromefx__blob chromefx__blob--b" />
+      <i className="chromefx__blob chromefx__blob--c" />
+      {sparkles.map((p, i) => (
+        <svg key={i} className="vibefx__spark" viewBox="-12 -12 24 24" style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.s, height: p.s, animationDelay: `${p.d}s` }}>
+          <path d="M0 -11 C1 -3 3 -1 11 0 C3 1 1 3 0 11 C-1 3 -3 1 -11 0 C-3 -1 -1 -3 0 -11Z" />
+        </svg>
+      ))}
+      <div className="chromefx__bezel" />
+      <SceneWindow>
+        <div className="chromefx__gloss" />
+      </SceneWindow>
+      <div className="chromefx__edge" />
     </div>
   )
 }
@@ -47,20 +85,12 @@ function NeonAlley() {
   return (
     <div className="neonfx">
       <div className="neonfx__sweep" />
-      <div className="neonfx__win">
-        <div className="neonfx__art">
-          <span>No video</span>
-          <div className="neonfx__eq">
-            {[0, 0.2, 0.1, 0.3, 0.15].map((d, i) => (
-              <i key={i} style={{ animationDelay: `${d}s` }} />
-            ))}
-          </div>
-        </div>
+      <SceneWindow>
         <div className="neonfx__glass" />
         {drops.map((d, i) => (
           <i key={i} className="neonfx__drop" style={{ left: `${d.left}%`, top: `${d.top}%`, animationDuration: `${d.dur}s`, animationDelay: `${d.delay}s`, scale: d.s }} />
         ))}
-      </div>
+      </SceneWindow>
       {rings.map((r, i) => (
         <i key={i} className="neonfx__ring" style={{ left: `${r.left}%`, bottom: `${r.bottom}%`, animationDelay: `${r.delay}s` }} />
       ))}
@@ -198,12 +228,7 @@ export function VibeFx() {
           <i className="vibefx__orb vibefx__orb--c" />
         </>
       )}
-      {vibe === 'chrome' &&
-        sparkles.map((p, i) => (
-          <svg key={i} className="vibefx__spark" viewBox="-12 -12 24 24" style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.s, height: p.s, animationDelay: `${p.d}s` }}>
-            <path d="M0 -11 C1 -3 3 -1 11 0 C3 1 1 3 0 11 C-1 3 -3 1 -11 0 C-3 -1 -1 -3 0 -11Z" />
-          </svg>
-        ))}
+      {vibe === 'chrome' && <ChromeFx sparkles={sparkles} />}
       {vibe === 'sticker' && <div className="vibefx__dots" />}
     </div>
   )

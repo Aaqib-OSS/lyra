@@ -101,7 +101,7 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
-      {mode === 'sign' && <Sign lines={lines} active={active} />}
+      {(mode === 'sign' || mode === 'liquid') && <Sign lines={lines} active={active} variant={mode} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -625,12 +625,12 @@ const LtBar = memo(function LtBar({ line, nextTime }: { line: LyricLine; nextTim
 })
 
 // ---------- sign: the song is lit word by word on a wall sign, the next line waits underneath ----------
-const Sign = memo(function Sign({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+const Sign = memo(function Sign({ lines, active, variant }: { lines: readonly LyricLine[]; active: number; variant: string }) {
   const line = active >= 0 ? lines[active] : undefined
   const live = line && line.text !== '' ? line : undefined
   const next = lines.slice(active + 1).find((l) => l.text !== '')
   return (
-    <div className="sign">
+    <div className={`sign sign--${variant}`}>
       <AnimatePresence mode="wait" initial={false}>
         {live && <SignLine key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} next={next?.text} />}
       </AnimatePresence>

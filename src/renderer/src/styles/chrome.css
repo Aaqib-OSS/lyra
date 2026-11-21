@@ -1,0 +1,233 @@
+/* ==========================================================================
+   CHROME: Y2K liquid metal (one vibe, one file; layout mechanics are in scene.css).
+   Deep blue room, big chrome blobs that slowly morph, an iPod-like metal card on the left, the video in a chrome bezel,
+   words that pour in like liquid metal and catch the light. Edge effect: one bright highlight circles the screen edge.
+   ========================================================================== */
+@property --chrome-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+:root[data-vibe='chrome'] {
+  --rimc: #8fd1ff;
+  /* scene geometry (styles/scene.css) */
+  --sc-wl: 31vw;
+  --sc-wt: 9vh;
+  --sc-ww: min(46vw, 72vh);
+  --sc-wr: 2.6vh;
+  --sc-cl: 5vw;
+  --sc-ct: calc(64px + 3vh);
+  --sc-cw: clamp(190px, 20vw, 290px);
+  --sc-ll: 31vw;
+  --sc-lt: calc(var(--sc-wt) + var(--sc-wh) + 4.5vh);
+  --sc-lw: 64vw;
+  --sc-lb: 15vh;
+  --sc-art-bg: radial-gradient(circle at 50% 35%, rgba(143, 209, 255, 0.3), transparent 65%), #0b1646;
+  --sc-eq: linear-gradient(180deg, #fff, #8fd1ff 55%, #5a72b8);
+}
+:root[data-vibe='chrome'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(52vw, 80vh); }
+[data-vibe='chrome'] .shell {
+  --accent: #8fd1ff;
+  --glow: rgba(143, 209, 255, 0.7);
+  --glow-soft: rgba(143, 209, 255, 0.32);
+  --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif;
+  --bg-0: #0b1646;
+  --fg: #fff;
+}
+:root[data-vibe='chrome'][data-rim='on']::after { display: none; }
+
+/* ---------------- backdrop: a deep blue room with light beams ---------------- */
+[data-vibe='chrome'] .backdrop .backdrop__field {
+  background:
+    radial-gradient(60% 45% at 18% 8%, rgba(255, 255, 255, 0.4), transparent 60%),
+    radial-gradient(70% 55% at 88% 95%, rgba(110, 150, 255, 0.55), transparent 65%),
+    linear-gradient(160deg, #2c4fc0 0%, #14247a 45%, #070d30 100%);
+}
+[data-vibe='chrome'] .backdrop .backdrop__field::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: repeating-linear-gradient(115deg, transparent 0 9vw, rgba(255, 255, 255, 0.045) 9vw 10.5vw, transparent 10.5vw 20vw);
+  animation: chrome-beams 40s linear infinite;
+}
+@keyframes chrome-beams { to { transform: translateX(20vw); } }
+[data-vibe='chrome'] .backdrop__img,
+[data-vibe='chrome'] .backdrop__blob,
+[data-vibe='chrome'] .backdrop__dim,
+[data-vibe='chrome'] .backdrop__grade,
+[data-vibe='chrome'] .backdrop__shade { display: none !important; }
+
+/* ---------------- effects ---------------- */
+.chromefx { position: absolute; inset: 0; pointer-events: none; }
+.chromefx__blob {
+  position: absolute;
+  width: var(--s);
+  height: var(--s);
+  background:
+    radial-gradient(circle at 30% 24%, #fff 0 3%, rgba(255, 255, 255, 0) 9%),
+    radial-gradient(circle at 36% 30%, #fff 0, #d7e4ff 14%, #7f96d8 38%, #1f2f78 66%, #b9ccff 88%, #ffffff 100%);
+  box-shadow: inset -1.4vh -1.8vh 3vh rgba(10, 20, 80, 0.55), 0 0 6vh rgba(143, 209, 255, 0.28);
+  border-radius: 58% 42% 55% 45% / 50% 58% 42% 50%;
+  animation: chrome-morph 14s ease-in-out infinite, chrome-float 19s ease-in-out infinite;
+}
+.chromefx__blob--a { --s: 40vh; left: -6vh; bottom: -12vh; }
+.chromefx__blob--b { --s: 26vh; right: -5vh; top: 24vh; animation-delay: -5s, -8s; }
+.chromefx__blob--c { --s: 18vh; right: 7vw; bottom: 5vh; animation-delay: -9s, -3s; }
+@keyframes chrome-morph {
+  0%, 100% { border-radius: 58% 42% 55% 45% / 50% 58% 42% 50%; }
+  33% { border-radius: 44% 56% 40% 60% / 58% 42% 58% 42%; }
+  66% { border-radius: 52% 48% 62% 38% / 42% 56% 44% 58%; }
+}
+@keyframes chrome-float { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(2vh, -3vh) rotate(18deg); } }
+.vibefx__spark {
+  position: absolute;
+  fill: #fff;
+  opacity: 0;
+  filter: drop-shadow(0 0 8px #bfe3ff);
+  animation: vfx-twinkle 3s ease-in-out infinite;
+}
+@keyframes vfx-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0); }
+  50% { opacity: 0.95; transform: scale(1) rotate(45deg); }
+}
+/* the edge: one bright highlight circles the screen like light on a metal frame */
+.chromefx__edge {
+  position: absolute;
+  inset: 0;
+  padding: 3px;
+  background: conic-gradient(from var(--chrome-ang), rgba(255, 255, 255, 0) 0 62%, rgba(143, 209, 255, 0.55) 78%, #fff 88%, rgba(255, 255, 255, 0) 96%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: chrome-spin 9s linear infinite;
+}
+@keyframes chrome-spin { to { --chrome-ang: 360deg; } }
+:root[data-perf='low'] .chromefx__blob--b, :root[data-perf='low'] .chromefx__blob--c { display: none; }
+:root[data-motion='off'] .chromefx *, :root[data-motion='off'] .full__side { animation: none !important; }
+/* the video's chrome bezel (a gradient ring around the scene window) and its reflections */
+.chromefx__bezel { display: none; }
+:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .chromefx__bezel {
+  display: block;
+  position: absolute;
+  left: calc(var(--sc-wl) - 1.3vh);
+  top: calc(var(--sc-wt) - 1.3vh);
+  width: calc(var(--sc-ww) + 2.6vh);
+  height: calc(var(--sc-wh) + 2.6vh);
+  border-radius: calc(var(--sc-wr) + 1.3vh);
+  padding: 1.3vh;
+  background: linear-gradient(135deg, #ffffff, #aebbd9 28%, #f4f7ff 50%, #7e90bd 72%, #e9efff);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  transition: left 0.7s, top 0.7s, width 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), height 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+[data-vibe='chrome'] .scenewin {
+  box-shadow: 0 0 0 0.5vh #0a1240, 0 3.2vh 7vh rgba(0, 0, 20, 0.6), 0 0 8vh rgba(143, 209, 255, 0.25);
+}
+.chromefx__gloss {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(112deg, rgba(255, 255, 255, 0.2) 0, rgba(255, 255, 255, 0) 38%),
+    linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.22) 50%, transparent 60%) -150% 0 / 250% 100% no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), inset 0 -3vh 5vh rgba(0, 0, 40, 0.3);
+  animation: chrome-gloss 8s ease-in-out infinite;
+}
+@keyframes chrome-gloss { 0%, 55% { background-position: 0 0, -150% 0; } 100% { background-position: 0 0, 150% 0; } }
+
+/* ---------------- the card: brushed metal, dark ink ---------------- */
+:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  --fg: #0b1220;
+  --fg-2: #2a3446;
+  --fg-3: #495570;
+  color: #0b1220;
+  border-radius: 3vh !important;
+  background: linear-gradient(180deg, #f7f9fe 0%, #c4cfe3 52%, #eef2fb 100%) !important;
+  border: 0 !important;
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.5), 0 3vh 7vh rgba(0, 0, 20, 0.5) !important;
+  animation: chrome-bob 7s ease-in-out infinite;
+}
+@keyframes chrome-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.8vh); } }
+:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+  border: 0.5vh solid #0b1220;
+  border-radius: 1.8vh !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3), 0 1vh 2.4vh rgba(0, 0, 30, 0.35);
+}
+:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
+  font-family: 'Unbounded Variable', 'Inter Variable', sans-serif;
+  font-size: 2vh;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0b1220;
+  text-shadow: none;
+}
+:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: #3a4660; }
+:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #0b1220 !important; color: #fff !important; box-shadow: 0 0.8vh 2vh rgba(10, 18, 64, 0.5) !important; }
+:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress { --fill: #2f55c8; }
+
+/* ---------------- lyrics: liquid metal (stage 'liquid') ---------------- */
+.stage--liquid { display: flex; flex-direction: column; justify-content: center; }
+.sign--liquid .sign__row { font-style: italic; font-weight: 900; font-size: min(4.2vw, 7.4vh); letter-spacing: -0.045em; }
+.sign--liquid .sign__word {
+  color: transparent;
+  background: linear-gradient(180deg, rgba(190, 210, 255, 0.5) 0%, rgba(110, 140, 220, 0.4) 50%, rgba(200, 220, 255, 0.5) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 0.012em rgba(190, 215, 255, 0.5);
+}
+.sign--liquid .sign__word.is-in {
+  background: linear-gradient(180deg, #ffffff 0%, #cfdcff 34%, #5a72b8 50%, #dfe9ff 62%, #ffffff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 0.012em #0a1650;
+  filter: drop-shadow(0 0.04em 0 #0a1650) drop-shadow(0 0 0.28em rgba(143, 209, 255, 0.55));
+  animation: chrome-pour 0.55s cubic-bezier(0.2, 1.1, 0.3, 1) 1;
+  text-shadow: none;
+}
+.sign--liquid .sign__word.is-now {
+  background: linear-gradient(180deg, #fff 0%, #ffe8fb 34%, #e56bd0 50%, #ffd6f7 62%, #fff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: none;
+}
+@keyframes chrome-pour {
+  0% { opacity: 0; transform: translateY(1.8vh) scale(1.12, 0.78); filter: blur(7px) drop-shadow(0 0.04em 0 #0a1650); }
+  55% { opacity: 1; transform: translateY(-0.4vh) scale(0.97, 1.08); filter: blur(0) drop-shadow(0 0.04em 0 #0a1650) drop-shadow(0 0 0.5em #fff); }
+  100% { opacity: 1; transform: none; }
+}
+.sign--liquid .sign__next { color: rgba(207, 220, 255, 0.5); font-style: italic; }
+.sign--liquid .sign__refl { opacity: 0.2; }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='chrome'] .lyrics__notice {
+  align-self: flex-start;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(160, 180, 230, 0.18));
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  border-radius: 99px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+}
+[data-vibe='chrome'] .plain__stanza { font-family: 'Inter Variable', system-ui, sans-serif; font-weight: 600; font-style: normal; letter-spacing: -0.01em; color: #eaf1ff; }
+[data-vibe='chrome'] .plain__stanza > span { background: none; -webkit-text-fill-color: currentColor; -webkit-text-stroke: 0; filter: none; padding: 0; }
+[data-vibe='chrome'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='chrome'] .lfb__poster { display: none; }
+[data-vibe='chrome'] .lfb h3 {
+  font-family: 'Unbounded Variable', 'Inter Variable', sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  text-transform: none;
+  font-size: clamp(24px, 4vw, 58px);
+  background: linear-gradient(180deg, #ffffff 0%, #cfdcff 34%, #5a72b8 50%, #dfe9ff 62%, #ffffff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 0.012em #0a1650;
+  filter: drop-shadow(0 0.04em 0 #0a1650);
+}
+[data-vibe='chrome'] .lfb p { color: rgba(255, 255, 255, 0.9); }
+[data-vibe='chrome'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='chrome'] .lfb__eq i { background: linear-gradient(180deg, #fff, #8fd1ff 55%, #5a72b8); box-shadow: none; }
+
+/* ---------------- mini player / phone: blobs and light only ---------------- */
+:root[data-vibe='chrome'][data-mode='mini'] .chromefx__edge, :root[data-vibe='chrome'][data-platform='android'] .chromefx__edge { display: none; }

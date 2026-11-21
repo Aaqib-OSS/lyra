@@ -149,8 +149,6 @@
  * The player card itself (cover + title + controls) per vibe in the dock / pill / bar layouts: a signature plate instead of
  * the shared dark glass. !important only on what the layout file also sets.
  */
-:root[data-vibe='chrome'] .full .full__side { background: linear-gradient(180deg, #f4f7fc, #b8c3d6 55%, #e9eef8) !important; border: 2px solid #fff !important; border-radius: 22px !important; box-shadow: 0 14px 30px -10px rgba(10,22,70,.6), inset 0 2px 0 #fff !important; --fg: #0b1220; --fg-2: #2a3446; --fg-3: #49556b; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-:root[data-vibe='chrome'] .full .full__side .playbtn { background: #0b1220 !important; color: #fff !important; }
 :root[data-vibe='dream'] .full .full__side { background: rgba(255,255,255,.16) !important; border: 2px solid rgba(255,255,255,.7) !important; border-radius: 999px !important; box-shadow: 0 0 40px rgba(190,160,255,.5), inset 0 0 22px rgba(255,255,255,.12) !important; }
 :root[data-vibe='sunset'] .full .full__side { background: linear-gradient(90deg, rgba(43,10,90,.85), rgba(255,46,147,.55)) !important; border: 2px solid #ffd1a6 !important; border-radius: 16px !important; box-shadow: 0 0 30px rgba(255,122,184,.45) !important; }
 :root[data-vibe='stadium'] .full .full__side { background: linear-gradient(180deg, #0b3b86, #072a63) !important; border: 0 !important; border-left: 6px solid #ffd23f !important; border-radius: 6px !important; box-shadow: 0 12px 28px -10px rgba(0,0,0,.7) !important; }

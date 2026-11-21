@@ -33,3 +33,8 @@ Rule of thumb: lyrics are the hero. A video goes in a framed window of the vibe'
 2. `styles/<vibe>.css` (one file per vibe, imported last), a stage component in `LyricsStage.tsx` if the lyric motion is new, effects in `VibeFx.tsx`.
 3. Remove the old rules for that vibe from `vibes.css`, `states.css`, `skins.css`, `posters.css`.
 4. Check key states in the harness (`?mode=full`, `?vs=live`, `?ly=plain|none|offline`, `reducedMotion` off) and typecheck. Mini player, Settings skin and Android come in their later passes.
+
+## Order and status (Claude decides the order; copies of one another go first)
+Done: **Neon** (Rain Alley), **Chrome** (liquid metal).
+Next, in this order: Arcade, Sunset, Trailer (the rest of the old dock/kinetic family), then Sketch, Glitch, Comic, Stencil, Film (the old orb/zoom family), then Dream, Terminal, Stickers, DM, Diary, Cinema, Blocks, Stadium, Cassette, and Artwork last.
+Each vibe is committed on its own. Shared mechanics live in `styles/scene.css` (scene layout variables, video window, card spot) and `LyricsStage.tsx` (stages).

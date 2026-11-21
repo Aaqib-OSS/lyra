@@ -33,9 +33,6 @@
 /* ---- Neon: a double tube, breathing, with corner brackets ---- */
 
 /* ---- Chrome: a polished bevel with a sparkle ---- */
-[data-vibe='chrome'] .artwork--lift { outline: 4px solid #fff; outline-offset: 0; box-shadow: 0 0 0 6px #aab4c4, 0 0 0 8px #fff, 0 22px 40px -10px rgba(20,40,90,.6) !important; }
-[data-vibe='chrome'] .artwork__deco--a { top: 6%; right: 8%; width: 24%; height: 24%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 2 C54 30 70 46 98 50 C70 54 54 70 50 98 C46 70 30 54 2 50 C30 46 46 30 50 2Z' fill='%23ffffff'/%3E%3C/svg%3E"); animation: pz-twinkle 2.2s ease-in-out infinite; }
-[data-vibe='chrome'] .artwork__deco--b { left: 8%; bottom: 10%; width: 12%; height: 12%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 2 C54 30 70 46 98 50 C70 54 54 70 50 98 C46 70 30 54 2 50 C30 46 46 30 50 2Z' fill='%238fd1ff'/%3E%3C/svg%3E"); animation: pz-twinkle 2.2s .8s ease-in-out infinite; }
 
 /* ---- Dream: soft glow and a handful of twinkling stars ---- */
 [data-vibe='dream'] .artwork--lift { outline: 4px solid rgba(255,255,255,.85); outline-offset: 0; box-shadow: 0 0 0 8px rgba(255,180,236,.45), 0 0 50px 8px rgba(190,160,255,.55) !important; }
