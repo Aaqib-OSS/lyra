@@ -264,6 +264,8 @@ export interface Settings {
   onboarded: boolean
   /** Windows source only: control the system volume (loads a helper some antivirus tools flag). */
   systemVolume: boolean
+  /** Windows source only: follow the current SMTC player instead of Spotify only. */
+  followAnyPlayer: boolean
   trackNotifications: boolean
   /** TV & party mode: serve a read-only lyrics page to other devices on the same network. */
   lanViewer: boolean
@@ -330,6 +332,7 @@ export const DEFAULT_SETTINGS: Settings = {
   shortcuts: {},
   onboarded: false,
   systemVolume: false,
+  followAnyPlayer: false,
   trackNotifications: false,
   lanViewer: false,
   lanAudio: false,
