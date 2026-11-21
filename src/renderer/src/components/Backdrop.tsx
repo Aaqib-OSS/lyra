@@ -124,6 +124,62 @@ function useFrameStats(video: MutableRefObject<HTMLVideoElement | null>, active:
 }
 
 /** Two stacked copies of the clip that cross-fade into each other, so a short clip loops without a visible jump. */
+/** Pictures further than this from the window's shape are shown whole (contain) over a blurred copy instead of cropped. */
+const FIT_TOLERANCE = 0.12
+
+/**
+ * Watches the window the media sits in (the parent stage) and compares its shape with the picture's.
+ * True = the shapes differ enough that `cover` would crop badly: show the whole picture and fill the rest.
+ */
+function useContain(anchor: MutableRefObject<HTMLElement | null>, ar: number): boolean {
+  const [win, setWin] = useState(0)
+  useEffect(() => {
+    const host = anchor.current?.parentElement
+    if (!host) return
+    const read = (): void => {
+      const w = host.clientWidth
+      const h = host.clientHeight
+      if (w && h) setWin((o) => (Math.abs(o - w / h) < 0.005 ? o : w / h))
+    }
+    read()
+    const ro = new ResizeObserver(read)
+    ro.observe(host)
+    return () => ro.disconnect()
+  }, [anchor])
+  if (win > 2.2 && ar >= 1.5) return false // a deliberately cinemascope window (trailer) crops ordinary widescreen on purpose
+  return ar > 0 && win > 0 && Math.abs(ar / win - 1) > FIT_TOLERANCE
+}
+
+/**
+ * The blurred fill behind a contained video: ONE tiny canvas that copies the playing frame ~7 times a second.
+ * No second <video>, so there is nothing to keep in step with the song clock: it shows whatever the front video shows.
+ */
+function VideoFill({ fillRef, video, active, ar, crop }: { fillRef: MutableRefObject<HTMLCanvasElement | null>; video: MutableRefObject<HTMLVideoElement | null>; active: boolean; ar: number; crop: Crop }) {
+  const cropRef = useRef(crop)
+  cropRef.current = crop
+  useEffect(() => {
+    const c = fillRef.current
+    if (!active || !c || document.documentElement.dataset.platform === 'android') return
+    const ctx = c.getContext('2d')
+    if (!ctx) return
+    const draw = (): void => {
+      const v = video.current
+      if (!v || v.readyState < 2 || !v.videoWidth || document.hidden || document.documentElement.dataset.perf === 'low') return
+      const k = cropRef.current
+      try {
+        ctx.drawImage(v, k.l * v.videoWidth, k.t * v.videoHeight, v.videoWidth * (1 - k.l - k.r), v.videoHeight * (1 - k.t - k.b), 0, 0, c.width, c.height)
+      } catch {
+        /* a frame that can not be read: the dark fill stays */
+      }
+    }
+    draw()
+    const id = window.setInterval(draw, 140)
+    return () => window.clearInterval(id)
+  }, [active, ar, fillRef, video])
+  const h = Math.max(8, Math.round(64 / (ar || 1.78)))
+  return <canvas ref={fillRef} className="backdrop__fill" data-fit={active ? 'contain' : undefined} width={64} height={h} />
+}
+
 function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boolean; crop: Crop; videoRef: MutableRefObject<HTMLVideoElement | null>; onFail: () => void }) {
   const refA = useRef<HTMLVideoElement>(null)
   const refB = useRef<HTMLVideoElement>(null)
@@ -135,6 +191,11 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
   useEffect(() => setShown(false), [url])
   const runRef = useRef(run)
   runRef.current = run
+  const fillRef = useRef<HTMLCanvasElement | null>(null)
+  const [dims, setDims] = useState({ w: 0, h: 0 })
+  useEffect(() => setDims({ w: 0, h: 0 }), [url])
+  const ar = dims.w && dims.h ? (dims.w * (1 - crop.l - crop.r)) / (dims.h * (1 - crop.t - crop.b)) : 0
+  const contain = useContain(fillRef, ar)
 
   useEffect(() => {
     videoRef.current = els[front]!.current
@@ -211,16 +272,19 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
   }
   return (
     <>
+      <VideoFill fillRef={fillRef} video={videoRef} active={contain} ar={ar} crop={crop} />
       {[0, 1].map((i) => (
         <video
           key={i}
           ref={els[i]!}
           {...common}
           autoPlay={i === 0}
+          data-fit={contain ? 'contain' : undefined}
           style={{ opacity: front === i && shown ? 1 : 0, transition: 'opacity .6s ease', ['objectViewBox' as string]: view }}
           onPlaying={() => setShown(true)}
           onLoadedData={() => setShown(true)}
           onLoadedMetadata={(e) => {
+            if (i === 0) setDims({ w: e.currentTarget.videoWidth, h: e.currentTarget.videoHeight })
             // very short clips just loop natively
             if (i === 0 && e.currentTarget.duration <= 4) e.currentTarget.loop = true
           }}
@@ -231,7 +295,18 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
 }
 
 function ImageLayer({ url, onFail }: { url: string; onFail: () => void }) {
-  return <img className="backdrop__media" src={url} alt="" draggable={false} onError={onFail} />
+  const fillRef = useRef<HTMLImageElement | null>(null)
+  const [ar, setAr] = useState(0)
+  useEffect(() => setAr(0), [url])
+  const contain = useContain(fillRef, ar)
+  const fit = contain ? 'contain' : undefined
+  return (
+    <>
+      {/* images (GIFs, living art): a second copy of the same file is the blurred fill, it animates by itself */}
+      <img ref={fillRef} className="backdrop__fill" data-fit={fit} src={url} alt="" draggable={false} />
+      <img className="backdrop__media" data-fit={fit} src={url} alt="" draggable={false} onError={onFail} onLoad={(e) => setAr(e.currentTarget.naturalWidth / (e.currentTarget.naturalHeight || 1))} />
+    </>
+  )
 }
 
 function phoneInit(): boolean {
