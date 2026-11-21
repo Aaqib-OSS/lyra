@@ -190,15 +190,6 @@
 
 
 /* ===================== STENCIL ===================== */
-:root[data-vibe='stencil'][data-bg-media] .backdrop__dim { background: rgba(20, 13, 6, .45); }
-[data-vibe='stencil'] .backdrop__stage { filter: contrast(1.15) saturate(.7); }
-[data-vibe='stencil'] .lyrics__notice { background: #ff6a00; border: 0; border-radius: 0; color: #140d06; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; font-size: 10.5px; }
-[data-vibe='stencil'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 900; letter-spacing: -0.03em; text-transform: uppercase; color: #f2efe9; font-size: max(13px, calc(var(--lyric-size) * 0.45)); text-shadow: .06em .06em 0 #000; }
-[data-vibe='stencil'] .plain__stanza > span:nth-child(odd) { color: #ff6a00; }
-[data-vibe='stencil'] .lfb { align-items: flex-start; }
-[data-vibe='stencil'] .lfb__poster { display: none; }
-[data-vibe='stencil'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); font-weight: 900; text-transform: uppercase; color: #140d06; background: #ff6a00; padding: .2em .6em; box-shadow: .1em .1em 0 #000; letter-spacing: -0.02em; max-width: none; }
-[data-vibe='stencil'] .lfb__eq i { background: #ff6a00; border-radius: 0; }
 
 /* ===================== FILM REEL ===================== */
 [data-vibe='film'] .backdrop__stage { filter: sepia(.6) contrast(1.08) saturate(1.1); }

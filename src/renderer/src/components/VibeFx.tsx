@@ -198,6 +198,25 @@ function ComicFx() {
   )
 }
 
+/** Stencil, fullscreen: a concrete street wall. Stains, a wheat-pasted poster for the video, paint running down from the top. */
+function StencilFx() {
+  const drips = useMemo(() => Array.from({ length: 9 }, (_, i) => ({ left: 6 + ((i * 11 + 7) % 90), h: 8 + ((i * 7) % 5) * 5, d: -((i * 1.9) % 16) })), [])
+  return (
+    <div className="stencilfx">
+      <div className="stencilfx__concrete" />
+      <i className="stencilfx__stain stencilfx__stain--a" />
+      <i className="stencilfx__stain stencilfx__stain--b" />
+      <SceneWindow>
+        <div className="stencilfx__wrinkle" />
+      </SceneWindow>
+      {drips.map((p, i) => (
+        <i key={i} className="stencilfx__drip" style={{ left: `${p.left}%`, ['--h' as string]: `${p.h}vh`, ['--d' as string]: `${p.d}s` }} />
+      ))}
+      <div className="stencilfx__vignette" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -311,12 +330,7 @@ export function VibeFx() {
       )}
       {vibe === 'paper' && <div className="vibefx__lines" />}
       {vibe === 'sketch' && <SketchFx />}
-      {vibe === 'stencil' && (
-        <>
-          <div className="vibefx__concrete" />
-          <div className="vibefx__drips" />
-        </>
-      )}
+      {vibe === 'stencil' && <StencilFx />}
       {vibe === 'film' && (
         <>
           <div className="vibefx__grain" />

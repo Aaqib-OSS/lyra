@@ -1,0 +1,104 @@
+/* ==========================================================================
+   STENCIL: a concrete street wall (fullscreen: one file, layout mechanics are in scene.css).
+   Rough concrete with stains, a wheat-pasted poster for the video, the song sprayed on the wall in orange with a soft
+   overspray and a drip under the word being sung, paint running down from the top edge, a black sticker as the card.
+   Graphic: noise, paint and type only.
+   ========================================================================== */
+:root[data-vibe='stencil'] {
+  --rimc: #ff6a00;
+  --st-orange: #ff6a00;
+  --st-paper: #f2efe9;
+  --st-ink: #161412;
+  /* scene geometry (styles/scene.css): the poster on the left, the spray on the right, a sticker bottom right */
+  --sc-ww: min(36vw, 58vh);
+  --sc-wl: 6vw;
+  --sc-wt: 13vh;
+  --sc-wr: 0.2vh;
+  --sc-cl: auto;
+  --sc-cr: 5vw;
+  --sc-cb: 5vh;
+  --sc-ct: auto;
+  --sc-cw: min(44vw, 600px);
+  --sc-ll: calc(6vw + var(--sc-ww) + 5vw);
+  --sc-lt: 12vh;
+  --sc-lw: calc(95vw - var(--sc-ww) - 6vw - 5vw);
+  --sc-lb: 26vh;
+  --sc-lbs: 26vh;
+  --sc-art-bg: radial-gradient(circle at 50% 40%, #fff, #e6dfce), #e6dfce;
+  --sc-art-fg: #161412;
+  --sc-eq: #ff6a00;
+}
+:root[data-vibe='stencil'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(42vw, 66vh); }
+:root[data-vibe='stencil'][data-rim='on']::after { display: none; }
+[data-vibe='stencil'] .shell { --accent: #ff6a00; --glow: rgba(255, 106, 0, 0.45); --glow-soft: rgba(255, 106, 0, 0.2); --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif; --fg: #f2efe9; --bg-0: #1d1b19; }
+
+/* ---------------- the wall ---------------- */
+[data-vibe='stencil'] .backdrop .backdrop__field { background: radial-gradient(100% 80% at 30% 20%, #3d3a36, #1d1b19 80%); }
+:root[data-vibe='stencil'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+.stencilfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.stencilfx__concrete { position: absolute; inset: 0; opacity: 0.55; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* damp stains running down the wall, and a vignette */
+.stencilfx__stain { position: absolute; top: 0; width: 14vw; height: 60vh; background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent); filter: blur(18px); opacity: 0.6; }
+.stencilfx__stain--a { left: 30%; } .stencilfx__stain--b { left: 74%; height: 44vh; width: 9vw; }
+.stencilfx__vignette { position: absolute; inset: 0; background: radial-gradient(120% 120% at 50% 40%, transparent 50%, rgba(0, 0, 0, 0.55)); }
+/* paint running down from the top edge, slowly, at different speeds */
+.stencilfx__drip { position: absolute; top: 0; width: 0.7vh; height: 0; border-radius: 0 0 0.5vh 0.5vh; background: var(--st-orange); animation: st-drip 16s ease-in infinite; animation-delay: var(--d, 0s); opacity: 0.9; }
+.stencilfx__drip::after { content: ''; position: absolute; left: 50%; bottom: -0.5vh; width: 1.1vh; height: 1.1vh; margin-left: -0.55vh; border-radius: 50%; background: var(--st-orange); }
+@keyframes st-drip { 0% { height: 0; opacity: 0; } 8% { opacity: 0.9; } 55% { height: var(--h, 18vh); } 85% { height: var(--h, 18vh); opacity: 0.9; } 100% { height: var(--h, 18vh); opacity: 0; } }
+:root[data-calm] .stencilfx__drip { animation-play-state: paused; }
+:root[data-motion='off'] .stencilfx__drip { animation: none; height: var(--h, 12vh); }
+:root[data-perf='low'] .stencilfx__drip:nth-child(2n) { display: none; }
+/* the poster: pasted on, paper border, a hard shadow, wrinkles of light */
+[data-vibe='stencil'] .scenewin { box-shadow: 0 0 0 1.2vh var(--st-paper), 0 0 0 calc(1.2vh + 1px) rgba(0, 0, 0, 0.5), 1vh 1.4vh 2vh calc(1.2vh) rgba(0, 0, 0, 0.55); }
+.stencilfx__wrinkle { position: absolute; inset: 0; background: linear-gradient(98deg, transparent 20%, rgba(255, 255, 255, 0.1) 22%, transparent 25%, transparent 58%, rgba(0, 0, 0, 0.14) 60%, transparent 63%), linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 30%, rgba(0, 0, 0, 0.2)); }
+.scenewin__art span { font: 900 2.6vh/1 'Unbounded Variable', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(22, 20, 18, 0.7); }
+
+/* ---------------- the card: a black sticker ---------------- */
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  flex-direction: row;
+  align-items: center;
+  gap: 2vh;
+  padding: 1.3vh 2vh 1.3vh 1.3vh !important;
+  border-radius: 0.8vh !important;
+  background: var(--st-ink) !important;
+  border: 0 !important;
+  box-shadow: 0 0 0 0.4vh var(--st-orange), 0.8vh 1vh 0 0.4vh rgba(0, 0, 0, 0.55) !important;
+}
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0.4vh !important; filter: contrast(1.1) saturate(0.85); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35); }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: var(--st-paper); text-shadow: none; }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--st-orange); }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--st-orange); border-radius: 0; }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { border-radius: 0; }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--st-orange) !important; color: var(--st-ink) !important; border-radius: 0.6vh !important; box-shadow: none !important; }
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='stencil'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+
+/* ---------------- lyrics: sprayed on the wall (stage 'spray') ---------------- */
+.stage--spray { display: flex; flex-direction: column; justify-content: center; }
+.sign--spray .sign__line { gap: 2vh; }
+.sign--spray .sign__row { font-family: 'Unbounded Variable', sans-serif; font-weight: 900; font-size: min(4.6vw, 8.2vh); line-height: 1.05; letter-spacing: -0.04em; text-transform: uppercase; gap: 0 0.26em; }
+.sign--spray .sign__word { position: relative; color: rgba(242, 239, 233, 0.2); }
+.sign--spray .sign__word.is-in { color: var(--st-orange); text-shadow: 0 0 0.1em rgba(255, 106, 0, 0.75), 0 0 0.45em rgba(255, 106, 0, 0.35), 0.03em 0.03em 0 rgba(0, 0, 0, 0.4); animation: st-spray 0.4s ease-out 1; }
+.sign--spray .sign__word.is-now { color: #ff8a3a; }
+@keyframes st-spray { 0% { opacity: 0; filter: blur(0.25em); clip-path: inset(0 100% 0 0); } 60% { filter: blur(0.06em); } 100% { opacity: 1; filter: none; clip-path: inset(-20% -10% -40% -10%); } }
+/* a drip runs down from the word being sung */
+.sign--spray .sign__word.is-now::after { content: ''; position: absolute; left: 30%; top: 86%; width: 0.07em; height: 0; border-radius: 0 0 0.06em 0.06em; background: var(--st-orange); animation: st-wdrip 2.2s ease-in 0.3s 1 forwards; }
+@keyframes st-wdrip { 0% { height: 0; opacity: 0; } 15% { opacity: 1; } 100% { height: 0.9em; opacity: 0.9; } }
+.sign--spray .sign__next { font: 800 min(2vw, 3.4vh) / 1.15 'Unbounded Variable', sans-serif; text-transform: uppercase; letter-spacing: -0.01em; color: rgba(242, 239, 233, 0.4); }
+.sign--spray .sign__refl { display: none; }
+:root[data-motion='off'] .sign--spray .sign__word, :root[data-motion='off'] .sign--spray .sign__word::after { animation: none; }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='stencil'] .lyrics__notice { align-self: flex-start; background: var(--st-orange); border: 0; border-radius: 0.3vh; color: var(--st-ink); font: 900 1.5vh/1.2 'Unbounded Variable', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; }
+[data-vibe='stencil'] .plain__stanza { font-family: 'Unbounded Variable', sans-serif; font-weight: 800; font-size: min(1.9vw, 3.4vh); line-height: 1.3; letter-spacing: -0.02em; text-transform: uppercase; color: var(--st-paper); }
+[data-vibe='stencil'] .plain__stanza > span:nth-child(odd) { color: var(--st-orange); }
+[data-vibe='stencil'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='stencil'] .lfb__poster { display: none; }
+[data-vibe='stencil'] .lfb h3 { font-family: 'Unbounded Variable', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -0.04em; font-size: clamp(24px, 3.6vw, 52px); color: var(--st-orange); text-shadow: 0 0 0.1em rgba(255, 106, 0, 0.7), 0 0 0.45em rgba(255, 106, 0, 0.3); }
+[data-vibe='stencil'] .lfb p, [data-vibe='stencil'] .lfb small { color: rgba(242, 239, 233, 0.85); }
+[data-vibe='stencil'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='stencil'] .lfb__eq i { background: var(--st-orange); border-radius: 0; box-shadow: none; }

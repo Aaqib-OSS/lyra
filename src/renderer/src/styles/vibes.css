@@ -573,29 +573,7 @@
 /* ======================= POP COMIC: halftone, outlines and BAM words ======================= */
 
 /* ======================= STENCIL: spray-paint words on concrete ======================= */
-:root[data-vibe='stencil'] { --rimc: #ff6a00; }
-[data-vibe='stencil'] .shell {
-  --accent: #ff6a00;
-  --glow: rgba(255, 106, 0, 0.4);
-  --glow-soft: rgba(255, 106, 0, 0.16);
-  --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif;
-  --fg: #f2efe9;
-  --bg-0: #1d1c1a;
-}
-[data-vibe='stencil'] .backdrop .backdrop__field { background: radial-gradient(100% 80% at 50% 30%, #3b3935, #1d1c1a 80%); }
-.vibefx__concrete { position: absolute; inset: 0; opacity: .22; mix-blend-mode: soft-light; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E"); }
-.vibefx__drips { position: absolute; left: 12%; right: 12%; top: 0; height: 100%; pointer-events: none; }
-.vibefx__drips::before, .vibefx__drips::after { content: ''; position: absolute; top: 0; width: 5px; height: 38%; background: linear-gradient(180deg, transparent, rgba(255, 106, 0, .55) 40%, rgba(255, 106, 0, 0)); border-radius: 0 0 5px 5px; animation: stencil-drip 7s ease-in infinite; }
-.vibefx__drips::before { left: 18%; }
-.vibefx__drips::after { left: 71%; animation-delay: 3.4s; height: 28%; }
-@keyframes stencil-drip { 0% { transform: translateY(-100%); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(260%); opacity: 0; } }
 :root[data-calm] .vibefx__drips::before, :root[data-calm] .vibefx__drips::after { animation: none; opacity: 0; }
-[data-vibe='stencil'] .zoom__word { font-weight: 900; letter-spacing: -0.04em; paint-order: stroke fill; }
-[data-vibe='stencil'] .zoom__word--fill { color: #ff6a00; -webkit-text-stroke: .03em #140d06; text-shadow: .05em .06em 0 #140d06, 0 0 .5em rgba(255, 106, 0, .35); }
-[data-vibe='stencil'] .zoom__word--outline { color: #f2efe9; -webkit-text-stroke: .02em #140d06; text-shadow: .05em .05em 0 rgba(0, 0, 0, .6); }
-[data-vibe='stencil'] .zoom__word--cut { color: #140d06; background: #ff6a00; padding: .02em .14em .06em; box-shadow: .05em .06em 0 #000; -webkit-text-stroke: 0; }
-[data-vibe='stencil'] .zoom__word--ghost { color: #ffb066; -webkit-text-stroke: .02em #3b1d00; filter: blur(.4px); text-shadow: 0 0 .35em rgba(255, 106, 0, .7); }
-[data-vibe='stencil'] .zoom__line { color: #f2efe9; text-shadow: 0 1px 6px #000; }
 
 /* ======================= FILM REEL: sepia grain, light leaks, projector flicker ======================= */
 :root[data-vibe='film'] { --rimc: #e8b873; }
@@ -625,6 +603,3 @@
 [data-vibe='film'] .zoom__line { color: #f6e9cf; text-shadow: 0 1px 6px #000; font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; }
 
 /* a dark halo behind the sprayed word keeps it readable on the orange glow of the wall */
-[data-vibe='stencil'] .zoom__word { filter: drop-shadow(0 0 .12em rgba(0,0,0,.9)); }
-[data-vibe='stencil'] .zoom__word--ghost { color: #ffd9a8; filter: drop-shadow(0 0 .12em rgba(0,0,0,.9)); }
-[data-vibe='stencil'] .stage::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 55% at 50% 50%, rgba(10,8,6,.55), transparent 75%); }
