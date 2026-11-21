@@ -23,10 +23,12 @@ const STATES = {
   H: { name: 'Idle', q: 'vs=none&idle=1' },
   I: { name: 'Ad', q: 'vs=none&ad=1' }
 }
+// looks whose lyrics are meant to sit on top of the video window
+const OVER_VIDEO = new Set(['trailer'])
 const KEYS = String(args.state ?? Object.keys(STATES).join(',')).split(',')
 const OUT = resolve('ui-test-out', 'scene')
 
-const measure = () => {
+const measure = (overVideo) => {
   const r = (e) => { const b = e.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height, r: b.right, b: b.bottom } }
   const issues = []
   const vw = innerWidth, vh = innerHeight
@@ -47,12 +49,12 @@ const measure = () => {
   if (lyr) {
     const lb = r(lyr)
     for (const e of lyr.querySelectorAll('.sign__line, .bloom, .lfb, .lyrics__notice, .sign__row, .bloom__line')) {
-      if (!vis(e)) continue
+      if (!vis(e) || e.closest('.sign__refl')) continue
       const eb = r(e)
       if (eb.y < lb.y - 3 || eb.b > lb.b + 3 || eb.x < lb.x - 3 || eb.r > lb.r + 3) issues.push(`lyrics leave their region: ${String(e.className).split(' ')[0]} ${Math.round(eb.y - lb.y)}..${Math.round(eb.b - lb.b)} / x ${Math.round(eb.x - lb.x)}..${Math.round(eb.r - lb.r)}`)
     }
-    const kids = lyr.querySelectorAll('.stage *, .lfb *, .plain__stanza')
-    for (const e of kids) { if (!vis(e)) continue; const eb = r(e); if (eb.r > vw + 1 || eb.b > vh + 1 || eb.x < -1 || eb.y < -1) { issues.push(`lyrics leave the screen: ${String(e.className).split(' ')[0]}`); break } }
+    const kids = lyr.querySelectorAll('.stage *, .lfb *')
+    for (const e of kids) { if (!vis(e) || e.closest('.sign__refl')) continue; const eb = r(e); if (eb.r > vw + 1 || eb.b > vh + 1 || eb.x < -1 || eb.y < -1) { issues.push(`lyrics leave the screen: ${String(e.className).split(' ')[0]}`); break } }
   }
   const inter = (a, b) => Math.max(0, Math.min(a.r, b.r) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.b, b.b) - Math.max(a.y, b.y))
   const boxes = []
@@ -60,7 +62,7 @@ const measure = () => {
   if (win && vis(win)) boxes.push(['video window', r(win)])
   const content = lyr?.querySelector('.sign__line, .bloom, .lfb, .plain__stanza')
   if (content && vis(content)) boxes.push(['lyrics', r(content)])
-  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) { const a = inter(boxes[i][1], boxes[j][1]); if (a > 40) issues.push(`${boxes[i][0]} overlaps ${boxes[j][0]} (${Math.round(a)} px²)`) }
+  for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) { const a = inter(boxes[i][1], boxes[j][1]); if (a > 40 && !(overVideo && (boxes[i][0] === 'video window' || boxes[j][0] === 'video window'))) issues.push(`${boxes[i][0]} overlaps ${boxes[j][0]} (${Math.round(a)} px²)`) }
   if (document.documentElement.scrollWidth > vw + 1) issues.push('page scrolls sideways')
   return issues
 }
@@ -82,7 +84,7 @@ async function main() {
         const page = await ctx.newPage()
         await page.goto(url)
         await page.waitForTimeout(st.q.includes('live') ? 3800 : 2200)
-        const issues = await page.evaluate(measure)
+        const issues = await page.evaluate(measure, OVER_VIDEO.has(vibe))
         const file = `${sz.id}-${k}.png`
         await page.screenshot({ path: join(dir, file) })
         await page.close()

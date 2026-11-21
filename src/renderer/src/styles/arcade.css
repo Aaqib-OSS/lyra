@@ -20,13 +20,15 @@
   --sc-cw: clamp(200px, 20vw, 290px);
   --sc-ll: 6vw;
   --sc-lt: calc(var(--sc-wt) + var(--sc-wh) + 5vh);
-  --sc-lw: 89vw;
-  --sc-lb: 11vh;
+  --sc-lw: calc(100vw - 6vw - var(--sc-cw) - 5vw - 4vw);
+  --sc-lb: 24vh;
+  --sc-lbs: 24vh;
   --sc-art-bg: radial-gradient(circle at 50% 40%, rgba(61, 242, 255, 0.2), transparent 65%), #06061a;
   --sc-art-fg: #3df2ff;
   --sc-eq: #ffe14d;
 }
 /* no words: the pixel cabinet keeps its size, the text under it needs the room */
+:root[data-vibe='arcade']:has(.full[data-arch='scene'] .full__lyrics :is(.plain__stanza, .lfb)) { --sc-ww: min(30vw, 48vh); }
 :root[data-vibe='arcade'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(36vw, 56vh); }
 [data-vibe='arcade'] .shell {
   --accent: #ffe14d;
@@ -162,7 +164,7 @@
   text-transform: uppercase;
   gap: 0 0.7em;
 }
-.sign--pixel .sign__word { position: relative; color: #3a3a7a; text-shadow: none; }
+.sign--pixel .sign__word { position: relative; color: #6464b4; text-shadow: none; }
 .sign--pixel .sign__word.is-in { color: #fff; text-shadow: 0.1em 0.1em 0 var(--arc-pink); animation: arc-pop 0.32s steps(4) 1; }
 .sign--pixel .sign__word.is-now { color: var(--arc-yellow); animation: arc-pop 0.32s steps(4) 1, arc-flash 0.5s steps(1) infinite 0.32s; }
 .sign--pixel .sign__word.is-now::after {
@@ -198,3 +200,6 @@
 
 /* ---------------- mini player / phone: stars and carpet only ---------------- */
 :root[data-vibe='arcade'][data-mode='mini'] .arcadefx__bulbs, :root[data-vibe='arcade'][data-platform='android'] .arcadefx__bulbs { display: none; }
+
+/* narrow windows: the score would collide with the header */
+@media (max-width: 1100px) { .arcadefx__hud { display: none; } }

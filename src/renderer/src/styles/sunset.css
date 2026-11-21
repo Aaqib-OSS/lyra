@@ -17,11 +17,12 @@
   --sc-cl: 5vw;
   --sc-cb: 5vh;
   --sc-ct: auto;
-  --sc-cw: min(46vw, 640px);
+  --sc-cw: clamp(540px, 46vw, 700px);
   --sc-ll: 5vw;
   --sc-lt: 16vh;
   --sc-lw: calc(95vw - var(--sc-ww) - 5vw - 5vw);
   --sc-lb: 28vh;
+  --sc-lbs: 26vh;
   --sc-art-bg: radial-gradient(90% 70% at 30% 85%, rgba(255, 200, 120, 0.7), transparent 70%), linear-gradient(180deg, #27406b 0%, #b66a64 62%, #ffc27a 100%);
   --sc-art-fg: #fff;
   --sc-eq: rgba(255, 233, 207, 0.9);
@@ -87,7 +88,7 @@
   gap: 2.2vh;
   padding: 1.4vh 2.4vh 1.4vh 1.4vh !important;
   border-radius: 3vh !important;
-  background: rgba(255, 244, 232, 0.1) !important;
+  background: rgba(34, 18, 40, 0.42) !important;
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
   backdrop-filter: blur(24px) saturate(1.4);
   border: 0 !important;
@@ -137,4 +138,3 @@
 [data-vibe='sunset'] .lfb p { color: var(--gold-ink); text-shadow: none; }
 [data-vibe='sunset'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='sunset'] .lfb__eq i { background: linear-gradient(180deg, #ffe9cf, #ff9f7a); box-shadow: none; }
-:root[data-arch='scene'][data-vibe='sunset'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { top: calc(var(--sc-wt) + var(--sc-wh) + 4vh); bottom: 22vh; left: 5vw; width: 90vw; }

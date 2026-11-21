@@ -5,7 +5,8 @@
    mechanics every scene shares (and the overrides that beat the generic cinema / dock rules):
      --sc-wl --sc-wt --sc-ww [--sc-wh] --sc-wr   the video window (left, top, width, height, radius)
      --sc-cl|--sc-cr --sc-ct|--sc-cb --sc-cw     the player card (use `auto` for the unused side)
-     --sc-ll --sc-lt --sc-lw --sc-lb             the lyrics region (left, top, width, bottom)
+     --sc-ll --sc-lt --sc-lw --sc-lb [--sc-lbs]  the lyrics region (left, top, width, bottom; --sc-lbs = bottom for the static
+                                                 states: unsynced words, no lyrics, waiting)
    ========================================================================== */
 :root[data-arch='scene'] { --sc-wh: calc(var(--sc-ww) * 0.5625); --sc-wr: 16px; --sc-cl: auto; --sc-cr: auto; --sc-ct: auto; --sc-cb: auto; }
 /* the video: a window, not the whole screen */
@@ -62,7 +63,7 @@
   top: var(--sc-lt);
   bottom: var(--sc-lb);
 }
-:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { bottom: 6vh; }
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { bottom: var(--sc-lbs, 6vh); }
 /* the card */
 :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   left: var(--sc-cl) !important;
@@ -95,4 +96,67 @@
 /* portrait window: window on top, lyrics under it, card at the bottom */
 @media (max-aspect-ratio: 1/1) {
   :root[data-arch='scene'] { --sc-wl: 5vw; --sc-wt: 9vh; --sc-ww: 90vw; }
+}
+
+/* a narrow card (vertical player) never lets its buttons stick out: smaller buttons first, then no shuffle / repeat */
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side { container-type: inline-size; }
+:root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { max-width: 100%; flex-wrap: nowrap; }
+@container (max-width: 300px) {
+  .full__controls .ibtn { width: 36px !important; height: 36px !important; }
+  .full__controls .transport { gap: 2px !important; }
+}
+@container (max-width: 215px) {
+  .full__controls .ibtn:first-child, .full__controls .ibtn:last-child { display: none; }
+}
+
+/* ---------------- shared polish for every scene (found by reviewing each look in every state) ---------------- */
+/* no lyrics / waiting: start at the top of the region and scroll if it is tight, never cut the heading off */
+:root[data-arch='scene'][data-mode='full'] .full[data-arch='scene'] .lfb { justify-content: flex-start; overflow: hidden auto; padding-bottom: 0; }
+:root[data-arch='scene'][data-mode='full'] .full[data-arch='scene'] .lfb p { font-size: clamp(14px, 1.05vw, 21px); }
+:root[data-arch='scene'][data-mode='full'] .full[data-arch='scene'] .lfb__actions .pill { font-size: clamp(12px, 0.85vw, 17px); }
+/* the small print under the lyrics (source, "wrong lyrics?", sync nudge) must be readable */
+:root[data-arch='scene'][data-mode='full'] .full[data-arch='scene'] .lyrics__footer { position: fixed; right: 3vw; bottom: 1.6vh; z-index: 3; white-space: nowrap; gap: 18px; font-size: clamp(11px, 0.78vw, 15px); opacity: 0.85; color: rgba(255, 255, 255, 0.82); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7); }
+/* idle (nothing playing): no video window, the "nothing playing" screen has the stage to itself */
+:root[data-arch='scene']:has(.full .full__screen) .scenewin { display: none !important; }
+/* the "no video found" card in a scene: a slim pill, so it never covers the header or the video */
+:root[data-arch='scene'][data-mode='full'] .vstat__card { max-width: min(460px, 42vw); }
+:root[data-arch='scene'][data-mode='full'] .vstat__text span, :root[data-arch='scene'][data-mode='full'] .vstat__text p { display: none; }
+/* portrait window (a rotated monitor): the video on top, the lyrics under it, the card as a compact row at the bottom */
+@media (max-aspect-ratio: 1/1) {
+  :root[data-arch='scene'] {
+    --sc-wl: 5vw !important;
+    --sc-wt: 9vh !important;
+    --sc-ww: 90vw !important;
+    --sc-wh: calc(90vw * 0.5625) !important;
+    --sc-ll: 5vw !important;
+    --sc-lw: 90vw !important;
+    --sc-lt: calc(9vh + 90vw * 0.5625 + 3vh) !important;
+    --sc-lb: 22vh !important;
+    --sc-lbs: 21vh !important;
+  }
+  :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+    left: 5vw !important;
+    right: 5vw !important;
+    top: auto !important;
+    bottom: 3vh !important;
+    width: auto !important;
+    flex-direction: row !important;
+    align-items: center;
+    animation: none !important;
+  }
+  :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before,
+  :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after { display: none; }
+  :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { width: 11vh !important; flex: none; }
+  :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(80px, 1fr) auto;
+    grid-template-areas: 'titles controls' 'progress progress';
+    align-items: center;
+    column-gap: 2vw;
+  }
+  :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+  :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+  :root[data-arch='scene'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 }

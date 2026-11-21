@@ -21,6 +21,7 @@
   --sc-art-bg: radial-gradient(circle at 50% 35%, rgba(143, 209, 255, 0.3), transparent 65%), #0b1646;
   --sc-eq: linear-gradient(180deg, #fff, #8fd1ff 55%, #5a72b8);
 }
+:root[data-vibe='chrome']:has(.full[data-arch='scene'] .full__lyrics :is(.plain__stanza, .lfb)) { --sc-ww: min(34vw, 54vh); }
 :root[data-vibe='chrome'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(52vw, 80vh); }
 [data-vibe='chrome'] .shell {
   --accent: #8fd1ff;
@@ -60,8 +61,9 @@
   width: var(--s);
   height: var(--s);
   background:
-    radial-gradient(circle at 30% 24%, #fff 0 3%, rgba(255, 255, 255, 0) 9%),
-    radial-gradient(circle at 36% 30%, #fff 0, #d7e4ff 14%, #7f96d8 38%, #1f2f78 66%, #b9ccff 88%, #ffffff 100%);
+    radial-gradient(circle at 28% 22%, #fff 0 4%, rgba(255, 255, 255, 0) 10%),
+    radial-gradient(120% 120% at 50% 50%, transparent 55%, rgba(10, 20, 80, 0.55) 100%),
+    linear-gradient(188deg, #f6f9ff 0%, #b4c8fa 30%, #4f6bc4 44%, #0a1546 50%, #0b1648 52%, #6f8fe0 62%, #c9daff 82%, #f4f8ff 100%);
   box-shadow: inset -1.4vh -1.8vh 3vh rgba(10, 20, 80, 0.55), 0 0 6vh rgba(143, 209, 255, 0.28);
   border-radius: 58% 42% 55% 45% / 50% 58% 42% 50%;
   animation: chrome-morph 14s ease-in-out infinite, chrome-float 19s ease-in-out infinite;

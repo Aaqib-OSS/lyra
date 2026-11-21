@@ -19,6 +19,7 @@
   --sc-lt: calc(var(--sc-wt) + var(--sc-wh) * 0.52);
   --sc-lw: 80vw;
   --sc-lb: calc(var(--sc-wt) + 1.6vh);
+  --sc-lbs: calc(var(--sc-wt) + 2vh);
   --sc-art-bg: radial-gradient(70% 90% at 50% 50%, #241a12, #050404 80%);
   --sc-art-fg: #e8d9bd;
   --sc-eq: #ffd9a0;
@@ -128,4 +129,7 @@
 /* ---------------- other lyric states (same regions) ---------------- */
 :root[data-vibe='trailer'][data-mode='full'] .full[data-arch='scene'] .lfb { align-items: center; text-align: center; }
 :root[data-vibe='trailer'][data-mode='full'] .full[data-arch='scene'] .lfb__actions { justify-content: center; }
-:root[data-vibe='trailer'][data-mode='full'] .full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { top: calc(var(--sc-wt) + var(--sc-wh) * 0.2); bottom: calc(var(--sc-wt) + 1vh); }
+:root[data-vibe='trailer'][data-mode='full'] .full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { top: calc(var(--sc-wt) + var(--sc-wh) * 0.2); }
+
+/* portrait: 16:9 instead of a thin letterbox, so the bars do not look like dead space */
+@media (max-aspect-ratio: 1/1) { :root[data-vibe='trailer'] { --sc-lt: calc(9vh + 90vw * 0.5625 + 3vh) !important; } }

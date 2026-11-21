@@ -26,6 +26,7 @@
   --sc-eq: linear-gradient(180deg, var(--neon-cyan), var(--neon-pink));
 }
 /* a video with no words: the video is the star, the window grows to a hero size (and shrinks back when lyrics arrive) */
+:root[data-vibe='neon']:has(.full[data-arch='scene'] .full__lyrics :is(.plain__stanza, .lfb)) { --sc-ww: min(30vw, 50vh); }
 :root[data-vibe='neon'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(50vw, 80vh); }
 [data-vibe='neon'] .shell {
   --accent: #ff4fa3;
@@ -144,9 +145,10 @@
   content: '';
   position: absolute;
   top: -4vh;
-  width: 2px;
+  width: 3px;
   height: 4vh;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.18));
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.35));
 }
 :root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before { left: 22%; }
 :root[data-vibe='neon'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::after { right: 22%; }
