@@ -179,6 +179,25 @@ function GlitchFx() {
   )
 }
 
+/** Pop Comic, fullscreen: a printed page. A burst turns slowly, halftone dots, a panel with a caption box, starbursts in the corners. */
+function ComicFx() {
+  return (
+    <div className="comicfx">
+      <div className="comicfx__bg">
+        <div className="comicfx__rays" />
+        <div className="comicfx__dots" />
+        <div className="comicfx__dots comicfx__dots--b" />
+      </div>
+      <SceneWindow />
+      <div className="comicfx__caption">Now playing!</div>
+      <div className="comicfx__pow comicfx__pow--a"><span>POW!</span></div>
+      <div className="comicfx__pow comicfx__pow--b"><span>ZAP!</span></div>
+      <div className="comicfx__pow comicfx__pow--c"><span>WOW!</span></div>
+      <div className="comicfx__page" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -307,12 +326,7 @@ export function VibeFx() {
           <div className="vibefx__strip vibefx__strip--r" />
         </>
       )}
-      {vibe === 'comic' && (
-        <>
-          <div className="vibefx__halftone" />
-          <div className="vibefx__rays" />
-        </>
-      )}
+      {vibe === 'comic' && <ComicFx />}
       {vibe === 'glitch' && <GlitchFx />}
       {vibe === 'neon' && <NeonAlley />}
       {vibe === 'crt' && <div className="vibefx__scan" />}

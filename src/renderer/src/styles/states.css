@@ -184,25 +184,8 @@
 /* ===================== GLITCH ===================== */
 
 /* ===================== POP COMIC ===================== */
-:root[data-vibe='comic'][data-bg-media] .backdrop__dim { background: rgba(255, 244, 226, 0.34); }
-:root[data-vibe='comic'] .full.is-cinema .full__side { background: #fffaf0; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; border-radius: 14px; box-shadow: 0 18px 40px -16px rgba(0,0,0,.6), 0 0 0 1px rgba(45,42,58,.15); transform: rotate(-0.5deg); }
-:root[data-vibe='comic'][data-bg-media] .lyrics__scroller--plain, :root[data-vibe='comic'][data-bg-media] .lfb { background: #fffaf0; color: #2d2a3a; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; border-radius: 4px; box-shadow: 0 16px 36px -14px rgba(0,0,0,.55); width: min(560px, 92%); margin: 18px auto; transform: rotate(-0.4deg); position: relative; }
-:root[data-vibe='comic'][data-bg-media] .lyrics__scroller--plain { flex: 0 1 auto; max-height: calc(100% - 36px); align-self: center; -webkit-mask-image: none; mask-image: none; container-type: normal; }
-:root[data-vibe='comic'][data-bg-media] .lyrics__inner--plain { padding: 16px 22px 20px !important; }
-:root[data-vibe='comic'][data-bg-media] .lfb { padding: 22px 26px 16px; max-width: 560px; }
-:root[data-vibe='comic'][data-bg-media] .lyrics__stage:has(.lyrics__scroller--plain)::before, :root[data-vibe='comic'][data-bg-media] .lfb::before { content: ''; position: absolute; top: -12px; left: 50%; width: 90px; height: 24px; margin-left: -45px; background: rgba(255,226,120,.8); transform: rotate(-3deg); }
-:root[data-vibe='comic'][data-bg-media] .lyrics__notice { background: transparent; border-color: rgba(45,42,58,.3); }
-:root[data-vibe='comic'][data-bg-media] .lfb { align-items: flex-start; }
-[data-vibe='comic'] .lfb__poster { display: none; }
-[data-vibe='comic'] .lyrics__notice { background: #fff; border: 3px solid #111; border-radius: 4px; font-weight: 800; box-shadow: 3px 3px 0 #111; }
-[data-vibe='comic'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 800; letter-spacing: -0.03em; text-transform: uppercase; font-size: max(13px, calc(var(--lyric-size) * 0.45)); color: #111; }
-[data-vibe='comic'] .plain__stanza > span { width: fit-content; background: #fff; border: 3px solid #111; box-shadow: 3px 3px 0 #111; padding: .08em .5em; margin-bottom: .3em; }
-[data-vibe='comic'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); text-transform: uppercase; font-weight: 900; color: #ff3b6b; -webkit-text-stroke: .04em #111; paint-order: stroke fill; text-shadow: .05em .06em 0 #111; }
-[data-vibe='comic'] .lfb p { color: #111; font-weight: 600; }
-[data-vibe='comic'] .lfb__eq i { background: #ff3b6b; border: 2px solid #111; border-radius: 0; }
 
 /* the small floating card of the light inked vibes is a paper slip with ink text */
-:root[data-vibe='comic'] .full .full__side { background: #fff !important; --fg: #111; --fg-2: #2a2a2a; --fg-3: #444; border: 3px solid #111; box-shadow: 4px 4px 0 #111; border-radius: 10px; -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 
 

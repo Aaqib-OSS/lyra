@@ -38,7 +38,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'trailer', layout: 'scene', style: 'title', name: 'Trailer', tag: 'Movie title cards' },
   { id: 'sketch', layout: 'scene', style: 'ink', name: 'Sketchbook', tag: 'Written by hand in ink and pencil' },
   { id: 'glitch', layout: 'scene', style: 'glitch', name: 'Glitch', tag: 'Signal lost: static, tears, colour split' },
-  { id: 'comic', layout: 'orb', style: 'zoom', name: 'Pop Comic', tag: 'Halftone, outlines and BAM words' },
+  { id: 'comic', layout: 'scene', style: 'bubble', name: 'Pop Comic', tag: 'Halftone page, speech bubbles, POW' },
   { id: 'stencil', layout: 'orb', style: 'zoom', name: 'Stencil', tag: 'Spray-paint words on concrete' },
   { id: 'film', layout: 'orb', style: 'zoom', name: 'Film Reel', tag: 'Sepia grain, light leaks, projector flicker' }
 ]

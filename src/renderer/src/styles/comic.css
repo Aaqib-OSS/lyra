@@ -1,0 +1,140 @@
+/* ==========================================================================
+   POP COMIC: a printed comic page (fullscreen: one file, layout mechanics are in scene.css).
+   Yellow paper with halftone dots and a slowly turning burst, the video as the big panel with a caption box, every lyric line
+   a speech bubble that pops in with the word being sung blown up in pink, starbursts (POW, ZAP, WOW) that go off in the corners,
+   a thick black page border as the edge. Graphic ink, dots and type only.
+   ========================================================================== */
+:root[data-vibe='comic'] {
+  --rimc: #ffd400;
+  --cm-yellow: #ffd400;
+  --cm-pink: #ff3b6b;
+  --cm-cyan: #27b6ff;
+  --cm-ink: #111;
+  /* scene geometry (styles/scene.css): the big panel on the right, the bubble on the left, the caption card bottom left */
+  --sc-ww: min(52vw, 80vh);
+  --sc-wl: calc(95vw - var(--sc-ww));
+  --sc-wt: 9vh;
+  --sc-wr: 0.4vh;
+  --sc-cl: 5vw;
+  --sc-cb: 5vh;
+  --sc-ct: auto;
+  --sc-cw: min(40vw, 560px);
+  --sc-ll: 5vw;
+  --sc-lt: 14vh;
+  --sc-lw: calc(95vw - var(--sc-ww) - 5vw - 5vw);
+  --sc-lb: 30vh;
+  --sc-lbs: 28vh;
+  --sc-art-bg: radial-gradient(circle, rgba(17, 17, 17, 0.55) 1.6px, transparent 2.2px) 0 0 / 12px 12px, #27b6ff;
+  --sc-art-fg: #111;
+  --sc-eq: #111;
+}
+:root[data-vibe='comic'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(56vw, 84vh); }
+:root[data-vibe='comic'][data-rim='on']::after { display: none; }
+[data-vibe='comic'] .shell {
+  --accent: #ff3b6b;
+  --glow: rgba(255, 59, 107, 0.4);
+  --glow-soft: rgba(255, 59, 107, 0.18);
+  --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif;
+  --fg: #111;
+  --fg-2: #2a2a2a;
+  --fg-3: #444;
+  --line: rgba(17, 17, 17, 0.2);
+  --line-2: rgba(17, 17, 17, 0.4);
+  --glass: rgba(255, 255, 255, 0.8);
+  --glass-2: #fff;
+  --on-fg: #fff;
+  --word-dim: rgba(17, 17, 17, 0.35);
+  --bg-0: #ffd400;
+  color: var(--fg);
+}
+
+/* ---------------- the page ---------------- */
+[data-vibe='comic'] .backdrop .backdrop__field { background: var(--cm-yellow); }
+:root[data-vibe='comic'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+.comicfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.comicfx__bg { position: absolute; inset: 0; overflow: hidden; }
+/* the burst and the dots are paper: they stop at the edge of the panel so they never lie over the video */
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .comicfx__bg {
+  clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, var(--sc-wl) var(--sc-wt), calc(var(--sc-wl) + var(--sc-ww)) var(--sc-wt), calc(var(--sc-wl) + var(--sc-ww)) calc(var(--sc-wt) + var(--sc-wh)), var(--sc-wl) calc(var(--sc-wt) + var(--sc-wh)), var(--sc-wl) var(--sc-wt));
+}
+.comicfx__rays { position: absolute; left: 50%; top: 50%; width: 220vmax; height: 220vmax; translate: -50% -50%; background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.28) 0deg 8deg, transparent 8deg 16deg); animation: cm-spin 90s linear infinite; }
+@keyframes cm-spin { to { rotate: 360deg; } }
+/* halftone dots, bigger and denser toward the bottom left like a printed gradient */
+.comicfx__dots { position: absolute; inset: 0; background: radial-gradient(circle, var(--cm-pink) 0 26%, transparent 28%) 0 0 / 2.6vh 2.6vh; -webkit-mask: radial-gradient(90% 90% at 0% 100%, #000 0, transparent 70%); mask: radial-gradient(90% 90% at 0% 100%, #000 0, transparent 70%); opacity: 0.55; }
+.comicfx__dots--b { background: radial-gradient(circle, var(--cm-cyan) 0 24%, transparent 26%) 1.3vh 1.3vh / 2.6vh 2.6vh; -webkit-mask: radial-gradient(70% 70% at 100% 0%, #000 0, transparent 70%); mask: radial-gradient(70% 70% at 100% 0%, #000 0, transparent 70%); opacity: 0.4; }
+/* the page border: a thick black rule with a white gutter inside it */
+.comicfx__page { position: absolute; inset: 0; box-shadow: inset 0 0 0 1.2vh var(--cm-ink), inset 0 0 0 1.9vh #fff, inset 0 0 0 2.4vh var(--cm-ink); }
+/* starbursts go off in the corners one after another */
+.comicfx__pow { position: absolute; width: 17vh; height: 17vh; display: grid; place-items: center; font: 900 3.2vh/1 'Unbounded Variable', sans-serif; color: var(--cm-ink); letter-spacing: -0.04em; background: var(--cm-pink); clip-path: polygon(50% 0, 61% 18%, 82% 8%, 80% 30%, 100% 38%, 84% 55%, 98% 76%, 76% 76%, 70% 100%, 52% 84%, 32% 98%, 28% 76%, 4% 78%, 20% 56%, 0 36%, 22% 30%, 18% 8%, 40% 18%); opacity: 0; scale: 0.2; animation: cm-pow 12s steps(1) infinite; }
+.comicfx__pow span { rotate: -8deg; color: #fff; text-shadow: 0.25vh 0.25vh 0 var(--cm-ink); }
+.comicfx__pow--a { left: 3vw; top: 5vh; animation-delay: 0s; }
+.comicfx__pow--b { right: 3vw; bottom: 6vh; background: var(--cm-cyan); animation-delay: -8s; }
+.comicfx__pow--c { left: 44vw; bottom: 3vh; background: #fff; animation-delay: -4s; }
+.comicfx__pow--c span { color: var(--cm-pink); }
+@keyframes cm-pow { 0% { opacity: 0; scale: 0.2; rotate: -12deg; } 2% { opacity: 1; scale: 1.15; rotate: 4deg; } 5% { scale: 1; rotate: -3deg; } 22% { opacity: 1; scale: 1; } 25%, 100% { opacity: 0; scale: 0.6; } }
+:root[data-calm] .comicfx__rays, :root[data-calm] .comicfx__pow { animation-play-state: paused; }
+:root[data-motion='off'] .comicfx * { animation: none !important; }
+:root[data-motion='off'] .comicfx__pow { display: none; }
+:root[data-perf='low'] .comicfx__rays, :root[data-perf='low'] .comicfx__dots--b { display: none; }
+/* the panel: a thick black border, a hard shadow, a yellow caption box in the corner */
+[data-vibe='comic'] .scenewin { box-shadow: 0 0 0 1vh var(--cm-ink), 1.4vh 1.6vh 0 1vh rgba(17, 17, 17, 0.9); }
+.comicfx__caption { position: absolute; left: calc(var(--sc-wl) + 1vh); top: calc(var(--sc-wt) + 1vh); padding: 0.8vh 1.4vh; background: var(--cm-yellow); border: 0.4vh solid var(--cm-ink); font: 900 1.7vh/1 'Unbounded Variable', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cm-ink); box-shadow: 0.4vh 0.5vh 0 var(--cm-ink); }
+.comicfx__caption, .comicfx__pow { display: none; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .comicfx__caption { display: block; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .comicfx__pow { display: grid; }
+.scenewin__art span { font: 900 3.4vh/1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; background: #fff; border: 0.5vh solid var(--cm-ink); padding: 1vh 1.6vh; box-shadow: 0.6vh 0.7vh 0 var(--cm-ink); rotate: -3deg; color: var(--cm-ink); }
+.scenewin__eq { display: none; }
+
+/* ---------------- the card: a caption box ---------------- */
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  --fg: #111;
+  --fg-2: #2a2a2a;
+  --fg-3: #444;
+  flex-direction: row;
+  align-items: center;
+  gap: 2vh;
+  padding: 1.2vh 2vh 1.2vh 1.2vh !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  border: 0.45vh solid var(--cm-ink) !important;
+  box-shadow: 0.9vh 1vh 0 var(--cm-ink) !important;
+  color: var(--cm-ink);
+}
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0 !important; box-shadow: 0 0 0 0.4vh var(--cm-ink); }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 900 2.1vh/1.1 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: var(--cm-ink); text-shadow: none; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; color: #2a2a2a; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: #fff; box-shadow: 0 0 0 0.3vh var(--cm-ink); height: 1.1vh; border-radius: 0; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--cm-pink); border-radius: 0; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: var(--cm-pink) !important; color: #fff !important; border-radius: 50% !important; box-shadow: 0 0 0 0.4vh var(--cm-ink), 0.5vh 0.6vh 0 0.4vh var(--cm-ink) !important; }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: var(--cm-ink); }
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='comic'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+
+/* ---------------- lyrics: speech bubbles (stage 'bubble') ---------------- */
+.stage--bubble { display: flex; flex-direction: column; justify-content: center; }
+.sign--bubble .sign__line { position: relative; align-self: flex-start; max-width: 100%; padding: 3vh 3.2vh 3.2vh; background: #fff; border: 0.55vh solid var(--cm-ink); border-radius: 4vh; box-shadow: 0.9vh 1vh 0 var(--cm-ink); animation: cm-bubble 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) 1; gap: 1.4vh; }
+.sign--bubble .sign__line::after { content: ''; position: absolute; right: 3vh; bottom: -2.6vh; width: 3.4vh; height: 3.4vh; background: #fff; border-right: 0.55vh solid var(--cm-ink); border-bottom: 0.55vh solid var(--cm-ink); transform: skewX(-18deg) rotate(45deg) translate(-0.4vh, -0.4vh); }
+@keyframes cm-bubble { 0% { transform: scale(0.55) rotate(-4deg); opacity: 0; } 70% { transform: scale(1.04) rotate(1deg); opacity: 1; } 100% { transform: none; } }
+.sign--bubble .sign__row { font-family: 'Unbounded Variable', sans-serif; font-weight: 900; font-size: min(2.9vw, 5.4vh); line-height: 1.12; letter-spacing: -0.03em; text-transform: uppercase; gap: 0 0.28em; color: var(--cm-ink); }
+.sign--bubble .sign__word { color: rgba(17, 17, 17, 0.28); }
+.sign--bubble .sign__word.is-in { color: var(--cm-ink); }
+.sign--bubble .sign__word.is-now { color: #fff; background: var(--cm-pink); padding: 0 0.2em; margin: 0 -0.1em; box-shadow: 0.1em 0.1em 0 var(--cm-ink); animation: cm-pop 0.28s cubic-bezier(0.2, 1.6, 0.4, 1) 1; rotate: -2deg; }
+@keyframes cm-pop { 0% { scale: 0.6; } 100% { scale: 1; } }
+.sign--bubble .sign__next { font: 800 min(1.6vw, 2.8vh) / 1.2 'Unbounded Variable', sans-serif; text-transform: uppercase; color: rgba(17, 17, 17, 0.55); letter-spacing: -0.01em; }
+.sign--bubble .sign__refl { display: none; }
+:root[data-motion='off'] .sign--bubble .sign__line, :root[data-motion='off'] .sign--bubble .sign__word { animation: none; }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='comic'] .lyrics__notice { align-self: flex-start; background: #fff; border: 0.4vh solid var(--cm-ink); border-radius: 0; color: var(--cm-ink); font: 900 1.6vh/1.2 'Unbounded Variable', sans-serif; letter-spacing: 0.02em; text-transform: uppercase; box-shadow: 0.4vh 0.5vh 0 var(--cm-ink); }
+[data-vibe='comic'] .plain__stanza { font-family: 'Unbounded Variable', sans-serif; font-weight: 800; font-size: min(1.9vw, 3.4vh); line-height: 1.25; text-transform: uppercase; letter-spacing: -0.02em; color: var(--cm-ink); }
+[data-vibe='comic'] .plain__stanza > span { width: fit-content; background: #fff; border: 0.3vh solid var(--cm-ink); padding: 0.2em 0.5em; margin-bottom: 0.5vh; box-shadow: 0.3vh 0.4vh 0 var(--cm-ink); }
+[data-vibe='comic'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='comic'] .lfb__poster { display: none; }
+[data-vibe='comic'] .lfb h3 { font-family: 'Unbounded Variable', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -0.04em; font-size: clamp(24px, 3.6vw, 52px); color: var(--cm-pink); -webkit-text-stroke: 0.06em var(--cm-ink); paint-order: stroke fill; text-shadow: 0.07em 0.07em 0 var(--cm-ink); }
+[data-vibe='comic'] .lfb p, [data-vibe='comic'] .lfb small { color: var(--cm-ink); font-weight: 700; }
+[data-vibe='comic'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='comic'] .lfb__eq i { background: var(--cm-pink); border: 0.3vh solid var(--cm-ink); border-radius: 0; box-shadow: none; }

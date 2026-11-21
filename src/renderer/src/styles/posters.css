@@ -93,7 +93,6 @@
 /* ---- Glitch: split channels and a tearing line ---- */
 
 /* ---- Pop Comic: a boxed panel with a burst ---- */
-[data-vibe='comic'] .artwork--lift { outline: 6px solid #111; outline-offset: 0; box-shadow: 10px 10px 0 6px #111 !important; border-radius: 6px !important; --tilt: -1.5deg; animation: pz-wobble 5s ease-in-out infinite; }
 
 /* ---- Stencil: spray-painted edge and an orange tag ---- */
 [data-vibe='stencil'] .artwork--lift { outline: 4px solid #ff6a00; outline-offset: 0; box-shadow: 8px 8px 0 4px #000 !important; border-radius: 2px !important; --tilt: -1.5deg; animation: pz-wobble 6s ease-in-out infinite; }
