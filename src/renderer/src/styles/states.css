@@ -137,3 +137,18 @@
 [data-vibe='arcade'] .lfb p { font-family: 'Press Start 2P', monospace; font-size: 10px; line-height: 1.9; color: #d6d6ff; }
 [data-vibe='arcade'] .lfb__eq i { background: #ffe600; border-radius: 0; box-shadow: 2px 2px 0 #ff2d6f; }
 :root[data-calm] [data-vibe='arcade'] .lfb h3 { animation: none; }
+
+/* ===================== CINEMA (noir) ===================== */
+/* the film is black and white, the video too */
+[data-vibe='noir'] .backdrop__stage { filter: grayscale(1) contrast(1.12) brightness(.92) !important; }
+:root[data-vibe='noir'][data-bg-media] .backdrop__dim { background: rgba(0,0,0,.45); }
+[data-vibe='noir'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid rgba(255,255,255,.35); border-bottom: 1px solid rgba(255,255,255,.35); border-radius: 0; letter-spacing: .3em; text-transform: uppercase; font-size: 9.5px; color: rgba(255,255,255,.75); padding: 5px 10px; }
+/* unsynced words: end credits, centred and still */
+[data-vibe='noir'] .lyrics__inner--plain { text-align: center; }
+[data-vibe='noir'] .lyrics__inner--plain .lyrics__notice { margin-inline: auto; }
+[data-vibe='noir'] .plain__stanza { align-items: center; font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: .02em; color: #f2f2f2; text-shadow: 0 1px 3px #000; line-height: 1.5; }
+[data-vibe='noir'] .lfb { align-items: center; text-align: center; }
+[data-vibe='noir'] .lfb__poster, [data-vibe='noir'] .lfb__eq { display: none; }
+[data-vibe='noir'] .lfb h3 { font-family: 'Iowan Old Style', Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: .24em; text-transform: uppercase; font-size: clamp(14px, 2cqw, 22px); border-top: 1px solid rgba(255,255,255,.5); border-bottom: 1px solid rgba(255,255,255,.5); padding: .6em 1.2em; max-width: none; }
+[data-vibe='noir'] .lfb p { font-family: 'Iowan Old Style', Georgia, serif; font-style: italic; }
+[data-vibe='noir'] .lfb__actions { justify-content: center; }
