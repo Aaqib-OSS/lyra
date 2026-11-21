@@ -121,7 +121,7 @@
 .feed--editor .feed__word.is-now { color: #f5c897; text-shadow: 0 0 1vh rgba(245, 200, 151, 0.5); }
 .feed--editor .feed__row.is-current .feed__txt::after { border-right: 0.3vh solid #fff; padding-right: 0.2vh; animation: ed-caret 1s steps(1) infinite; }
 @keyframes ed-caret { 50% { border-color: transparent; } }
-:root[data-vibe='editor']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { height: 7.4vh !important; padding: 0.6vh 3vw !important; }
+:root[data-vibe='editor']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { height: auto !important; min-height: 7.4vh; padding: 0.6vh 3vw !important; } /* grows with its content (title + progress) so nothing hangs out of the bar on short windows */
 :root[data-vibe='editor']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { width: 5.2vh !important; }
 
 /* ================= METRO ================= */

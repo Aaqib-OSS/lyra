@@ -15,7 +15,7 @@
   --sc-cl: 3vw;
   --sc-ct: calc(64px + 3vh);
   --sc-cb: auto;
-  --sc-cw: min(24vw, 320px);
+  --sc-cw: max(280px, min(24vw, 330px));
   --sc-ll: 10vw;
   --sc-lt: 74vh;
   --sc-lw: 80vw;
@@ -89,6 +89,8 @@
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .sub__line { font-family: 'Fraunces Variable', Georgia, serif; font-size: min(3vw, 5.6vh); text-shadow: 0 0 0.6vh #000, 0.2vh 0.2vh 0.4vh #000, -0.2vh -0.2vh 0.4vh #000, 0 0.3vh 1.4vh rgba(0, 0, 0, 0.9); }
 
 /* ---------------- other lyric states (same regions) ---------------- */
+/* the no-lyrics / waiting message needs a tall region (heading, text, buttons): centred in the screen, set through the scene variables (scene.css wins over plain selectors) */
+:root[data-vibe='noir']:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ll: 22vw; --sc-lw: 56vw; --sc-lt: 30vh; --sc-lbs: 8vh; }
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']) .full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { top: 22vh; bottom: 10vh; left: 22vw; width: 56vw; }
 [data-vibe='noir'] .lyrics__notice { background: transparent; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.5); border-bottom: 1px solid rgba(255, 255, 255, 0.5); border-radius: 0; color: #f2f2f2; letter-spacing: 0.2em; text-transform: uppercase; font-size: 1.3vh; }
 [data-vibe='noir'] .plain__stanza { align-items: center; font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-size: min(2.2vw, 4vh); line-height: 1.3; color: #f2f2f2; text-shadow: 0 0 0.8vh #000; text-align: center; }

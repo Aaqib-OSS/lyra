@@ -111,7 +111,8 @@
 @media (min-aspect-ratio: 1/1) { :root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics { height: var(--sc-wh); } }
 
 /* ---------------- other lyric states (same regions) ---------------- */
-:root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { height: auto; top: calc(var(--sc-wt) + 2vh); bottom: 8vh; }
+/* landscape only: in a portrait window the lyrics sit under the video (scene.css), not on top of it */
+@media (min-aspect-ratio: 1/1) { :root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics:has(.plain__stanza, .lfb) { height: auto; top: calc(var(--sc-wt) + 2vh); bottom: 8vh; } }
 [data-vibe='film'] .lyrics__notice { align-self: flex-start; background: transparent; border: 1px solid rgba(232, 184, 115, 0.6); border-radius: 0; color: var(--fm-sepia); font: 600 1.4vh/1.3 'Fraunces Variable', Georgia, serif; letter-spacing: 0.14em; text-transform: uppercase; }
 [data-vibe='film'] .plain__stanza { font-family: 'Fraunces Variable', Georgia, serif; font-weight: 600; font-size: min(1.9vw, 3.4vh); line-height: 1.35; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fm-cream); }
 [data-vibe='film'] .lfb { align-items: flex-start; text-align: left; }
