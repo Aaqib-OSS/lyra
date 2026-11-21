@@ -182,3 +182,17 @@
 [data-vibe='blocks'] .lfb h3 { font-family: 'VT323', monospace; font-weight: 400; font-size: clamp(22px, 3cqw, 32px); color: #ffff55; text-shadow: 2px 2px 0 #3f3f3f; letter-spacing: 0; }
 [data-vibe='blocks'] .lfb p { font-family: 'VT323', monospace; font-size: 18px; color: #fff; text-shadow: 2px 2px 0 #3f3f3f; }
 [data-vibe='blocks'] .lfb__eq i { background: #55ff55; border-radius: 0; box-shadow: inset -2px -2px 0 #2a7a0a; }
+
+/* ===================== STADIUM ===================== */
+:root[data-vibe='stadium'][data-bg-media] .vibefx__pitch { opacity: .25; }
+:root[data-vibe='stadium'][data-bg-media] .backdrop__dim { background: rgba(2, 20, 10, .25); }
+[data-vibe='stadium'] .lyrics__notice { background: #e11d2e; border: 0; border-radius: 3px; color: #fff; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: 10px; }
+/* unsynced words: the team sheet: a blue board with a gold edge, numbered rows, nothing live */
+[data-vibe='stadium'] .lyrics__inner--plain { max-width: 640px; counter-reset: row; background: linear-gradient(180deg, #0b3b86, #072a63); border-left: 6px solid #ffd23f; padding: 14px 20px 20px; margin: 6px 4px; box-shadow: 0 14px 34px -12px rgba(0,0,0,.6); }
+[data-vibe='stadium'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); text-transform: uppercase; font-weight: 800; letter-spacing: -0.02em; color: #fff; font-size: max(13px, calc(var(--lyric-size) * 0.42)); line-height: 1.6; }
+[data-vibe='stadium'] .plain__stanza > span { counter-increment: row; display: block; border-bottom: 1px solid rgba(255,255,255,.12); }
+[data-vibe='stadium'] .plain__stanza > span::before { content: counter(row, decimal-leading-zero); color: #ffd23f; margin-right: .9em; font-weight: 900; }
+[data-vibe='stadium'] .lfb { flex: 0 1 auto; align-self: center; background: linear-gradient(180deg, #0b3b86, #072a63); border-left: 6px solid #ffd23f; padding: 18px 24px; margin: auto 4px; max-width: 560px; align-items: flex-start; box-shadow: 0 14px 34px -12px rgba(0,0,0,.6); --fg: #fff; --fg-2: rgba(255,255,255,.88); --fg-3: rgba(255,255,255,.7); }
+[data-vibe='stadium'] .lfb__poster { display: none; }
+[data-vibe='stadium'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); text-transform: uppercase; font-weight: 900; color: #ffd23f; letter-spacing: -0.02em; }
+[data-vibe='stadium'] .lfb__eq i { background: #ffd23f; border-radius: 1px; }
