@@ -103,7 +103,7 @@
 :root[data-vibe='paper']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='paper']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='paper']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 3vh/1 'Caveat', cursive; letter-spacing: 0; color: #2a1c12; -webkit-text-fill-color: #2a1c12; background: none; text-shadow: none; }
-:root[data-vibe='paper']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; color: #5a3e26; }
+:root[data-vibe='paper']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.4vh); font-weight: 700; color: #5a3e26; }
 :root[data-vibe='paper']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(42, 28, 18, 0.25); }
 :root[data-vibe='paper']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #2a1c12; }
 :root[data-vibe='paper']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #2a1c12 !important; color: var(--dy-cream) !important; box-shadow: none !important; }
@@ -119,7 +119,7 @@
 .sign--note .sign__word { color: rgba(255, 241, 216, 0.3); transition: color 0.4s ease; }
 .sign--note .sign__word.is-in { color: var(--dy-cream); text-shadow: 0 0 1.4vh rgba(255, 194, 122, 0.45); }
 .sign--note .sign__word.is-now { color: #fff; background: linear-gradient(180deg, transparent 58%, rgba(255, 194, 122, 0.55) 58%, rgba(255, 194, 122, 0.55) 92%, transparent 92%); text-shadow: 0 0 1.6vh rgba(255, 194, 122, 0.7); }
-.sign--note .sign__next { font-family: 'Caveat', cursive; font-weight: 600; font-size: min(3.4vw, 5.8vh); letter-spacing: 0; color: rgba(255, 241, 216, 0.4); }
+.sign--note .sign__next { font-family: 'Caveat', cursive; font-weight: 600; font-size: max(10.5px, min(3.4vw, 5.8vh)); letter-spacing: 0; color: rgba(255, 241, 216, 0.4); }
 .sign--note .sign__refl { display: none; }
 :root[data-motion='off'] .sign--note .sign__line { animation: none; }
 

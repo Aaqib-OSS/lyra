@@ -91,7 +91,7 @@
 :root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 2.2vh/1.15 'Courier New', monospace; letter-spacing: 0.02em; text-transform: uppercase; color: #1a120a; -webkit-text-fill-color: #1a120a; background: none; text-shadow: none; }
-:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.4vh 'Courier New', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: #5a4630; }
+:root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: max(10.5px, 1.4vh) 'Courier New', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: #5a4630; }
 :root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(26, 18, 10, 0.25); border-radius: 0; }
 :root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #1a120a; border-radius: 0; }
 :root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #1a120a !important; color: #e7d9b8 !important; border-radius: 0.6vh !important; box-shadow: none !important; }
@@ -107,7 +107,7 @@
 .sign--label .sign__word { color: rgba(244, 244, 238, 0.28); text-shadow: none; }
 .sign--label .sign__word.is-in { color: #f4f4ee; text-shadow: 0.1vh 0.1vh 0 rgba(0, 0, 0, 0.8), -0.06vh -0.06vh 0 rgba(255, 255, 255, 0.35); }
 .sign--label .sign__word.is-now { color: var(--cs-amber); }
-.sign--label .sign__next { font: 700 min(1.5vw, 2.7vh) 'Courier New', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255, 226, 176, 0.4); }
+.sign--label .sign__next { font: 700 max(10.5px, min(1.5vw, 2.7vh)) 'Courier New', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255, 226, 176, 0.4); }
 .sign--label .sign__refl { display: none; }
 :root[data-motion='off'] .sign--label .sign__row { animation: none; }
 

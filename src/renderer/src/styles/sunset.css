@@ -114,14 +114,14 @@
 :root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font-family: 'Inter Variable', system-ui, sans-serif; font-size: 2.1vh; font-weight: 650; letter-spacing: -0.01em; color: #fff; text-shadow: none; }
-:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: var(--gold-ink); opacity: 0.8; }
+:root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.5vh); color: var(--gold-ink); opacity: 0.8; }
 :root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: linear-gradient(90deg, #ffd9a6, #ff9f7a); }
 :root[data-vibe='sunset']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #fff !important; color: #3a1f2a !important; box-shadow: 0 0.8vh 2vh rgba(255, 150, 100, 0.4) !important; }
 
 /* ---------------- lyrics: bloom (stage 'bloom') ---------------- */
 .stage--bloom { display: flex; flex-direction: column; justify-content: center; }
 .bloom { display: flex; flex-direction: column; justify-content: center; height: 100%; gap: 2.6vh; }
-.bloom__side { font: 600 min(2.2vw, 3.6vh) / 1.25 'Inter Variable', system-ui, sans-serif; letter-spacing: -0.02em; color: rgba(255, 233, 207, 0.4); min-height: 1.2em; filter: blur(0.6px); }
+.bloom__side { font: 600 max(10.5px, min(2.2vw, 3.6vh)) / 1.25 'Inter Variable', system-ui, sans-serif; letter-spacing: -0.02em; color: rgba(255, 233, 207, 0.4); min-height: 1.2em; filter: blur(0.6px); }
 .bloom__line { display: flex; flex-wrap: wrap; gap: 0 0.3em; font: 700 min(4.6vw, 8vh) / 1.1 'Inter Variable', system-ui, sans-serif; letter-spacing: -0.04em; padding-inline-end: 0.28em; }
 .bloom__word { color: rgba(255, 233, 207, 0.26); filter: blur(2px); transition: color 0.5s ease, filter 0.5s ease; }
 .bloom__word.is-in { color: #fff; filter: none; text-shadow: 0 0 2vh rgba(255, 170, 110, 0.55), 0 0.2vh 0.8vh rgba(40, 16, 30, 0.35); animation: sun-bloom 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 1; }

@@ -427,7 +427,7 @@
 .vibefx__xp::after { content: ''; position: absolute; inset: 0; width: 38%; background: #7ef542; box-shadow: inset 0 -2px 0 #4cb21e; animation: xp-fill 120s linear infinite; }
 @keyframes xp-fill { from { width: 4%; } to { width: 100%; } }
 [data-vibe='blocks'] .full__titles h1, [data-vibe='blocks'] .widget__title { font-family: 'Press Start 2P', monospace; font-size: clamp(13px, 1.5vw, 20px); line-height: 1.4; letter-spacing: 0; background: none; -webkit-text-fill-color: #fff; text-shadow: 3px 3px 0 #3f3f3f; }
-[data-vibe='blocks'] .full__artist, [data-vibe='blocks'] .full__album { font-family: 'Press Start 2P', monospace; font-size: 10px; line-height: 1.6; text-shadow: 2px 2px 0 rgba(0,0,0,.35); }
+[data-vibe='blocks'] .full__artist, [data-vibe='blocks'] .full__album { font-family: 'Press Start 2P', monospace; font-size: max(10.5px, 10px); line-height: 1.6; text-shadow: 2px 2px 0 rgba(0,0,0,.35); }
 [data-vibe='blocks'] .full:not(.is-cinema) .full__side { border-radius: 0; background: #c6c6c6; box-shadow: inset -4px -4px 0 #555, inset 4px 4px 0 #fff, 0 0 0 3px #000; color: #222; }
 [data-vibe='blocks'] .full:not(.is-cinema) .full__side .full__titles h1 { text-shadow: 3px 3px 0 #bbb; -webkit-text-fill-color: #222; }
 [data-vibe='blocks'] .full:not(.is-cinema) .full__side { --fg: #222; --fg-2: #444; --fg-3: #555; --on-fg: #fff; }

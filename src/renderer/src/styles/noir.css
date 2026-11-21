@@ -77,7 +77,7 @@
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 1.9vh/1.15 'Fraunces Variable', Georgia, serif; letter-spacing: 0.04em; text-transform: uppercase; color: #111; text-shadow: none; }
-:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.2vh; letter-spacing: 0.14em; text-transform: uppercase; color: #444; }
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: max(10.5px, 1.2vh); letter-spacing: 0.14em; text-transform: uppercase; color: #444; }
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(17, 17, 17, 0.25); }
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #111; }
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #111 !important; color: #ecebe6 !important; box-shadow: none !important; }
@@ -87,6 +87,9 @@
 
 /* ---------------- subtitles (stage 'subtitle'), over the picture ---------------- */
 :root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .sub__line { font-family: 'Fraunces Variable', Georgia, serif; font-size: min(3vw, 5.6vh); text-shadow: 0 0 0.6vh #000, 0.2vh 0.2vh 0.4vh #000, -0.2vh -0.2vh 0.4vh #000, 0 0.3vh 1.4vh rgba(0, 0, 0, 0.9); }
+
+/* .sub pads its bottom by 14% (of the WIDTH): in this wide, short region that pushed the line out above the stage (clipped, invisible) */
+:root[data-vibe='noir']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .sub { padding-bottom: 1vh; }
 
 /* ---------------- other lyric states (same regions) ---------------- */
 /* the no-lyrics / waiting message needs a tall region (heading, text, buttons): centred in the screen, set through the scene variables (scene.css wins over plain selectors) */
