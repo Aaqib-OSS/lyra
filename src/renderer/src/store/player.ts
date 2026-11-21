@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { CommandResult, ConnectionStatus, PlaybackSnapshot, PlayerCommand, QueueItem, RecentItem } from '@shared/types'
+import { estimatePositionMs } from '@core/clock'
 import { useUi } from './ui'
 
 interface PlayerStore {
@@ -22,9 +23,7 @@ interface PlayerStore {
 export function getPosition(): number {
   const s = usePlayer.getState().snapshot
   if (!s) return 0
-  const dur = s.track?.durationMs ?? Infinity
-  const pos = s.positionMs + (s.isPlaying ? Date.now() - s.sampledAt : 0)
-  return Math.max(0, Math.min(pos, dur))
+  return estimatePositionMs({ ...s, durationMs: s.track?.durationMs })
 }
 
 export const usePlayer = create<PlayerStore>((set, get) => ({

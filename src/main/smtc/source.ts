@@ -204,7 +204,8 @@ export class SmtcSource extends PlaybackSource {
     if (o.track?.artworkUrl !== n.track?.artworkUrl || o.track?.releaseYear !== n.track?.releaseYear) return true // artwork arrives a tick after the track
     if (o.device?.volumePercent !== n.device?.volumePercent) return true
     const predicted = o.positionMs + (o.isPlaying ? n.sampledAt - o.sampledAt : 0)
-    return Math.abs(predicted - n.positionMs) > 1500
+    // re-anchor the renderer's clock as soon as it is off by a noticeable amount (a loose threshold left lyrics/video up to 1.5 s out)
+    return Math.abs(predicted - n.positionMs) > 400
   }
 
   async command(cmd: PlayerCommand): Promise<CommandResult> {

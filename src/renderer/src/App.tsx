@@ -23,7 +23,7 @@ import { fillWindow, isAnimating, runTransition, shell } from '@/lib/shell'
 import { useLyrics } from '@/store/lyrics'
 import { OFFSET_STEP_MS, nudgeSongOffset } from '@/store/offsets'
 import { getFullscreenShortcutAction } from '@shared/shortcuts'
-import { usePlayer } from '@/store/player'
+import { getPosition, usePlayer } from '@/store/player'
 import { useSettings } from '@/store/settings'
 import { requestMode, useUi } from '@/store/ui'
 
@@ -201,11 +201,7 @@ function useHotkeys(): void {
   }, [])
 }
 
-function getNow(): number {
-  const s = usePlayer.getState().snapshot
-  if (!s) return 0
-  return s.positionMs + (s.isPlaying ? Date.now() - s.sampledAt : 0)
-}
+const getNow = getPosition // the one shared song clock
 
 export default function App() {
   const ready = useBoot()
