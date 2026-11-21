@@ -1,0 +1,134 @@
+/* ==========================================================================
+   DIARY: a cosy night-time corner (fullscreen: one file, layout mechanics are in scene.css).
+   A warm dark wall with fairy lights glowing out of focus, a twine line with clothespins, the video as a polaroid print with a
+   handwritten caption, the song written out in a soft handwriting on the wall, the card as a kraft paper tag on a string.
+   Graphic: glows, paper and type only (the old light diary page is gone; the paper look lives in Sketchbook).
+   ========================================================================== */
+:root[data-vibe='paper'] {
+  --rimc: #ffc27a;
+  --dy-warm: #ffc27a;
+  --dy-cream: #fff1d8;
+  --dy-kraft: #c9a46a;
+  /* scene geometry (styles/scene.css): the polaroid on the left, the words on the right, a tag under the words */
+  --sc-ww: min(34vw, 54vh);
+  --sc-wl: 8vw;
+  --sc-wt: 15vh;
+  --sc-wr: 0.4vh;
+  --sc-ll: calc(8vw + var(--sc-ww) + 7vw);
+  --sc-lt: 14vh;
+  --sc-lw: calc(94vw - var(--sc-ww) - 8vw - 7vw);
+  --sc-lb: 28vh;
+  --sc-lbs: 26vh;
+  --sc-cl: var(--sc-ll);
+  --sc-cb: 7vh;
+  --sc-ct: auto;
+  --sc-cw: min(40vw, 520px);
+  --sc-art-bg: radial-gradient(circle at 50% 40%, #4a3322, #2a1c12);
+  --sc-art-fg: #fff1d8;
+  --sc-eq: #ffc27a;
+}
+:root[data-vibe='paper'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(36vw, 58vh); }
+:root[data-vibe='paper'][data-rim='on']::after { display: none; }
+[data-vibe='paper'] .shell {
+  --accent: #ffc27a;
+  --glow: rgba(255, 194, 122, 0.5);
+  --glow-soft: rgba(255, 194, 122, 0.22);
+  --font: 'Caveat', 'Nunito Variable', cursive;
+  --fg: #fff1d8;
+  --fg-2: rgba(255, 241, 216, 0.78);
+  --fg-3: rgba(255, 241, 216, 0.55);
+  --line: rgba(255, 241, 216, 0.18);
+  --line-2: rgba(255, 241, 216, 0.32);
+  --glass: rgba(60, 40, 24, 0.5);
+  --glass-2: rgba(60, 40, 24, 0.85);
+  --on-fg: #2a1c12;
+  --word-dim: rgba(255, 241, 216, 0.34);
+  --bg-0: #1d1410;
+  color: var(--fg);
+}
+[data-vibe='paper'] .backdrop .backdrop__field { background: radial-gradient(100% 90% at 50% 20%, #3a2819, #1d1410 80%); }
+:root[data-vibe='paper'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+
+/* ---------------- the wall: fairy lights, a twine line ---------------- */
+.diaryfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.diaryfx__bokeh { position: absolute; border-radius: 50%; width: var(--s); height: var(--s); background: radial-gradient(circle, rgba(255, 214, 150, 0.95), rgba(255, 170, 90, 0.35) 55%, transparent 70%); filter: blur(var(--b, 3px)); opacity: 0.8; animation: dy-twinkle 4s ease-in-out infinite; animation-delay: var(--d, 0s); }
+@keyframes dy-twinkle { 0%, 100% { opacity: 0.45; transform: scale(0.92); } 50% { opacity: 0.95; transform: scale(1.06); } }
+.diaryfx__twine { position: absolute; left: 0; top: 0; width: 100%; height: 14vh; }
+.diaryfx__twine path { fill: none; stroke: #c9a46a; stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(0 0.4vh 0.3vh rgba(0, 0, 0, 0.4)); }
+.diaryfx__pin { position: absolute; width: 1.3vh; height: 4vh; border-radius: 0.4vh; background: linear-gradient(90deg, #d9b27a, #a97d44); box-shadow: 0 0.4vh 0.6vh rgba(0, 0, 0, 0.4); }
+.diaryfx__pin::after { content: ''; position: absolute; left: 50%; top: 40%; width: 0.3vh; height: 40%; background: rgba(0, 0, 0, 0.35); transform: translateX(-50%); }
+:root[data-calm] .diaryfx__bokeh { animation-play-state: paused; }
+:root[data-motion='off'] .diaryfx * { animation: none !important; }
+:root[data-perf='low'] .diaryfx__bokeh:nth-child(2n) { display: none; filter: none; }
+/* the polaroid: a white frame around the video with a thicker bottom edge; the video shows through a hole */
+.diaryfx__polaroid { display: none; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .diaryfx__polaroid {
+  display: block;
+  position: absolute;
+  left: calc(var(--sc-wl) - 1.8vh);
+  top: calc(var(--sc-wt) - 1.8vh);
+  width: calc(var(--sc-ww) + 3.6vh);
+  height: calc(var(--sc-wh) + 3.6vh + 7vh);
+  background: #fbf6ea;
+  box-shadow: 0.6vh 1.6vh 3vh rgba(0, 0, 0, 0.55);
+  clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, 1.8vh 1.8vh, calc(100% - 1.8vh) 1.8vh, calc(100% - 1.8vh) calc(1.8vh + var(--sc-wh)), 1.8vh calc(1.8vh + var(--sc-wh)), 1.8vh 1.8vh);
+  transition: width 0.7s, height 0.7s;
+}
+.diaryfx__polaroid-shadow { display: none; }
+.diaryfx__caption { display: none; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .diaryfx__caption { display: block; position: absolute; left: calc(var(--sc-wl) - 1.8vh); top: calc(var(--sc-wt) + var(--sc-wh) + 2vh); width: calc(var(--sc-ww) + 3.6vh); text-align: center; font: 700 4vh/1 'Caveat', cursive; color: #3a2a1c; transform: rotate(-1.2deg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2vh; }
+[data-vibe='paper'] .scenewin { box-shadow: inset 0 0 3vh rgba(0, 0, 0, 0.35); }
+.scenewin__art span { font: 700 3.2vh/1 'Caveat', cursive; letter-spacing: 0; text-transform: none; color: #fff1d8; }
+.scenewin__eq { display: none; }
+
+/* ---------------- the card: a kraft paper tag ---------------- */
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  --fg: #2a1c12;
+  --fg-2: #4a3322;
+  --fg-3: #6a4c34;
+  flex-direction: row;
+  align-items: center;
+  gap: 2vh;
+  padding: 1.3vh 2vh 1.3vh 4.4vh !important;
+  border-radius: 0.8vh 2.4vh 2.4vh 0.8vh !important;
+  background: var(--dy-kraft) !important;
+  border: 0 !important;
+  box-shadow: inset 0 0 0 0.3vh rgba(60, 40, 20, 0.35), 0.5vh 1.2vh 2.4vh rgba(0, 0, 0, 0.5) !important;
+  color: #2a1c12;
+}
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before { content: ''; position: absolute; left: 1.4vh; top: 50%; width: 1.7vh; height: 1.7vh; margin-top: -0.85vh; border-radius: 50%; background: #1d1410; box-shadow: inset 0 0 0 0.35vh #e9d3a4; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 8.6vh !important; border-radius: 0.4vh !important; box-shadow: 0 0 0 0.6vh #fbf6ea, 0 0.4vh 0.8vh rgba(0, 0, 0, 0.4); }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.7vh; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 3vh/1 'Caveat', cursive; letter-spacing: 0; color: #2a1c12; -webkit-text-fill-color: #2a1c12; background: none; text-shadow: none; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.4vh; font-weight: 700; color: #5a3e26; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(42, 28, 18, 0.25); }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #2a1c12; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #2a1c12 !important; color: var(--dy-cream) !important; box-shadow: none !important; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #2a1c12; }
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='paper'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+
+/* ---------------- lyrics: soft handwriting on the wall (stage 'note') ---------------- */
+.stage--note { display: flex; flex-direction: column; justify-content: center; }
+.sign--note .sign__line { gap: 1.6vh; rotate: -1deg; animation: dy-in 0.6s ease-out 1; }
+@keyframes dy-in { from { opacity: 0; transform: translateY(1.4vh); } to { opacity: 1; transform: none; } }
+.sign--note .sign__row { font-family: 'Caveat', cursive; font-weight: 700; font-size: min(6vw, 10.4vh); line-height: 1; letter-spacing: 0; gap: 0 0.22em; }
+.sign--note .sign__word { color: rgba(255, 241, 216, 0.3); transition: color 0.4s ease; }
+.sign--note .sign__word.is-in { color: var(--dy-cream); text-shadow: 0 0 1.4vh rgba(255, 194, 122, 0.45); }
+.sign--note .sign__word.is-now { color: #fff; background: linear-gradient(180deg, transparent 58%, rgba(255, 194, 122, 0.55) 58%, rgba(255, 194, 122, 0.55) 92%, transparent 92%); text-shadow: 0 0 1.6vh rgba(255, 194, 122, 0.7); }
+.sign--note .sign__next { font-family: 'Caveat', cursive; font-weight: 600; font-size: min(3.4vw, 5.8vh); letter-spacing: 0; color: rgba(255, 241, 216, 0.4); }
+.sign--note .sign__refl { display: none; }
+:root[data-motion='off'] .sign--note .sign__line { animation: none; }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='paper'] .lyrics__notice { align-self: flex-start; background: rgba(255, 241, 216, 0.1); border: 0; box-shadow: inset 0 0 0 1px rgba(255, 241, 216, 0.4); color: var(--dy-cream); border-radius: 99px; font-family: 'Caveat', cursive; font-size: 2.4vh; font-weight: 700; letter-spacing: 0; text-transform: none; }
+[data-vibe='paper'] .plain__stanza { font-family: 'Caveat', cursive; font-weight: 700; font-size: min(3.6vw, 6vh); line-height: 1.1; letter-spacing: 0; color: var(--dy-cream); text-shadow: 0 0 1.2vh rgba(255, 194, 122, 0.3); }
+[data-vibe='paper'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='paper'] .lfb__poster { display: none; }
+[data-vibe='paper'] .lfb h3 { font-family: 'Caveat', cursive; font-weight: 700; text-transform: none; letter-spacing: 0; font-size: clamp(36px, 6vw, 88px); line-height: 0.95; color: var(--dy-cream); text-shadow: 0 0 1.6vh rgba(255, 194, 122, 0.5); }
+[data-vibe='paper'] .lfb p, [data-vibe='paper'] .lfb small { color: rgba(255, 241, 216, 0.88); font-family: 'Inter Variable', system-ui, sans-serif; }
+[data-vibe='paper'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='paper'] .lfb__eq i { background: var(--dy-warm); box-shadow: none; }

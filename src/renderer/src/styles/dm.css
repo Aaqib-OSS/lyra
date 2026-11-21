@@ -98,3 +98,38 @@
 [data-vibe='chat'] .lfb h3 { font-weight: 800; font-size: clamp(20px, 2.6vw, 38px); letter-spacing: -0.02em; color: #fff; }
 [data-vibe='chat'] .lfb p, [data-vibe='chat'] .lfb small { color: #c9d6ff; }
 [data-vibe='chat'] .lfb__actions { justify-content: flex-start; }
+
+/* ================= the thread, made like a real messaging app (fullscreen) ================= */
+.chat__shared { display: none; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat {
+  background: #000;
+  border-radius: 4vh;
+  padding: 1.8vh 2.2vh 2vh;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 3vh 8vh rgba(0, 0, 0, 0.6);
+}
+/* header: the contact, centred, like the top of a conversation */
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head { flex-direction: column; align-items: center; gap: 0.5vh; padding: 0 0 0.8vh; margin: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head img, :root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head i { width: 6vh; height: 6vh; box-shadow: none; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head div { align-items: center; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b { font-size: 1.6vh; font-weight: 600; color: #fff; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head b::after { content: ' ›'; color: rgba(255, 255, 255, 0.45); }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head span { display: none; }
+/* the shared song: an attachment card, like a link preview in a thread */
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__shared { display: flex; align-items: center; gap: 1.6vh; align-self: center; width: min(100%, 38vh); padding: 1vh 1.6vh 1vh 1vh; margin-bottom: 1vh; border-radius: 2.2vh; background: #1c1c1f; }
+.chat__shared img, .chat__shared i { width: 5.4vh; height: 5.4vh; border-radius: 1.2vh; object-fit: cover; background: #333; flex: none; }
+.chat__shared div { display: flex; flex-direction: column; min-width: 0; }
+.chat__shared b { font-size: 1.6vh; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat__shared span { font-size: 1.2vh; color: rgba(255, 255, 255, 0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* bubbles: big, close-set text, soft grey and blue, with the little tail */
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub { max-width: 88%; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { padding: 1.3vh 2.4vh 1.5vh; border-radius: 3.4vh; font-size: min(2.9vw, 5.4vh); font-weight: 500; line-height: 1.16; letter-spacing: -0.025em; box-shadow: none; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body { background: #26262b; color: #fff; border-bottom-left-radius: 3.4vh; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body { background: #0a84ff; color: #fff; border-bottom-right-radius: 3.4vh; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body::before { content: ''; position: absolute; left: -0.8vh; bottom: 0; width: 2.2vh; height: 2.8vh; background: #26262b; border-bottom-right-radius: 2.4vh 2.2vh; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body::after { content: ''; position: absolute; left: -1.4vh; bottom: 0; width: 1.4vh; height: 2.8vh; background: #000; border-bottom-right-radius: 1.8vh; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body::before { content: ''; position: absolute; right: -0.8vh; bottom: 0; width: 2.2vh; height: 2.8vh; background: #0a84ff; border-bottom-left-radius: 2.4vh 2.2vh; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body::after { content: ''; position: absolute; right: -1.4vh; bottom: 0; width: 1.4vh; height: 2.8vh; background: #000; border-bottom-left-radius: 1.8vh; }
+/* the words are there, dim, and light up as they are sung (the bubble keeps its size) */
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__text span { opacity: 0.3; transition: opacity 0.2s; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__text span.is-in { opacity: 1; }
+:root[data-vibe='chat'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__read { font-size: 1.2vh; font-weight: 600; color: rgba(255, 255, 255, 0.5); }

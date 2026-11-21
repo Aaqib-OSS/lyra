@@ -345,6 +345,25 @@ function DmFx() {
   )
 }
 
+/** Diary, fullscreen: a cosy night corner. Fairy lights glow out of focus, a twine line with clothespins, a polaroid for the video. */
+function DiaryFx() {
+  const title = usePlayer((x) => x.snapshot?.track?.title ?? '')
+  const bokeh = useMemo(() => Array.from({ length: 16 }, (_, i) => ({ left: 4 + ((i * 41 + 13) % 92), top: 1 + ((i * 17) % 22), s: 2.2 + ((i * 7) % 6) * 0.9, b: (i % 3) * 2 + 1, d: -((i * 0.7) % 4) })), [])
+  return (
+    <div className="diaryfx">
+      {bokeh.map((b, i) => (
+        <i key={i} className="diaryfx__bokeh" style={{ left: `${b.left}%`, top: `${b.top}%`, ['--s' as string]: `${b.s}vh`, ['--b' as string]: `${b.b}px`, ['--d' as string]: `${b.d}s` }} />
+      ))}
+      <svg className="diaryfx__twine" viewBox="0 0 1000 140" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M-10 30 C200 110 360 110 520 62 C680 14 820 110 1010 40" />
+      </svg>
+      <SceneWindow />
+      <div className="diaryfx__polaroid" />
+      <div className="diaryfx__caption">{title}</div>
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -456,7 +475,7 @@ export function VibeFx() {
           <div className="vibefx__dust" />
         </>
       )}
-      {vibe === 'paper' && <div className="vibefx__lines" />}
+      {vibe === 'paper' && <DiaryFx />}
       {vibe === 'sketch' && <SketchFx />}
       {vibe === 'stencil' && <StencilFx />}
       {vibe === 'film' && <FilmFx />}

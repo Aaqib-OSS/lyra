@@ -101,7 +101,7 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
-      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title' || mode === 'ink' || mode === 'glitch' || mode === 'bubble' || mode === 'spray' || mode === 'intertitle') && <Sign lines={lines} active={active} variant={mode} />}
+      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title' || mode === 'ink' || mode === 'glitch' || mode === 'bubble' || mode === 'spray' || mode === 'intertitle' || mode === 'note') && <Sign lines={lines} active={active} variant={mode} />}
       {mode === 'bloom' && <Bloom lines={lines} active={active} />}
       {mode === 'log' && <TermLog lines={lines} active={active} />}
       {active >= 0 && !live && (
@@ -364,6 +364,13 @@ function Chat({ lines, active }: { lines: readonly LyricLine[]; active: number }
           <span>{track?.title ?? ''}</span>
         </div>
       </header>
+      <div className="chat__shared">
+        {art ? <img src={art} alt="" /> : <i />}
+        <div>
+          <b>{track?.title ?? ''}</b>
+          <span>{track?.artists.join(', ') ?? ''} · Shared from Lyra</span>
+        </div>
+      </div>
       <div className="chat__feed">
         <AnimatePresence initial={false}>
           {shown.map((i, n) => (
