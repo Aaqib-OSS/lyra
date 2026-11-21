@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { LyricLine } from '@shared/types'
-import { cardDataUrl, drawCard } from '@/lib/shareCard'
+import { cardDataUrl, cardTheme, drawCard } from '@/lib/shareCard'
+import { useEffectiveVibe } from '@/hooks/useVibe'
 import { usePlayer } from '@/store/player'
 import { useUi } from '@/store/ui'
 
 /** Pick up to three lines around the one you tapped, preview the card, then save, copy or share it. */
 export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index: number; onClose(): void }) {
   const track = usePlayer((s) => s.snapshot?.track)
+  const { vibe } = useEffectiveVibe()
   const canvas = useRef<HTMLCanvasElement>(null)
   const [from, setFrom] = useState(index)
   const [count, setCount] = useState(1)
@@ -32,9 +34,10 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
       accent: css.getPropertyValue('--accent').trim() || '#d8d8d8',
       tint1: css.getPropertyValue('--tint1').trim() || '#1a1a1a',
       tint2: css.getPropertyValue('--tint2').trim() || '#101010',
-      style: look
+      style: look,
+      theme: cardTheme(vibe) // the card wears the vibe you are looking at
     })
-  }, [track, text, look])
+  }, [track, text, look, vibe])
 
   if (!track) return null
   const toast = useUi.getState().toast
