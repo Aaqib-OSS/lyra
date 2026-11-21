@@ -37,6 +37,8 @@ control, no real clock sync, no reconnect logic in the page, polling-style state
 | No device list | Devices panel: list, online state, Viewer/Controller role, one-click Disconnect | Visibility and control. |
 | (nothing) | Party mode: shared viewer-only code, guests expire when party ends | Group screens without handing out control. |
 | Wall-clock `now` | NTP-style ping, lowest-rtt filter | Tight sync. |
+| OBS overlay on the old `?k=` server (`/overlay`, fed by `/events`, `/lyrics`, `/art`) | `/overlay` on the Connect host; a narrow, revocable `overlay` role; the page is fed by the Connect WebSocket (section 7) | An OBS browser source cannot scan a QR code, but it must not get the old shared secret back either. |
+| Viewer PWA bits on the old page (manifest with the key in `start_url`, full screen, wake lock, TV layout) | Same bits on the Connect viewer page, with a static manifest that holds no secret | Installable and TV friendly without weakening pairing. |
 | Lyrics only | now-playing, shared song clock, lyrics, video id, vibe, per-song choices and lyric offset, cover art | "Share everything" with local playback instead of streaming. |
 | **Removed**: WebRTC system-audio streaming (Jam nearby, `lanAudio`, `/rtc/offer`, `nearby.ts`) | each device plays its own video locally | Streaming everything the PC plays is a privacy-heavy, laggy feature that duplicates "play the same song yourself", and it required a standing capture permission. The capture handler now only serves the recording studio. |
 | **Removed**: Settings "Nearby screens (TV mode)" section | "Devices" section (`DevicesPanel.tsx`) | One place, one concept. |
@@ -52,11 +54,42 @@ stored values are simply ignored (and harmless). Paired devices live in `userDat
   backoff), `pairing` (codes, devices, proofs, command gate, party), `syncState` (what changed, snapshot).
 - `src/main/connect/`: `ws` (small RFC 6455 server, no new dependency), `hub` (HTTP + WebSocket, state machine),
   `mdns` (advertise `_lyra-connect._tcp`), `net` (LAN address choice, peer and origin checks), `viewerHtml` (viewer
-  client), `service` (glue: playback snapshots, lyrics, user choices, commands, device store).
+  client), `overlayPage` (OBS overlay page and its unit-tested runtime), `pwa` (static web-app manifest), `service` (glue: playback snapshots, lyrics, user choices, commands, device store).
 - Renderer: `store/connect.ts` (status + publisher of vibe, video id, lyric offset to the host process),
   `components/DevicesPanel.tsx` (the Devices UI), one `videoId` field added to `bgState` and set from `Backdrop`.
 - Song, position, lyrics and art come from the main process (it owns playback); the vibe in effect, the resolved
   video and the per-song offset are renderer knowledge, so the renderer reports them over `connect:view`.
+
+## 3b. The overlay role (OBS / stream overlay)
+
+`overlay` is a third role next to `viewer` and `controller`: the narrowest one, for an OBS browser source.
+
+- **Why a role, not a code.** OBS cannot do QR pairing and a pairing code lives 2 minutes and works once, while an OBS
+  source keeps its URL for months. So the host (Devices panel, "Add an overlay link") creates the device directly with
+  `Pairing.addOverlay`: no code, no redeem step. Codes can never mint this role (`createCode` coerces it to viewer) and
+  no other device can be switched to it; an overlay can never be switched up (`setRole` refuses both).
+- **Where the credential lives: the URL fragment**, `http://<pc>:47813/overlay#d=<device id>&t=<token>`. A fragment is
+  never sent to the server, never in a `Referer`, not in the host's or a router's logs, and not in OBS's request list.
+  The alternative (a one-time exchange: a short code in the fragment redeemed for a token the page then keeps in
+  `localStorage`) was rejected because OBS's browser profile can be cleared ("Refresh cache", a moved scene collection) and
+  then the source would silently die and need a new code; a link that is self-contained survives that. The cost is that
+  the link itself is the secret, so it is treated like a password: shown in the panel with the note "anyone with this
+  link on your network can see what you play", copyable on demand (the list never carries tokens), and **revoked from
+  the panel** ("Remove link"), which forgets the token and drops a live source's socket at once.
+- **The token still never crosses the network.** The page uses the normal `hello` / `challenge` / `auth` handshake, so only
+  an HMAC proof is sent (unlike pairing, where the token is sent once to the new device). Sniffing the LAN does not reveal it.
+- **Capabilities.** Enforced in two places: `messageForRole` (`core/connect/roleView.ts`) redacts what the host sends (the
+  song, art, lyrics, `play` anchor, `pong` and the vibe; no per-song picks, no video id, no device list; controllers are
+  not told overlay devices exist), and the existing per-command registry check refuses every command (`err forbidden`), even
+  a correctly signed one. It counts toward the 12-device cap.
+- **Its own CSP** (`/overlay` only): `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https:;
+  connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`. Tighter than the viewer's: no `ws:` wildcard,
+  no frames, no manifest. The viewer's policy gained only `manifest-src 'self'` and `'self'` in `img-src` for its icon.
+- **Feed.** The page fills a `LyraFeed` (`src/shared/lyraFeed.ts`): `now` to nowPlaying, `play` plus the ping/pong clock
+  offset (best of the last 8, as in protocol section 5) to positionClock, `lyrics`, `art`, `view` (vibe, and the host's lyric
+  offset, which the overlay applies so it matches the app). Options in the URL are unchanged (`vibe`/`look`, `lines`, `size`,
+  `scale`, `font`, `chroma`/`bg`, `color`, `accent`, `align`, `pos`, `shadow`, `words`, `meta`, `art`, `progress`, `idle`,
+  `nudge`, `debug`); they go in the query or after the credentials in the fragment.
 
 ## 4. Security model and honest limits
 
@@ -75,6 +108,8 @@ NOT provided, plainly:
 - Server-to-client messages are not individually MACed (read-only data); commands are.
 - mDNS answers queries for the service name only; no browsing.
 - A hostile device that is already paired as controller can control playback until disconnected.
+- An overlay link is a bearer secret in a URL (fragment). It ends up in OBS's saved scene files, and in a browser's history or
+  bookmarks if opened there; anyone who copies it can watch what plays (read-only) until it is removed. Not encrypted either.
 
 ## 5. Limits and what is verified
 
@@ -82,11 +117,18 @@ Unit tested (vitest): protocol parsing and limits, HMAC against node:crypto, clo
 backoff, pairing (expiry, single use, brute force, rate limit, party, revoke, persistence, device cap), command gate,
 sync-state diffing, WebSocket framing, mDNS packet building and parsing, LAN address and origin rules. The hub is
 tested over real loopback sockets: pair, replay state, reconnect by proof, bad code / bad proof, forbidden commands,
-signed commands and replays, revoke, party, ping, live broadcast, wrong origin.
+signed commands and replays, revoke, party, ping, live broadcast, wrong origin. The overlay role has its own hub tests:
+link shape, `/overlay` CSP, proof auth, redaction (no choices, no video id, no device list), view-only enforcement with a valid
+signature, no upgrade or minting through codes, invisibility to controllers, revocation of a live and a stale link, device cap,
+and a loopback test that drives the overlay's feed logic (clock offset included) from a live host.
+The overlay and the viewer were also run in Chromium (Playwright, `scripts/ui-test/overlay-check.mjs`) against the real hub on
+loopback: all ten looks, transparency, chroma, options, the line advancing with the clock and freezing on pause, live vibe
+change, wrong / missing / revoked credentials, no CSP violation, the viewer's manifest, icon, TV layout, idle hide, and that
+pairing from the QR fragment and reconnecting by proof still work.
 The viewer was loaded in a browser against a live hub: pairing from the QR fragment (fragment wiped), credential
 stored, lyric highlight following the shared clock, controller controls and vibe accent shown.
 
-NOT verified: the Electron app end to end (Devices panel, IPC, real mDNS on a network, real second device), the YouTube
+NOT verified: the Electron app end to end (Devices panel and its overlay link, IPC, real mDNS on a network, real second device), OBS's own browser (CEF) loading the link (only Chromium via Playwright), the full-screen and wake-lock calls (they need a user gesture or HTTPS), the YouTube
 embed sync on the viewer (needs internet), TV browsers, Android. The viewer's seek control and command signing in the
 browser were not exercised against the host; the HMAC used for auth in the browser was (pairing and reconnect would
 fail otherwise).

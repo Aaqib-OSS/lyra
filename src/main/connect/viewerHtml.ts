@@ -46,6 +46,13 @@ header{display:flex;gap:14px;align-items:center;min-height:64px}
 #pair input{font-size:2rem;letter-spacing:.2em;text-align:center;width:11ch;padding:10px;border-radius:12px;border:2px solid #fff4;background:#fff1;color:inherit;text-transform:uppercase}
 #pair button{margin-top:16px;font-size:1.1rem;padding:12px 28px;border-radius:99px;border:0;background:var(--accent);color:#111;font-weight:700}
 #pair p{opacity:.7;margin:10px 0;max-width:34ch}
+#fs{position:fixed;right:14px;bottom:14px;z-index:4;width:44px;height:44px;border-radius:50%;border:1px solid #fff3;background:#0f0f12a6;color:inherit;font-size:20px;line-height:1;cursor:pointer;transition:opacity .4s}
+body.calm #fs,body.calm #chip{opacity:0;pointer-events:none}
+body.calm{cursor:none}
+body.tv #fs{display:none}
+body.tv header{min-height:96px;gap:22px}body.tv #art{width:96px;height:96px;border-radius:16px}
+body.tv #title{font-size:clamp(1.6rem,2.6vw,3rem)}body.tv #artist{font-size:clamp(1.1rem,1.8vw,2rem)}
+body.tv .l{font-size:clamp(2rem,5vw,5.5rem)}body.tv #chip{font-size:1rem}body.tv #ctl button,body.tv #ctl select{height:64px;min-width:64px;font-size:1.4rem}
 `
 
 const JS = `
@@ -186,8 +193,25 @@ function buildControls(){
   sel.onchange=function(){signedCmd({c:'vibe',id:sel.value})};
 }
 
-// keep the screen on (TV / tablet on a stand)
-try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(function(){})}catch(e){}
+// keep the screen on (TV / tablet on a stand); the browser drops the lock when the page is hidden, so ask again on return
+function keepAwake(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(function(){})}catch(e){}}
+keepAwake();document.addEventListener('visibilitychange',function(){if(!document.hidden)keepAwake()});
+// TV browsers sit metres away: bigger type and cover, no small button (?tv=1 forces it, ?tv=0 turns it off)
+var qs=location.search;
+var isTv=/[?&]tv=/.test(qs)?!/[?&]tv=0/.test(qs):/SMART-TV|SmartTV|Tizen|Web0S|WebOS|NetCast|HbbTV|CrKey|AFT[A-Z]|BRAVIA|Roku|VIDAA|Hisense|AppleTV|GoogleTV/i.test(navigator.userAgent);
+document.body.classList.toggle('tv',isTv);
+// full screen: the button, the F key, or a double tap / click anywhere
+function toggleFs(){var d=document,el=d.documentElement;
+  if(d.fullscreenElement||d.webkitFullscreenElement){(d.exitFullscreen||d.webkitExitFullscreen).call(d)}
+  else{var f=el.requestFullscreen||el.webkitRequestFullscreen;if(f)try{var r=f.call(el);if(r&&r.catch)r.catch(function(){})}catch(e){}}}
+$('fs').onclick=toggleFs;
+addEventListener('dblclick',function(e){if(!/INPUT|SELECT|BUTTON/.test(e.target.tagName)&&$('pair').className!=='on')toggleFs()});
+addEventListener('keydown',function(e){if((e.key==='f'||e.key==='F')&&!/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)&&!e.ctrlKey&&!e.metaKey&&!e.altKey)toggleFs()});
+// idle hide: after 4 s without a pointer move, key or touch the cursor and the small chrome fade out (never while pairing)
+var calmTimer=0;
+function wake(){document.body.classList.remove('calm');clearTimeout(calmTimer);calmTimer=setTimeout(function(){if($('pair').className!=='on')document.body.classList.add('calm')},4000)}
+['mousemove','mousedown','keydown','touchstart'].forEach(function(n){addEventListener(n,wake,{passive:true})});
+wake();
 
 // pairing code from the QR link lives in the URL fragment: read it once, then wipe it from the address bar
 var m=/[#&]p=([A-Za-z0-9-]+)/.exec(location.hash);
@@ -198,7 +222,10 @@ connect();
 
 export const VIEWER_HTML = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="referrer" content="no-referrer"><title>Lyra</title><style>${CSS}</style></head>
+<meta name="referrer" content="no-referrer"><meta name="theme-color" content="#0b0b10">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/icon.png">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Lyra</title><style>${CSS}</style></head>
 <body>
 <div id="bg"></div><iframe id="vid" title="Background video" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe><div id="shade"></div>
 <main>
@@ -206,6 +233,7 @@ export const VIEWER_HTML = `<!doctype html>
 <div id="lyrics"><div id="lines"></div><div id="empty"></div></div>
 <div id="ctl"></div>
 </main>
+<button id="fs" type="button" title="Full screen (F)" aria-label="Full screen">&#9974;</button>
 <div id="pair"><div><h2>Connect to Lyra</h2><p>Scan the QR code in Lyra on your PC, or type the code shown in Settings, Devices.</p><input id="pcode" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="ABCD-EFGH"><br><button id="pgo">Connect</button><p id="pmsg"></p></div></div>
 <script>${HMAC_JS}\n${JS}</script>
 </body></html>`

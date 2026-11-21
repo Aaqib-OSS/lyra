@@ -15,8 +15,13 @@ export const HEARTBEAT_MS = 5000
 /** a silent peer is dropped after this long */
 export const DEAD_AFTER_MS = 20_000
 
-export type Role = 'viewer' | 'controller'
-export const ROLES: readonly Role[] = ['viewer', 'controller']
+/**
+ * viewer: watches. controller: watches and commands. overlay: the narrowest role, for an OBS browser source: it can read
+ * only what is playing, the song clock, lyrics, art and the vibe (no video choice, no device list, no commands). It is
+ * never minted by a pairing code, only by the host creating a revocable overlay link (Pairing.addOverlay).
+ */
+export type Role = 'viewer' | 'controller' | 'overlay'
+export const ROLES: readonly Role[] = ['viewer', 'controller', 'overlay']
 
 /** what the host tells a paired client about the song, everything needed to show it without asking again */
 export interface NowInfo {

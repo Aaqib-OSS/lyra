@@ -120,6 +120,8 @@ const api: LyraApi = {
     revoke: (id) => invoke(CH.connectRevoke, id),
     setRole: (id, role) => invoke(CH.connectRole, id, role),
     publishView: (v) => void invoke(CH.connectView, v),
+    addOverlay: () => invoke(CH.connectOverlayAdd),
+    overlayLink: (id) => invoke(CH.connectOverlayLink, id),
     onChange: (cb) => subscribe(EV.connectChange, cb)
   },
   app: {

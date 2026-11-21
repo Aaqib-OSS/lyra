@@ -14,6 +14,8 @@ import { ConnectHub } from './hub'
 import { MdnsAdvertiser } from './mdns'
 import { pickLanAddress } from './net'
 import { VIEWER_HTML } from './viewerHtml'
+import { OVERLAY_HTML } from './overlayPage'
+import { appIcon } from '../tray'
 
 const log = createLogger('connect')
 
@@ -40,6 +42,11 @@ class ConnectService {
     this.hubInstance = new ConnectHub({
       pairing,
       viewerHtml: VIEWER_HTML,
+      overlayHtml: OVERLAY_HTML,
+      icon: () => {
+        const img = appIcon()
+        return img.isEmpty() ? null : { png: img.toPNG(), size: img.getSize().width || 512 }
+      },
       lanIp: () => pickLanAddress(networkInterfaces())?.ip ?? null,
       hostName: () => hostname().slice(0, 30),
       vibes: [...ALL_VIBES],

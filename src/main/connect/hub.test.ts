@@ -8,6 +8,7 @@ import { hmacSha256Hex } from '@core/connect/hmac'
 import { ConnectHub } from './hub'
 import { FrameParser, acceptKey, encodeFrame } from './ws'
 import { buildResponse, asksForUs, parseQuestions } from './mdns'
+import { OVERLAY_CORE_JS } from './overlayPage'
 import { isLocalPeer, isPrivateIPv4, originAllowed, pickLanAddress } from './net'
 
 // ---- framing -----------------------------------------------------------------------------------------------------
@@ -178,6 +179,8 @@ function makeHub(opts: { lanIp?: string | null } = {}) {
   const hub = new ConnectHub({
     pairing,
     viewerHtml: '<html>viewer</html>',
+    overlayHtml: '<html>overlay</html>',
+    icon: () => ({ png: Buffer.from([137, 80, 78, 71]), size: 64 }),
     lanIp: () => (opts.lanIp === undefined ? '127.0.0.1' : opts.lanIp),
     port: 0,
     hostName: () => 'TestPC',
@@ -375,5 +378,232 @@ describe('connect hub', () => {
     await g.waitClosed()
     expect(g.closed).toBe(true)
     expect(hub.devices()).toHaveLength(0)
+  })
+})
+
+// ---- the overlay role (OBS browser source) ----------------------------------------------------------------------------
+
+const httpGet = (port: number, path: string) =>
+  new Promise<{ status: number; body: string; headers: Record<string, string | string[] | undefined> }>((resolve) => {
+    request({ host: '127.0.0.1', port, path }, (res) => {
+      let body = ''
+      res.on('data', (d) => (body += d))
+      res.on('end', () => resolve({ status: res.statusCode!, body, headers: res.headers }))
+    }).end()
+  })
+
+/** what the overlay page does: read d and t from the link's fragment, then hello -> challenge -> auth(proof) */
+async function connectOverlay(hub: ConnectHub, url: string) {
+  const frag = new URLSearchParams(new URL(url).hash.slice(1))
+  const id = frag.get('d')!
+  const token = frag.get('t')!
+  const c = await TestClient.open(hub.status().port)
+  live.push(c)
+  const cn = randomBytes(16).toString('hex')
+  c.send({ t: 'hello', deviceId: id, name: 'OBS overlay', cn })
+  const { sn } = await c.until('challenge')
+  c.send({ t: 'auth', proof: Pairing.proof(token, cn, sn) })
+  return { c, id, token, key: Pairing.sessionKey(token, cn, sn), cn, sn }
+}
+
+describe('overlay role', () => {
+  it('serves /overlay with its own tight CSP, and the link keeps the credential in the fragment only', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const o = hub.createOverlay()!
+    expect(o.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/overlay#d=[0-9a-f]{16}&t=[0-9a-f]{64}$/)
+    const r = await httpGet(hub.status().port, '/overlay?vibe=neon')
+    expect(r.status).toBe(200)
+    expect(r.body).toContain('overlay')
+    const csp = String(r.headers['content-security-policy'])
+    expect(csp).toContain("default-src 'none'")
+    expect(csp).toContain("connect-src 'self';") // same-origin socket only: no ws: wildcard
+    expect(csp).not.toContain('ws:')
+    expect(csp).not.toContain('frame-src')
+    expect(csp).toContain("frame-ancestors 'none'")
+    expect(r.headers['referrer-policy']).toBe('no-referrer')
+    // the page itself carries no credential: the same bytes for everyone
+    expect(r.body).not.toContain(new URL(o.url!).hash.slice(1))
+    // the viewer keeps its (separate) policy
+    expect(String((await httpGet(hub.status().port, '/')).headers['content-security-policy'])).toContain('frame-src https://www.youtube-nocookie.com')
+  })
+
+  it('does not serve /overlay when no page is configured, and serves the installable-app bits statically', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const m = await httpGet(hub.status().port, '/manifest.webmanifest')
+    expect(m.status).toBe(200)
+    expect(m.headers['content-type']).toBe('application/manifest+json')
+    expect(JSON.parse(m.body).start_url).toBe('/')
+    expect((await httpGet(hub.status().port, '/icon.png')).status).toBe(200)
+    const bare = new ConnectHub({ pairing: new Pairing({ now: Date.now, randomHex: (n) => randomBytes(n).toString('hex'), randomBytes: (n) => new Uint8Array(randomBytes(n)) }), viewerHtml: 'v', lanIp: () => '127.0.0.1', port: 0, hostName: () => 'x', vibes: [], onCommand: () => undefined, randomHex: (n) => randomBytes(n).toString('hex') })
+    live.push(bare)
+    await bare.start()
+    expect((await httpGet(bare.status().port, '/overlay')).status).toBe(404)
+    expect((await httpGet(bare.status().port, '/icon.png')).status).toBe(404)
+  })
+
+  it('authenticates by proof (the token never crosses the wire) and gets only now, view, art, lyrics and the clock', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    hub.setNow({ id: 's1', key: 'k', title: 'Song', artists: ['Artist'], durationMs: 100_000 }, { video: { videoId: 'abcdefghijk' }, lyrics: { provider: 'p', id: 'secret-pick' }, offsetMs: 40 })
+    hub.setView({ vibe: 'neon', video: { id: 'abcdefghijk' }, offsetMs: 40 })
+    hub.setLyrics('s1', 'synced', true, [{ t: 0, x: 'la' }])
+    hub.setArt('s1', 'https://example.com/a.jpg')
+    hub.setPlay({ playing: true, positionMs: 1000, at: Date.now() })
+    const o = hub.createOverlay()!
+    const { c, token } = await connectOverlay(hub, o.url!)
+    const ready = await c.until('ready')
+    expect(ready.role).toBe('overlay')
+    expect(ready.party).toBe(false)
+    const now = await c.until('now')
+    expect(now.now?.title).toBe('Song')
+    expect(now.choices).toBeUndefined() // no per-song picks, no video id
+    const view = await c.until('view')
+    expect(view.view).toMatchObject({ vibe: 'neon', video: { id: null }, offsetMs: 40 })
+    expect((await c.until('art')).src).toBe('https://example.com/a.jpg')
+    expect((await c.until('lyrics')).lines[0]!.x).toBe('la')
+    expect((await c.until('play')).play.playing).toBe(true)
+    c.send({ t: 'ping', id: 1, c0: Date.now() })
+    expect((await c.until('pong')).id).toBe(1)
+    await new Promise((r) => setTimeout(r, 100))
+    expect(c.msgs.map((m) => m.t)).not.toContain('devices') // not even the device list
+    // live changes are redacted the same way
+    hub.setNow({ id: 's2', key: 'k2', title: 'Next', artists: ['A'], durationMs: 5 }, { video: { videoId: 'zzzzzzzzzzz' } })
+    hub.setView({ vibe: 'crt', video: { id: 'zzzzzzzzzzz' } })
+    const n2 = await c.until('now')
+    expect(n2.now?.id).toBe('s2')
+    expect(n2.choices).toBeUndefined()
+    expect((await c.until('view')).view.video.id).toBeNull()
+    expect(JSON.stringify(c.msgs)).not.toContain(token)
+    expect(JSON.stringify(c.msgs)).not.toContain('secret-pick')
+    expect(JSON.stringify(c.msgs)).not.toContain('zzzzzzzzzzz')
+  })
+
+  it('is view-only: it cannot command (even with a valid signature), cannot be upgraded, and codes cannot mint it', async () => {
+    const { hub, commands, pairing } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const o = hub.createOverlay()!
+    const { c, id, key } = await connectOverlay(hub, o.url!)
+    await c.until('ready')
+    const b = '{"c":"next"}'
+    c.send({ t: 'cmd', n: 1, b, mac: signCommand(key, 1, b) })
+    expect((await c.until('err')).code).toBe('forbidden')
+    const b2 = '{"c":"vibe","id":"neon"}'
+    c.send({ t: 'cmd', n: 2, b: b2, mac: signCommand(key, 2, b2) })
+    expect((await c.until('err')).code).toBe('forbidden')
+    await new Promise((r) => setTimeout(r, 100))
+    expect(commands).toEqual([])
+    // the role cannot be raised, by the host UI path or the registry
+    hub.setRole(id, 'controller')
+    expect(pairing.get(id)!.role).toBe('overlay')
+    expect(pairing.setRole(id, 'viewer')).toBe(false)
+    // a pairing code can never mint an overlay, and no other device can become one
+    const code = hub.newCode('overlay')
+    expect(pairing.activeCodes().find((x) => x.code === code.code)!.role).toBe('viewer')
+    const v = await pair(hub, 'viewer')
+    expect(pairing.setRole(v.paired.deviceId, 'overlay')).toBe(false)
+    expect(pairing.get(v.paired.deviceId)!.role).toBe('viewer')
+  })
+
+  it('is invisible to other devices: controllers are never told it exists', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    hub.createOverlay()
+    const ctl = await pair(hub, 'controller')
+    const list = await ctl.c.until('devices')
+    expect(list.devices.map((d) => d.role)).toEqual(['controller'])
+    // while the host UI sees it, with its role
+    expect(hub.devices().map((d) => d.role).sort()).toEqual(['controller', 'overlay'])
+  })
+
+  it('revocation ends the link at once: socket dropped, the same credentials fail afterwards, the link is gone', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const o = hub.createOverlay()!
+    const { c, id, token } = await connectOverlay(hub, o.url!)
+    await c.until('ready')
+    hub.revoke(id)
+    expect((await c.until('bye')).why).toMatch(/removed/)
+    await c.waitClosed()
+    expect(c.closed).toBe(true)
+    expect(hub.overlayUrl(id)).toBeNull()
+    expect(hub.devices()).toHaveLength(0)
+    const again = await TestClient.open(hub.status().port)
+    live.push(again)
+    const cn = randomBytes(16).toString('hex')
+    again.send({ t: 'hello', deviceId: id, name: 'OBS overlay', cn })
+    const { sn } = await again.until('challenge')
+    again.send({ t: 'auth', proof: Pairing.proof(token, cn, sn) })
+    expect((await again.until('err')).code).toBe('bad-proof')
+  })
+
+  it('a wrong token and a stale link get the same answer as a missing device', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const o = hub.createOverlay()!
+    const { id } = await connectOverlay(hub, o.url!)
+    const bad = await TestClient.open(hub.status().port)
+    live.push(bad)
+    const cn = randomBytes(16).toString('hex')
+    bad.send({ t: 'hello', deviceId: id, name: 'x', cn })
+    const { sn } = await bad.until('challenge')
+    bad.send({ t: 'auth', proof: Pairing.proof('0'.repeat(64), cn, sn) })
+    expect((await bad.until('err')).code).toBe('bad-proof')
+  })
+
+  it('is capped like any device, and survives a restart of the hub with the same credentials', async () => {
+    const { hub, pairing } = makeHub()
+    live.push(hub)
+    await hub.start()
+    for (let i = 0; i < 12; i++) expect(hub.createOverlay()).not.toBeNull()
+    expect(hub.createOverlay()).toBeNull()
+    const first = pairing.list()[0]!
+    hub.stop()
+    await hub.start()
+    const url = hub.overlayUrl(first.id)!
+    const { c } = await connectOverlay(hub, url)
+    expect((await c.until('ready')).role).toBe('overlay')
+  })
+
+  it('loopback: the overlay feed logic follows a live host over the real socket, clock included', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const core = new Function(OVERLAY_CORE_JS + '; return { emptyFeed, emptyClock, clockAdd, clockOffset, applyHost, positionAt, activeIndex, estimate }')() as Record<'emptyFeed' | 'emptyClock' | 'clockAdd' | 'clockOffset' | 'applyHost' | 'positionAt' | 'activeIndex' | 'estimate', (...a: any[]) => any>
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const o = hub.createOverlay()!
+    const { c } = await connectOverlay(hub, o.url!)
+    await c.until('ready')
+    await c.until('now') // the (empty) snapshot sent on joining
+    const feed = core.emptyFeed()
+    const clock = core.emptyClock()
+    // measure the clock like the page does
+    for (let i = 0; i < 4; i++) {
+      c.send({ t: 'ping', id: i, c0: Date.now() })
+      const p = await c.until('pong')
+      core.clockAdd(clock, p.c0, p.s1, p.s2, Date.now())
+    }
+    feed.positionClock.skewMs = core.clockOffset(clock)
+    expect(Math.abs(feed.positionClock.skewMs)).toBeLessThan(50) // same machine
+    hub.setNow({ id: 'L1', key: 'k', title: 'Loop', artists: ['A', 'B'], durationMs: 60_000 })
+    hub.setLyrics('L1', 'synced', true, [{ t: 1000, x: 'one' }, { t: 5000, x: 'two' }])
+    hub.setPlay({ playing: true, positionMs: 4000, at: Date.now() })
+    for (const t of ['now', 'lyrics', 'play'] as const) core.applyHost(feed, await c.until(t))
+    expect(feed.nowPlaying).toMatchObject({ trackId: 'L1', title: 'Loop', artists: 'A, B' })
+    expect(feed.lyrics.status).toBe('synced')
+    const lines = core.estimate(feed.lyrics.lines, 60_000)
+    const pos = core.positionAt(feed, Date.now(), 0)
+    expect(pos).toBeGreaterThanOrEqual(3990)
+    expect(pos).toBeLessThan(5000)
+    expect(core.activeIndex(lines, pos)).toBe(0)
+    expect(core.activeIndex(lines, core.positionAt(feed, Date.now() + 1500, 0))).toBe(1) // the clock keeps running
   })
 })

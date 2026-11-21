@@ -90,7 +90,8 @@ export class Pairing {
     if (!party) this.codes = this.codes.filter((c) => c.party)
     const c: PairingCode = {
       code: this.randomCode(),
-      role: party ? 'viewer' : (opts.role ?? 'viewer'),
+      // a code can never mint an overlay: that role exists only through addOverlay on the host
+      role: party || opts.role === 'overlay' ? 'viewer' : (opts.role ?? 'viewer'),
       expiresAt: this.deps.now() + (party ? PARTY_TTL_MS : CODE_TTL_MS),
       party,
       failures: 0
@@ -157,9 +158,26 @@ export class Pairing {
     return had
   }
 
+  /**
+   * A view-only device for an OBS browser source, which cannot scan a QR code. The host creates it directly (no code, no
+   * redeem step), so its token never travels over the network: the overlay page gets it in the link's URL fragment and
+   * proves it with the usual HMAC handshake. Revoking the device kills the link. Returns null when the registry is full.
+   */
+  addOverlay(name = 'OBS overlay'): Device | null {
+    this.sweep()
+    if (this.devices.size >= MAX_DEVICES) return null
+    const now = this.deps.now()
+    const device: Device = { id: this.deps.randomHex(8), name: cleanName(name), role: 'overlay', token: this.deps.randomHex(32), guest: false, createdAt: now, lastSeen: now }
+    this.devices.set(device.id, device)
+    this.changed()
+    return device
+  }
+
   setRole(id: string, role: Role): boolean {
     const d = this.devices.get(id)
     if (!d) return false
+    // overlay is fixed at creation: an overlay link can never be upgraded, and no other device can become one
+    if (d.role === 'overlay' || role === 'overlay') return false
     // guests of a party stay viewers: a shared code must never be a way to get control
     d.role = d.guest ? 'viewer' : role
     this.changed()
