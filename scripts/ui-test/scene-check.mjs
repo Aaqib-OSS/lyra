@@ -30,7 +30,10 @@ const OVER_VIDEO = new Set(['trailer', 'dream', 'noir'])
 const KEYS = String(args.state ?? Object.keys(STATES).join(',')).split(',')
 const OUT = resolve('ui-test-out', MODE === 'mini' ? 'scene-mini' : 'scene')
 
-const measure = (overVideo) => {
+// looks whose motion legitimately transforms lines (lens scales the active line 1.06x around its centre, so its box is ~6% wider
+// than the region while the text stays on screen and inside the lens): give the sideways region test a proportional allowance
+const SCALED_LINES = new Set(['lens'])
+const measure = ([overVideo, scaledLines]) => {
   const r = (e) => { const b = e.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height, r: b.right, b: b.bottom } }
   const issues = []
   const vw = innerWidth, vh = innerHeight
@@ -53,7 +56,7 @@ const measure = (overVideo) => {
     for (const e of lyr.querySelectorAll('.sign__line, .bloom, .lfb, .lyrics__notice, .sign__row, .bloom__line')) {
       if (!vis(e) || e.closest('.sign__refl')) continue
       const eb = r(e)
-      if (eb.y < lb.y - 3 || eb.b > lb.b + 3 || eb.x < lb.x - 10 || eb.r > lb.r + 10) issues.push(`lyrics leave their region: ${String(e.className).split(' ')[0]} ${Math.round(eb.y - lb.y)}..${Math.round(eb.b - lb.b)} / x ${Math.round(eb.x - lb.x)}..${Math.round(eb.r - lb.r)}`)
+      if (eb.y < lb.y - 3 || eb.b > lb.b + 3 || eb.x < lb.x - 10 - (scaledLines ? lb.w * 0.06 : 0) || eb.r > lb.r + 10 + (scaledLines ? lb.w * 0.06 : 0)) issues.push(`lyrics leave their region: ${String(e.className).split(' ')[0]} ${Math.round(eb.y - lb.y)}..${Math.round(eb.b - lb.b)} / x ${Math.round(eb.x - lb.x)}..${Math.round(eb.r - lb.r)}`)
     }
     const kids = lyr.querySelectorAll('.stage *, .lfb *')
     for (const e of kids) { if (!vis(e) || e.closest('.sign__refl')) continue; const eb = r(e); if (eb.r > vw + 1 || eb.b > vh + 1 || eb.x < -1 || eb.y < -1) { issues.push(`lyrics leave the screen: ${String(e.className).split(' ')[0]}`); break } }
@@ -62,7 +65,8 @@ const measure = (overVideo) => {
   const boxes = []
   if (side && vis(side)) boxes.push(['card', r(side)])
   if (win && vis(win)) boxes.push(['video window', r(win)])
-  const content = lyr?.querySelector('.sign__line, .bloom, .lfb, .plain__stanza')
+  // .lfb (empty/offline notices) is a tall flex container whose text sits at the top: measure its first child, not the empty box
+  const content = lyr?.querySelector('.sign__line, .bloom, .plain__stanza') ?? lyr?.querySelector('.lfb > *')
   if (content && vis(content)) boxes.push(['lyrics', r(content)])
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) { const a = inter(boxes[i][1], boxes[j][1]); if (a > 40 && !(overVideo && (boxes[i][0] === 'video window' || boxes[j][0] === 'video window'))) issues.push(`${boxes[i][0]} overlaps ${boxes[j][0]} (${Math.round(a)} px²)`) }
   if (document.documentElement.scrollWidth > vw + 1) issues.push('page scrolls sideways')
@@ -86,7 +90,7 @@ async function main() {
         const page = await ctx.newPage()
         await page.goto(url)
         await page.waitForTimeout(st.q.includes('live') ? 3800 : 2200)
-        const issues = await page.evaluate(measure, OVER_VIDEO.has(vibe))
+        const issues = await page.evaluate(measure, [OVER_VIDEO.has(vibe), SCALED_LINES.has(vibe)])
         const file = `${sz.id}-${k}.png`
         await page.screenshot({ path: join(dir, file) })
         await page.close()
