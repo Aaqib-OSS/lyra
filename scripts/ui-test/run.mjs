@@ -45,6 +45,17 @@ if (args.device) devices = DEVICES.filter((d) => String(args.device).split(',').
 const vibes = args.vibe ? VIBES.filter((v) => String(args.vibe).split(',').includes(v.id)) : VIBES
 const withVideo = !!args.video
 
+// --layouts: the fullscreen layouts over a video, with Latin / Devanagari / Gurmukhi lyrics (and the Roman line), at
+// 1366x768 .. 3440x1440 (issue #51). Contrast is judged on the current line.
+const LAYOUTS = ['cinema', 'split', 'poster', 'focus']
+const LANGS = ['en', 'hi', 'pa']
+const BIG = [
+  { id: '1366x768', w: 1366, h: 768 },
+  { id: '1920x1080', w: 1920, h: 1080 },
+  { id: '2560x1440', w: 2560, h: 1440 },
+  { id: '3440x1440', w: 3440, h: 1440 }
+]
+
 async function up() {
   try { return (await fetch(BASE)).ok } catch { return false }
 }
@@ -221,7 +232,10 @@ async function main() {
   mkdirSync(join(OUT, 'shots'), { recursive: true })
   const browser = await chromium.launch()
   const jobs = []
-  for (const v of vibes) for (const d of devices) jobs.push({ v, d })
+  if (args.layouts) {
+    for (const layout of LAYOUTS) for (const lang of LANGS) for (const sz of BIG)
+      jobs.push({ v: { id: `layout-${layout}-${lang}`, style: 'classic' }, d: { id: sz.id, w: sz.w, h: sz.h, q: `mode=full&video=night${lang === 'en' ? '' : `&lang=${lang}`}` }, extra: { fullLayout: layout, romanizeLyrics: lang !== 'en' }, vibeId: 'none' })
+  } else for (const v of vibes) for (const d of devices) jobs.push({ v, d })
   const results = []
   let next = 0
   const worker = async () => {
@@ -229,14 +243,14 @@ async function main() {
     for (;;) {
       const i = next++
       if (i >= jobs.length) break
-      const { v, d } = jobs[i]
+      const { v, d, extra, vibeId } = jobs[i]
       const page = await ctx.newPage()
       await page.setViewportSize({ width: d.w, height: d.h })
       const errors = []
       page.on('pageerror', (e) => errors.push(e.message.slice(0, 160)))
-      const s = encodeURIComponent(JSON.stringify({ vibe: v.id, lyricStyle: v.style, performance: 'smooth' }))
+      const s = encodeURIComponent(JSON.stringify({ vibe: vibeId ?? v.id, lyricStyle: v.style, performance: 'smooth', ...(extra ?? {}) }))
       await page.goto(`${BASE}/?paused=1&t=43500&${d.q}${withVideo ? '&video=night' : ''}&s=${s}`)
-      await page.waitForTimeout(1900)
+      await page.waitForTimeout(args.layouts ? 4200 : 1900)
       const m = await page.evaluate(MEASURE)
       const shot = await page.screenshot()
       let contrast = null
@@ -258,7 +272,7 @@ async function main() {
   results.sort((a, b) => (a.vibe + a.device).localeCompare(b.vibe + b.device))
   writeFileSync(join(OUT, 'report.json'), JSON.stringify(results, null, 2))
   const bad = results.filter((r) => r.fails.length)
-  console.log(`\nUI test: ${results.length} screens checked (${vibes.length} vibes x ${devices.length} devices), ${bad.length} with problems\n`)
+  console.log(`\nUI test: ${results.length} screens checked${args.layouts ? ' (fullscreen layouts x languages x sizes)' : ` (${vibes.length} vibes x ${devices.length} devices)`}, ${bad.length} with problems\n`)
   for (const r of bad) console.log(`  ✗ ${r.vibe} @ ${r.device}\n      ${r.fails.join('\n      ')}`)
   if (!bad.length) console.log('  ✓ all screens pass')
   console.log(`\nreport + failing screenshots: ${OUT}`)

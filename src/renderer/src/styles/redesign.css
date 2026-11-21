@@ -833,3 +833,6 @@
 .mini--wide .lyrics--mini .lyric__text { font-size: 1em; }
 .mini--wide .phone__act { min-width: 72px; font-size: 12px; }
 :root[data-bg-media='mini'] .mini--wide .wide__dock { background: none !important; }
+
+/* wide scripts (Gurmukhi, Devanagari) overhang their advance width: keep the last glyph of a line inside the box */
+.lyric__text { padding-inline-end: 0.28em; }
