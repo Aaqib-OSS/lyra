@@ -1,0 +1,131 @@
+/*
+ * Settings & side panels wear the vibe too: each vibe has its own paper, border, shadow, type and pen colour, the
+ * same way its share card and lyric stage do. One fixed skin per vibe (see docs/ui-state-matrix.md); nothing to configure.
+ * The panel sets its own colours, so it reads the same whatever is playing behind it.
+ */
+
+:root[data-vibe='neon'] .sidepanel {
+  --panel: #10061f; --fg: #ffffff; --fg-2: rgba(255,255,255,.78); --fg-3: rgba(255,255,255,.58); --line: rgba(255,61,242,.35); --line-2: rgba(255,61,242,.35); --accent: #ff3df2; --glow: #ff3df2; --glow-soft: transparent;
+  background: #10061f; color: #ffffff; border: 2px solid #ff3df2; border-radius: 18px; box-shadow: 0 0 28px rgba(255,61,242,.55), inset 0 0 22px rgba(255,61,242,.18);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='neon'] .sidepanel .settings section { background: color-mix(in srgb, #ffffff 6%, transparent); box-shadow: 0 0 0 1px rgba(255,61,242,.35); border-radius: calc(18px * 0.5); }
+:root[data-vibe='neon'] .sidepanel h3, :root[data-vibe='neon'] .sidepanel .settings h4 { font-family: 'Unbounded Variable', sans-serif; color: rgba(255,255,255,.78); }
+:root[data-vibe='neon'] .sidepanel .stabs button.is-on { background: #ff3df2; color: #12031f; box-shadow: none; }
+
+:root[data-vibe='chrome'] .sidepanel {
+  --panel: #e9eef6; --fg: #0b1220; --fg-2: #2a3446; --fg-3: #49556b; --line: rgba(11,18,32,.18); --line-2: rgba(11,18,32,.18); --accent: #2b5cff; --glow: #2b5cff; --glow-soft: transparent;
+  background: #e9eef6; color: #0b1220; border: 2px solid #fff; border-radius: 30px; box-shadow: 0 24px 60px -16px rgba(20,40,90,.55), inset 0 2px 0 #fff;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='chrome'] .sidepanel .settings section { background: color-mix(in srgb, #0b1220 6%, transparent); box-shadow: 0 0 0 1px rgba(11,18,32,.18); border-radius: calc(30px * 0.5); }
+:root[data-vibe='chrome'] .sidepanel h3, :root[data-vibe='chrome'] .sidepanel .settings h4 { font-family: 'Unbounded Variable', sans-serif; color: #2a3446; }
+:root[data-vibe='chrome'] .sidepanel .stabs button.is-on { background: #0b1220; color: #ffffff; box-shadow: none; }
+
+:root[data-vibe='dream'] .sidepanel {
+  --panel: #f4ecff; --fg: #3a2a66; --fg-2: #5b4a8a; --fg-3: #6d5f98; --line: rgba(122,92,255,.25); --line-2: rgba(122,92,255,.25); --accent: #7a5cff; --glow: #7a5cff; --glow-soft: transparent;
+  background: #f4ecff; color: #3a2a66; border: 3px solid #fff; border-radius: 38px; box-shadow: 0 26px 70px -18px rgba(90,60,200,.5);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='dream'] .sidepanel .settings section { background: color-mix(in srgb, #3a2a66 6%, transparent); box-shadow: 0 0 0 1px rgba(122,92,255,.25); border-radius: calc(38px * 0.5); }
+:root[data-vibe='dream'] .sidepanel h3, :root[data-vibe='dream'] .sidepanel .settings h4 { font-family: 'Nunito Variable', sans-serif; color: #5b4a8a; }
+:root[data-vibe='dream'] .sidepanel .stabs button.is-on { background: #7a5cff; color: #ffffff; box-shadow: none; }
+
+:root[data-vibe='crt'] .sidepanel {
+  --panel: #020d07; --fg: #b9ffcb; --fg-2: rgba(185,255,203,.8); --fg-3: rgba(185,255,203,.6); --line: rgba(53,255,122,.35); --line-2: rgba(53,255,122,.35); --accent: #35ff7a; --glow: #35ff7a; --glow-soft: transparent;
+  background: #020d07; color: #b9ffcb; border: 2px solid #35ff7a; border-radius: 4px; box-shadow: 0 0 24px rgba(53,255,122,.35);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='crt'] .sidepanel .settings section { background: color-mix(in srgb, #b9ffcb 6%, transparent); box-shadow: 0 0 0 1px rgba(53,255,122,.35); border-radius: calc(4px * 0.5); }
+:root[data-vibe='crt'] .sidepanel h3, :root[data-vibe='crt'] .sidepanel .settings h4 { font-family: 'VT323', monospace; color: rgba(185,255,203,.8); }
+:root[data-vibe='crt'] .sidepanel .stabs button.is-on { background: #35ff7a; color: #021008; box-shadow: none; }
+
+:root[data-vibe='sticker'] .sidepanel {
+  --panel: #fffbe6; --fg: #111111; --fg-2: #2a2a2a; --fg-3: #444444; --line: rgba(17,17,17,.25); --line-2: rgba(17,17,17,.25); --accent: #ff3d81; --glow: #ff3d81; --glow-soft: transparent;
+  background: #fffbe6; color: #111111; border: 5px solid #111; border-radius: 26px; box-shadow: 10px 10px 0 #111;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='sticker'] .sidepanel .settings section { background: color-mix(in srgb, #111111 6%, transparent); box-shadow: 0 0 0 1px rgba(17,17,17,.25); border-radius: calc(26px * 0.5); }
+:root[data-vibe='sticker'] .sidepanel h3, :root[data-vibe='sticker'] .sidepanel .settings h4 { font-family: 'Unbounded Variable', sans-serif; color: #2a2a2a; }
+:root[data-vibe='sticker'] .sidepanel .stabs button.is-on { background: #111111; color: #ffe94a; box-shadow: none; }
+
+:root[data-vibe='chat'] .sidepanel {
+  --panel: #111a2e; --fg: #ffffff; --fg-2: rgba(255,255,255,.8); --fg-3: rgba(255,255,255,.6); --line: rgba(90,140,255,.3); --line-2: rgba(90,140,255,.3); --accent: #2f6bff; --glow: #2f6bff; --glow-soft: transparent;
+  background: #111a2e; color: #ffffff; border: 1.5px solid #2f6bff; border-radius: 28px; box-shadow: 0 24px 60px -16px rgba(0,20,80,.7);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='chat'] .sidepanel .settings section { background: color-mix(in srgb, #ffffff 6%, transparent); box-shadow: 0 0 0 1px rgba(90,140,255,.3); border-radius: calc(28px * 0.5); }
+:root[data-vibe='chat'] .sidepanel h3, :root[data-vibe='chat'] .sidepanel .settings h4 { font-family: inherit; color: rgba(255,255,255,.8); }
+:root[data-vibe='chat'] .sidepanel .stabs button.is-on { background: #2f6bff; color: #ffffff; box-shadow: none; }
+
+:root[data-vibe='paper'] .sidepanel {
+  --panel: #fffaf0; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; --line: rgba(60,90,160,.25); --line-2: rgba(60,90,160,.25); --accent: #e2554d; --glow: #e2554d; --glow-soft: transparent;
+  background: #fffaf0; color: #2d2a3a; border: 3px solid #2d2a3a; border-radius: 14px; box-shadow: 8px 8px 0 rgba(45,42,58,.35);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='paper'] .sidepanel .settings section { background: color-mix(in srgb, #2d2a3a 6%, transparent); box-shadow: 0 0 0 1px rgba(60,90,160,.25); border-radius: calc(14px * 0.5); }
+:root[data-vibe='paper'] .sidepanel h3, :root[data-vibe='paper'] .sidepanel .settings h4 { font-family: 'Caveat', cursive; color: #4a4658; }
+:root[data-vibe='paper'] .sidepanel .stabs button.is-on { background: #2d2a3a; color: #fffaf0; box-shadow: none; }
+
+:root[data-vibe='arcade'] .sidepanel {
+  --panel: #0a0a2e; --fg: #ffffff; --fg-2: #d6d6ff; --fg-3: #b4b4ec; --line: rgba(0,229,255,.35); --line-2: rgba(0,229,255,.35); --accent: #ffe600; --glow: #ffe600; --glow-soft: transparent;
+  background: #0a0a2e; color: #ffffff; border: 4px solid #ffe600; border-radius: 0; box-shadow: 8px 8px 0 #ff2d6f;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='arcade'] .sidepanel .settings section { background: color-mix(in srgb, #ffffff 6%, transparent); box-shadow: 0 0 0 1px rgba(0,229,255,.35); border-radius: calc(0 * 0.5); }
+:root[data-vibe='arcade'] .sidepanel h3, :root[data-vibe='arcade'] .sidepanel .settings h4 { font-family: 'Press Start 2P', monospace; color: #d6d6ff; }
+:root[data-vibe='arcade'] .sidepanel .stabs button.is-on { background: #ffe600; color: #06061a; box-shadow: none; }
+
+:root[data-vibe='noir'] .sidepanel {
+  --panel: #070707; --fg: #f4f4f4; --fg-2: rgba(244,244,244,.8); --fg-3: rgba(244,244,244,.6); --line: rgba(255,255,255,.22); --line-2: rgba(255,255,255,.22); --accent: #ffffff; --glow: #ffffff; --glow-soft: transparent;
+  background: #070707; color: #f4f4f4; border: 1px solid #fff; border-radius: 4px; box-shadow: 0 30px 80px rgba(0,0,0,.8);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='noir'] .sidepanel .settings section { background: color-mix(in srgb, #f4f4f4 6%, transparent); box-shadow: 0 0 0 1px rgba(255,255,255,.22); border-radius: calc(4px * 0.5); }
+:root[data-vibe='noir'] .sidepanel h3, :root[data-vibe='noir'] .sidepanel .settings h4 { font-family: 'Iowan Old Style', Georgia, serif; color: rgba(244,244,244,.8); }
+:root[data-vibe='noir'] .sidepanel .stabs button.is-on { background: #ffffff; color: #000000; box-shadow: none; }
+
+:root[data-vibe='sunset'] .sidepanel {
+  --panel: #3a0f4d; --fg: #ffffff; --fg-2: rgba(255,255,255,.88); --fg-3: rgba(255,255,255,.68); --line: rgba(255,209,166,.3); --line-2: rgba(255,209,166,.3); --accent: #ffe14d; --glow: #ffe14d; --glow-soft: transparent;
+  background: #3a0f4d; color: #ffffff; border: 2px solid #ffd1a6; border-radius: 34px; box-shadow: 0 26px 70px -12px rgba(255,46,147,.55);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='sunset'] .sidepanel .settings section { background: color-mix(in srgb, #ffffff 6%, transparent); box-shadow: 0 0 0 1px rgba(255,209,166,.3); border-radius: calc(34px * 0.5); }
+:root[data-vibe='sunset'] .sidepanel h3, :root[data-vibe='sunset'] .sidepanel .settings h4 { font-family: inherit; color: rgba(255,255,255,.88); }
+:root[data-vibe='sunset'] .sidepanel .stabs button.is-on { background: #ffe14d; color: #2a0b3d; box-shadow: none; }
+
+:root[data-vibe='blocks'] .sidepanel {
+  --panel: #7a7a7a; --fg: #ffffff; --fg-2: #f4f4f4; --fg-3: #e6e6e6; --line: rgba(0,0,0,.35); --line-2: rgba(0,0,0,.35); --accent: #55ff55; --glow: #55ff55; --glow-soft: transparent;
+  background: #7a7a7a; color: #ffffff; border: 6px solid #1d1d1d; border-radius: 0; box-shadow: 8px 8px 0 #1d1d1d;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='blocks'] .sidepanel .settings section { background: color-mix(in srgb, #ffffff 6%, transparent); box-shadow: 0 0 0 1px rgba(0,0,0,.35); border-radius: calc(0 * 0.5); }
+:root[data-vibe='blocks'] .sidepanel h3, :root[data-vibe='blocks'] .sidepanel .settings h4 { font-family: 'VT323', monospace; color: #f4f4f4; }
+:root[data-vibe='blocks'] .sidepanel .stabs button.is-on { background: #1d1d1d; color: #ffffff; box-shadow: none; }
+
+:root[data-vibe='stadium'] .sidepanel {
+  --panel: #072a63; --fg: #ffffff; --fg-2: rgba(255,255,255,.88); --fg-3: rgba(255,255,255,.68); --line: rgba(255,210,63,.3); --line-2: rgba(255,210,63,.3); --accent: #ffd23f; --glow: #ffd23f; --glow-soft: transparent;
+  background: #072a63; color: #ffffff; border: 3px solid #ffd23f; border-radius: 12px; box-shadow: 0 26px 70px -12px rgba(0,0,0,.7);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='stadium'] .sidepanel .settings section { background: color-mix(in srgb, #ffffff 6%, transparent); box-shadow: 0 0 0 1px rgba(255,210,63,.3); border-radius: calc(12px * 0.5); }
+:root[data-vibe='stadium'] .sidepanel h3, :root[data-vibe='stadium'] .sidepanel .settings h4 { font-family: 'Unbounded Variable', sans-serif; color: rgba(255,255,255,.88); }
+:root[data-vibe='stadium'] .sidepanel .stabs button.is-on { background: #ffd23f; color: #04122b; box-shadow: none; }
+
+:root[data-vibe='cassette'] .sidepanel {
+  --panel: #e9d9bd; --fg: #2a1a0e; --fg-2: #4a3520; --fg-3: #5d452c; --line: rgba(42,26,14,.28); --line-2: rgba(42,26,14,.28); --accent: #c8431b; --glow: #c8431b; --glow-soft: transparent;
+  background: #e9d9bd; color: #2a1a0e; border: 4px solid #2a1a0e; border-radius: 18px; box-shadow: 8px 8px 0 rgba(42,26,14,.45);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='cassette'] .sidepanel .settings section { background: color-mix(in srgb, #2a1a0e 6%, transparent); box-shadow: 0 0 0 1px rgba(42,26,14,.28); border-radius: calc(18px * 0.5); }
+:root[data-vibe='cassette'] .sidepanel h3, :root[data-vibe='cassette'] .sidepanel .settings h4 { font-family: 'VT323', monospace; color: #4a3520; }
+:root[data-vibe='cassette'] .sidepanel .stabs button.is-on { background: #2a1a0e; color: #ecdcc0; box-shadow: none; }
+
+:root[data-vibe='trailer'] .sidepanel {
+  --panel: #050505; --fg: #f5e9c8; --fg-2: rgba(245,233,200,.82); --fg-3: rgba(245,233,200,.62); --line: rgba(201,162,74,.35); --line-2: rgba(201,162,74,.35); --accent: #c9a24a; --glow: #c9a24a; --glow-soft: transparent;
+  background: #050505; color: #f5e9c8; border: 1px solid #c9a24a; border-radius: 3px; box-shadow: 0 30px 90px rgba(0,0,0,.85);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='trailer'] .sidepanel .settings section { background: color-mix(in srgb, #f5e9c8 6%, transparent); box-shadow: 0 0 0 1px rgba(201,162,74,.35); border-radius: calc(3px * 0.5); }
+:root[data-vibe='trailer'] .sidepanel h3, :root[data-vibe='trailer'] .sidepanel .settings h4 { font-family: 'Iowan Old Style', Georgia, serif; color: rgba(245,233,200,.82); }
+:root[data-vibe='trailer'] .sidepanel .stabs button.is-on { background: #c9a24a; color: #000000; box-shadow: none; }
