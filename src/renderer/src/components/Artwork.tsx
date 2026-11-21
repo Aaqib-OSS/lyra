@@ -42,6 +42,13 @@ export function Artwork({ url, size, radius = 10, className = '', layoutId }: Pr
           </div>
         )}
       </AnimatePresence>
+      {className.includes('artwork--lift') && (
+        <>
+          <i className="artwork__deco artwork__deco--a" />
+          <i className="artwork__deco artwork__deco--b" />
+          <i className="artwork__deco artwork__deco--c" />
+        </>
+      )}
     </motion.div>
   )
 }

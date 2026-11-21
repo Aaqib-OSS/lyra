@@ -1,0 +1,100 @@
+/*
+ * The poster: the cover shown while a song plays gets its own frame and little animated doodles per vibe
+ * (sticker die-cut, polaroid with tape, neon tube, CRT scan, film frame, cassette...). Frames are drawn outside the
+ * cover with outline / box-shadow; doodles are the three .artwork__deco layers Artwork.tsx adds to big covers.
+ * Animations stop in calm mode (paused / hidden) like every other endless animation.
+ */
+.artwork__deco { position: absolute; z-index: 3; pointer-events: none; background-repeat: no-repeat; background-position: center; background-size: contain; display: none; }
+:root:not([data-vibe='none']) .artwork--lift .artwork__deco { display: block; }
+:root[data-motion='off'] .artwork__deco, :root[data-calm] .artwork__deco { animation-play-state: paused !important; }
+@keyframes pz-bob { 0%,100% { transform: translateY(0) rotate(var(--r,0deg)); } 50% { transform: translateY(-6%) rotate(calc(var(--r,0deg) + 6deg)); } }
+@keyframes pz-spin { to { transform: rotate(360deg); } }
+@keyframes pz-twinkle { 0%,100% { opacity: .15; transform: scale(.6); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes pz-pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+@keyframes pz-scan { from { top: -12%; } to { top: 100%; } }
+@keyframes pz-flick { 0%,100% { opacity: .9; } 47% { opacity: .9; } 50% { opacity: .55; } 53% { opacity: .95; } }
+@keyframes pz-blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+@keyframes pz-grain { 0% { background-position: 0 0; } 25% { background-position: -30% 20%; } 50% { background-position: 40% -25%; } 75% { background-position: -20% -40%; } 100% { background-position: 0 0; } }
+@keyframes pz-pop { 0%,60% { transform: scale(0) rotate(-20deg); } 72% { transform: scale(1.2) rotate(8deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes pz-wobble { 0%,100% { transform: rotate(var(--tilt,-2deg)); } 50% { transform: rotate(calc(var(--tilt,-2deg) + 1.4deg)); } }
+
+/* ---- Stickers: a die-cut sticker with a hard shadow, a bobbing star and a squiggle ---- */
+[data-vibe='sticker'] .artwork--lift { outline: 5px solid #fff; outline-offset: 0; box-shadow: 0 0 0 9px #111, 11px 12px 0 9px #111 !important; --tilt: -2.5deg; animation: pz-wobble 5s ease-in-out infinite; }
+[data-vibe='sticker'] .artwork__deco--a { top: -7%; right: -7%; width: 34%; height: 34%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 4 L61 34 L94 36 L68 56 L77 88 L50 70 L23 88 L32 56 L6 36 L39 34 Z' fill='%23ffe94a' stroke='%23111' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); --r: 8deg; animation: pz-bob 2.4s ease-in-out infinite; }
+[data-vibe='sticker'] .artwork__deco--b { left: 6%; bottom: 5%; width: 38%; height: 20%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Cpath d='M4 30 Q14 8 24 30 T44 30 T64 30 T84 30 T98 30' fill='none' stroke='%23ff3d81' stroke-width='9' stroke-linecap='round'/%3E%3C/svg%3E"); }
+[data-vibe='sticker'] .artwork__deco--c { right: 6%; bottom: 7%; width: 20%; height: 20%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 88 C10 58 6 30 28 22 C40 18 48 26 50 34 C52 26 60 18 72 22 C94 30 90 58 50 88Z' fill='%23ff3d81' stroke='%23111' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: pz-pop 3.2s ease-out infinite; }
+
+/* ---- Diary: a taped polaroid, a heart and a scribbled arrow ---- */
+[data-vibe='paper'] .artwork--lift { outline: 12px solid #fffaf0; outline-offset: 0; box-shadow: 0 0 0 13px rgba(45,42,58,.25), 6px 12px 22px 10px rgba(45,42,58,.35) !important; --tilt: -2deg; animation: pz-wobble 7s ease-in-out infinite; }
+[data-vibe='paper'] .artwork__deco--a { top: -3%; left: -12%; width: 46%; height: 17%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'%3E%3Crect width='100' height='40' fill='rgba(255,226,120,.78)'/%3E%3Cpath d='M0 0 L6 10 L0 20 L6 30 L0 40 M100 0 L94 10 L100 20 L94 30 L100 40' stroke='rgba(255,255,255,.55)' stroke-width='3' fill='none'/%3E%3C/svg%3E"); transform: rotate(-32deg); }
+[data-vibe='paper'] .artwork__deco--b { top: -3%; right: -12%; width: 46%; height: 17%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'%3E%3Crect width='100' height='40' fill='rgba(255,226,120,.78)'/%3E%3Cpath d='M0 0 L6 10 L0 20 L6 30 L0 40 M100 0 L94 10 L100 20 L94 30 L100 40' stroke='rgba(255,255,255,.55)' stroke-width='3' fill='none'/%3E%3C/svg%3E"); transform: rotate(30deg); }
+[data-vibe='paper'] .artwork__deco--c { right: 5%; bottom: 5%; width: 22%; height: 22%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 88 C10 58 6 30 28 22 C40 18 48 26 50 34 C52 26 60 18 72 22 C94 30 90 58 50 88Z' fill='%23ff7a9c' stroke='%23c0394f' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); --r: -8deg; animation: pz-bob 3s ease-in-out infinite; }
+
+/* ---- Neon: a double tube, breathing, with corner brackets ---- */
+[data-vibe='neon'] .artwork--lift { outline: 3px solid #ff3df2; outline-offset: 5px; box-shadow: 0 0 0 2px #2ef2ff, 0 0 26px 4px rgba(255,61,242,.75), 0 0 60px rgba(46,242,255,.35) !important; animation: pz-pulse 2.6s ease-in-out infinite; }
+[data-vibe='neon'] .artwork__deco--a { inset: 4%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M4 28 V4 H28 M72 4 H96 V28 M96 72 V96 H72 M28 96 H4 V72' fill='none' stroke='%232ef2ff' stroke-width='5' stroke-linecap='square'/%3E%3C/svg%3E"); background-size: 100% 100%; }
+[data-vibe='neon'] .artwork__deco--b { left: 0; right: 0; height: 16%; top: -12%; background: linear-gradient(180deg, transparent, rgba(255,61,242,.35), transparent); animation: pz-scan 3.4s linear infinite; }
+
+/* ---- Chrome: a polished bevel with a sparkle ---- */
+[data-vibe='chrome'] .artwork--lift { outline: 4px solid #fff; outline-offset: 0; box-shadow: 0 0 0 6px #aab4c4, 0 0 0 8px #fff, 0 22px 40px -10px rgba(20,40,90,.6) !important; }
+[data-vibe='chrome'] .artwork__deco--a { top: 6%; right: 8%; width: 24%; height: 24%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 2 C54 30 70 46 98 50 C70 54 54 70 50 98 C46 70 30 54 2 50 C30 46 46 30 50 2Z' fill='%23ffffff'/%3E%3C/svg%3E"); animation: pz-twinkle 2.2s ease-in-out infinite; }
+[data-vibe='chrome'] .artwork__deco--b { left: 8%; bottom: 10%; width: 12%; height: 12%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 2 C54 30 70 46 98 50 C70 54 54 70 50 98 C46 70 30 54 2 50 C30 46 46 30 50 2Z' fill='%238fd1ff'/%3E%3C/svg%3E"); animation: pz-twinkle 2.2s .8s ease-in-out infinite; }
+
+/* ---- Dream: soft glow and a handful of twinkling stars ---- */
+[data-vibe='dream'] .artwork--lift { outline: 4px solid rgba(255,255,255,.85); outline-offset: 0; box-shadow: 0 0 0 8px rgba(255,180,236,.45), 0 0 50px 8px rgba(190,160,255,.55) !important; }
+[data-vibe='dream'] .artwork__deco--a { top: 8%; left: 10%; width: 16%; height: 16%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 2 C54 30 70 46 98 50 C70 54 54 70 50 98 C46 70 30 54 2 50 C30 46 46 30 50 2Z' fill='%23fff'/%3E%3C/svg%3E"); animation: pz-twinkle 2.8s ease-in-out infinite; }
+[data-vibe='dream'] .artwork__deco--b { top: 22%; right: 12%; width: 10%; height: 10%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 2 C54 30 70 46 98 50 C70 54 54 70 50 98 C46 70 30 54 2 50 C30 46 46 30 50 2Z' fill='%23ffd6f5'/%3E%3C/svg%3E"); animation: pz-twinkle 2.8s .9s ease-in-out infinite; }
+[data-vibe='dream'] .artwork__deco--c { bottom: 12%; left: 30%; width: 12%; height: 12%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 2 C54 30 70 46 98 50 C70 54 54 70 50 98 C46 70 30 54 2 50 C30 46 46 30 50 2Z' fill='%23d9ccff'/%3E%3C/svg%3E"); animation: pz-twinkle 2.8s 1.7s ease-in-out infinite; }
+
+/* ---- Terminal: scan lines, a sweeping bar and brackets ---- */
+[data-vibe='crt'] .artwork--lift { outline: 2px solid #35ff7a; outline-offset: 4px; box-shadow: 0 0 22px rgba(53,255,122,.45) !important; filter: sepia(.35) hue-rotate(70deg) saturate(1.4) contrast(1.05); animation: pz-flick 4s steps(1) infinite; }
+[data-vibe='crt'] .artwork__deco--a { inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 2px, transparent 2px 4px); }
+[data-vibe='crt'] .artwork__deco--b { left: 0; right: 0; height: 14%; top: -14%; background: linear-gradient(180deg, transparent, rgba(53,255,122,.3), transparent); animation: pz-scan 4.5s linear infinite; }
+[data-vibe='crt'] .artwork__deco--c { inset: 3%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M4 28 V4 H28 M72 4 H96 V28 M96 72 V96 H72 M28 96 H4 V72' fill='none' stroke='%2335ff7a' stroke-width='5' stroke-linecap='square'/%3E%3C/svg%3E"); background-size: 100% 100%; }
+
+/* ---- DM: sent as a picture, with a reaction that pops ---- */
+[data-vibe='chat'] .artwork--lift { outline: 3px solid #2f6bff; outline-offset: 0; box-shadow: 0 14px 34px -10px rgba(47,107,255,.6) !important; border-bottom-left-radius: 6px !important; }
+[data-vibe='chat'] .artwork__deco--a { right: -4%; bottom: -4%; width: 26%; height: 26%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 88 C10 58 6 30 28 22 C40 18 48 26 50 34 C52 26 60 18 72 22 C94 30 90 58 50 88Z' fill='%23ff4d6d' stroke='%23fff' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: pz-pop 3.6s ease-out infinite; }
+
+/* ---- Arcade: pixel frame, blinking 1UP ---- */
+[data-vibe='arcade'] .artwork--lift { outline: 0; box-shadow: 0 0 0 4px #ffe600, 0 0 0 8px #06061a, 0 0 0 12px #ff2d6f, 8px 8px 0 12px #000 !important; }
+[data-vibe='arcade'] .artwork__deco--a { left: 4%; top: 4%; padding: 3px 5px; font: 8px/1 'Press Start 2P', monospace; color: #ffe600; background: rgba(0,0,0,.6); animation: pz-blink 1s steps(1) infinite; display: block; }
+[data-vibe='arcade'] .artwork__deco--a::after { content: '1UP'; }
+[data-vibe='arcade'] .artwork__deco--b { right: 6%; bottom: 6%; width: 16%; height: 16%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 4 L61 34 L94 36 L68 56 L77 88 L50 70 L23 88 L32 56 L6 36 L39 34 Z' fill='%23ffe600' stroke='%2306061a' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: pz-spin 2s steps(8) infinite; }
+
+/* ---- Cinema: a film frame with grain and letterbox bars ---- */
+[data-vibe='noir'] .artwork--lift { outline: 6px solid #000; outline-offset: 0; box-shadow: 0 0 0 7px #e8e8e8, 0 24px 50px rgba(0,0,0,.8) !important; }
+[data-vibe='noir'] .artwork__deco--a { inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E"); background-size: 140% 140%; mix-blend-mode: overlay; opacity: .55; animation: pz-grain .6s steps(4) infinite; }
+[data-vibe='noir'] .artwork__deco--b { left: 0; right: 0; top: 0; height: 11%; background: #000; }
+[data-vibe='noir'] .artwork__deco--c { left: 0; right: 0; bottom: 0; height: 11%; background: #000; }
+
+/* ---- Sunset Drive: sun stripes over the lower half and a hot glow ---- */
+[data-vibe='sunset'] .artwork--lift { outline: 3px solid #ffd1a6; outline-offset: 0; box-shadow: 0 0 0 7px rgba(255,46,147,.55), 0 0 44px 6px rgba(255,122,184,.6) !important; }
+[data-vibe='sunset'] .artwork__deco--a { left: 0; right: 0; bottom: 0; height: 30%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 42'%3E%3Cg fill='%23ff2e93'%3E%3Crect y='0' width='100' height='3'/%3E%3Crect y='9' width='100' height='5'/%3E%3Crect y='20' width='100' height='7'/%3E%3Crect y='33' width='100' height='9'/%3E%3C/g%3E%3C/svg%3E"); background-size: 100% 100%; opacity: .75; mix-blend-mode: screen; }
+[data-vibe='sunset'] .artwork__deco--b { top: 6%; right: 7%; width: 18%; height: 18%; border-radius: 50%; background: linear-gradient(#ffe14d, #ff2e93); animation: pz-pulse 3s ease-in-out infinite; }
+
+/* ---- Blocks: an inventory slot with a grass strip ---- */
+[data-vibe='blocks'] .artwork--lift { outline: 0; border-radius: 0 !important; image-rendering: pixelated; box-shadow: 0 0 0 5px #8b8b8b, 0 0 0 9px #1d1d1d, 7px 7px 0 9px #1d1d1d !important; }
+[data-vibe='blocks'] .artwork__deco--a { left: 0; right: 0; bottom: 0; height: 14%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 24'%3E%3Crect y='0' width='100' height='10' fill='%235fbf3a'/%3E%3Crect y='10' width='100' height='14' fill='%238b5a2b'/%3E%3Cpath d='M0 0 V4 H8 V0 M14 0 V6 H22 V0 M30 0 V3 H38 V0 M46 0 V6 H54 V0 M62 0 V3 H70 V0 M78 0 V6 H86 V0' fill='%233f8f26'/%3E%3C/svg%3E"); background-size: 100% 100%; }
+[data-vibe='blocks'] .artwork__deco--b { right: 5%; top: 5%; width: 16%; height: 16%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 4 L61 34 L94 36 L68 56 L77 88 L50 70 L23 88 L32 56 L6 36 L39 34 Z' fill='%2355ff55' stroke='%231d1d1d' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: pz-bob 1.6s steps(4) infinite; }
+
+/* ---- Stadium: broadcast frame with a live badge ---- */
+[data-vibe='stadium'] .artwork--lift { outline: 4px solid #ffd23f; outline-offset: 0; box-shadow: 0 0 0 8px #072a63, 0 20px 44px rgba(0,0,0,.6) !important; border-radius: 10px !important; }
+[data-vibe='stadium'] .artwork__deco--a { left: 4%; top: 4%; padding: 2px 6px; font: 800 10px/1.3 system-ui, sans-serif; letter-spacing: .12em; color: #fff; background: #e11d2e; border-radius: 3px; display: block; animation: pz-blink 1.6s steps(1) infinite; }
+[data-vibe='stadium'] .artwork__deco--a::after { content: 'LIVE'; }
+
+/* ---- Cassette: the paper label under the picture ---- */
+[data-vibe='cassette'] .artwork--lift { outline: 5px solid #2a1a0e; outline-offset: 0; box-shadow: 0 0 0 9px #cdb893, 6px 8px 0 9px rgba(42,26,14,.45) !important; border-radius: 10px !important; }
+[data-vibe='cassette'] .artwork__deco--a { left: 0; right: 0; bottom: 0; height: 16%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30'%3E%3Crect width='100' height='30' fill='%23f3e6c8'/%3E%3Cpath d='M6 10 H94 M6 20 H70' stroke='%232a1a0e' stroke-width='2' opacity='.55'/%3E%3Ccircle cx='12' cy='15' r='0' /%3E%3C/svg%3E"); background-size: 100% 100%; }
+[data-vibe='cassette'] .artwork__deco--b { right: 5%; top: 5%; width: 18%; height: 18%; border-radius: 50%; border: 3px dashed #2a1a0e; background: rgba(236,220,192,.8); animation: pz-spin 3s linear infinite; }
+
+/* ---- Trailer: gold double border and a one-line billing ---- */
+[data-vibe='trailer'] .artwork--lift { outline: 2px solid #c9a24a; outline-offset: 5px; box-shadow: 0 0 0 1px #000, 0 26px 60px rgba(0,0,0,.85) !important; border-radius: 2px !important; }
+[data-vibe='trailer'] .artwork__deco--a { left: 0; right: 0; bottom: 0; padding: 14% 0 4%; text-align: center; font: 600 8px/1 Georgia, serif; letter-spacing: .38em; color: #f5e9c8; background: linear-gradient(transparent, rgba(0,0,0,.85)); display: block; }
+[data-vibe='trailer'] .artwork__deco--a::after { content: 'A LYRA PICTURE'; }
+
+/* the poster's decorations may overhang the cover (tape, stickers), so the cover itself is clipped, not the frame */
+:root:not([data-vibe='none']) .artwork--lift { overflow: visible; }
+:root:not([data-vibe='none']) .artwork--lift::before { display: none; }
+:root:not([data-vibe='none']) .artwork--lift .artwork__img, :root:not([data-vibe='none']) .artwork--lift .artwork__empty { border-radius: inherit; }
+:root:not([data-vibe='none']) .artwork--lift .artwork__deco--a, :root:not([data-vibe='none']) .artwork--lift .artwork__deco--b, :root:not([data-vibe='none']) .artwork--lift .artwork__deco--c { border-radius: inherit; }
