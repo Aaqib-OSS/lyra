@@ -182,15 +182,6 @@
 
 
 /* ===================== GLITCH ===================== */
-[data-vibe='glitch'] .backdrop__stage { filter: contrast(1.2) saturate(.8) hue-rotate(-12deg); }
-:root[data-vibe='glitch'][data-bg-media] .backdrop__dim { background: rgba(10,5,4,.5); }
-[data-vibe='glitch'] .lyrics__notice { background: #000; border: 1px solid #ff4a2e; border-radius: 0; color: #fff; text-shadow: -1px 0 #ff2a1a, 1px 0 #26f0ff; text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
-[data-vibe='glitch'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 800; letter-spacing: -0.03em; text-transform: uppercase; color: #fff; font-size: max(13px, calc(var(--lyric-size) * 0.45)); text-shadow: -.04em 0 0 #ff2a1a, .04em 0 0 #26f0ff; }
-[data-vibe='glitch'] .lfb { align-items: flex-start; }
-[data-vibe='glitch'] .lfb__poster { display: none; }
-[data-vibe='glitch'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); text-transform: uppercase; font-weight: 900; color: #fff; text-shadow: -.05em 0 0 #ff2a1a, .05em 0 0 #26f0ff; animation: glitch-jit 2.2s steps(1) infinite; }
-[data-vibe='glitch'] .lfb__eq i { background: #ff4a2e; box-shadow: -2px 0 0 #26f0ff; border-radius: 0; }
-:root[data-calm] [data-vibe='glitch'] .lfb h3 { animation: none; }
 
 /* ===================== POP COMIC ===================== */
 :root[data-vibe='comic'][data-bg-media] .backdrop__dim { background: rgba(255, 244, 226, 0.34); }

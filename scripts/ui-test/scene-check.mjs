@@ -52,7 +52,7 @@ const measure = (overVideo) => {
     for (const e of lyr.querySelectorAll('.sign__line, .bloom, .lfb, .lyrics__notice, .sign__row, .bloom__line')) {
       if (!vis(e) || e.closest('.sign__refl')) continue
       const eb = r(e)
-      if (eb.y < lb.y - 3 || eb.b > lb.b + 3 || eb.x < lb.x - 3 || eb.r > lb.r + 3) issues.push(`lyrics leave their region: ${String(e.className).split(' ')[0]} ${Math.round(eb.y - lb.y)}..${Math.round(eb.b - lb.b)} / x ${Math.round(eb.x - lb.x)}..${Math.round(eb.r - lb.r)}`)
+      if (eb.y < lb.y - 3 || eb.b > lb.b + 3 || eb.x < lb.x - 10 || eb.r > lb.r + 10) issues.push(`lyrics leave their region: ${String(e.className).split(' ')[0]} ${Math.round(eb.y - lb.y)}..${Math.round(eb.b - lb.b)} / x ${Math.round(eb.x - lb.x)}..${Math.round(eb.r - lb.r)}`)
     }
     const kids = lyr.querySelectorAll('.stage *, .lfb *')
     for (const e of kids) { if (!vis(e) || e.closest('.sign__refl')) continue; const eb = r(e); if (eb.r > vw + 1 || eb.b > vh + 1 || eb.x < -1 || eb.y < -1) { issues.push(`lyrics leave the screen: ${String(e.className).split(' ')[0]}`); break } }

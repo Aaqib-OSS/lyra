@@ -557,19 +557,6 @@
 :root[data-calm] .vibefx__pencil { animation: none; }
 
 /* ======================= GLITCH: RGB-split type on a dying tape ======================= */
-:root[data-vibe='glitch'] { --rimc: #ff3b30; }
-[data-vibe='glitch'] .shell {
-  --accent: #ff4a2e;
-  --glow: rgba(255, 74, 46, 0.55);
-  --glow-soft: rgba(255, 74, 46, 0.2);
-  --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif;
-  --fg: #fff;
-  --bg-0: #0a0504;
-}
-[data-vibe='glitch'] .backdrop .backdrop__field { background: radial-gradient(90% 70% at 50% 50%, #2a0d08, #0a0504 75%); }
-.vibefx__tear { position: absolute; left: 0; right: 0; height: 9%; top: 20%; background: linear-gradient(90deg, rgba(255,74,46,.0), rgba(255,255,255,.12), rgba(38,240,255,.0)); mix-blend-mode: screen; animation: glitch-tear 4.2s steps(1) infinite; }
-@keyframes glitch-tear { 0%, 38%, 44%, 100% { opacity: 0; transform: translateY(0); } 40% { opacity: 1; transform: translateY(160%); } 42% { opacity: 1; transform: translateY(420%); } }
-.vibefx__rgb { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px); mix-blend-mode: overlay; }
 :root[data-calm] .vibefx__tear { animation: none; opacity: 0; }
 
 /* ======================= ZOOM: the lyric stage of both ======================= */
@@ -580,14 +567,6 @@
 .zoom__line span.is-in { opacity: .85; }
 .zoom__line span.is-now { opacity: 1; text-decoration: underline; text-underline-offset: .2em; }
 /* sketchbook looks: red cut-out, outline, paper cut, ghost */
-/* glitch looks: the same word split into three colour channels that wobble */
-[data-vibe='glitch'] .zoom__word { color: #fff; text-shadow: -.04em 0 0 #ff2a1a, .04em 0 0 #26f0ff; animation: glitch-jit 2.2s steps(1) infinite; }
-[data-vibe='glitch'] .zoom__word--outline { color: transparent; -webkit-text-stroke: .025em #fff; text-shadow: -.05em 0 0 #ff2a1a, .05em 0 0 #26f0ff; }
-[data-vibe='glitch'] .zoom__word--cut { color: #0a0504; background: #fff; padding: .02em .14em .06em; text-shadow: none; box-shadow: -.06em 0 0 #ff2a1a, .06em 0 0 #26f0ff; }
-[data-vibe='glitch'] .zoom__word--ghost { color: #ff4a2e; filter: blur(.5px); text-shadow: -.06em 0 0 rgba(38,240,255,.8), 0 0 .3em rgba(255, 74, 46, .8); }
-[data-vibe='glitch'] .zoom__line { color: #fff; text-shadow: 0 0 8px #000; }
-@keyframes glitch-jit { 0%, 91%, 100% { transform: translate(0, 0); } 92% { transform: translate(-.02em, .01em) skewX(-4deg); } 95% { transform: translate(.025em, -.01em) skewX(3deg); } }
-:root[data-calm] [data-vibe='glitch'] .zoom__word { animation: none; }
 
 /* sketchbook is a light, inked vibe too (same fix as the diary) */
 

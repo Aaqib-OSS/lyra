@@ -1,0 +1,124 @@
+/* ==========================================================================
+   GLITCH: signal lost (fullscreen: one file, layout mechanics are in scene.css).
+   A dying tape: static crawls, a tracking bar rolls up the screen, slices tear sideways, the edges bleed red and cyan.
+   The video sits on the left on a monitor that glitches now and then (no video: colour bars and NO SIGNAL), the song is
+   corrupted for a moment as each word arrives and then holds, the card is a VHS on-screen display.
+   Purely graphic: static, scanlines, colour split. Nothing pretends to be a photograph.
+   ========================================================================== */
+:root[data-vibe='glitch'] {
+  --rimc: #ff3b30;
+  --gl-red: #ff2a1a;
+  --gl-cyan: #26f0ff;
+  --gl-ink: #0a0504;
+  /* scene geometry (styles/scene.css): the monitor top left, the card under it, the words on the right */
+  --sc-ww: min(46vw, 74vh);
+  --sc-wl: 5vw;
+  --sc-wt: 10vh;
+  --sc-wr: 0.6vh;
+  --sc-cl: 5vw;
+  --sc-cb: 5vh;
+  --sc-ct: auto;
+  --sc-cw: var(--sc-ww);
+  --sc-ll: calc(5vw + var(--sc-ww) + 4vw);
+  --sc-lt: 12vh;
+  --sc-lw: calc(95vw - 5vw - var(--sc-ww) - 4vw);
+  --sc-lb: 14vh;
+  --sc-lbs: 14vh;
+  --sc-art-bg: linear-gradient(90deg, #c8c8c8 0 14.28%, #c8c800 14.28% 28.56%, #00c8c8 28.56% 42.84%, #00c800 42.84% 57.12%, #c800c8 57.12% 71.4%, #c80000 71.4% 85.68%, #0000c8 85.68%);
+  --sc-art-fg: #fff;
+  --sc-eq: #fff;
+}
+:root[data-vibe='glitch'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(50vw, 80vh); --sc-ll: calc(5vw + min(50vw, 80vh) + 4vw); }
+:root[data-vibe='glitch'][data-rim='on']::after { display: none; }
+[data-vibe='glitch'] .shell { --accent: #ff4a2e; --glow: rgba(255, 74, 46, 0.55); --glow-soft: rgba(255, 74, 46, 0.2); --font: 'Unbounded Variable', 'Inter Variable', system-ui, sans-serif; --fg: #fff; --bg-0: #0a0504; }
+
+/* ---------------- the dying tape ---------------- */
+[data-vibe='glitch'] .backdrop .backdrop__field { background: radial-gradient(90% 70% at 50% 50%, #240b07, #0a0504 75%); }
+:root[data-vibe='glitch'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+.glitchfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.glitchfx__static { position: absolute; inset: -10%; opacity: 0.09; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"); animation: gl-static 0.5s steps(5) infinite; }
+@keyframes gl-static { 0% { transform: translate(0, 0); } 20% { transform: translate(-4%, 3%); } 40% { transform: translate(3%, -5%); } 60% { transform: translate(-2%, -2%); } 80% { transform: translate(5%, 4%); } 100% { transform: translate(0, 0); } }
+.glitchfx__scan { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 4px); }
+/* the tracking bar: a soft pale band that rolls up the screen */
+.glitchfx__track { position: absolute; left: 0; right: 0; height: 14vh; background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.07) 40%, rgba(255, 255, 255, 0.14) 50%, rgba(255, 255, 255, 0.07) 60%, transparent); animation: gl-track 7s linear infinite; }
+@keyframes gl-track { from { top: 110%; } to { top: -20%; } }
+/* torn slices: a band of the picture slides sideways for a moment */
+.glitchfx__tear { position: absolute; left: 0; right: 0; height: 5vh; background: linear-gradient(90deg, rgba(255, 42, 26, 0.0), rgba(255, 42, 26, 0.35) 30%, rgba(38, 240, 255, 0.3) 70%, transparent); mix-blend-mode: screen; opacity: 0; animation: gl-tear 6.5s steps(1) infinite; }
+.glitchfx__tear--a { top: 24%; }
+.glitchfx__tear--b { top: 63%; animation-delay: -3.1s; height: 3vh; }
+@keyframes gl-tear { 0%, 41%, 46%, 100% { opacity: 0; transform: translateX(0); } 42% { opacity: 1; transform: translateX(-4vw); } 44% { opacity: 1; transform: translateX(5vw); } 45% { opacity: 1; transform: translateX(-1vw); } }
+/* the edges bleed: red on the left, cyan on the right, a little unsteady */
+.glitchfx__edge::before, .glitchfx__edge::after { content: ''; position: absolute; top: 0; bottom: 0; width: 5vw; opacity: 0.55; animation: gl-edge 5s steps(1) infinite; }
+.glitchfx__edge::before { left: 0; background: linear-gradient(90deg, rgba(255, 42, 26, 0.55), transparent); }
+.glitchfx__edge::after { right: 0; background: linear-gradient(270deg, rgba(38, 240, 255, 0.45), transparent); animation-delay: -2.4s; }
+@keyframes gl-edge { 0%, 70%, 74%, 100% { opacity: 0.45; } 71% { opacity: 0.9; } 72% { opacity: 0.2; } 73% { opacity: 0.8; } }
+/* a signal drop: the whole screen flashes with white noise for a blink, now and then */
+.glitchfx__drop { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.55); mix-blend-mode: overlay; opacity: 0; animation: gl-drop 11s steps(1) infinite; }
+@keyframes gl-drop { 0%, 93%, 96%, 100% { opacity: 0; } 94% { opacity: 1; } 95% { opacity: 0.3; } }
+:root[data-perf='low'] .glitchfx__static, :root[data-perf='low'] .glitchfx__drop { display: none; }
+:root[data-calm] .glitchfx *, :root[data-calm] .glitchfx::before { animation-play-state: paused; }
+:root[data-motion='off'] .glitchfx * { animation: none !important; }
+/* the monitor: a dark bezel; a red and a cyan ghost of the picture edge, scanlines on the glass, and a sideways jolt */
+[data-vibe='glitch'] .scenewin { box-shadow: 0 0 0 1.1vh #14090a, 0 0 0 calc(1.1vh + 2px) rgba(255, 74, 46, 0.7), -0.7vh 0 0 calc(1.1vh + 2px) rgba(255, 42, 26, 0.35), 0.7vh 0 0 calc(1.1vh + 2px) rgba(38, 240, 255, 0.3), 0 0 6vh rgba(255, 42, 26, 0.25); }
+.glitchfx__glass { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 4px), radial-gradient(120% 120% at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.5)); }
+.glitchfx__slice { position: absolute; left: 0; right: 0; height: 12%; top: 36%; background: linear-gradient(90deg, rgba(255, 42, 26, 0.28), rgba(38, 240, 255, 0.22)); mix-blend-mode: screen; opacity: 0; animation: gl-slice 5.2s steps(1) infinite; }
+@keyframes gl-slice { 0%, 61%, 66%, 100% { opacity: 0; transform: translateX(0); } 62% { opacity: 1; transform: translateX(-3%); } 64% { opacity: 1; transform: translateX(4%); } 65% { opacity: 1; transform: translateX(-1%); } }
+.scenewin__art span { background: #000; padding: 0.4vh 1.2vh; font-family: 'VT323', monospace; font-size: 3.4vh; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
+.scenewin__eq { display: none; }
+
+/* ---------------- the card: a VHS on-screen display ---------------- */
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  flex-direction: row;
+  align-items: center;
+  gap: 2vh;
+  padding: 1.3vh 2vh 1.3vh 1.3vh !important;
+  border-radius: 0.4vh !important;
+  background: rgba(8, 3, 3, 0.9) !important;
+  border: 0 !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 74, 46, 0.65), -0.5vh 0 0 rgba(255, 42, 26, 0.3), 0.5vh 0 0 rgba(38, 240, 255, 0.25) !important;
+}
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before { content: '▶ PLAY'; position: absolute; left: 2vh; top: -2.8vh; font: 2.6vh/1 'VT323', monospace; letter-spacing: 0.08em; color: #fff; text-shadow: -2px 0 0 var(--gl-red), 2px 0 0 var(--gl-cyan); }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 9vh !important; border-radius: 0 !important; filter: contrast(1.15) saturate(0.85); box-shadow: -0.4vh 0 0 rgba(255, 42, 26, 0.5), 0.4vh 0 0 rgba(38, 240, 255, 0.4); }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 3vh/1 'VT323', monospace; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; text-shadow: -1.5px 0 0 var(--gl-red), 1.5px 0 0 var(--gl-cyan); }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 2.2vh/1 'VT323', monospace; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255, 255, 255, 0.7); }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { border-radius: 0; height: 0.9vh; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0 0.5vh, transparent 0.5vh 0.8vh); }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { border-radius: 0; background: repeating-linear-gradient(90deg, #ff2a1a 0 0.5vh, transparent 0.5vh 0.8vh); }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { border-radius: 0 !important; background: #fff !important; color: #0a0504 !important; box-shadow: -0.4vh 0 0 var(--gl-red), 0.4vh 0 0 var(--gl-cyan) !important; }
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='glitch'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+
+/* ---------------- lyrics: each word is corrupted for a blink, then holds (stage 'glitch') ---------------- */
+.stage--glitch { display: flex; flex-direction: column; justify-content: center; }
+.sign--glitch .sign__line { gap: 2vh; }
+.sign--glitch .sign__row { font-family: 'Unbounded Variable', 'Inter Variable', sans-serif; font-weight: 800; font-size: min(3.6vw, 6.8vh); line-height: 1.08; letter-spacing: -0.03em; text-transform: uppercase; gap: 0 0.3em; }
+.sign--glitch .sign__word { color: rgba(255, 255, 255, 0.2); }
+.sign--glitch .sign__word.is-in { color: #fff; text-shadow: -0.04em 0 0 var(--gl-red), 0.04em 0 0 var(--gl-cyan); animation: gl-in 0.5s steps(1) 1; }
+.sign--glitch .sign__word.is-now { animation: gl-in 0.5s steps(1) 1, gl-jit 2.6s steps(1) 0.5s infinite; }
+@keyframes gl-in {
+  0% { opacity: 0; transform: translateX(-0.18em) skewX(-14deg); text-shadow: -0.14em 0 0 var(--gl-red), 0.14em 0 0 var(--gl-cyan); }
+  16% { opacity: 1; clip-path: inset(0 0 58% 0); transform: translateX(0.12em); text-shadow: -0.1em 0 0 var(--gl-red), 0.1em 0 0 var(--gl-cyan); }
+  32% { clip-path: inset(48% 0 0 0); transform: translateX(-0.1em); }
+  48% { clip-path: none; transform: translateX(0.05em) skewX(8deg); opacity: 0.6; }
+  64% { opacity: 1; transform: none; text-shadow: -0.08em 0 0 var(--gl-red), 0.08em 0 0 var(--gl-cyan); }
+  80% { text-shadow: -0.02em 0 0 var(--gl-red), 0.02em 0 0 var(--gl-cyan); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes gl-jit { 0%, 88%, 94%, 100% { transform: none; } 90% { transform: translateX(-0.04em); text-shadow: -0.07em 0 0 var(--gl-red), 0.07em 0 0 var(--gl-cyan); } 92% { transform: translateX(0.05em); } }
+.sign--glitch .sign__next { font: min(2.6vw, 4.4vh) / 1.1 'VT323', monospace; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255, 255, 255, 0.4); }
+.sign--glitch .sign__refl { display: none; }
+:root[data-calm] .sign--glitch .sign__word.is-now, :root[data-motion='off'] .sign--glitch .sign__word { animation: none; }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='glitch'] .lyrics__notice { align-self: flex-start; background: #000; border: 1px solid var(--gl-red); border-radius: 0; color: #fff; font-family: 'VT323', monospace; font-size: 2.2vh; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: -0.3vh 0 0 var(--gl-red), 0.3vh 0 0 var(--gl-cyan); }
+[data-vibe='glitch'] .plain__stanza { font-family: 'VT323', monospace; font-weight: 400; font-size: min(3vw, 5vh); line-height: 1.15; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; text-shadow: -1.5px 0 0 var(--gl-red), 1.5px 0 0 var(--gl-cyan); }
+[data-vibe='glitch'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='glitch'] .lfb__poster { display: none; }
+[data-vibe='glitch'] .lfb h3 { font-family: 'Unbounded Variable', 'Inter Variable', sans-serif; text-transform: uppercase; font-weight: 800; letter-spacing: -0.03em; font-size: clamp(22px, 3.4vw, 50px); color: #fff; text-shadow: -0.04em 0 0 var(--gl-red), 0.04em 0 0 var(--gl-cyan); }
+[data-vibe='glitch'] .lfb p { color: rgba(255, 255, 255, 0.85); }
+[data-vibe='glitch'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='glitch'] .lfb__eq i { background: #fff; box-shadow: -2px 0 0 var(--gl-red), 2px 0 0 var(--gl-cyan); }
+:root[data-calm] [data-vibe='glitch'] .lfb h3 { animation: none; }

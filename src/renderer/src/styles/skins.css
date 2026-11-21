@@ -152,7 +152,6 @@
 :root[data-vibe='dream'] .full .full__side { background: rgba(255,255,255,.16) !important; border: 2px solid rgba(255,255,255,.7) !important; border-radius: 999px !important; box-shadow: 0 0 40px rgba(190,160,255,.5), inset 0 0 22px rgba(255,255,255,.12) !important; }
 :root[data-vibe='stadium'] .full .full__side { background: linear-gradient(180deg, #0b3b86, #072a63) !important; border: 0 !important; border-left: 6px solid #ffd23f !important; border-radius: 6px !important; box-shadow: 0 12px 28px -10px rgba(0,0,0,.7) !important; }
 :root[data-vibe='noir'] .full .full__side { background: rgba(0,0,0,.78) !important; border: 0 !important; border-top: 1px solid rgba(255,255,255,.5) !important; border-radius: 0 !important; }
-:root[data-vibe='glitch'] .full .full__side { background: rgba(10,5,4,.88) !important; border: 2px solid #ff4a2e !important; border-radius: 2px !important; box-shadow: -4px 0 0 #26f0ff, 4px 0 0 #ff2a1a !important; }
 
 :root[data-vibe='stencil'] .sidepanel { --panel: #252422; --fg: #f2efe9; --fg-2: rgba(242,239,233,.82); --fg-3: rgba(242,239,233,.62); --line: rgba(255,106,0,.35); --line-2: rgba(255,106,0,.35); --accent: #ff6a00; --glow: #ff6a00; --glow-soft: transparent; background: #252422; color: #f2efe9; border: 3px solid #ff6a00; border-radius: 2px; box-shadow: 8px 8px 0 #000; -webkit-backdrop-filter: none; backdrop-filter: none; }
 :root[data-vibe='stencil'] .sidepanel .settings section { background: rgba(255,255,255,.05); box-shadow: 0 0 0 1px rgba(255,106,0,.3); border-radius: 2px; }

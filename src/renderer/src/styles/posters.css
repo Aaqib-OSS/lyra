@@ -91,8 +91,6 @@
 
 /* ---- Sketchbook: a pasted photo with red tape and a pencil ring ---- */
 /* ---- Glitch: split channels and a tearing line ---- */
-[data-vibe='glitch'] .artwork--lift { outline: 2px solid #ff4a2e; outline-offset: 0; box-shadow: -6px 0 0 #ff2a1a, 6px 0 0 #26f0ff !important; animation: pz-flick 3s steps(1) infinite; }
-[data-vibe='glitch'] .artwork__deco--a { left: 0; right: 0; height: 12%; top: -12%; background: linear-gradient(180deg, transparent, rgba(255,255,255,.35), transparent); animation: pz-scan 3.6s linear infinite; }
 
 /* ---- Pop Comic: a boxed panel with a burst ---- */
 [data-vibe='comic'] .artwork--lift { outline: 6px solid #111; outline-offset: 0; box-shadow: 10px 10px 0 6px #111 !important; border-radius: 6px !important; --tilt: -1.5deg; animation: pz-wobble 5s ease-in-out infinite; }

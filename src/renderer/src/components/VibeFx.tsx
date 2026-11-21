@@ -160,6 +160,25 @@ function SketchFx() {
   )
 }
 
+/** Glitch, fullscreen: a dying tape. Static crawls, a tracking bar rolls up, slices tear, the edges bleed red and cyan. */
+function GlitchFx() {
+  return (
+    <div className="glitchfx">
+      <div className="glitchfx__static" />
+      <SceneWindow>
+        <div className="glitchfx__glass" />
+        <div className="glitchfx__slice" />
+      </SceneWindow>
+      <div className="glitchfx__scan" />
+      <div className="glitchfx__track" />
+      <div className="glitchfx__tear glitchfx__tear--a" />
+      <div className="glitchfx__tear glitchfx__tear--b" />
+      <div className="glitchfx__edge" />
+      <div className="glitchfx__drop" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -294,13 +313,7 @@ export function VibeFx() {
           <div className="vibefx__rays" />
         </>
       )}
-      {vibe === 'glitch' && (
-        <>
-          <div className="vibefx__scan" />
-          <div className="vibefx__tear" />
-          <div className="vibefx__rgb" />
-        </>
-      )}
+      {vibe === 'glitch' && <GlitchFx />}
       {vibe === 'neon' && <NeonAlley />}
       {vibe === 'crt' && <div className="vibefx__scan" />}
       {vibe === 'dream' && (
