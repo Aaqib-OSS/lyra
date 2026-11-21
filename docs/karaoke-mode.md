@@ -154,3 +154,15 @@ Stored in the app's settings/data folder; deleted from Settings -> Karaoke -> "R
 1. Which first: the quick version (A: karaoke videos, any song that has one) or the "real practice" version (C: your own files, scoring)? My suggestion is A first, because it works for everyone in a few days, then C.
 2. Do you have a YouTube key set up on your phone and PC already? (It is needed for A.)
 3. Do you want the score to be a game feature (points, streaks) or just feedback?
+
+## Karaoke 2 (stage, ranking, count-in)
+
+- **Ranking** (core/background/rank.ts, scoreKaraoke): title keywords (karaoke > instrumental > backing track), the channel (karaoke makers get a bonus), smooth length closeness, embeddability, song and artist match. Versions with a lead vocal are flagged guide.
+- **Fast start**: the search result is cached on disk as raw candidates (karaoke-cache-v1.json) and ranked on every read, so the real song length and later ranking changes apply. usePrefetchNext warms the next song for people who use karaoke (a search costs 100 YouTube quota units). The YouTube origin is pre-connected when the screen opens.
+- **Memory** (lib/karaoke/memory.ts, core/karaoke/select.ts): the version chosen per song is tried first; versions marked bad (button, or a YouTube embed error) sink and the next one is tried automatically.
+- **Clock** (core/karaoke/clockSmooth.ts): the embed reports about 4 times a second; the clock interpolates, slews small disagreements and snaps on a seek. The lyrics-only mode uses the shared song clock (core/clock.ts through the player store).
+- **Stage** (KaraokeStage.tsx, styles/karaoke2.css): React renders only on a line change; word fill, count-in ring and progress are CSS custom properties written by one ~30 Hz requestAnimationFrame loop. Colours come from the active vibe variables.
+- **Count-in** (core/karaoke/countIn.ts): 3-2-1 before a first line that starts after 3.5 s and before any line after a 5 s gap; the next line is enlarged during breaks.
+- **Tempo** is offered only when the embed reports playback rates (YouTube keeps the pitch). Key change is not offered: the embed cannot do it. **Vocal guide** on/off switches between a guide and a no-vocals version when the search found both.
+- **No version found**: Sing along with the original song (lyrics follow the shared song clock, optional scoring). No microphone: the lyrics still run, unscored.
+- Keys: Space pause, Left/Right timing (Shift = 0.5 s), T tempo, G vocal guide, F finish, Esc close, Enter start or again, Up/Down choose version. Tap the stage to pause.

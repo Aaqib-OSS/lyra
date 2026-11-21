@@ -116,37 +116,64 @@ export function parseIsoDuration(iso: string | undefined): number | null {
   return (Number(m[1] ?? 0) * 24 + Number(m[2] ?? 0)) * 3600 + Number(m[3] ?? 0) * 60 + Number(m[4] ?? 0)
 }
 
-const KARAOKE = /\b(karaoke|instrumental|backing\s*track|minus\s*one|without\s*vocals?|no\s*vocals?|sing\s*along|sing-along|music\s*only)\b/i
-const NOT_KARAOKE = /\b(cover|reaction|remix|slowed|reverb|8d|nightcore|live|concert|tutorial|lesson|review|mashup|sped\s*up|medley|compilation|playlist|full\s*album|piano\s*tutorial)\b/i
+/** Title words that say "the singer is removed": strongest first. */
+const KARAOKE_WORDS: Array<[RegExp, number]> = [
+  [/\bkaraoke\b/i, 0.35],
+  [/\b(?:instrumental|minus\s*one|off\s*vocal|without\s*(?:the\s*)?vocals?|no\s*vocals?|vocals?\s*removed)\b/i, 0.32],
+  [/\bbacking\s*track\b/i, 0.28],
+  [/\b(?:sing\s*-?\s*along|music\s*only|play\s*-?\s*along)\b/i, 0.2]
+]
+const NOT_KARAOKE = /\b(cover|reaction|remix|slowed|reverb|8d|nightcore|live|concert|tutorial|lesson|review|mashup|sped\s*up|medley|compilation|playlist|full\s*album|piano\s*tutorial|hours?|loop|1\s*hour)\b/i
+/** a guide track keeps a quiet lead vocal to follow ("with vocals", "guide vocals") */
+const GUIDE = /\b(?:with\s*(?:lead\s*|guide\s*|backing\s*)?(?:vocals?|lyrics)|guide\s*(?:vocals?|melody)|lead\s*vocals?)\b/i
+const NO_VOCALS = /\b(?:no|without|minus|off|removed)\s*(?:the\s*)?(?:lead\s*)?(?:vocals?|voice)\b|\binstrumental\b|\bvocals?\s*removed\b/i
+/** channels that make karaoke tracks for a living */
+const TRUSTED_CHANNEL = /\b(sing\s*king|karafun|zoom\s*karaoke|stingray\s*karaoke|karaoke\s*version|karaoke\s*mugen|sunfly|ameritz|the\s*karaoke\s*channel|karaoke\s*hits|singsnap)\b/i
+const GENERIC_CHANNEL = /karaoke|backing|sing\s*king|karafun|zoom|instrumental/i
+
+export interface KaraokeScore {
+  score: number
+  acceptable: boolean
+  /** has a lead vocal to follow (can be switched for a no-vocals version) */
+  guide: boolean
+}
 
 /**
- * Ranks YouTube results for "a version of this song to sing along to": the title says karaoke / instrumental, it is
- * the same song (title) and about the same length. Pure, like [scoreVideo].
+ * Ranks YouTube results for "a version of this song to sing along to". Signals: title keywords (karaoke, instrumental,
+ * backing track), the channel (karaoke makers), how close the length is to the song, embeddability, and the song title
+ * and artist actually matching. `avoid` holds video ids the user (or a failed embed) marked as bad: they sink.
+ * Pure, like [scoreVideo].
  */
-export function scoreKaraoke(want: Wanted, v: VideoCandidate): { score: number; acceptable: boolean } {
-  if (!v.embeddable) return { score: -1, acceptable: false }
+export function scoreKaraoke(want: Wanted, v: VideoCandidate, avoid?: ReadonlySet<string>): KaraokeScore {
+  const guide = GUIDE.test(v.title) && !NO_VOCALS.test(v.title)
+  if (!v.embeddable || avoid?.has(v.videoId)) return { score: -1, acceptable: false, guide }
   const wantTitle = cleanTitle(want.title)
   const nTitle = normalize(v.title)
   const titleSim = Math.max(similarity(wantTitle, cleanVideoTitle(v.title)), nTitle.includes(normalize(wantTitle)) ? 0.9 : 0)
-  const karaoke = KARAOKE.test(v.title)
+  const kw = Math.max(0, ...KARAOKE_WORDS.map(([re, w]) => (re.test(v.title) ? w : 0)))
+  const karaoke = kw > 0
   const artists = artistVariants(want.artist).map(normalize).filter(Boolean)
   const hay = `${nTitle} ${normalize(v.channel)}`
   const artistHit = artists.some((a) => a.split(' ').every((tok) => tok.length < 3 || hay.includes(tok)))
-  let score = 0.45 * titleSim + (karaoke ? 0.35 : 0) + (artistHit ? 0.08 : 0)
-  if (/karaoke|backing|sing\s*king|karafun|zoom|instrumental/i.test(v.channel)) score += 0.08
+  let score = 0.45 * titleSim + kw + (artistHit ? 0.08 : 0)
+  if (TRUSTED_CHANNEL.test(v.channel)) score += 0.12
+  else if (GENERIC_CHANNEL.test(v.channel)) score += 0.06
   if (NOT_KARAOKE.test(v.title) && !NOT_KARAOKE.test(want.title)) score -= 0.4
+  // a guide-vocal version is a fine second choice, a clean no-vocals one is better for singing
+  if (guide) score -= 0.05
   let lengthOk = true
   if (v.durationSec && want.durationMs > 0) {
     const diff = Math.abs(v.durationSec - want.durationMs / 1000)
-    score += diff <= 15 ? 0.2 : diff <= 45 ? 0.08 : -0.2
+    // closer is better, smoothly: +0.22 at the same length, 0 at a minute off, a penalty beyond 90 s
+    score += 0.22 * Math.max(0, 1 - diff / 60) - (diff > 90 ? 0.2 : 0)
     lengthOk = diff <= 60
   }
-  return { score, acceptable: karaoke && titleSim >= 0.55 && lengthOk && score >= 0.7 }
+  return { score, acceptable: karaoke && titleSim >= 0.55 && lengthOk && score >= 0.7, guide }
 }
 
-export function rankKaraoke(want: Wanted, list: VideoCandidate[]): Array<VideoCandidate & { score: number; acceptable: boolean }> {
+export function rankKaraoke(want: Wanted, list: VideoCandidate[], avoid?: ReadonlySet<string>): Array<VideoCandidate & KaraokeScore> {
   return list
-    .map((v) => ({ ...v, ...scoreKaraoke(want, v) }))
+    .map((v) => ({ ...v, ...scoreKaraoke(want, v, avoid) }))
     .filter((v) => v.score > 0.2)
     .sort((a, b) => b.score - a.score)
 }

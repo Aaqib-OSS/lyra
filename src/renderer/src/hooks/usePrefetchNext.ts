@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { QueueItem, Track } from '@shared/types'
+import { karaokeInUse } from '@/lib/karaoke/memory'
 import { usePlayer } from '@/store/player'
 import { useSettings } from '@/store/settings'
 
@@ -28,6 +29,8 @@ export function usePrefetchNext(): void {
         // what the services need to find the song; the real duration arrives when it starts
         const guess: Track = { id: next.id, uri: '', title: next.title, artists: next.artists, album: '', releaseYear: null, durationMs: 0, artworkUrl: next.artworkUrl, explicit: false, webUrl: null }
         await window.lyra.lyrics.get(guess).catch(() => undefined)
+        // karaoke: only for people who use it (a search costs YouTube quota); the answer is cached on disk
+        if (!cancelled && karaokeInUse()) await window.lyra.background.karaokeVideos(guess).catch(() => undefined)
         if (cancelled || style === 'still' || style === 'living') return
         await window.lyra.background.resolve(guess).catch(() => undefined)
       } catch {

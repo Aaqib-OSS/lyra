@@ -214,6 +214,8 @@ export interface YoutubeVideo {
   acceptable?: boolean
   best?: boolean
   why?: string[]
+  /** karaoke versions: keeps a quiet lead vocal to follow */
+  guide?: boolean
 }
 
 /** fractions (0-0.3) of black bars to trim from each edge of a video */
