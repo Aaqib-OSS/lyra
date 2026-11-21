@@ -1,0 +1,200 @@
+/* ==========================================================================
+   ARCADE: an 80s arcade cabinet (one vibe, one file; layout mechanics are in scene.css).
+   The video plays on a CRT screen, the card is the PLAYER 1 panel, the song is spelled out in pixel type with a +100 for
+   every word, a score ticks along, and marquee bulbs chase clockwise around the edge of the screen.
+   ========================================================================== */
+:root[data-vibe='arcade'] {
+  --rimc: #ffe14d;
+  --arc-yellow: #ffe14d;
+  --arc-pink: #ff2d6f;
+  --arc-cyan: #3df2ff;
+  --arc-ink: #0d0d30;
+  /* scene geometry (styles/scene.css) */
+  --sc-wl: 6vw;
+  --sc-wt: 9vh;
+  --sc-ww: min(42vw, 66vh);
+  --sc-wh: calc(var(--sc-ww) * 0.7);
+  --sc-wr: 2.4vh;
+  --sc-cr: 5vw;
+  --sc-ct: calc(64px + 4vh);
+  --sc-cw: clamp(200px, 20vw, 290px);
+  --sc-ll: 6vw;
+  --sc-lt: calc(var(--sc-wt) + var(--sc-wh) + 5vh);
+  --sc-lw: 89vw;
+  --sc-lb: 11vh;
+  --sc-art-bg: radial-gradient(circle at 50% 40%, rgba(61, 242, 255, 0.2), transparent 65%), #06061a;
+  --sc-art-fg: #3df2ff;
+  --sc-eq: #ffe14d;
+}
+/* no words: the pixel cabinet keeps its size, the text under it needs the room */
+:root[data-vibe='arcade'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(36vw, 56vh); }
+[data-vibe='arcade'] .shell {
+  --accent: #ffe14d;
+  --glow: rgba(255, 225, 77, 0.55);
+  --glow-soft: rgba(255, 225, 77, 0.22);
+  --font: 'Press Start 2P', 'Courier New', monospace;
+  --fg: #fff;
+  --bg-0: #0a0a1a;
+}
+:root[data-vibe='arcade'][data-rim='on']::after { display: none; }
+[data-vibe='arcade'] .widget__title { font-family: 'Press Start 2P', monospace; font-size: clamp(12px, 1.4vw, 18px); line-height: 1.4; letter-spacing: 0; }
+
+/* ---------------- backdrop: the arcade room, carpet at the bottom ---------------- */
+[data-vibe='arcade'] .backdrop .backdrop__field {
+  background:
+    radial-gradient(circle at 20% 80%, rgba(61, 242, 255, 0.28) 0 0.4vh, transparent 0.5vh) 0 0 / 9vh 9vh,
+    radial-gradient(circle at 70% 30%, rgba(255, 45, 111, 0.28) 0 0.4vh, transparent 0.5vh) 0 0 / 11vh 11vh,
+    linear-gradient(180deg, transparent 80%, rgba(13, 13, 48, 0.9) 80%),
+    linear-gradient(180deg, #0a0a1a, #14143a);
+  -webkit-mask: linear-gradient(180deg, #000 0, #000 100%);
+}
+[data-vibe='arcade'] .backdrop .backdrop__field::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20%;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 3vh, rgba(255, 45, 111, 0.35) 3vh 3.4vh, transparent 3.4vh 6vh, rgba(61, 242, 255, 0.3) 6vh 6.4vh),
+    #0d0d30;
+  border-top: 0.5vh solid #ff2d6f;
+}
+[data-vibe='arcade'] .backdrop__img,
+[data-vibe='arcade'] .backdrop__blob,
+[data-vibe='arcade'] .backdrop__dim,
+[data-vibe='arcade'] .backdrop__grade,
+[data-vibe='arcade'] .backdrop__shade { display: none !important; }
+
+/* ---------------- effects ---------------- */
+.arcadefx { position: absolute; inset: 0; pointer-events: none; font-family: 'Press Start 2P', monospace; }
+.arcadefx .vibefx__stars { opacity: 0.55; }
+.arcadefx__hud {
+  position: absolute;
+  top: 3.6vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4vw;
+  font-size: max(10px, 1.3vh);
+  color: #fff;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.arcadefx__hud b { color: var(--arc-yellow); font-weight: 400; margin-left: 0.6em; }
+.arcadefx__coin { color: var(--arc-pink); animation: arc-blink 1s steps(1) infinite; }
+@keyframes arc-blink { 50% { opacity: 0; } }
+@keyframes arc-scroll { to { transform: translateY(160px); } }
+/* the CRT: scanlines, a curved-glass vignette and a glare, inside a thick plastic bezel */
+[data-vibe='arcade'] .scenewin {
+  box-shadow:
+    0 0 0 1.2vh #1a1a4a,
+    0 0 0 calc(1.2vh + 3px) #ffe14d,
+    0 0 0 calc(1.2vh + 3px + 0.8vh) #06061a,
+    1.2vh 1.6vh 0 calc(1.2vh + 3px + 0.8vh) var(--arc-pink),
+    0 0 8vh rgba(61, 242, 255, 0.25);
+}
+.arcadefx__crt {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0 2px, transparent 2px 4px),
+    radial-gradient(120% 120% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.55)),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.14) 0, transparent 22%);
+  box-shadow: inset 0 0 6vh rgba(0, 0, 0, 0.6);
+  animation: arc-flicker 6s steps(1) infinite;
+}
+@keyframes arc-flicker { 0%, 91%, 95%, 100% { opacity: 1; } 93% { opacity: 0.8; } }
+/* marquee bulbs: square pixels walking clockwise along the four edges */
+.arcadefx__bulbs { position: absolute; --d: 1.1vh; --g: 2.6vh; }
+.arcadefx__bulbs--t, .arcadefx__bulbs--b { left: 1.4vh; right: 1.4vh; height: var(--d); }
+.arcadefx__bulbs--l, .arcadefx__bulbs--r { top: 1.4vh; bottom: 1.4vh; width: var(--d); }
+.arcadefx__bulbs--t { top: 1.4vh; background: repeating-linear-gradient(90deg, var(--arc-yellow) 0 var(--d), transparent var(--d) var(--g)); animation: arc-chase-x 1.2s steps(6) infinite; }
+.arcadefx__bulbs--b { bottom: 1.4vh; background: repeating-linear-gradient(90deg, var(--arc-pink) 0 var(--d), transparent var(--d) var(--g)); animation: arc-chase-x 1.2s steps(6) infinite reverse; }
+.arcadefx__bulbs--r { right: 1.4vh; background: repeating-linear-gradient(180deg, var(--arc-cyan) 0 var(--d), transparent var(--d) var(--g)); animation: arc-chase-y 1.2s steps(6) infinite; }
+.arcadefx__bulbs--l { left: 1.4vh; background: repeating-linear-gradient(180deg, var(--arc-yellow) 0 var(--d), transparent var(--d) var(--g)); animation: arc-chase-y 1.2s steps(6) infinite reverse; }
+@keyframes arc-chase-x { to { background-position: 2.6vh 0; } }
+@keyframes arc-chase-y { to { background-position: 0 2.6vh; } }
+:root[data-perf='low'] .arcadefx .vibefx__stars--b { display: none; }
+:root[data-motion='off'] .arcadefx *, :root[data-motion='off'] .full__side { animation: none !important; }
+
+/* ---------------- the card: PLAYER 1 ---------------- */
+:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  border-radius: 0 !important;
+  background: var(--arc-ink) !important;
+  border: 3px solid var(--arc-yellow) !important;
+  box-shadow: 0.9vh 0.9vh 0 var(--arc-pink), 0 0 0 3px #06061a !important;
+  gap: 1.2vh;
+}
+:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side::before {
+  content: 'PLAYER 1';
+  display: block;
+  font: 1.3vh/1 'Press Start 2P', monospace;
+  color: var(--arc-pink);
+  animation: arc-blink 1.4s steps(1) infinite;
+}
+:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork {
+  border-radius: 0 !important;
+  image-rendering: pixelated;
+  box-shadow: 0 0 0 3px #fff, 0.6vh 0.6vh 0 3px var(--arc-pink);
+}
+:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 {
+  font: 1.5vh/1.5 'Press Start 2P', monospace;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--arc-yellow);
+  text-shadow: 0.2vh 0.2vh 0 var(--arc-pink);
+}
+:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.1vh/1.6 'Press Start 2P', monospace; color: #d6d6ff; text-transform: uppercase; }
+:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .progress__rail { border-radius: 0; background: #06061a; box-shadow: 0 0 0 2px #fff; height: 1.2vh; }
+:root[data-vibe='arcade'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .progress__fill { border-radius: 0; background: repeating-linear-gradient(90deg, var(--arc-cyan) 0 0.8vh, #0d6a73 0.8vh 1vh); }
+[data-vibe='arcade'] .playbtn { border-radius: 0; background: var(--arc-yellow); color: #1a1a5a; box-shadow: 0.5vh 0.5vh 0 var(--arc-pink); }
+[data-vibe='arcade'] .full__side .ibtn, [data-vibe='arcade'] .full__side .tbtn { border-radius: 0; }
+
+/* ---------------- lyrics: pixel type, +100 for every word (stage 'pixel') ---------------- */
+.stage--pixel { display: flex; flex-direction: column; justify-content: center; }
+.sign--pixel .sign__row {
+  font-family: 'Press Start 2P', monospace;
+  font-weight: 400;
+  font-size: min(2.7vw, 4.7vh);
+  line-height: 1.55;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  gap: 0 0.7em;
+}
+.sign--pixel .sign__word { position: relative; color: #3a3a7a; text-shadow: none; }
+.sign--pixel .sign__word.is-in { color: #fff; text-shadow: 0.1em 0.1em 0 var(--arc-pink); animation: arc-pop 0.32s steps(4) 1; }
+.sign--pixel .sign__word.is-now { color: var(--arc-yellow); animation: arc-pop 0.32s steps(4) 1, arc-flash 0.5s steps(1) infinite 0.32s; }
+.sign--pixel .sign__word.is-now::after {
+  content: '+100';
+  position: absolute;
+  left: 0;
+  top: -0.6em;
+  font-size: 0.4em;
+  color: var(--arc-cyan);
+  text-shadow: none;
+  opacity: 0;
+  animation: arc-score 1s steps(8) 1 forwards;
+}
+@keyframes arc-pop { 0% { transform: translateY(-0.4em) scale(1.35); } 100% { transform: none; } }
+@keyframes arc-flash { 50% { color: #fff; } }
+@keyframes arc-score { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-1.4em); } }
+.sign--pixel .sign__next { font: min(1.2vw, 2vh) / 1.6 'Press Start 2P', monospace; text-transform: uppercase; color: #6a6ad0; }
+.sign--pixel .sign__refl { display: none; }
+:root[data-calm] .sign--pixel .sign__word.is-now { animation: none; }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='arcade'] .lyrics__notice { align-self: flex-start; background: var(--arc-ink); border: 2px solid var(--arc-yellow); border-radius: 0; color: var(--arc-yellow); font: 10px/1.6 'Press Start 2P', monospace; text-transform: uppercase; }
+[data-vibe='arcade'] .plain__stanza { font-family: 'Press Start 2P', monospace; font-weight: 400; letter-spacing: 0; line-height: 2; font-size: min(1.6vw, 2.8vh); text-transform: uppercase; color: #fff; text-shadow: none; }
+[data-vibe='arcade'] .plain__stanza > span::before { content: '▸ '; color: var(--arc-pink); }
+[data-vibe='arcade'] .plain__stanza > span:nth-child(odd) { color: var(--arc-yellow); }
+[data-vibe='arcade'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='arcade'] .lfb__poster { display: none; }
+[data-vibe='arcade'] .lfb h3 { font-family: 'Press Start 2P', monospace; font-weight: 400; text-transform: uppercase; font-size: clamp(14px, 2vw, 26px); line-height: 1.4; color: var(--arc-yellow); text-shadow: 0.1em 0.1em 0 var(--arc-pink); }
+[data-vibe='arcade'] .lfb p, [data-vibe='arcade'] .lfb small { font-family: 'Press Start 2P', monospace; font-size: max(10px, 1.1vw); line-height: 1.9; color: #d6d6ff; }
+[data-vibe='arcade'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='arcade'] .lfb__eq i { background: var(--arc-yellow); border-radius: 0; box-shadow: 2px 2px 0 var(--arc-pink); }
+:root[data-calm] [data-vibe='arcade'] .lfb h3 { animation: none; }
+
+/* ---------------- mini player / phone: stars and carpet only ---------------- */
+:root[data-vibe='arcade'][data-mode='mini'] .arcadefx__bulbs, :root[data-vibe='arcade'][data-platform='android'] .arcadefx__bulbs { display: none; }

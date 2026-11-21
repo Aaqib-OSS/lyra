@@ -159,7 +159,7 @@
 }
 :root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-size: 1.5vh; color: #3a4660; }
 :root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #0b1220 !important; color: #fff !important; box-shadow: 0 0.8vh 2vh rgba(10, 18, 64, 0.5) !important; }
-:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress { --fill: #2f55c8; }
+:root[data-vibe='chrome'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #2f55c8; }
 
 /* ---------------- lyrics: liquid metal (stage 'liquid') ---------------- */
 .stage--liquid { display: flex; flex-direction: column; justify-content: center; }

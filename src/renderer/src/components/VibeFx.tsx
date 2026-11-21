@@ -62,6 +62,36 @@ function ChromeFx({ sparkles }: { sparkles: { x: number; y: number; s: number; d
   )
 }
 
+/** Arcade: the video plays on a CRT in a cabinet, a score ticks with the song, marquee bulbs chase around the screen. */
+function ArcadeFx() {
+  const track = usePlayer((x) => x.snapshot?.track ?? null)
+  const [t, setT] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setT(getPosition()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const score = String(Math.floor(t / 1000) * 100).padStart(6, '0')
+  const hi = String(Math.floor((track?.durationMs ?? 0) / 1000) * 100).padStart(6, '0')
+  return (
+    <div className="arcadefx">
+      <div className="vibefx__stars" />
+      <div className="vibefx__stars vibefx__stars--b" />
+      <div className="arcadefx__hud">
+        <span>1UP <b>{score}</b></span>
+        <span className="arcadefx__coin">INSERT COIN</span>
+        <span>HI <b>{hi}</b></span>
+      </div>
+      <SceneWindow>
+        <div className="arcadefx__crt" />
+      </SceneWindow>
+      <div className="arcadefx__bulbs arcadefx__bulbs--t" />
+      <div className="arcadefx__bulbs arcadefx__bulbs--r" />
+      <div className="arcadefx__bulbs arcadefx__bulbs--b" />
+      <div className="arcadefx__bulbs arcadefx__bulbs--l" />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -120,13 +150,7 @@ export function VibeFx() {
   return (
     <div className={`vibefx vibefx--${vibe}`} aria-hidden="true">
       <i className="vibeflash" key={vibe} />
-      {vibe === 'arcade' && (
-        <>
-          <div className="vibefx__hud"><span>1UP</span><span className="vibefx__score" /><span>HI 099950</span></div>
-          <div className="vibefx__stars" />
-          <div className="vibefx__stars vibefx__stars--b" />
-        </>
-      )}
+      {vibe === 'arcade' && <ArcadeFx />}
       {vibe === 'sunset' && (
         <>
           <div className="vibefx__sunset-sun" />

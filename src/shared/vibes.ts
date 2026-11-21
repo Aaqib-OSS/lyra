@@ -29,7 +29,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'sticker', layout: 'side', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
   { id: 'chat', layout: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' },
   { id: 'paper', layout: 'side', style: 'diary', name: 'Diary', tag: 'Handwritten, highlighted' },
-  { id: 'arcade', layout: 'dock', style: 'kinetic', name: 'Arcade', tag: '8-bit scoreboard' },
+  { id: 'arcade', layout: 'scene', style: 'pixel', name: 'Arcade', tag: '8-bit cabinet' },
   { id: 'noir', layout: 'bar', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
   { id: 'sunset', layout: 'dock', style: 'kinetic', name: 'Sunset Drive', tag: 'Palms, radio and a pink sky' },
   { id: 'blocks', layout: 'side', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },

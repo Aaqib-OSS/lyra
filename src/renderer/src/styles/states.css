@@ -93,16 +93,7 @@
 :root .full.is-cinema .artwork--lift, :root .full:not([data-arch='side']) .artwork--lift, :root .mini__dock .artwork--lift, :root .phone__dock .artwork--lift { outline-width: 2px !important; outline-offset: 0 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.55), 0 8px 20px -6px rgba(0,0,0,.6) !important; animation: none !important; }
 
 /* ===================== ARCADE ===================== */
-[data-vibe='arcade'] .lyrics__notice { background: #0d0d30; border: 2px solid #ffe600; border-radius: 0; color: #ffe600; font: 10px/1.5 'Press Start 2P', monospace; text-transform: uppercase; letter-spacing: 0; }
 /* unsynced words: the high-score table: rows, a marker, no highlight that moves */
-[data-vibe='arcade'] .plain__stanza { font-family: 'Press Start 2P', monospace; font-weight: 400; letter-spacing: 0; line-height: 1.9; color: #fff; font-size: max(11px, calc(var(--lyric-size) * 0.34)); }
-[data-vibe='arcade'] .plain__stanza > span::before { content: '▸ '; color: #ff2d6f; }
-[data-vibe='arcade'] .plain__stanza > span:nth-child(odd) { color: #ffe600; }
-[data-vibe='arcade'] .lfb__poster { display: none; }
-[data-vibe='arcade'] .lfb h3 { font-family: 'Press Start 2P', monospace; font-weight: 400; text-transform: uppercase; color: #ffe600; text-shadow: 3px 3px 0 #ff2d6f; line-height: 1.5; font-size: clamp(14px, 2.2cqw, 24px); letter-spacing: 0; animation: pz-blink 1.4s steps(1) infinite; max-width: none; }
-[data-vibe='arcade'] .lfb p { font-family: 'Press Start 2P', monospace; font-size: 10px; line-height: 1.9; color: #d6d6ff; }
-[data-vibe='arcade'] .lfb__eq i { background: #ffe600; border-radius: 0; box-shadow: 2px 2px 0 #ff2d6f; }
-:root[data-calm] [data-vibe='arcade'] .lfb h3 { animation: none; }
 
 /* ===================== CINEMA (noir) ===================== */
 /* the film is black and white, the video too */
@@ -238,8 +229,6 @@
 :root[data-vibe='comic'] .full .full__side { background: #fff !important; --fg: #111; --fg-2: #2a2a2a; --fg-3: #444; border: 3px solid #111; box-shadow: 4px 4px 0 #111; border-radius: 10px; -webkit-backdrop-filter: none; backdrop-filter: none; }
 :root[data-vibe='sketch'] .full .full__side { background: #f4ead0 !important; --fg: #1f1511; --fg-2: #3a2a22; --fg-3: #55443a; border: 2px solid #1f1511; box-shadow: 4px 4px 0 #d23a2a; border-radius: 6px; -webkit-backdrop-filter: none; backdrop-filter: none; }
 
-[data-vibe='arcade'] .lfb small, [data-vibe='arcade'] .lfb p { font-size: max(10px, 1em); }
-[data-vibe='arcade'] .lfb small { font-size: 10px; }
 
 
 /* ===================== STENCIL ===================== */

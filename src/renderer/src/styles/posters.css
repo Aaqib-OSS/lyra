@@ -51,10 +51,6 @@
 [data-vibe='chat'] .artwork__deco--a { right: -4%; bottom: -4%; width: 26%; height: 26%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 88 C10 58 6 30 28 22 C40 18 48 26 50 34 C52 26 60 18 72 22 C94 30 90 58 50 88Z' fill='%23ff4d6d' stroke='%23fff' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: pz-pop 3.6s ease-out infinite; }
 
 /* ---- Arcade: pixel frame, blinking 1UP ---- */
-[data-vibe='arcade'] .artwork--lift { outline: 0; box-shadow: 0 0 0 4px #ffe600, 0 0 0 8px #06061a, 0 0 0 12px #ff2d6f, 8px 8px 0 12px #000 !important; }
-[data-vibe='arcade'] .artwork__deco--a { left: 4%; top: 4%; padding: 3px 5px; font: 8px/1 'Press Start 2P', monospace; color: #ffe600; background: rgba(0,0,0,.6); animation: pz-blink 1s steps(1) infinite; display: block; }
-[data-vibe='arcade'] .artwork__deco--a::after { content: '1UP'; }
-[data-vibe='arcade'] .artwork__deco--b { right: 6%; bottom: 6%; width: 16%; height: 16%; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 4 L61 34 L94 36 L68 56 L77 88 L50 70 L23 88 L32 56 L6 36 L39 34 Z' fill='%23ffe600' stroke='%2306061a' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E"); animation: pz-spin 2s steps(8) infinite; }
 
 /* ---- Cinema: a film frame with grain and letterbox bars ---- */
 [data-vibe='noir'] .artwork--lift { outline: 6px solid #000; outline-offset: 0; box-shadow: 0 0 0 7px #e8e8e8, 0 24px 50px rgba(0,0,0,.8) !important; }
