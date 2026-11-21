@@ -7,36 +7,38 @@
    Artwork and controls become one lit glass slab with an eyebrow, a big
    two-tone title and a hairline "signal" under the progress bar. */
 
+@media (min-width: 900px) {
 .full:not(.is-cinema) .full__side {
-  position: relative;
-  padding: clamp(18px, 2.4vh, 26px);
-  border-radius: 34px;
-  background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.07)),
-    color-mix(in srgb, var(--tint2) 38%, rgba(10, 10, 14, 0.38));
-  -webkit-backdrop-filter: blur(30px) saturate(1.5);
-  backdrop-filter: blur(30px) saturate(1.5);
-  box-shadow:
-    0 50px 90px -30px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -30px 60px -40px var(--glow-soft);
-}
-[data-theme='light'] .full:not(.is-cinema) .full__side {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.45));
-  box-shadow:
-    0 40px 80px -30px rgba(40, 20, 60, 0.28),
-    0 0 0 1px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 #fff;
-}
-.full:not(.is-cinema) .full__side {
-  box-sizing: border-box;
-}
-.full:not(.is-cinema) .full__side .artwork {
-  width: 100% !important;
-  height: auto !important;
-  aspect-ratio: 1;
-  border-radius: 22px !important;
+    position: relative;
+    padding: clamp(18px, 2.4vh, 26px);
+    border-radius: 34px;
+    background:
+      linear-gradient(160deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.07)),
+      color-mix(in srgb, var(--tint2) 38%, rgba(10, 10, 14, 0.38));
+    -webkit-backdrop-filter: blur(30px) saturate(1.5);
+    backdrop-filter: blur(30px) saturate(1.5);
+    box-shadow:
+      0 50px 90px -30px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(255, 255, 255, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -30px 60px -40px var(--glow-soft);
+  }
+  [data-theme='light'] .full:not(.is-cinema) .full__side {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.45));
+    box-shadow:
+      0 40px 80px -30px rgba(40, 20, 60, 0.28),
+      0 0 0 1px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 #fff;
+  }
+  .full:not(.is-cinema) .full__side {
+    box-sizing: border-box;
+  }
+  .full:not(.is-cinema) .full__side .artwork {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1;
+    border-radius: 22px !important;
+  }
 }
 
 /* eyebrow: "NOW PLAYING" with a tiny equaliser */
@@ -282,4 +284,70 @@
 }
 .pill:hover:not(:disabled) {
   transform: translateY(-1px);
+}
+
+/* ---------- COMPACT / FLOATING WIDGET ("Pulse card") ----------
+   Used on desktop as the small widget and on the phone as the floating overlay. */
+
+.widget {
+  isolation: isolate;
+}
+.widget--compact {
+  gap: 16px;
+  padding: 14px;
+}
+.widget::before {
+  /* lit glass edge */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--edge);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.widget--compact .artwork {
+  border-radius: 20px !important;
+  box-shadow:
+    0 14px 30px -10px var(--glow),
+    0 0 0 1px var(--line);
+}
+.widget__title {
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.widget__artist {
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+.preview {
+  height: 26px;
+  margin-top: 8px;
+}
+.preview__text {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(100deg, var(--fg) 55%, color-mix(in srgb, var(--accent) 70%, var(--fg)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.widget__bar .progress--thin .progress__fill {
+  background: linear-gradient(90deg, var(--accent), #fff);
+  box-shadow: 0 0 12px var(--glow);
+}
+.widget__bar .progress--thin .progress__rail {
+  background: color-mix(in srgb, var(--fg) 10%, transparent);
+}
+.widget .transport--sm .playbtn {
+  box-shadow: 0 6px 18px -4px var(--glow), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }

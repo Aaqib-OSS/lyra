@@ -10,6 +10,8 @@ export interface CardInput {
   accent: string
   tint1: string
   tint2: string
+  /** classic: big type on the blurred cover; doodle: a dark card with hand-drawn marks on the words */
+  style?: 'classic' | 'doodle'
 }
 
 export const CARD_W = 1080
@@ -58,6 +60,7 @@ export async function drawCard(canvas: HTMLCanvasElement, c: CardInput): Promise
   const ctx = canvas.getContext('2d')!
   const family = getComputedStyle(document.body).fontFamily || 'Inter, system-ui, sans-serif'
   const art = await loadImage(c.artworkUrl)
+  if (c.style === 'doodle') return drawDoodle(ctx, c, art, family)
 
   // background: the song's colours, then a blurred cover, then a dark veil so the type stays readable
   const g = ctx.createLinearGradient(0, 0, CARD_W, CARD_H)
@@ -144,4 +147,197 @@ function ellipsize(ctx: CanvasRenderingContext2D, text: string, maxW: number): s
 
 export function cardDataUrl(canvas: HTMLCanvasElement): string {
   return canvas.toDataURL('image/png')
+}
+
+// ---------------------------------------------------------------------------------------------
+// Doodle card: lyrics on a dark card, marked up by hand (underline, circle, strike-through with a
+// scribbled replacement, a burst and a little face). The marks are chosen from the text itself, so
+// the same lines always get the same doodles.
+
+const HAND = `'Segoe Print', 'Bradley Hand', 'Chalkboard SE', 'Comic Sans MS', cursive`
+const SCRIBBLES = ['never', 'always', 'still', 'maybe', 'yes', 'stay', 'soon', 'again']
+
+function seeded(text: string): () => number {
+  let a = 2166136261
+  for (let i = 0; i < text.length; i++) a = Math.imul(a ^ text.charCodeAt(i), 16777619)
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function stroke(ctx: CanvasRenderingContext2D, pts: Array<[number, number]>, color: string, w: number): void {
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = w
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  ctx.moveTo(pts[0]![0], pts[0]![1])
+  for (let i = 1; i < pts.length - 1; i++) {
+    const mx = (pts[i]![0] + pts[i + 1]![0]) / 2
+    const my = (pts[i]![1] + pts[i + 1]![1]) / 2
+    ctx.quadraticCurveTo(pts[i]![0], pts[i]![1], mx, my)
+  }
+  const last = pts[pts.length - 1]!
+  ctx.lineTo(last[0], last[1])
+  ctx.stroke()
+  ctx.restore()
+}
+
+function wobbleLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, color: string, w: number, rnd: () => number): void {
+  const n = 7
+  const pts: Array<[number, number]> = []
+  for (let i = 0; i <= n; i++) {
+    const t = i / n
+    pts.push([x1 + (x2 - x1) * t + (rnd() - 0.5) * 4, y1 + (y2 - y1) * t + (rnd() - 0.5) * 7])
+  }
+  stroke(ctx, pts, color, w)
+}
+
+function scribbleCircle(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: number, ry: number, color: string, rnd: () => number): void {
+  const pts: Array<[number, number]> = []
+  const turns = 1.12
+  const a0 = rnd() * Math.PI * 2
+  for (let i = 0; i <= 28; i++) {
+    const a = a0 + (i / 28) * Math.PI * 2 * turns
+    const k = 1 + (rnd() - 0.5) * 0.06 + (i / 28) * 0.05
+    pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k])
+  }
+  stroke(ctx, pts, color, 7)
+}
+
+function burst(ctx: CanvasRenderingContext2D, cx: number, cy: number, color: string, rnd: () => number): void {
+  for (let i = 0; i < 7; i++) {
+    const a = Math.PI * (1.15 + (i / 6) * 0.7)
+    const r1 = 44 + rnd() * 8
+    const r2 = r1 + 26 + rnd() * 18
+    stroke(ctx, [[cx + Math.cos(a) * r1, cy - Math.sin(a) * r1], [cx + Math.cos(a) * r2, cy - Math.sin(a) * r2]], color, 6)
+  }
+}
+
+function face(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, color: string, sad: boolean, rnd: () => number): void {
+  scribbleCircle(ctx, cx, cy, r, r, color, rnd)
+  ctx.fillStyle = color
+  ctx.beginPath(); ctx.arc(cx - r * 0.35, cy - r * 0.2, 4.5, 0, 7); ctx.fill()
+  ctx.beginPath(); ctx.arc(cx + r * 0.35, cy - r * 0.2, 4.5, 0, 7); ctx.fill()
+  const my = cy + r * (sad ? 0.5 : 0.28)
+  stroke(ctx, [[cx - r * 0.4, my], [cx, my + (sad ? -r * 0.3 : r * 0.3)], [cx + r * 0.4, my]], color, 5)
+}
+
+function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageElement | null, family: string): boolean {
+  const rnd = seeded(c.lines.join('|'))
+  // backdrop: near black, a breath of the song's colour at the corners
+  ctx.fillStyle = '#050505'
+  ctx.fillRect(0, 0, CARD_W, CARD_H)
+  const glow = ctx.createRadialGradient(CARD_W * 0.8, CARD_H * 0.2, 0, CARD_W * 0.8, CARD_H * 0.2, 900)
+  glow.addColorStop(0, c.accent)
+  glow.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = glow
+  ctx.globalAlpha = 0.22
+  ctx.fillRect(0, 0, CARD_W, CARD_H)
+  ctx.globalAlpha = 1
+
+  // the card
+  const cx = 56, cy = 330, cw = CARD_W - 112, ch = 1230
+  const grad = ctx.createLinearGradient(cx, cy, cx, cy + ch)
+  grad.addColorStop(0, '#2c2928')
+  grad.addColorStop(1, '#1f1d1c')
+  ctx.fillStyle = grad
+  roundRect(ctx, cx, cy, cw, ch, 72)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)'
+  ctx.lineWidth = 2
+  ctx.stroke()
+
+  // header: cover + title
+  const pad = 70
+  const cover = 156
+  if (art) {
+    ctx.save()
+    roundRect(ctx, cx + pad, cy + pad, cover, cover, 30)
+    ctx.clip()
+    ctx.drawImage(art, cx + pad, cy + pad, cover, cover)
+    ctx.restore()
+  }
+  const hx = cx + pad + (art ? cover + 44 : 0)
+  ctx.textBaseline = 'top'
+  ctx.fillStyle = '#fff'
+  ctx.font = `700 60px ${family}`
+  ctx.fillText(ellipsize(ctx, c.title, cx + cw - pad - hx), hx, cy + pad + 18)
+  ctx.fillStyle = 'rgba(255,255,255,0.78)'
+  ctx.font = `500 46px ${family}`
+  ctx.fillText(ellipsize(ctx, c.artist, cx + cw - pad - hx), hx, cy + pad + 96)
+
+  // the lines
+  const left = cx + pad
+  const maxW = cw - pad * 2
+  let size = 118
+  let rows: string[] = []
+  for (; size >= 56; size -= 4) {
+    ctx.font = `800 ${size}px ${family}`
+    rows = c.lines.flatMap((l) => wrap(ctx, l, maxW))
+    if (rows.length * size * 1.42 <= 640) break
+  }
+  const lh = size * 1.42
+  const top = cy + 330
+  ctx.fillStyle = '#fff'
+  ctx.font = `800 ${size}px ${family}`
+  const spots: Array<{ x: number; y: number; w: number; text: string; row: number }> = []
+  rows.forEach((row, r) => {
+    const parts = row.split(' ')
+    let acc = ''
+    for (const w of parts) {
+      const x = left + ctx.measureText(acc ? acc + ' ' : '').width
+      spots.push({ x, y: top + r * lh, w: ctx.measureText(w).width, text: w, row: r })
+      acc = acc ? `${acc} ${w}` : w
+    }
+    ctx.fillText(row, left, top + r * lh)
+  })
+
+  // pick the words to mark
+  const longs = spots.filter((p) => p.text.replace(/\W/g, '').length >= 4)
+  const pool = longs.length >= 2 ? longs : spots
+  const pick = (): (typeof spots)[number] => pool.splice(Math.floor(rnd() * pool.length), 1)[0]!
+  const underlined = pick()
+  const circled = pool.length ? pick() : undefined
+  const shorts = spots.filter((p) => p !== underlined && p !== circled && p.text.replace(/\W/g, '').length <= 4)
+  const struck = shorts.length ? shorts[Math.floor(rnd() * shorts.length)]! : undefined
+
+  const base = size * 0.92
+  wobbleLine(ctx, underlined.x, underlined.y + base + 12, underlined.x + underlined.w, underlined.y + base + 14, '#ee6a62', 8, rnd)
+  if (circled) scribbleCircle(ctx, circled.x + circled.w / 2, circled.y + size * 0.52, circled.w / 2 + 26, size * 0.62, '#d86bd0', rnd)
+  if (struck) {
+    wobbleLine(ctx, struck.x - 6, struck.y + size * 0.34, struck.x + struck.w + 6, struck.y + size * 0.7, '#e34a45', 9, rnd)
+    wobbleLine(ctx, struck.x - 6, struck.y + size * 0.7, struck.x + struck.w + 6, struck.y + size * 0.34, '#e34a45', 9, rnd)
+    ctx.save()
+    ctx.translate(struck.x + struck.w * 0.1, struck.y - size * 0.34)
+    ctx.rotate(-0.1)
+    ctx.fillStyle = '#e9a6e4'
+    ctx.font = `600 ${Math.round(size * 0.62)}px ${HAND}`
+    ctx.fillText(SCRIBBLES[Math.floor(rnd() * SCRIBBLES.length)]!, 0, 0)
+    ctx.restore()
+  }
+  const lastY = top + (rows.length - 1) * lh + size * 1.12
+  burst(ctx, left + 90, lastY + 8, 'rgba(190,225,235,0.75)', rnd)
+  face(ctx, cx + cw - pad - 90, lastY + 40, 46, 'rgba(120,200,200,0.85)', rnd() > 0.35, rnd)
+
+  // the mark
+  const my = cy + ch - pad - 74
+  ctx.fillStyle = '#fff'
+  ctx.beginPath(); ctx.arc(left + 37, my + 37, 37, 0, 7); ctx.fill()
+  ctx.fillStyle = '#111'
+  ctx.font = `800 44px ${family}`
+  ctx.textBaseline = 'middle'
+  ctx.fillText('L', left + 26, my + 40)
+  ctx.fillStyle = '#fff'
+  ctx.font = `800 58px ${family}`
+  ctx.fillText('Lyra', left + 90, my + 40)
+  ctx.textBaseline = 'top'
+  ctx.fillStyle = 'rgba(255,255,255,0.5)'
+  ctx.font = `500 30px ${family}`
+  ctx.fillText(SITE, CARD_W / 2 - ctx.measureText(SITE).width / 2, cy + ch + 70)
+  return true
 }

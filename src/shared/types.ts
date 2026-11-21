@@ -155,6 +155,8 @@ export interface LyricsResult {
 export type ThemeMode = 'dark' | 'light' | 'adaptive'
 export type LyricFont = 'sans' | 'serif' | 'rounded' | 'mono'
 export type LyricAnimation = 'glide' | 'focus' | 'fade'
+/** how the sung line is staged in fullscreen: the classic scrolling list, giant kinetic type or a star map */
+export type LyricStyle = 'classic' | 'kinetic' | 'constellation'
 /** how fullscreen lyrics are laid out over a video */
 export type FullLayout = 'auto' | 'cinema' | 'split' | 'poster' | 'focus'
 
@@ -245,6 +247,9 @@ export interface Settings {
   lyricFontSize: number // px, fullscreen base
   lineSpacing: number // 1 - 2
   lyricAnimation: LyricAnimation
+  lyricStyle: LyricStyle
+  /** a soft glow in the artwork's colour around the window edge */
+  rimLight: boolean
   fullLayout: FullLayout
   /** Show a Roman-letter transliteration below Hindi and Punjabi lyrics. */
   romanizeLyrics: boolean
@@ -296,6 +301,8 @@ export const DEFAULT_SETTINGS: Settings = {
   lyricFontSize: 40,
   lineSpacing: 1.35,
   lyricAnimation: 'glide',
+  lyricStyle: 'classic',
+  rimLight: true,
   fullLayout: 'cinema',
   wordByWord: true,
   romanizeLyrics: false,

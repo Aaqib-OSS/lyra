@@ -11,11 +11,13 @@ import './styles/panels.css'
 import './styles/android.css'
 import './styles/polish.css'
 import './styles/redesign.css'
+import './styles/stage.css'
 import { useSettings } from './store/settings'
 
 // let CSS honour the in-app reduced-motion setting (the OS preference is handled by media queries)
 useSettings.subscribe((st) => {
   document.documentElement.dataset.motion = st.settings.reducedMotion === 'on' ? 'off' : 'on'
+  document.documentElement.dataset.rim = st.settings.rimLight ? 'on' : 'off'
 })
 
 createRoot(document.getElementById('root')!).render(

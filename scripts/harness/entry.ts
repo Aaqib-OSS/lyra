@@ -4,6 +4,8 @@ import { DEMO_TRACKS } from '@core/demo/data'
 import { demoLyrics } from '@core/demo/lyrics'
 
 const q = new URLSearchParams(location.search)
+if (q.get('android')) document.documentElement.dataset.platform = 'android'
+if (q.get('overlay')) document.documentElement.dataset.overlay = '1'
 const idx = Number(q.get('track') ?? 0)
 const track = DEMO_TRACKS[idx] ?? DEMO_TRACKS[0]
 let settings: Settings = { ...DEFAULT_SETTINGS, onboarded: true, source: 'api', ...(JSON.parse(q.get('s') ?? '{}') as Partial<Settings>) }

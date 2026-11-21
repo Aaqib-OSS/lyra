@@ -753,6 +753,21 @@ export function SettingsPanel() {
         <Row label="Line spacing">
           <Slider label="Line spacing" value={s.lineSpacing} min={1} max={2} step={0.05} onChange={up('lineSpacing')} format={(v) => v.toFixed(2)} />
         </Row>
+        <Row label="Lyric style" hint="How the sung line is staged in fullscreen">
+          <Segmented
+            label="Lyric style"
+            value={s.lyricStyle}
+            onChange={up('lyricStyle')}
+            options={[
+              { v: 'classic', label: 'Classic' },
+              { v: 'kinetic', label: 'Kinetic' },
+              { v: 'constellation', label: 'Stars' }
+            ]}
+          />
+        </Row>
+        <Row label="Rim light" hint="A soft glow in the album's colour around the window edge">
+          <Toggle label="Rim light" checked={s.rimLight} onChange={up('rimLight')} />
+        </Row>
         <Row label="Animation">
           <Segmented
             label="Lyric animation"
