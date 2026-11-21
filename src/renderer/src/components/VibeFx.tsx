@@ -394,6 +394,20 @@ function CassetteFx() {
   )
 }
 
+/** Blocks, fullscreen: a blocky sandbox. Square clouds drift, a grass-and-dirt ground, leaf blocks along the top edge. */
+function BlocksFx() {
+  return (
+    <div className="blocksfx">
+      <i className="blocksfx__cloud blocksfx__cloud--a" />
+      <i className="blocksfx__cloud blocksfx__cloud--b" />
+      <i className="blocksfx__cloud blocksfx__cloud--c" />
+      <div className="blocksfx__ground" />
+      <div className="blocksfx__leaves" />
+      <SceneWindow />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -464,15 +478,7 @@ export function VibeFx() {
           <GoldenHour />
         </>
       )}
-      {vibe === 'blocks' && (
-        <>
-          <div className="vibefx__cloud vibefx__cloud--a" />
-          <div className="vibefx__cloud vibefx__cloud--b" />
-          <div className="vibefx__ground" />
-          <div className="vibefx__hotbar">{Array.from({ length: 9 }, (_, i) => <i key={i} className={i === 2 ? 'on' : ''} />)}</div>
-          <div className="vibefx__xp" />
-        </>
-      )}
+      {vibe === 'blocks' && <BlocksFx />}
       {vibe === 'stadium' && <StadiumFx />}
       {vibe === 'cassette' && <CassetteFx />}
       {vibe === 'trailer' && (

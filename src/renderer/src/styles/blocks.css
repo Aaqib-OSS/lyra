@@ -1,0 +1,99 @@
+/* ==========================================================================
+   BLOCKS: a blocky sandbox (fullscreen: one file, layout mechanics are in scene.css).
+   Flat pixel sky with square clouds drifting, a grass-and-dirt ground, leaf blocks hanging along the top edge. The video is a
+   painting in a wooden frame on the wall, the lyrics are the game chat log, the card is the inventory hotbar with the cover in
+   the selected slot. Graphic pixel art only: squares, flat colour, no textures from any game.
+   ========================================================================== */
+:root[data-vibe='blocks'] {
+  --rimc: #6dd14a;
+  --bk-grass: #6dd14a;
+  --bk-dirt: #8a5a2c;
+  --bk-stone: #8b8b8b;
+  --bk-ink: #2a2a2a;
+  /* scene geometry (styles/scene.css): the painting on the right, the chat on the left, the hotbar along the bottom centre */
+  --sc-ww: min(44vw, 68vh);
+  --sc-wl: calc(95vw - var(--sc-ww));
+  --sc-wt: 10vh;
+  --sc-wr: 0px;
+  --sc-cw: min(62vw, 760px);
+  --sc-cl: calc(50vw - var(--sc-cw) / 2);
+  --sc-cb: 3.5vh;
+  --sc-ct: auto;
+  --sc-ll: 5vw;
+  --sc-lt: 12vh;
+  --sc-lw: calc(95vw - var(--sc-ww) - 5vw - 5vw);
+  --sc-lb: 22vh;
+  --sc-lbs: 22vh;
+  --sc-art-bg: repeating-conic-gradient(#9b9b9b 0 25%, #838383 0 50%) 0 0 / 4vh 4vh;
+  --sc-art-fg: #1a1a1a;
+  --sc-eq: #1a1a1a;
+}
+:root[data-vibe='blocks'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: min(48vw, 74vh); }
+:root[data-vibe='blocks'][data-rim='on']::after { display: none; }
+[data-vibe='blocks'] .shell { --accent: #7ccf4f; --glow: rgba(124, 207, 79, 0.5); --glow-soft: rgba(124, 207, 79, 0.2); --font: 'Press Start 2P', 'Courier New', monospace; --fg: #fff; --bg-0: #5aa7e8; }
+[data-vibe='blocks'] .backdrop .backdrop__field { background: linear-gradient(180deg, #5aa7e8 0 36%, #6fb6ef 36% 62%, #8ecbf5 62% 100%); }
+:root[data-vibe='blocks'] :is(.backdrop__img, .backdrop__blob, .backdrop__dim, .backdrop__grade, .backdrop__shade) { display: none !important; }
+
+/* ---------------- the world ---------------- */
+.blocksfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; image-rendering: pixelated; }
+.blocksfx__cloud { position: absolute; left: 0; width: 4vh; height: 4vh; background: #fff; box-shadow: 4vh 0 #fff, 8vh 0 #fff, 12vh 0 #fff, 16vh 0 #fff, 4vh -4vh #fff, 8vh -4vh #fff, 12vh -4vh #fff, 0 4vh #e9f4ff, 4vh 4vh #e9f4ff, 8vh 4vh #e9f4ff, 12vh 4vh #e9f4ff, 16vh 4vh #e9f4ff; opacity: 0.95; animation: bk-cloud linear infinite; }
+.blocksfx__cloud--a { top: 8vh; animation-duration: 90s; }
+.blocksfx__cloud--b { top: 28vh; animation-duration: 130s; animation-delay: -50s; scale: 0.7; }
+.blocksfx__cloud--c { top: 52vh; animation-duration: 170s; animation-delay: -110s; scale: 0.5; }
+@keyframes bk-cloud { from { transform: translateX(-30vh); } to { transform: translateX(calc(100vw + 30vh)); } }
+.blocksfx__ground { position: absolute; left: 0; right: 0; bottom: 0; height: 12vh; background:
+  linear-gradient(180deg, var(--bk-grass) 0 4vh, #4fa636 4vh 5vh, transparent 5vh),
+  repeating-conic-gradient(#8a5a2c 0 25%, #7a4e24 0 50%) 0 5vh / 4vh 4vh,
+  var(--bk-dirt); }
+/* leaf blocks hang along the top edge; they sway in steps */
+.blocksfx__leaves { position: absolute; left: 0; right: 0; top: 0; height: 7vh; background: repeating-conic-gradient(#3f9a2e 0 25%, #4fb23a 0 50%) 0 0 / 3.5vh 3.5vh; -webkit-mask: repeating-linear-gradient(90deg, #000 0 3.5vh, transparent 3.5vh 5.2vh, #000 5.2vh 10.5vh), linear-gradient(180deg, #000 55%, transparent); -webkit-mask-composite: source-in; mask: repeating-linear-gradient(90deg, #000 0 3.5vh, transparent 3.5vh 5.2vh, #000 5.2vh 10.5vh) intersect, linear-gradient(180deg, #000 55%, transparent); animation: bk-sway 4s steps(2) infinite alternate; }
+@keyframes bk-sway { from { transform: translateX(0); } to { transform: translateX(1.2vh); } }
+:root[data-calm] .blocksfx * { animation-play-state: paused; }
+:root[data-motion='off'] .blocksfx * { animation: none !important; }
+:root[data-perf='low'] .blocksfx__cloud--c, :root[data-perf='low'] .blocksfx__leaves { display: none; }
+/* the painting: a wooden frame in flat steps, no rounded corners */
+[data-vibe='blocks'] .scenewin { box-shadow: 0 0 0 1vh #7a4e24, 0 0 0 2vh #4a2e12, 0 0 0 2.4vh #2a1a0a, 1.4vh 1.6vh 0 2.4vh rgba(0, 0, 0, 0.35); }
+.scenewin__art span { font: 2vh/1.4 'Press Start 2P', monospace; text-transform: uppercase; color: #1a1a1a; background: #c6c6c6; padding: 1vh 1.4vh; box-shadow: inset -0.4vh -0.4vh 0 #555, inset 0.4vh 0.4vh 0 #fff; }
+.scenewin__eq { display: none; }
+
+/* ---------------- the card: the inventory hotbar ---------------- */
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
+  --fg: #222;
+  --fg-2: #444;
+  --fg-3: #555;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.6vh;
+  padding: 1vh 1.8vh 1vh 1vh !important;
+  border-radius: 0 !important;
+  background: #c6c6c6 !important;
+  border: 0 !important;
+  box-shadow: inset -0.5vh -0.5vh 0 #555, inset 0.5vh 0.5vh 0 #fff, 0 0 0 0.5vh #2a2a2a, 1vh 1.2vh 0 0.5vh rgba(0, 0, 0, 0.35) !important;
+  color: #222;
+}
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { flex: none; width: 8vh !important; border-radius: 0 !important; image-rendering: pixelated; box-shadow: 0 0 0 0.5vh #fff, 0 0 0 1vh #2a2a2a; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(70px, 1fr) auto; grid-template-areas: 'titles controls' 'progress progress'; align-items: center; column-gap: 1.2vw; row-gap: 0.8vh; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 1.7vh/1.4 'Press Start 2P', monospace; letter-spacing: 0; text-transform: none; color: #222; text-shadow: 0.25vh 0.25vh 0 #bbb; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.1vh/1.5 'Press Start 2P', monospace; color: #444; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: #555; border-radius: 0; height: 1.2vh; box-shadow: inset 0.3vh 0.3vh 0 #2a2a2a; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: var(--bk-grass); border-radius: 0; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #7ccf4f !important; color: #1a3a0a !important; border-radius: 0 !important; box-shadow: inset -0.4vh -0.4vh 0 #3e8a1e, inset 0.4vh 0.4vh 0 #b6f08a, 0 0 0 0.4vh #2a2a2a !important; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #222; border-radius: 0; }
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
+
+/* ---------------- lyrics: the chat log (stage 'chatlog'), a little bigger ---------------- */
+:root[data-vibe='blocks'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .mc__row { font-size: min(1.55vw, 2.9vh); }
+
+/* ---------------- other lyric states (same regions) ---------------- */
+[data-vibe='blocks'] .lyrics__notice { align-self: flex-start; background: rgba(0, 0, 0, 0.6); border: 0; border-radius: 0; color: #ffd84a; font: 1.3vh/1.5 'Press Start 2P', monospace; text-transform: none; }
+[data-vibe='blocks'] .plain__stanza { font-family: 'Press Start 2P', monospace; font-weight: 400; font-size: min(1.4vw, 2.5vh); line-height: 1.7; color: #fff; text-shadow: 0.3vh 0.3vh 0 #3f3f3f; background: rgba(0, 0, 0, 0.35); padding: 1vh 1.4vh; }
+[data-vibe='blocks'] .lfb { align-items: flex-start; text-align: left; }
+[data-vibe='blocks'] .lfb__poster { display: none; }
+[data-vibe='blocks'] .lfb h3 { font-family: 'Press Start 2P', monospace; font-weight: 400; text-transform: none; letter-spacing: 0; font-size: clamp(16px, 2.2vw, 32px); line-height: 1.4; color: #fff; text-shadow: 0.4vh 0.4vh 0 #3f3f3f; }
+[data-vibe='blocks'] .lfb p, [data-vibe='blocks'] .lfb small { font-family: 'Press Start 2P', monospace; font-size: max(10px, 1vw); line-height: 1.8; color: #fff; text-shadow: 0.2vh 0.2vh 0 #3f3f3f; }
+[data-vibe='blocks'] .lfb__actions { justify-content: flex-start; }
+[data-vibe='blocks'] .lfb__eq i { background: var(--bk-grass); border-radius: 0; box-shadow: 0.3vh 0.3vh 0 #2a2a2a; }

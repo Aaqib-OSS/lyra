@@ -90,7 +90,7 @@
 :root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
 :root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; margin: 0; }
 :root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 2.2vh/1.15 'Courier New', monospace; letter-spacing: 0.02em; text-transform: uppercase; color: #1a120a; text-shadow: none; }
+:root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 700 2.2vh/1.15 'Courier New', monospace; letter-spacing: 0.02em; text-transform: uppercase; color: #1a120a; -webkit-text-fill-color: #1a120a; background: none; text-shadow: none; }
 :root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font: 1.4vh 'Courier New', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: #5a4630; }
 :root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__rail { background: rgba(26, 18, 10, 0.25); border-radius: 0; }
 :root[data-vibe='cassette'][data-mode='full']:not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #1a120a; border-radius: 0; }

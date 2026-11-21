@@ -32,7 +32,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'arcade', layout: 'scene', style: 'pixel', name: 'Arcade', tag: '8-bit cabinet' },
   { id: 'noir', layout: 'scene', style: 'subtitle', name: 'Cinema', tag: 'Subtitles in black & white' },
   { id: 'sunset', layout: 'scene', style: 'bloom', name: 'Sunset Drive', tag: 'Golden hour, warm glow' },
-  { id: 'blocks', layout: 'side', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
+  { id: 'blocks', layout: 'scene', style: 'chatlog', name: 'Blocks', tag: 'A sandbox with a chat log' },
   { id: 'stadium', layout: 'scene', style: 'lowerthird', name: 'Stadium', tag: 'Live broadcast scoreboard' },
   { id: 'cassette', layout: 'scene', style: 'label', name: 'Cassette', tag: 'Tape deck, label-maker strips' },
   { id: 'trailer', layout: 'scene', style: 'title', name: 'Trailer', tag: 'Movie title cards' },
