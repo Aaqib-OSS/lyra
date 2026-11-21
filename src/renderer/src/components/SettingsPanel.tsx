@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LOCAL_SHORTCUTS } from '@shared/shortcuts'
 import type { Settings, SourceHealth, YoutubeVideo } from '@shared/types'
 import { useBackgroundVersion } from '@/hooks/useBackground'
@@ -659,9 +659,15 @@ export function SettingsPanel() {
           ? 'Offline'
           : 'Not connected'
 
+  const tabRail = useRef<HTMLElement>(null)
+  // keep the chosen tab in view in the sideways-scrolling row
+  useEffect(() => {
+    tabRail.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [tab])
+
   return (
     <div className="settings" data-nodrag>
-      <nav className="stabs" role="tablist" aria-label={t('Settings sections')}>
+      <nav className="stabs" role="tablist" aria-label={t('Settings sections')} ref={tabRail}>
         {tabs.map((t, index) => (
           <button
             key={t.id}
