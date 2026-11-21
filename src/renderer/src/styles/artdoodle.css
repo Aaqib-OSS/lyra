@@ -1,0 +1,38 @@
+/* ==========================================================================
+   THE COVER IN THE CARD wears the look: a doodle layer (components/Artwork.tsx, kits in lib/cardDoodles.ts) drawn over the cover,
+   alive with a slow motion of its own, plus a treatment of the picture per kit (duotone, halftone, grain, glow ...). The doodles
+   are seeded by the song, so every song gets its own set. Only in the scene looks.
+   ========================================================================== */
+.artwork__doodle { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; transform-origin: 50% 50%; animation: ad-bob 5s ease-in-out infinite alternate; }
+@keyframes ad-bob { from { transform: translate(0, 0) rotate(-1.2deg) scale(1); } to { transform: translate(0.5%, -1.5%) rotate(1.4deg) scale(1.03); } }
+:root[data-calm] .artwork__doodle { animation-play-state: paused; }
+:root[data-motion='off'] .artwork__doodle { animation: none; }
+/* the picture itself, per kit */
+.artwork[data-kit] .artwork__img { transition: filter 0.6s; }
+.artwork[data-kit] .artwork__img::selection { background: none; }
+.artwork[data-kit='neon'] .artwork__img { filter: saturate(1.5) contrast(1.15) hue-rotate(-8deg) brightness(0.92); }
+.artwork[data-kit='neon'] { box-shadow: 0 0 0 0.3vh #ff3df2, 0 0 2.6vh #ff3df2, inset 0 0 2vh rgba(107, 234, 255, 0.5) !important; }
+.artwork[data-kit='chrome'] .artwork__img { filter: grayscale(0.7) contrast(1.25) brightness(1.05); }
+.artwork[data-kit='dream'] .artwork__img { filter: blur(0.4px) saturate(1.4) brightness(1.1) contrast(0.92); }
+.artwork[data-kit='term'] .artwork__img { filter: grayscale(1) sepia(1) hue-rotate(70deg) saturate(3) contrast(1.15) brightness(0.9); }
+.artwork[data-kit='term']::after { background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px) !important; -webkit-mask: none !important; mask: none !important; padding: 0 !important; z-index: 3; animation: ad-scan 6s linear infinite; background-size: 100% 6px; }
+@keyframes ad-scan { to { background-position: 0 6px; } }
+.artwork[data-kit='pixel'] .artwork__img { image-rendering: pixelated; filter: contrast(1.35) saturate(1.5); }
+.artwork[data-kit='pixel']::after { background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0 2px, transparent 2px 4px) !important; -webkit-mask: none !important; mask: none !important; padding: 0 !important; z-index: 3; }
+.artwork[data-kit='sticker'] .artwork__img, .artwork[data-kit='comic'] .artwork__img { filter: saturate(1.6) contrast(1.25); }
+.artwork[data-kit='comic']::after, .artwork[data-kit='sticker']::after { background: radial-gradient(circle, rgba(0, 0, 0, 0.35) 28%, transparent 32%) 0 0 / 7px 7px !important; -webkit-mask: none !important; mask: none !important; padding: 0 !important; z-index: 3; mix-blend-mode: multiply; opacity: 0.55; }
+.artwork[data-kit='cine'] .artwork__img { filter: sepia(0.5) contrast(1.15) brightness(0.9) saturate(0.85); }
+.artwork[data-kit='cine']::after { background: radial-gradient(120% 120% at 50% 50%, transparent 50%, rgba(0, 0, 0, 0.55)) !important; -webkit-mask: none !important; mask: none !important; padding: 0 !important; z-index: 3; }
+.artwork[data-kit='sun'] .artwork__img { filter: sepia(0.35) saturate(1.5) hue-rotate(-12deg) brightness(1.02); }
+.artwork[data-kit='sun']::after { background: linear-gradient(180deg, rgba(255, 138, 92, 0.15), rgba(255, 46, 147, 0.38)) !important; -webkit-mask: none !important; mask: none !important; padding: 0 !important; z-index: 3; mix-blend-mode: soft-light; }
+.artwork[data-kit='paper'] .artwork__img { filter: sepia(0.55) contrast(0.95) brightness(1.04); }
+.artwork[data-kit='tape'] .artwork__img { filter: sepia(0.6) contrast(1.1) saturate(0.8); }
+.artwork[data-kit='sport'] .artwork__img { filter: saturate(1.4) contrast(1.15); }
+.artwork[data-kit='spray'] .artwork__img { filter: grayscale(0.85) contrast(1.4) brightness(0.95); }
+.artwork[data-kit='wall'] .artwork__img { filter: grayscale(0.5) contrast(1.25); }
+.artwork[data-kit='flap'] .artwork__img { filter: grayscale(1) contrast(1.3) brightness(0.95); }
+.artwork[data-kit='grid'] .artwork__img, .artwork[data-kit='route'] .artwork__img { filter: saturate(0.8) contrast(1.1) hue-rotate(10deg); }
+.artwork[data-kit='soft'] .artwork__img { filter: saturate(1.25) brightness(1.06); }
+.artwork[data-kit='chat'] .artwork__img { filter: saturate(1.15); }
+:root[data-vibe='glitch'] .artwork[data-kit='term'] .artwork__img { filter: contrast(1.3) saturate(1.5); animation: ad-glitch 3.4s steps(1) infinite; }
+@keyframes ad-glitch { 0%, 92%, 100% { transform: none; filter: contrast(1.3) saturate(1.5); } 93% { transform: translateX(-3%); filter: hue-rotate(90deg) contrast(1.4); } 95% { transform: translateX(3%) skewX(4deg); filter: hue-rotate(-90deg) contrast(1.4); } }

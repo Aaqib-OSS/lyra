@@ -6,6 +6,7 @@ import { useEffectiveVibe } from '@/hooks/useVibe'
 import { useIdle } from '@/hooks/useIdle'
 import { usePlayerView } from '@/hooks/usePlayerView'
 import { joinArtists } from '@/lib/format'
+import { cardTheme } from '@/lib/shareCard'
 import { useBgState } from '@/store/bgState'
 import { usePlayer } from '@/store/player'
 import { requestMode, useUi } from '@/store/ui'
@@ -39,7 +40,8 @@ export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
   const cinema = useBgState((s) => s.media === 'full' || (mini && s.media === 'mini'))
   const ytVideo = useBgState((s) => s.kind === 'youtube')
   // each vibe arranges the card and the lyrics its own way
-  const arch = vibeInfo(useEffectiveVibe().vibe).layout
+  const effVibe = useEffectiveVibe().vibe
+  const arch = vibeInfo(effVibe).layout
 
   return (
     <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${cinema ? (arch === 'term' ? 'is-video' : 'is-cinema') : ''}`} data-arch={arch}>
@@ -80,7 +82,7 @@ export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
       {view === 'playing' && track ? (
         <div className="full__body">
           <aside className="full__side">
-            <Artwork url={track.artworkUrl} size={arch === 'scene' ? '100%' : arch === 'term' ? 'clamp(120px, 24vh, 240px)' : arch !== 'side' ? 'clamp(54px, 8.5vh, 84px)' : cinema ? 'clamp(84px, 12vh, 124px)' : 'min(34vw, 46vh, 460px)'} radius={arch === 'scene' ? 16 : arch === 'orb' ? 999 : arch !== 'side' ? 12 : cinema ? 14 : 18} className="artwork--lift" />
+            <Artwork doodle={arch === 'scene' ? { vibe: effVibe, seed: `${track.title}|${track.artists.join(',')}`, kit: cardTheme(effVibe).kit ?? 'marker' } : undefined} url={track.artworkUrl} size={arch === 'scene' ? '100%' : arch === 'term' ? 'clamp(120px, 24vh, 240px)' : arch !== 'side' ? 'clamp(54px, 8.5vh, 84px)' : cinema ? 'clamp(84px, 12vh, 124px)' : 'min(34vw, 46vh, 460px)'} radius={arch === 'scene' ? 16 : arch === 'orb' ? 999 : arch !== 'side' ? 12 : cinema ? 14 : 18} className="artwork--lift" />
             <div className="full__chrome">
               <div className="full__titlerow">
                 <div className="full__titles">

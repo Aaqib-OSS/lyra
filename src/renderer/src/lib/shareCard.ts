@@ -242,7 +242,7 @@ export function cardDataUrl(canvas: HTMLCanvasElement): string {
 const HAND = `'Segoe Print', 'Bradley Hand', 'Chalkboard SE', 'Comic Sans MS', cursive`
 const SCRIBBLES = ['never', 'always', 'still', 'maybe', 'yes', 'stay', 'soon', 'again']
 
-function seeded(text: string): () => number {
+export function seeded(text: string): () => number {
   let a = 2166136261
   for (let i = 0; i < text.length; i++) a = Math.imul(a ^ text.charCodeAt(i), 16777619)
   return () => {
