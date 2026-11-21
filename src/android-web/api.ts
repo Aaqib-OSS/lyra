@@ -3,7 +3,7 @@ import { createBackgroundResolver, type SongBg } from '@core/background/resolver
 import { youtube } from '@core/background/youtube'
 import { lyricsService } from '@core/lyrics/service'
 import type { LyraApi, Unsubscribe } from '@shared/ipc'
-import { DEFAULT_SETTINGS, type ConnectionStatus, type ModeEvent, type PlaybackSnapshot, type SavedMoment, type Settings, type ViewMode } from '@shared/types'
+import { DEFAULT_SETTINGS, type ConnectionStatus, type ModeEvent, type PlaybackSnapshot, type QueueItem, type SavedMoment, type Settings, type ViewMode } from '@shared/types'
 import { installAndroidPlatform, LocalStore, preloadSecrets, setAppVersion } from './platform'
 import { nativeFetch, rpc } from './rpc'
 
@@ -91,6 +91,21 @@ function syncPhone(): void {
     lastRunning = !!s.keepRunning
     void rpc('keepRunning', lastRunning).catch(() => undefined)
   }
+}
+
+// ---------------- home-screen widget: wears the vibe in effect
+// The page sets data-vibe on <html> whenever the vibe in effect changes (settings, cycling, smart pick); the native widget
+// picks its palette from it. Watching the attribute keeps this file independent of the renderer's stores.
+if (!new URLSearchParams(location.search).get('overlay')) {
+  let lastVibe = ''
+  const sendVibe = (): void => {
+    const v = document.documentElement.dataset.vibe ?? 'none'
+    if (v === lastVibe) return
+    lastVibe = v
+    void rpc('widgetVibe', v).catch(() => undefined)
+  }
+  new MutationObserver(sendVibe).observe(document.documentElement, { attributes: true, attributeFilter: ['data-vibe'] })
+  window.addEventListener('load', sendVibe)
 }
 
 // ---------------- window / mode (the phone has one screen: expanded player or the full cinema layout)
@@ -268,7 +283,16 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
     },
     isLiked: async () => null,
     setLiked: async () => ({ ok: false, reason: 'unsupported', error: 'Saving to Liked Songs isn’t available on Android yet.' }),
-    queue: async () => null,
+    queue: async () => {
+      // the next songs the player itself publishes (many players publish none: then null and nothing is prefetched)
+      try {
+        const raw = await rpc<string>('queue')
+        const list = raw ? (JSON.parse(raw) as QueueItem[] | null) : null
+        return Array.isArray(list) && list.length ? list : null
+      } catch {
+        return null
+      }
+    },
     recent: async () => null,
     openInSpotify: async () => void (await rpc('openSpotify'))
   },
