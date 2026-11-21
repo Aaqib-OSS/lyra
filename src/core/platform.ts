@@ -20,6 +20,8 @@ export interface Store<T extends object> {
 export interface BlobCache {
   read(key: string): string | null
   write(key: string, value: string): void
+  /** forget every entry (Settings → Clear cache) */
+  clear?(): void
 }
 
 /** One secret string (the user's YouTube API key), kept encrypted by the host when it can. */

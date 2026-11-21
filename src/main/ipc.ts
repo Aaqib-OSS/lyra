@@ -6,6 +6,7 @@ import type { ConnectionStatus, PlaybackSnapshot, PlayerCommand, Settings, Track
 import { getArtwork } from './artwork'
 import { DemoSource } from './demo/source'
 import { lyricsService } from '@core/lyrics/service'
+import { clearAllCaches } from '@core/cache/persistentCache'
 import { lanViewer } from './lan/server'
 import { registerStudioIpc } from './studio'
 import QRCode from 'qrcode'
@@ -194,6 +195,7 @@ export function registerIpc(): void {
   handle(CH.lyricsClearPin, (t: Track) => lyricsService.clearPin(t))
   handle(CH.lyricsImport, (t: Track, text: string) => lyricsService.importText(t, String(text ?? ''), 'pasted'))
   handle(CH.lyricsHealth, () => lyricsService.health())
+  handle(CH.cacheClear, () => clearAllCaches())
   handle(CH.lyricsImportFile, async (t: Track) => {
     const win = windows.window
     const opts: Electron.OpenDialogOptions = { title: 'Choose a lyrics file', properties: ['openFile'], filters: [{ name: 'Lyrics (.lrc, .srt, .txt)', extensions: ['lrc', 'srt', 'txt'] }] }

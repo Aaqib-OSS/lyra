@@ -56,6 +56,7 @@ export const CH = {
   lyricsImport: 'lyrics:import',
   lyricsImportFile: 'lyrics:import-file',
   lyricsHealth: 'lyrics:health',
+  cacheClear: 'cache:clear',
   artGet: 'art:get',
   momentsList: 'moments:list',
   momentsAdd: 'moments:add',
@@ -189,6 +190,10 @@ export interface LyraApi {
     importFile(track: Track): Promise<LyricsResult | { error: string } | null>
     /** How each lyrics service is doing right now. */
     health(): Promise<SourceHealth[]>
+  }
+  cache: {
+    /** Forget cached video lookups and lyrics (pins and imported lyrics stay). */
+    clear(): Promise<{ cleared: number }>
   }
   art: {
     /** Returns a data: URL (cached) so the renderer never needs remote image access. */

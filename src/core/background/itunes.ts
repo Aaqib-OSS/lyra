@@ -1,5 +1,7 @@
 import type { Track } from '@shared/types'
-import { logger, platform, type Store } from '../platform'
+import { logger, platform } from '../platform'
+import { PersistentCache } from '../cache/persistentCache'
+import { sameLength, trackCacheKey } from '../cache/trackCacheKey'
 import { retry } from '../resilience'
 import { cleanVideoTitle } from './rank'
 
@@ -11,7 +13,7 @@ const MISS_TTL = 7 * 24 * 3600_000
 export const HOST_RE = /^https:\/\/[a-z0-9-]+\.itunes\.apple\.com\//i
 
 interface Entry {
-  at: number
+  durationMs: number
   url: string | null
   title: string
   /** pixel width of the clip (640 = low quality, 1920 = HD) */
@@ -26,20 +28,24 @@ const norm = (s: string): string =>
     .trim()
 
 class ItunesService {
-  private cache: Store<{ entries: Record<string, Entry> }> | null = null
+  /** keyed by the SONG (artist|title) so any player's copy of it reuses the clip lookup */
+  private readonly cache = new PersistentCache<Entry>({
+    name: 'itunes-cache-v2.json',
+    version: 1,
+    maxEntries: 1500,
+    ttl: (e) => (e.url ? HIT_TTL : MISS_TTL)
+  })
   private inflight = new Map<string, Promise<Entry | null>>()
-  private entries(): Record<string, Entry> {
-    return (this.cache ??= platform().store<{ entries: Record<string, Entry> }>('itunes-cache.json', { entries: {} })).get().entries
-  }
 
   /** Free, key-less. Returns a short official clip or null. Network failures are not cached. */
   async find(track: Track): Promise<{ url: string; title: string; width: number } | null> {
-    const hit = this.entries()[track.id]
-    if (hit && Date.now() - hit.at < (hit.url ? HIT_TTL : MISS_TTL)) return hit.url ? { url: hit.url, title: hit.title, width: hit.width ?? 1920 } : null
-    let p = this.inflight.get(track.id)
+    const ck = trackCacheKey(track)
+    const hit = this.cache.get(ck, (e) => sameLength(e.durationMs, track.durationMs))
+    if (hit) return hit.url ? { url: hit.url, title: hit.title, width: hit.width ?? 1920 } : null
+    let p = this.inflight.get(ck)
     if (!p) {
-      p = this.search(track).finally(() => this.inflight.delete(track.id))
-      this.inflight.set(track.id, p)
+      p = this.search(track).finally(() => this.inflight.delete(ck))
+      this.inflight.set(ck, p)
     }
     const r = await p
     return r?.url ? { url: r.url, title: r.title, width: r.width } : null
@@ -63,7 +69,7 @@ class ItunesService {
     } catch (e) {
       log.warn('search failed', (e as Error).message)
       // offline or a bad moment: an expired clip we already know is still a good clip
-      const old = this.entries()[track.id]
+      const old = this.cache.getStale(trackCacheKey(track), (e) => sameLength(e.durationMs, track.durationMs))
       return old?.url ? old : null
     }
     const wantT = norm(track.title)
@@ -81,10 +87,8 @@ class ItunesService {
       return !!wantT && (t === wantT || t.startsWith(wantT) || wantT.startsWith(t)) && !!wantA && (a.includes(wantA) || wantA.includes(a))
     })
     const best = matches.sort((x, y) => widthOf(y.previewUrl!) - widthOf(x.previewUrl!))[0]
-    const entry: Entry = { at: Date.now(), url: best?.previewUrl ?? null, title: best ? `${best.trackName} — ${best.artistName}` : '', width: best ? widthOf(best.previewUrl!) : 0 }
-    const entries = this.entries()
-    entries[track.id] = entry
-    this.cache!.set({ entries })
+    const entry: Entry = { durationMs: track.durationMs, url: best?.previewUrl ?? null, title: best ? `${best.trackName} — ${best.artistName}` : '', width: best ? widthOf(best.previewUrl!) : 0 }
+    this.cache.set(trackCacheKey(track), entry)
     return entry
   }
 }

@@ -2,6 +2,7 @@ import { parseImported, parseLrc, stripLrc } from '@shared/lrc'
 import type { LyricsResult, SourceHealth, Track } from '@shared/types'
 import { logger, platform, type BlobCache, type Store } from '../platform'
 import { CircuitBreaker, backoffDelay, isTemporary, sleep } from '../resilience'
+import { registerCacheClearer } from '../cache/persistentCache'
 import { trackKey } from '../songKey'
 import { rememberTrack } from '../trackIndex'
 import { demoLyrics } from '../demo/lyrics'
@@ -20,6 +21,7 @@ const STALE_MAX = 365 * 24 * 3600_000
 /** a failure is shared for a moment so several screens asking at once do not each hit the services again */
 const ERROR_HOLD_MS = 15_000
 const MAX_DISK_ENTRIES = 600
+const MAX_MEMORY_ENTRIES = 200
 const MAX_IMPORTS = 300
 const MAX_IMPORT_CHARS = 200_000
 
@@ -92,10 +94,29 @@ export class LyricsService {
       if (!entry) continue
       const ttl = stale ? STALE_MAX : entry.result.status === 'none' ? NONE_TTL : entry.result.status === 'plain' ? PLAIN_TTL : FOUND_TTL
       if (now - entry.at > ttl) continue
-      this.memory.set(id, entry)
+      this.remember(id, entry)
       return { ...entry.result, trackId: track.id }
     }
     return null
+  }
+
+  /** memory layer with a cap: re-inserting keeps the most recently used last, the oldest goes first */
+  private remember(id: string, entry: CacheEntry): void {
+    this.memory.delete(id)
+    this.memory.set(id, entry)
+    if (this.memory.size > MAX_MEMORY_ENTRIES) this.memory.delete(this.memory.keys().next().value as string)
+  }
+
+  /** Forget every cached lyrics result (memory + disk). Pins and lyrics the user imported are kept. */
+  clearCache(): void {
+    this.memory.clear()
+    this.held.clear()
+    this.inflight.clear()
+    try {
+      this.disk().clear?.()
+    } catch (e) {
+      log.warn('cache clear failed', e)
+    }
   }
 
   private readDisk(id: string): CacheEntry | null {
@@ -111,7 +132,7 @@ export class LyricsService {
     if (result.status === 'error') return // never cache failures
     const id = `k:${this.key(track)}`
     const entry = { at: this.now(), result }
-    this.memory.set(id, entry)
+    this.remember(id, entry)
     try {
       this.disk().write(id, JSON.stringify(entry))
     } catch (e) {
@@ -180,10 +201,12 @@ export class LyricsService {
       const hold = this.held.get(track.id)
       if (hold && this.now() - hold.at < ERROR_HOLD_MS) return hold.result
     }
-    const pending = this.inflight.get(track.id)
-    if (pending) return pending
-    const p = this.lookup(track).finally(() => this.inflight.delete(track.id))
-    this.inflight.set(track.id, p)
+    // one lookup per SONG, however many screens or players ask at once
+    const flight = this.key(track)
+    const pending = this.inflight.get(flight)
+    if (pending) return pending.then((r) => ({ ...r, trackId: track.id }))
+    const p = this.lookup(track).finally(() => this.inflight.delete(flight))
+    this.inflight.set(flight, p)
     return p
   }
 
@@ -374,3 +397,4 @@ export class LyricsService {
 }
 
 export const lyricsService = new LyricsService()
+registerCacheClearer('lyrics', () => lyricsService.clearCache())
