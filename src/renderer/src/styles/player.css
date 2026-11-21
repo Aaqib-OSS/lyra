@@ -953,3 +953,39 @@
   left: 5%;
   right: 52%;
 }
+
+
+/* Focus: a single subtitle-style line keeps the video unobstructed. */
+:root:not([data-platform='android']) .full.is-cinema.layout-focus .full__lyrics {
+  left: 8%;
+  right: 8%;
+  top: auto;
+  bottom: clamp(34px, 7vh, 84px);
+  height: auto;
+  min-height: clamp(90px, 18vh, 180px);
+}
+:root:not([data-platform='android']) .full.is-cinema.layout-focus .lyrics__inner {
+  padding: 30cqh 4px 60cqh 0;
+}
+:root:not([data-platform='android']) .full.is-cinema.layout-focus .lyrics--full .lyric {
+  justify-content: center;
+  padding-block: 0.12em;
+  font-size: min(calc(var(--lyric-size) * 1.45), 6vh);
+}
+:root:not([data-platform='android']) .full.is-cinema.layout-focus .lyrics--full .lyric:not(.is-active) {
+  opacity: 0;
+  pointer-events: none;
+}
+:root:not([data-platform='android']) .full.is-cinema.layout-focus .lyrics__scroller[data-browsing] .lyrics--full .lyric:not(.is-active) {
+  opacity: 0.6;
+  pointer-events: auto;
+}
+:root:not([data-platform='android']) .full.is-cinema.layout-focus .lyrics--full .lyric__text {
+  max-width: 100%;
+  text-align: center;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+:root:not([data-platform='android']) .full.is-cinema.layout-focus .lyrics__footer {
+  display: none;
+}

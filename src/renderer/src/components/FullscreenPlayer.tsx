@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { resolveAutoFullLayout } from '@shared/fullLayout'
 import { useIdle } from '@/hooks/useIdle'
 import { usePlayerView } from '@/hooks/usePlayerView'
 import { joinArtists } from '@/lib/format'
@@ -14,6 +16,12 @@ import { VideoPicker } from './VideoPicker'
 import { ConnectScreen, LoadingScreen, NoMusicScreen, OfflineBanner, OfflineScreen } from './StateScreens'
 
 export function FullscreenPlayer() {
+  const [viewport, setViewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }))
+  useEffect(() => {
+    const observer = new ResizeObserver(() => setViewport({ width: window.innerWidth, height: window.innerHeight }))
+    observer.observe(document.documentElement)
+    return () => observer.disconnect()
+  }, [])
   const view = usePlayerView()
   const track = usePlayer((s) => s.snapshot?.track ?? null)
   const device = usePlayer((s) => s.snapshot?.device ?? null)
@@ -28,7 +36,10 @@ export function FullscreenPlayer() {
   const quiet = idle && panel === 'none'
   // cinema layout: a video is playing, so get the UI out of its way
   const cinema = useBgState((s) => s.media === 'full')
-  const layout = useSettings((s) => s.settings.fullLayout)
+  const selectedLayout = useSettings((s) => s.settings.fullLayout)
+  const layout = selectedLayout === 'auto'
+    ? resolveAutoFullLayout(viewport.width, viewport.height)
+    : selectedLayout
   const ytVideo = useBgState((s) => s.kind === 'youtube')
 
   return (
