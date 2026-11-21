@@ -1,0 +1,68 @@
+/* ==========================================================================
+   SETTINGS PAGE: one stylesheet, skinned by tokens (no per-look stylesheet).
+   Every look sets four tokens; skins.css already sets the paper, ink, line and accent (--panel --fg --line --accent)
+   of the panel, so the page reads from those and from:
+     --st-font  the look's typeface for the page          --st-r    corner size of the cards and controls
+     --st-ink   text colour on top of --accent             --st-w    border weight of controls
+   ========================================================================== */
+:root { --st-font: inherit; --st-r: 20px; --st-ink: var(--on-fg); --st-w: 1px; }
+:root[data-vibe='neon'] { --st-font: 'Unbounded Variable', sans-serif; --st-r: 18px; --st-ink: #12031f; }
+:root[data-vibe='chrome'] { --st-font: 'Unbounded Variable', sans-serif; --st-r: 30px; --st-ink: #fff; }
+:root[data-vibe='dream'] { --st-font: 'Nunito Variable', sans-serif; --st-r: 38px; --st-ink: #fff; }
+:root[data-vibe='crt'] { --st-font: 'VT323', monospace; --st-r: 4px; --st-ink: #021008; }
+:root[data-vibe='sticker'] { --st-font: 'Unbounded Variable', sans-serif; --st-r: 26px; --st-ink: #fff; --st-w: 2px; }
+:root[data-vibe='chat'] { --st-r: 28px; --st-ink: #fff; }
+:root[data-vibe='paper'] { --st-font: 'Caveat', cursive; --st-r: 14px; --st-ink: #fffaf0; }
+:root[data-vibe='arcade'] { --st-font: 'Press Start 2P', monospace; --st-r: 0px; --st-ink: #06061a; --st-w: 2px; }
+:root[data-vibe='noir'] { --st-font: 'Iowan Old Style', Georgia, serif; --st-r: 4px; --st-ink: #000; }
+:root[data-vibe='sunset'] { --st-r: 34px; --st-ink: #2a0b3d; }
+:root[data-vibe='blocks'] { --st-font: 'VT323', monospace; --st-r: 0px; --st-ink: #1d1d1d; --st-w: 2px; }
+:root[data-vibe='stadium'] { --st-font: 'Unbounded Variable', sans-serif; --st-r: 12px; --st-ink: #04122b; }
+:root[data-vibe='cassette'] { --st-font: 'VT323', monospace; --st-r: 18px; --st-ink: #fff; }
+:root[data-vibe='trailer'] { --st-font: 'Iowan Old Style', Georgia, serif; --st-r: 3px; --st-ink: #000; }
+:root[data-vibe='sketch'] { --st-font: 'Caveat', cursive; --st-r: 10px; --st-ink: #fff; --st-w: 2px; }
+:root[data-vibe='glitch'] { --st-font: 'VT323', monospace; --st-r: 4px; --st-ink: #0a0504; }
+:root[data-vibe='comic'] { --st-font: 'Unbounded Variable', sans-serif; --st-r: 12px; --st-ink: #fff; --st-w: 2px; }
+:root[data-vibe='stencil'] { --st-font: 'Unbounded Variable', sans-serif; --st-r: 2px; --st-ink: #140d06; }
+:root[data-vibe='film'], :root[data-vibe='filmstrip'] { --st-font: 'Fraunces Variable', Georgia, serif; --st-r: 6px; --st-ink: #1b1108; }
+
+.settings [hidden] { display: none !important; }
+.settings { font-family: var(--st-font); }
+.settings :is(button, input, select) { font-family: inherit; }
+
+/* cards and controls take the look's corners and ink */
+.sidepanel .settings section { border-radius: min(calc(var(--st-r) * 0.6), 22px); }
+.settings .seg { border-radius: min(calc(var(--st-r) * 0.5), 14px); }
+.settings .seg button { border-radius: min(calc(var(--st-r) * 0.4), 11px); }
+.settings .seg button.is-on { background: var(--accent); color: var(--st-ink); box-shadow: none; }
+.settings .switch[aria-checked='true'] { background: var(--accent); box-shadow: none; }
+.settings .switch[aria-checked='true'] i { background: var(--st-ink); }
+.settings .pill { border-radius: min(calc(var(--st-r) * 0.5), 999px); border-width: var(--st-w); }
+.settings input[type='range'] { accent-color: var(--accent); }
+.settings h4::before { border-radius: min(calc(var(--st-r) * 0.3), 50%); background: var(--accent); }
+.settings .info { font-family: inherit; }
+
+/* calmer rows: more air, helper text under the label */
+.settings .srow { min-height: 52px; padding: 8px 0; }
+.settings .srow__label small { font-size: 12px; line-height: 1.4; margin-top: 2px; }
+
+.settings .sl { width: 140px; }
+
+/* search */
+.ssearch { margin: 0 0 10px; }
+.ssearch input {
+  width: 100%;
+  height: 36px;
+  padding: 0 14px;
+  border: var(--st-w) solid var(--line-2);
+  border-radius: min(calc(var(--st-r) * 0.6), 18px);
+  background: var(--glass);
+  color: var(--fg);
+  font-size: 13px;
+  outline: none;
+}
+.ssearch input::placeholder { color: var(--fg-3); }
+.ssearch input:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+
+/* the Advanced fold: quiet until opened */
+.settings .more > summary { color: var(--fg-3); font-size: 12px; letter-spacing: 0.04em; }

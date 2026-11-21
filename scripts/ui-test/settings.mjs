@@ -59,7 +59,7 @@ const more = async (p) => { for (const d of await p.locator('details.more:not([o
 {
   const p = await open('mode=mini&s=' + encodeURIComponent(JSON.stringify({ performance: 'smooth' })), { width: 1100, height: 900 })
   await p.evaluate(() => 0)
-  await tab(p, 'Lyrics')
+  await tab(p, 'Lyrics & video')
   check('Lyrics: no typeface / size switches (fixed per vibe)', (await p.locator('[aria-label="Typeface"], [aria-label="Lyric size"]').count()) === 0)
   const words = () => p.locator('.lyric.is-active .word').count()
   const w0 = await words()
@@ -76,7 +76,7 @@ const more = async (p) => { for (const d of await p.locator('details.more:not([o
 // ---------- Video ----------
 {
   const p = await open('mode=full&s=' + encodeURIComponent(JSON.stringify({ performance: 'smooth' })), { width: 1280, height: 860 })
-  await tab(p, 'Video')
+  await tab(p, 'Lyrics & video')
   const dim = p.locator('[aria-label="Background dim"]')
   check('Video: the dim slider exists', (await dim.count()) === 1)
   check('Video: the video switch exists', (await p.locator('[aria-label="Video behind the lyrics"]').count()) === 1)
@@ -91,7 +91,7 @@ const more = async (p) => { for (const d of await p.locator('details.more:not([o
 // ---------- Player (desktop) ----------
 {
   const p = await open('mode=mini', { width: 440, height: 1100 })
-  await tab(p, 'Player')
+  await tab(p, 'Player'); await more(p)
   for (const l of ['Always on top', 'Fade when idle', 'Hide while screen sharing', 'Launch at startup', 'Control system volume', 'Global shortcuts', 'Track change notifications']) {
     const sw = p.locator(`[aria-label="${l}"]`)
     const was = await sw.getAttribute('aria-checked')

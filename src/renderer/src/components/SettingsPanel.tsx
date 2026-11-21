@@ -632,12 +632,15 @@ export function SettingsPanel() {
       ]
     : [
         { id: 'look', label: t('Look') },
-        { id: 'lyrics', label: t('Lyrics') },
-        { id: 'bg', label: t('Video') },
+        { id: 'lyrics', label: t('Lyrics & video') },
         { id: 'general', label: t('Player') },
         { id: 'share', label: t('Connect') },
         { id: 'about', label: t('About') }
       ]
+  const [q, setQ] = useState('')
+  const searching = !android && q.trim().length > 0
+  const show = (id: string): boolean => searching || tab === id
+  const panelRef = useRef<HTMLDivElement>(null)
   const [tab, setTabState] = useState<string>(() => {
     const saved = sessionStorage.getItem('lyra.settingsTab')
     return tabs.some((t) => t.id === saved) ? (saved as string) : tabs[0]!.id
@@ -673,6 +676,34 @@ export function SettingsPanel() {
           ? 'Offline'
           : 'Not connected'
 
+
+  // Search: show every section and hide the rows that do not match (Advanced folds open so nothing hides in them)
+  useEffect(() => {
+    const root = panelRef.current
+    if (!root) return
+    const needle = q.trim().toLowerCase()
+    const apply = (): void => {
+      root.querySelectorAll<HTMLElement>('section').forEach((sec) => {
+        const rows = Array.from(sec.querySelectorAll<HTMLElement>('.srow:not(.srow--actions)'))
+        let any = false
+        rows.forEach((r) => {
+          const hit = !needle || (r.textContent ?? '').toLowerCase().includes(needle)
+          r.hidden = !hit
+          any ||= hit
+        })
+        sec.querySelectorAll<HTMLElement>(':scope > .hint, :scope > .tvlink, :scope > .health, :scope > .vibes, :scope > .more > .hint').forEach((el) => (el.hidden = !!needle))
+        const titleHit = !!needle && (sec.querySelector('h4')?.textContent ?? '').toLowerCase().includes(needle)
+        if (titleHit) rows.forEach((r) => (r.hidden = false))
+        sec.hidden = !!needle && !any && !titleHit
+        if (needle) sec.querySelectorAll<HTMLDetailsElement>('details.more').forEach((d) => d.querySelector('.srow:not([hidden])') && (d.open = true))
+      })
+    }
+    apply()
+    const mo = new MutationObserver(apply)
+    mo.observe(root, { childList: true, subtree: true })
+    return () => mo.disconnect()
+  }, [q, tab])
+
   const tabRail = useRef<HTMLElement>(null)
   // keep the chosen tab in view in the sideways-scrolling row
   useEffect(() => {
@@ -681,7 +712,20 @@ export function SettingsPanel() {
 
   return (
     <div className="settings" data-nodrag>
-      <nav className="stabs" role="tablist" aria-label={t('Settings sections')} ref={tabRail}>
+      {!android && (
+        <div className="ssearch" role="search">
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.key === 'Escape' && setQ('')}
+            placeholder={t('Search settings')}
+            aria-label={t('Search settings')}
+            spellCheck={false}
+          />
+        </div>
+      )}
+      <nav className="stabs" role="tablist" hidden={searching} aria-label={t('Settings sections')} ref={tabRail}>
         {tabs.map((t, index) => (
           <button
             key={t.id}
@@ -700,10 +744,10 @@ export function SettingsPanel() {
         ))}
       </nav>
 
-      <div id="settings-panel" role="tabpanel" aria-labelledby={`settings-tab-${tab}`} tabIndex={0}>
-      {android && tab === 'phone' && <PhoneSection />}
+      <div id="settings-panel" ref={panelRef} role="tabpanel" aria-labelledby={`settings-tab-${tab}`} tabIndex={0}>
+      {android && show('phone') && <PhoneSection />}
 
-      {tab === 'look' && (
+      {show('look') && (
       <section>
         <h4>Vibes</h4>
         <p className="hint">A vibe changes the whole look: colours, type, background effects and how the lyrics appear. Press V anywhere to switch.</p>
@@ -750,23 +794,37 @@ export function SettingsPanel() {
         {s.vibeMode !== 'fixed' && <p className="hint">{s.vibePool.length === 0 ? 'Using every vibe.' : `Using ${s.vibePool.length} vibe${s.vibePool.length === 1 ? '' : 's'}.`} Tap a card to add or remove it.</p>}
       </section>
       )}
-      {tab === 'look' && (
+      {show('look') && (
       <section>
-        <h4>Appearance</h4>
-        <Row label="Theme">
+        <h4>Comfort</h4>
+        {s.vibe === 'none' && (
+          <Row label="Artwork colours" hint="Only the Artwork look has a light and dark side; every other look brings its own colours">
+            <Segmented
+              label="Theme"
+              value={s.theme}
+              onChange={up('theme')}
+              options={[
+                { v: 'adaptive', label: 'Auto' },
+                { v: 'dark', label: 'Dark' },
+                { v: 'light', label: 'Light' }
+              ]}
+            />
+          </Row>
+        )}
+        <Row label="Reduce motion" hint="Calmer screen, no moving videos. Follows Windows unless you change it">
           <Segmented
-            label="Theme"
-            value={s.theme}
-            onChange={up('theme')}
+            label="Reduce motion"
+            value={s.reducedMotion}
+            onChange={up('reducedMotion')}
             options={[
-              { v: 'adaptive', label: 'Artwork' },
-              { v: 'dark', label: 'Dark' },
-              { v: 'light', label: 'Light' }
+              { v: 'system', label: 'Windows' },
+              { v: 'on', label: 'On' },
+              { v: 'off', label: 'Off' }
             ]}
           />
         </Row>
-        <More>
-        <Row label="Performance" hint="Light saves battery and GPU: no live blur, no endless motion">
+        <More label="Advanced">
+        <Row label="Effects" hint="Light saves battery and graphics power: no live blur, no endless motion">
           <Segmented
             label="Performance"
             value={s.performance}
@@ -778,22 +836,10 @@ export function SettingsPanel() {
             ]}
           />
         </Row>
-        <Row label="Reduce motion">
-          <Segmented
-            label="Reduce motion"
-            value={s.reducedMotion}
-            onChange={up('reducedMotion')}
-            options={[
-              { v: 'system', label: 'System' },
-              { v: 'on', label: 'On' },
-              { v: 'off', label: 'Off' }
-            ]}
-          />
-        </Row>
         </More>
       </section>
       )}
-      {tab === 'lyrics' && (
+      {show('lyrics') && (
       <section>
         <h4>Lyrics</h4>
         <Row label="Roman letters" hint="Under Hindi and Punjabi lyrics (reading help, not a translation)">
@@ -806,26 +852,19 @@ export function SettingsPanel() {
         >
           <Toggle label="Highlight each word" checked={s.wordByWord} onChange={up('wordByWord')} />
         </Row>
-        <More>
-        <Row label="Default sync offset" hint="Every song. Fine-tune under the lyrics">
+        <More label="Advanced">
+        <Row label="Default sync offset" hint="Nudge every song earlier or later. Fine-tune one song under its lyrics">
           <Slider label="Sync offset" value={s.lyricOffsetMs} min={-3000} max={3000} step={50} onChange={up('lyricOffsetMs')} format={(v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)}s`} />
         </Row>
+        <p className="hint">Lyrics services: if one is down Lyra uses the next, keeps your saved copies, and tries again by itself.</p>
+        <SourceHealthList />
         </More>
       </section>
       )}
 
-      {tab === 'lyrics' && (
-      <section>
-        <h4>Lyrics services</h4>
-        <SourceHealthList />
-        <p className="hint">If a service is down Lyra uses the next one, keeps your saved copies, and tries again by itself.</p>
-      </section>
-      )}
+      {(android ? show('bg') : show('lyrics')) && <BackgroundSection />}
 
-
-      {tab === 'bg' && <BackgroundSection />}
-
-      {!android && tab === 'general' && (
+      {!android && show('general') && (
       <section>
         <Row label={t('Language')} hint={t('Choose the language used in Lyra settings')}>
           <select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label={t('Language')}>
@@ -863,7 +902,7 @@ export function SettingsPanel() {
       </section>
       )}
 
-      {!android && tab === 'general' && (
+      {!android && show('general') && (
       <section>
         <h4>Window</h4>
         <Row label="Resting size">
@@ -881,45 +920,39 @@ export function SettingsPanel() {
             ]}
           />
         </Row>
-        <Row label="Width">
-          <Slider label="Widget width" value={s.compactWidth} min={320} max={520} step={10} onChange={up('compactWidth')} format={(v) => `${v}px`} />
-        </Row>
-        <Row label="Opacity">
-          <Slider label="Opacity" value={s.opacity} min={0.4} max={1} step={0.02} onChange={up('opacity')} format={(v) => `${Math.round(v * 100)}%`} />
-        </Row>
-        <Row label="Always on top">
+        <Row label="Stay on top of other windows">
           <Toggle label="Always on top" checked={s.alwaysOnTop} onChange={up('alwaysOnTop')} />
+        </Row>
+        <Row label="Hide while screen sharing" hint="Lyra won't show in recordings or shared screens">
+          <Toggle label="Hide while screen sharing" checked={s.hideOnScreenShare} onChange={up('hideOnScreenShare')} />
+        </Row>
+        <More label="Advanced">
+        <Row label="See-through" hint="Lower it to see what is behind Lyra">
+          <Slider label="Opacity" value={s.opacity} min={0.4} max={1} step={0.02} onChange={up('opacity')} format={(v) => `${Math.round(v * 100)}%`} />
         </Row>
         <Row label="Fade when idle" hint="Dim the widget when the cursor leaves">
           <Toggle label="Fade when idle" checked={s.autoHide} onChange={up('autoHide')} />
         </Row>
-        <Row label="Hide while screen sharing" hint="Excluded from captures & recordings">
-          <Toggle label="Hide while screen sharing" checked={s.hideOnScreenShare} onChange={up('hideOnScreenShare')} />
-        </Row>
+        </More>
       </section>
       )}
 
-      {!android && tab === 'general' && (
+      {!android && show('general') && (
       <section>
-        <h4>{t('System')}</h4>
+        <h4>{t('Startup & keys')}</h4>
         <Row label={t('Launch at startup')} hint={t('Applies to installed builds')}>
           <Toggle label={t('Launch at startup')} checked={s.launchAtStartup} onChange={up('launchAtStartup')} />
         </Row>
+        <Row label={t('Track change notifications')} hint={t('A small pop-up when the song changes')}>
+          <Toggle label={t('Track change notifications')} checked={s.trackNotifications} onChange={up('trackNotifications')} />
+        </Row>
+        <Row label={t('Global shortcuts')} hint={t('Keys that work even when Lyra is in the background')}>
+          <Toggle label={t('Global shortcuts')} checked={s.globalShortcuts} onChange={up('globalShortcuts')} />
+        </Row>
+        <More label="Advanced">
         <Row label={t('Control system volume')} hint={t('Windows source. Loads a helper that some antivirus tools flag')}>
           <Toggle label={t('Control system volume')} checked={s.systemVolume} onChange={up('systemVolume')} />
         </Row>
-        <Row label={t('Global shortcuts')}>
-          <Toggle label={t('Global shortcuts')} checked={s.globalShortcuts} onChange={up('globalShortcuts')} />
-        </Row>
-        <Row label={t('Track change notifications')}>
-          <Toggle label={t('Track change notifications')} checked={s.trackNotifications} onChange={up('trackNotifications')} />
-        </Row>
-      </section>
-      )}
-
-      {!android && tab === 'general' && (
-      <section>
-        <h4>Shortcuts</h4>
         <ShortcutEditor />
         <More label="All keys inside Lyra">
         <dl className="keys">
@@ -931,18 +964,19 @@ export function SettingsPanel() {
           ))}
         </dl>
         </More>
+        </More>
       </section>
       )}
 
 
-      {tab === 'share' && (
+      {show('share') && (
       <section>
         <h4>{t('Rooms: listen together')}</h4>
         <RoomHub />
       </section>
       )}
 
-      {!android && tab === 'share' && (
+      {!android && show('share') && (
       <section>
         <h4>{t('Nearby screens (TV mode)')}</h4>
         <Row label={t('Show lyrics on other screens')} hint={t('Same Wi-Fi, no internet needed: scan the QR code on a phone, tablet, laptop or TV browser to get big synced lyrics. Off by default')}>
@@ -957,7 +991,7 @@ export function SettingsPanel() {
       </section>
       )}
 
-      {tab === 'about' && (
+      {show('about') && (
       <>
       <div className="srow srow--actions">
         <button type="button" className="pill" onClick={() => window.lyra.window.hide()}>
