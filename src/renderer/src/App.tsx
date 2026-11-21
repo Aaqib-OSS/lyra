@@ -17,13 +17,13 @@ import { Toasts } from '@/components/Toasts'
 import { Welcome } from '@/components/Welcome'
 import { useArtwork, usePalette } from '@/hooks/useArtwork'
 import { useReducedMotion } from '@/hooks/useMotion'
-import { useNearby } from '@/store/nearby'
 import { NEUTRAL_PALETTE } from '@/lib/palette'
 import { fillWindow, isAnimating, runTransition, shell } from '@/lib/shell'
 import { useLyrics } from '@/store/lyrics'
 import { OFFSET_STEP_MS, nudgeSongOffset } from '@/store/offsets'
 import { getFullscreenShortcutAction } from '@shared/shortcuts'
 import { getPosition, usePlayer } from '@/store/player'
+import { initConnect } from '@/store/connect'
 import { useSettings } from '@/store/settings'
 import { requestMode, useUi } from '@/store/ui'
 
@@ -31,13 +31,13 @@ function useBoot(): boolean {
   const [ready, setReady] = useState(false)
   useEffect(() => {
     let off: Array<() => void> = []
-    let offNearby: (() => void) | undefined
+    let offConnect: (() => void) | undefined
     void (async () => {
       const api = window.lyra
       await useSettings.getState().init()
       await usePlayer.getState().init()
       useLyrics.getState().init()
-      if (document.documentElement.dataset.platform !== 'android') offNearby = useNearby.getState().init()
+      if (document.documentElement.dataset.platform !== 'android') offConnect = initConnect()
       useUi.getState().setMode(await api.window.getMode())
       off = [
         api.update.onState((u) => {
@@ -66,7 +66,7 @@ function useBoot(): boolean {
     })()
     return () => {
       off.forEach((f) => f())
-      offNearby?.()
+      offConnect?.()
     }
   }, [])
   return ready

@@ -593,6 +593,12 @@ export function Backdrop({ rich = false, animated = false }: { rich?: boolean; a
     } else store.setVideo({ phase: 'off' })
     return () => useBgState.getState().setVideo({ phase: 'off' })
   }, [animated, reduced, res, hasMedia, spec, ytReady, ytDead, ytWhy, settingStyle])
+  // share the resolved video id with connected screens (they play it locally, in sync)
+  const sharedVideoId = hasMedia && spec?.kind === 'youtube' ? spec.videoId : null
+  useEffect(() => {
+    useBgState.setState({ videoId: sharedVideoId })
+    return () => useBgState.setState({ videoId: null })
+  }, [sharedVideoId])
 
   // gentle parallax: the picture drifts against the cursor
   useEffect(() => {

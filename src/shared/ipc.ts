@@ -82,8 +82,13 @@ export const CH = {
   momentsAdd: 'moments:add',
   momentsRemove: 'moments:remove',
   appInfo: 'app:info',
-  lanInfo: 'lan:info',
-  lanAnswer: 'lan:answer',
+  connectStatus: 'connect:status',
+  connectEnable: 'connect:enable',
+  connectCode: 'connect:code',
+  connectParty: 'connect:party',
+  connectRevoke: 'connect:revoke',
+  connectRole: 'connect:role',
+  connectView: 'connect:view',
   studioOpen: 'studio:open',
   studioWrite: 'studio:write',
   studioClose: 'studio:close',
@@ -134,15 +139,45 @@ export const EV = {
   command: 'ev:command',
   update: 'ev:update',
   fade: 'ev:fade',
-  lanOffer: 'ev:lan-offer',
+  connectChange: 'ev:connect-change',
   studioFrame: 'ev:studio-frame',
   studioAudio: 'ev:studio-audio'
 } as const
 
-export interface LanInfo {
-  running: boolean
-  urls: string[]
+export interface ConnectDevice {
+  id: string
+  name: string
+  role: 'viewer' | 'controller'
+  online: boolean
+  guest: boolean
+  lastSeen: number
+}
+
+export interface ConnectCode {
+  display: string
+  expiresAt: number
+  party: boolean
+  url: string | null
+  /** QR code (data URL) of the pairing link */
   qr: string | null
+}
+
+export interface ConnectStatus {
+  enabled: boolean
+  running: boolean
+  /** enabled but the PC is not on a network */
+  noNetwork: boolean
+  url: string | null
+  party: boolean
+  devices: ConnectDevice[]
+  codes: ConnectCode[]
+}
+
+export interface ConnectView {
+  vibe: string
+  mode?: 'fixed' | 'cycle' | 'smart'
+  videoId: string | null
+  offsetMs?: number
 }
 
 export interface AppInfo {
@@ -335,12 +370,18 @@ export interface LyraApi {
     stageStop(): Promise<void>
     onFrame(cb: (jpeg: Uint8Array) => void): Unsubscribe
   }
-  lan: {
-    /** TV & party mode: whether the viewer is running, its links and a QR code of the first one. */
-    info(): Promise<LanInfo>
-    /** Jam nearby: a device on the network asked to listen. Answer it with `answer`. */
-    onOffer(cb: (o: { id: string; offer: RTCSessionDescriptionInit }) => void): Unsubscribe
-    answer(id: string, answer: RTCSessionDescriptionInit | null): Promise<void>
+  connect: {
+    status(): Promise<ConnectStatus>
+    setEnabled(on: boolean): Promise<ConnectStatus>
+    /** a fresh one-time pairing code (2 minutes) for a device that will be a viewer or a controller */
+    newCode(role: 'viewer' | 'controller'): Promise<ConnectStatus>
+    /** party mode: a shared code that lets many guests watch (viewers only); ends with endParty */
+    party(on: boolean): Promise<ConnectStatus>
+    revoke(id: string): Promise<ConnectStatus>
+    setRole(id: string, role: 'viewer' | 'controller'): Promise<ConnectStatus>
+    /** the renderer reports the vibe / video / lyric offset in effect so other screens can match */
+    publishView(v: ConnectView): void
+    onChange(cb: (s: ConnectStatus) => void): Unsubscribe
   }
   app: {
     info(): Promise<AppInfo>

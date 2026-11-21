@@ -413,7 +413,16 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
     onState: () => noop
   },
   studio: { open: async () => null, write: async () => undefined, close: async () => undefined, discard: async () => undefined, end: async () => undefined, reveal: async () => undefined, setMic: async () => undefined, saveImage: async () => null, frameCaptureStart: async () => false, frameCaptureStop: async () => null, frameRead: async () => null, frameCaptureClear: async () => undefined, audioStart: async () => ({ ok: false, reason: 'Not available on Android' }), audioStop: async () => undefined, onAudio: () => () => undefined, stageStart: async () => ({ ok: false, reason: 'Not available on Android' }), stageSeek: async () => undefined, stageSync: async () => undefined, stageStop: async () => undefined, onFrame: () => () => undefined },
-  lan: { info: async () => ({ running: false, urls: [], qr: null }), onOffer: () => () => undefined, answer: async () => undefined },
+  connect: {
+    status: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    setEnabled: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    newCode: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    party: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    revoke: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    setRole: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    publishView: () => undefined,
+    onChange: () => () => undefined
+  },
   app: {
     info: async () => ({ version: await rpc<string>('version'), platform: 'android', envClientId: false }),
     diagnostics: async () => `Lyra for Android ${await rpc<string>('version')}\n${navigator.userAgent}\nstatus: ${JSON.stringify(status)}`,

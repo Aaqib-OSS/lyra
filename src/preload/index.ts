@@ -112,10 +112,15 @@ const api: LyraApi = {
     stageStop: () => invoke(CH.studioStageStop),
     onFrame: (cb) => subscribe(EV.studioFrame, cb)
   },
-  lan: {
-    info: () => invoke(CH.lanInfo),
-    onOffer: (cb) => subscribe(EV.lanOffer, cb),
-    answer: (id, answer) => invoke(CH.lanAnswer, id, answer)
+  connect: {
+    status: () => invoke(CH.connectStatus),
+    setEnabled: (on) => invoke(CH.connectEnable, on),
+    newCode: (role) => invoke(CH.connectCode, role),
+    party: (on) => invoke(CH.connectParty, on),
+    revoke: (id) => invoke(CH.connectRevoke, id),
+    setRole: (id, role) => invoke(CH.connectRole, id, role),
+    publishView: (v) => void invoke(CH.connectView, v),
+    onChange: (cb) => subscribe(EV.connectChange, cb)
   },
   app: {
     info: () => invoke(CH.appInfo),
