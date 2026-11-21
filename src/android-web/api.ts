@@ -116,7 +116,8 @@ if (!new URLSearchParams(location.search).get('overlay')) {
 // ---------------- window / mode (the phone has one screen: expanded player or the full cinema layout)
 /** the floating widget runs this same page with ?overlay=compact */
 const overlayMode = new URLSearchParams(location.search).get('overlay')
-let mode: ViewMode = overlayMode ? 'compact' : 'mini'
+const tvPage = new URLSearchParams(location.search).has('tv') // the TV shows the full-screen scene look, never the phone's player
+let mode: ViewMode = overlayMode ? 'compact' : tvPage ? 'full' : 'mini'
 const modeChanged = emitter<ModeEvent>()
 
 // ---------------- playback (pushed by the app)
@@ -246,7 +247,7 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
         return
       }
       // the phone only has two layouts: the expanded player ("mini") and the cinema layout ("full")
-      const next: ViewMode = 'mini' // the phone has one player: the video-first one
+      const next: ViewMode = tvPage ? 'full' : 'mini' // the phone has one player: the video-first one
       if (next === mode) return
       mode = next
       modeChanged.emit({ mode })

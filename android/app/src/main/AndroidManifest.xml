@@ -15,6 +15,15 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
+    <!-- One APK for phones and TVs. Nothing below is required, so Google Play lists Lyra on phones, tablets and Android TV /
+         Google TV: a TV has no touchscreen or microphone (RECORD_AUDIO above would otherwise imply a required microphone) and
+         leanback is optional because the phone app does not need it. The TV launcher shows .tv.TvActivity (LEANBACK_LAUNCHER). -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <!-- the lyric-video recorder is portrait-only, which Android would turn into a required "portrait screen" (no TV has one) -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
+
     <!-- lets Lyra open the Spotify app from its "Open in Spotify" button -->
     <queries>
         <package android:name="com.spotify.music" />
@@ -22,6 +31,7 @@
 
     <application
         android:allowBackup="false"
+        android:banner="@drawable/tv_banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -49,6 +59,34 @@
             </intent-filter>
             <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
+
+        <!-- Android TV / Google TV / Fire TV: the only activity a TV launcher shows (a TV screen is always landscape), remote-controlled. -->
+        <activity
+            android:name=".tv.TvActivity"
+            android:banner="@drawable/tv_banner"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|uiMode|navigation|keyboard"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Lyra.Tv">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Lyra as the TV's screen saver (black, low power; see docs/android-tv.md) -->
+        <service
+            android:name=".tv.TvDream"
+            android:exported="true"
+            android:label="@string/tv_dream_name"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="android.service.dream" android:resource="@xml/dream" />
+        </service>
 
         <!-- Holds the "notification access" permission that lets Lyra see what is playing. It never reads notifications. -->
         <service

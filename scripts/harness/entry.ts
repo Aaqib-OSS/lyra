@@ -5,6 +5,9 @@ import { demoLyrics } from '@core/demo/lyrics'
 
 const q = new URLSearchParams(location.search)
 if (q.get('android')) document.documentElement.dataset.platform = 'android'
+// ?tv=1: the Android TV page (10-foot UI, full-screen scene, remote control): data-platform="tv" + the TV controller below
+const tv = !!q.get('tv')
+if (tv) document.documentElement.dataset.platform = 'tv'
 if (q.get('overlay')) document.documentElement.dataset.overlay = '1'
 const idx = Number(q.get('track') ?? 0)
 let track = DEMO_TRACKS[idx] ?? DEMO_TRACKS[0]!
@@ -59,7 +62,7 @@ const sub = () => () => {}
 const noop = async () => undefined
 const api: any = {
   settings: { get: async () => settings, set: async (p: Partial<Settings>) => (settings = { ...settings, ...p }), reset: async () => settings, onChange: sub },
-  window: { setMode: noop, getMode: async () => (q.get('mode') ?? 'mini'), onMode: sub, onFade: sub, settle() {}, resizeStart() {}, resizeMove() {}, resizeEnd() {}, dragStart() {}, dragMove() {}, dragEnd() {}, hide() {}, minimize() {}, quit() {} },
+  window: { setMode: noop, getMode: async () => (q.get('mode') ?? (tv ? 'full' : 'mini')), onMode: sub, onFade: sub, settle() {}, resizeStart() {}, resizeMove() {}, resizeEnd() {}, dragStart() {}, dragMove() {}, dragEnd() {}, hide() {}, minimize() {}, quit() {} },
   spotify: { connect: noop, disconnect: noop, startDemo: noop, useLocal: noop, getStatus: async () => ({ state: 'demo' }), getSnapshot: async () => snap(), onStatus: sub, onPlayback: (cb: (s: PlaybackSnapshot) => void) => { playbackListeners.push(cb); return () => {} } },
   player: { command: async () => ({ ok: true }), isLiked: async () => false, setLiked: async () => ({ ok: true }), queue: async () => DEMO_TRACKS.slice(1).map((t) => ({ id: t.id, title: t.title, artists: t.artists, artworkUrl: t.artworkUrl })), recent: async () => [], openInSpotify: noop },
   // ?ly= simulates the lyrics outcome: offline | resting | error | none | plain | stale
@@ -105,5 +108,22 @@ const api: any = {
   playbackListeners.forEach((cb) => cb({ ...snap(), positionMs: 1000, sampledAt: Date.now() }))
 }
 await import('@/main')
+if (tv) {
+  // ?tvs= picks the setup screen the TV shows: ready (default, plays) | pair (QR + short code) | access (standalone, no notification access) | nolist (…and Settings has no such screen)
+  const tvs = q.get('tvs') ?? 'ready'
+  const mock = {
+    mode: tvs === 'pair' ? 'paired' : 'local',
+    hasAccess: tvs !== 'access' && tvs !== 'nolist',
+    canOpenAccessSettings: tvs !== 'nolist',
+    paired: false,
+    code: 'K7M-2QX',
+    link: 'lyra://pair?c=K7M2QX&n=Living%20Room%20TV',
+    deviceName: 'Living Room TV',
+    adb: 'adb shell cmd notification allow_listener dev.lyra.android/dev.lyra.android.MediaListenerService'
+  }
+  ;(window as any).__lyraNative = { push() {}, back: () => false }
+  const { startTv } = await import('../../src/android-web/tv')
+  startTv({ rpc: async (m: string) => (m === 'tvState' ? mock : true) as never, exit: () => console.log('tv exit'), forceSetup: tvs !== 'ready' })
+}
 const panel = q.get('panel')
 if (panel) { const { useUi } = await import('@/store/ui'); useUi.getState().setPanel(panel as never) }
