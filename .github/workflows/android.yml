@@ -84,11 +84,13 @@ jobs:
         run: |
           APK="Lyra-Android-${{ steps.v.outputs.version }}.apk"
           if [ "${{ github.ref_type }}" = "tag" ]; then TAG="${{ github.ref_name }}"; else TAG="android-v${{ steps.v.outputs.version }}"; fi
+          # judge the VERSION, not the tag: "android-v0.4.0" contains a dash but is a normal release; "0.4.0-beta.1" is not
+          PRE=""
+          case "${{ steps.v.outputs.version }}" in *-*) PRE="--prerelease" ;; esac
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --clobber   # tag was moved: replace the APK
+            [ -z "$PRE" ] && gh release edit "$TAG" --prerelease=false --latest=false || true
           else
-            PRE=""
-            case "$TAG" in *-*) PRE="--prerelease" ;; esac
             gh release create "$TAG" "$APK" \
               --target "${{ github.sha }}" \
               --title "Lyra for Android ${{ steps.v.outputs.version }}" \
