@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
-import { useSettings } from '@/store/settings'
+import { useEffectiveVibe } from '@/hooks/useVibe'
 
 /** Background effects of the active vibe. Pure decoration: sits behind the content and never takes input. */
 export function VibeFx() {
-  const vibe = useSettings((s) => s.settings.vibe)
+  const { vibe } = useEffectiveVibe()
   const sparkles = useMemo(
     () =>
       Array.from({ length: 14 }, (_, i) => ({
@@ -17,6 +17,22 @@ export function VibeFx() {
   if (vibe === 'none') return null
   return (
     <div className={`vibefx vibefx--${vibe}`} aria-hidden="true">
+      <i className="vibeflash" key={vibe} />
+      {vibe === 'arcade' && (
+        <>
+          <div className="vibefx__hud"><span>1UP</span><span className="vibefx__score" /><span>HI 099950</span></div>
+          <div className="vibefx__stars" />
+          <div className="vibefx__stars vibefx__stars--b" />
+        </>
+      )}
+      {vibe === 'noir' && (
+        <>
+          <div className="vibefx__bar vibefx__bar--t" />
+          <div className="vibefx__bar vibefx__bar--b" />
+          <div className="vibefx__dust" />
+        </>
+      )}
+      {vibe === 'paper' && <div className="vibefx__lines" />}
       {vibe === 'neon' && (
         <>
           <div className="vibefx__sun" />

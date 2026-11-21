@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Backdrop } from '@/components/Backdrop'
 import { VibeFx } from '@/components/VibeFx'
+import { cycleVibe, useVibeConductor } from '@/hooks/useVibe'
 import { CompactWidget } from '@/components/CompactWidget'
 import { FullscreenPlayer } from '@/components/FullscreenPlayer'
 import { MiniPlayer } from '@/components/MiniPlayer'
@@ -118,6 +119,11 @@ function useHotkeys(): void {
         }
         return
       }
+      if (!editable && (e.key === 'v' || e.key === 'V') && !e.repeat) {
+        e.preventDefault()
+        cycleVibe(e.shiftKey ? -1 : 1)
+        return
+      }
       if (editable) return
       const onControl = !!t.closest('button, [role="slider"], input[type="range"]')
 
@@ -181,6 +187,7 @@ export default function App() {
   const reduced = useReducedMotion()
   const [faded, setFaded] = useState(false)
   useThemeVars()
+  useVibeConductor()
   useHotkeys()
 
   // "Fade when idle": main decides from the cursor position; we just apply it.

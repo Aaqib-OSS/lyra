@@ -94,6 +94,8 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       )}
       {mode === 'chat' && <Chat lines={lines} active={active} />}
       {mode === 'type' && <Typewriter lines={lines} active={active} />}
+      {mode === 'diary' && <Diary lines={lines} active={active} />}
+      {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -406,3 +408,81 @@ function Typewriter({ lines, active }: { lines: readonly LyricLine[]; active: nu
     </div>
   )
 }
+
+// ---------- diary: handwritten, with a highlighter that follows the singing ----------
+
+function Diary({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const prev: number[] = []
+  for (let i = active - 1; i >= 0 && prev.length < 3; i--) if (lines[i] && lines[i]!.text !== '') prev.unshift(i)
+  const cur = active >= 0 ? lines[active] : undefined
+  return (
+    <div className="diary">
+      <div className="diary__page">
+        <i className="diary__tape" />
+        {prev.map((i, n) => (
+          <p key={i} className="diary__old" style={{ opacity: 0.35 + (n + 1) * 0.15, transform: `rotate(${((i % 3) - 1) * 0.6}deg)` }}>
+            {lines[i]!.text}
+          </p>
+        ))}
+        <AnimatePresence mode="wait" initial={false}>
+          {cur && cur.text !== '' ? <DiaryLine key={active} line={cur} index={active} nextTime={lines[active + 1]?.timeMs} /> : null}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+const DiaryLine = memo(function DiaryLine({ line, index, nextTime }: { line: LyricLine; index: number; nextTime: number | undefined }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words)
+  return (
+    <motion.p
+      className="diary__now"
+      style={{ rotate: `${((index % 5) - 2) * 0.5}deg` }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {words.map((w, i) => (
+        <span key={i} className={`diary__w ${i < revealed ? 'is-in' : ''}`}>
+          {w.text}{' '}
+        </span>
+      ))}
+    </motion.p>
+  )
+})
+
+// ---------- cinema: subtitles inside black bars ----------
+
+function Subtitles({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const cur = active >= 0 ? lines[active] : undefined
+  const live = cur && cur.text !== '' ? cur : undefined
+  return (
+    <div className="sub">
+      <AnimatePresence mode="wait" initial={false}>
+        {live ? (
+          <SubLine key={active} line={live} nextTime={lines[active + 1]?.timeMs} />
+        ) : active >= 0 ? (
+          <motion.div key="gap" className="sub__gap" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            [ music ]
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+const SubLine = memo(function SubLine({ line, nextTime }: { line: LyricLine; nextTime: number | undefined }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words)
+  return (
+    <motion.div className="sub__line" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.28 }}>
+      {words.map((w, i) => (
+        <span key={i} className={i < revealed ? 'is-in' : ''}>
+          {w.text}{' '}
+        </span>
+      ))}
+    </motion.div>
+  )
+})

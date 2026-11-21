@@ -15,6 +15,7 @@ import { useControlsLocked } from './Controls'
 import { Icon, type IconName } from './Icon'
 import { ShareCard } from './ShareCard'
 import { LyricsStage } from './LyricsStage'
+import { useEffectiveVibe } from '@/hooks/useVibe'
 
 const RESUME_AFTER_MS = 6000
 
@@ -180,7 +181,7 @@ function SyncedLyrics({ result, variant }: { result: LyricsResult; variant: 'min
   )
 
   const [shareIndex, setShareIndex] = useState<number | null>(null)
-  const lyricStyle = useSettings((x) => x.settings.lyricStyle)
+  const { style: lyricStyle } = useEffectiveVibe()
   const staged = (variant === 'full' || document.documentElement.dataset.platform === 'android') && lyricStyle !== 'classic'
 
   const seekTo = useCallback(

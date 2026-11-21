@@ -60,9 +60,10 @@
   transform-origin: top;
   -webkit-mask: linear-gradient(180deg, transparent, #000 40%);
   mask: linear-gradient(180deg, transparent, #000 40%);
+  will-change: transform;
   animation: vfx-grid 1.6s linear infinite;
 }
-@keyframes vfx-grid { to { background-position: 0 0, 0 56px; } }
+@keyframes vfx-grid { from { transform: perspective(380px) rotateX(62deg) translateY(0); } to { transform: perspective(380px) rotateX(62deg) translateY(56px); } }
 [data-vibe='neon'] .kin__word {
   font-family: 'Unbounded Variable', var(--font);
   font-weight: 800;
@@ -141,13 +142,13 @@
 .vibefx__orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.6;
+  will-change: transform;
+  opacity: 0.55;
   animation: vfx-orb 16s ease-in-out infinite alternate;
 }
-.vibefx__orb--a { width: 55vmin; height: 55vmin; left: -8%; top: -12%; background: #ff8fd0; }
-.vibefx__orb--b { width: 48vmin; height: 48vmin; right: -6%; top: 22%; background: #8f9bff; animation-delay: -5s; }
-.vibefx__orb--c { width: 42vmin; height: 42vmin; left: 28%; bottom: -16%; background: #7ff0d0; animation-delay: -9s; }
+.vibefx__orb--a { width: 80vmin; height: 80vmin; left: -14%; top: -22%; background: radial-gradient(circle, #ff8fd0, transparent 66%); }
+.vibefx__orb--b { width: 72vmin; height: 72vmin; right: -12%; top: 14%; background: radial-gradient(circle, #8f9bff, transparent 66%); animation-delay: -5s; }
+.vibefx__orb--c { width: 64vmin; height: 64vmin; left: 24%; bottom: -26%; background: radial-gradient(circle, #7ff0d0, transparent 66%); animation-delay: -9s; }
 @keyframes vfx-orb {
   from { transform: translate(0, 0) scale(1); }
   to { transform: translate(8vmin, -6vmin) scale(1.25); }
@@ -369,3 +370,135 @@
 [data-vibe='neon'] .kin__word.is-slab { background: #26f0ff; color: #05020f; text-shadow: none; box-shadow: 0 0 24px #26f0ff, 0 0 60px rgba(38, 240, 255, 0.5); }
 [data-platform='android'] .vibefx__sun { top: 62%; width: 78vw; }
 [data-platform='android'] .vibefx__grid { top: 74%; }
+
+/* ======================= shared: the flash when the vibe changes ======================= */
+.vibeflash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, var(--accent), transparent 62%);
+  opacity: 0;
+  animation: vibe-flash 0.9s ease-out;
+}
+@keyframes vibe-flash { 0% { opacity: 0.55; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.6); } }
+
+/* gallery: multi-select ticks */
+.vibecard__tick {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.5);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+.vibecard.is-multi.is-on .vibecard__tick { background: var(--accent); color: #111; box-shadow: none; }
+.vibecard.is-multi:not(.is-on) { opacity: 0.5; }
+
+/* ======================= DIARY: handwritten paper ======================= */
+[data-vibe='paper'] .shell {
+  --accent: #ff7a9c;
+  --glow: rgba(255, 122, 156, 0.35);
+  --glow-soft: rgba(255, 122, 156, 0.18);
+  --font: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+  --fg: #2d2a3a;
+  --fg-2: rgba(45, 42, 58, 0.7);
+  --fg-3: rgba(45, 42, 58, 0.55);
+  --line: rgba(45, 42, 58, 0.14);
+  --line-2: rgba(45, 42, 58, 0.26);
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-2: rgba(255, 255, 255, 0.85);
+  --on-fg: #fff7ea;
+  --word-dim: rgba(45, 42, 58, 0.34);
+  --bg-0: #f6ecd9;
+  --edge: linear-gradient(145deg, #fff, rgba(255, 255, 255, 0.3));
+}
+[data-vibe='paper'] .backdrop .backdrop__field { background: #f6ecd9; }
+[data-vibe='paper'] .vibefx__lines {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 8.5%, rgba(235, 90, 110, 0.5) 8.5% calc(8.5% + 2px), transparent calc(8.5% + 2px)),
+    repeating-linear-gradient(180deg, transparent 0 39px, rgba(70, 110, 190, 0.28) 39px 40px);
+}
+[data-vibe='paper'] .full__titles h1 { background: none; -webkit-text-fill-color: var(--fg); font-family: 'Caveat', cursive; font-size: clamp(34px, 3.6vw, 52px); font-weight: 700; }
+[data-vibe='paper'] .playbtn { background: #2d2a3a; color: #fff7ea; }
+[data-vibe='paper'] .full:not(.is-cinema) .full__side { background: linear-gradient(160deg, #fffaf0, #fbefd8); box-shadow: 0 30px 60px -28px rgba(80, 50, 20, 0.4), 0 0 0 1px rgba(80, 50, 20, 0.1); transform: rotate(-1.4deg); }
+.diary { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Caveat', cursive; }
+.diary__page { position: relative; width: min(94%, 640px); display: flex; flex-direction: column; gap: 0.1em; padding: 28px 32px 30px 40px; background: #fffbf1; border-radius: 6px; box-shadow: 0 24px 50px -22px rgba(80, 50, 20, 0.5), 0 0 0 1px rgba(80, 50, 20, 0.08); transform: rotate(0.8deg); }
+.diary__tape { position: absolute; top: -14px; left: 50%; width: 110px; height: 28px; transform: translateX(-50%) rotate(-3deg); background: rgba(255, 215, 120, 0.7); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }
+.diary__old { margin: 0; font-size: clamp(22px, 3.4cqw, 34px); line-height: 1.15; color: var(--fg); }
+.diary__now { margin: 0.1em 0 0; font-size: clamp(34px, 6cqw, 64px); line-height: 1.12; font-weight: 700; color: var(--fg); }
+.diary__w { background: linear-gradient(transparent 58%, #ffe14d 58% 92%, transparent 92%) no-repeat 0 0 / 0% 100%; transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1); padding: 0 0.04em; }
+.diary__w.is-in { background-size: 100% 100%; }
+
+/* ======================= ARCADE: 8-bit ======================= */
+[data-vibe='arcade'] .shell {
+  --accent: #ffe14d;
+  --glow: rgba(255, 225, 77, 0.55);
+  --glow-soft: rgba(255, 225, 77, 0.22);
+  --font: 'Press Start 2P', 'Courier New', monospace;
+  --bg-0: #0a0a1a;
+}
+[data-vibe='arcade'] .backdrop .backdrop__field { background: linear-gradient(180deg, #0a0a1a, #14143a); }
+.vibefx__stars { position: absolute; inset: 0; background-image: radial-gradient(#fff 1px, transparent 1.5px), radial-gradient(#8fd1ff 1px, transparent 1.5px); background-size: 90px 90px, 140px 140px; background-position: 0 0, 40px 60px; animation: arc-scroll 9s linear infinite; opacity: 0.7; }
+.vibefx__stars--b { background-size: 160px 160px, 210px 210px; animation-duration: 18s; opacity: 0.4; }
+@keyframes arc-scroll { to { transform: translateY(160px); } }
+[data-vibe='arcade'] .full__titles h1,
+[data-vibe='arcade'] .widget__title { font-family: 'Press Start 2P', monospace; font-size: clamp(14px, 1.6vw, 22px); line-height: 1.4; letter-spacing: 0; background: none; -webkit-text-fill-color: var(--fg); text-shadow: 3px 3px 0 #ff2d6f; }
+[data-vibe='arcade'] .full__artist, [data-vibe='arcade'] .full__album { font-family: 'Press Start 2P', monospace; font-size: 10px; line-height: 1.6; }
+[data-vibe='arcade'] .kin { font-size: calc(min(8.4cqw, 13cqh) * var(--k, 1)); line-height: 1.25; letter-spacing: 0; text-transform: uppercase; }
+[data-vibe='arcade'] .kin__word { font-family: 'Press Start 2P', monospace; font-weight: 400; color: #fff; text-shadow: 0.08em 0.08em 0 #ff2d6f, 0.16em 0.16em 0 #1a1a5a; filter: none; }
+[data-vibe='arcade'] .kin__word.is-big { font-size: 1.15em; }
+[data-vibe='arcade'] .kin__word.is-now { color: #ffe14d; text-shadow: 0.08em 0.08em 0 #ff2d6f, 0 0 0.6em var(--glow); }
+[data-vibe='arcade'] .kin__word.is-now::after { display: none; }
+[data-vibe='arcade'] .kin__word.is-slab { background: #ffe14d; color: #1a1a5a; text-shadow: none; box-shadow: 0.1em 0.1em 0 #ff2d6f; transform: none; }
+[data-vibe='arcade'] .kin__word { transition-timing-function: steps(5); }
+[data-vibe='arcade'] .playbtn { border-radius: 6px; background: #ffe14d; color: #1a1a5a; box-shadow: 4px 4px 0 #ff2d6f; }
+[data-vibe='arcade'] .full:not(.is-cinema) .full__side { border-radius: 6px; box-shadow: 8px 8px 0 #ff2d6f, 0 0 0 3px #fff; background: #14143a; }
+[data-vibe='arcade'] .full:not(.is-cinema) .full__side .artwork { border-radius: 2px !important; image-rendering: pixelated; }
+
+/* ======================= CINEMA: black-and-white film ======================= */
+[data-vibe='noir'] .shell {
+  --accent: #e8e8e8;
+  --glow: rgba(255, 255, 255, 0.35);
+  --glow-soft: rgba(255, 255, 255, 0.14);
+  --font: 'Fraunces Variable', Georgia, serif;
+  --bg-0: #050505;
+  --tint1: #1c1c1c;
+  --tint2: #070707;
+}
+[data-vibe='noir'] .backdrop .backdrop__field { background: radial-gradient(110% 90% at 50% 40%, #202020, #040404 80%); }
+[data-vibe='noir'] .backdrop:not(.backdrop--media) .backdrop__img { filter: blur(40px) grayscale(1) contrast(1.1); }
+[data-vibe='noir'] .artwork__img { filter: grayscale(1) contrast(1.1); }
+.vibefx__bar { position: absolute; left: 0; right: 0; height: 11%; background: #000; z-index: 2; }
+.vibefx__bar--t { top: 0; }
+.vibefx__bar--b { bottom: 0; }
+.vibefx__dust { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.5) 0.6px, transparent 1px), radial-gradient(rgba(255,255,255,0.35) 0.5px, transparent 1px); background-size: 130px 170px, 90px 110px; background-position: 0 0, 40px 70px; opacity: 0.35; animation: noir-dust 0.6s steps(4) infinite; }
+@keyframes noir-dust { 25% { transform: translate(-12px, 8px); } 50% { transform: translate(10px, -14px); } 75% { transform: translate(-6px, -4px); } }
+.sub { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14%; font-family: 'Fraunces Variable', Georgia, serif; }
+.sub__line { max-width: 92%; text-align: center; font-size: clamp(22px, 4.2cqw, 48px); font-weight: 500; font-style: italic; line-height: 1.22; color: #f4f4f4; text-shadow: 0 0 2px #000, 0 2px 4px #000, 0 0 18px rgba(0, 0, 0, 0.9); text-wrap: balance; }
+.sub__line span { opacity: 0.15; transition: opacity 0.25s; }
+.sub__line span.is-in { opacity: 1; }
+.sub__gap { font-size: clamp(16px, 2.4cqw, 26px); letter-spacing: 0.2em; color: rgba(255, 255, 255, 0.55); font-style: italic; }
+@property --score { syntax: '<integer>'; initial-value: 0; inherits: false; }
+.vibefx__hud { position: absolute; top: 58px; left: 0; right: 0; display: flex; justify-content: space-around; z-index: 2; font-family: 'Press Start 2P', monospace; font-size: 11px; color: #ffe14d; text-shadow: 2px 2px 0 #ff2d6f; }
+.vibefx__score { counter-reset: sc var(--score); animation: arc-score 240s linear infinite; }
+.vibefx__score::before { content: 'SCORE ' counter(sc, decimal-leading-zero) '00'; }
+@keyframes arc-score { to { --score: 9999; } }
+
+/* the rim light follows the vibe's own colour (it lives on <html>, outside .shell) */
+:root[data-vibe='neon'] { --rimc: #ff3bd9; }
+:root[data-vibe='chrome'] { --rimc: #8fd1ff; }
+:root[data-vibe='dream'] { --rimc: #ffb4ec; }
+:root[data-vibe='crt'] { --rimc: #5dff8a; }
+:root[data-vibe='sticker'] { --rimc: #c6ff3d; }
+:root[data-vibe='chat'] { --rimc: #5b8cff; }
+:root[data-vibe='paper'] { --rimc: #ff7a9c; }
+:root[data-vibe='arcade'] { --rimc: #ffe14d; }
+:root[data-vibe='noir'] { --rimc: #d8d8d8; }

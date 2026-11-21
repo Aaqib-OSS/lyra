@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ViewMode } from '@shared/types'
+import type { ViewMode, Vibe } from '@shared/types'
 
 export type Panel = 'none' | 'queue' | 'moments' | 'settings' | 'lyrics'
 export interface Toast {
@@ -14,6 +14,10 @@ interface UiStore {
   distractionFree: boolean
   lyricSideFlipped: boolean
   toasts: Toast[]
+  /** the vibe chosen for the current song by cycle / smart mode (never saved) */
+  vibeNow: Vibe | null
+  vibeWhy: string
+  setVibeNow(v: Vibe | null, why?: string): void
   setMode(mode: ViewMode): void
   setPanel(p: Panel): void
   togglePanel(p: Exclude<Panel, 'none'>): void
@@ -31,6 +35,9 @@ export const useUi = create<UiStore>((set, get) => ({
   distractionFree: false,
   lyricSideFlipped: false,
   toasts: [],
+  vibeNow: null,
+  vibeWhy: '',
+  setVibeNow: (vibeNow, why = '') => set({ vibeNow, vibeWhy: why }),
   setMode(mode) {
     set({ mode, panel: mode === 'compact' || mode === 'minimal' ? 'none' : get().panel })
   },

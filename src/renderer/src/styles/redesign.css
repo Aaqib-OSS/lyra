@@ -386,3 +386,73 @@
 .vibecard--crt .vibecard__sw { background: repeating-linear-gradient(180deg, rgba(0,0,0,.4) 0 1px, transparent 1px 3px), #04170a; box-shadow: inset 0 0 0 1px #5dff8a55; }
 .vibecard--sticker .vibecard__sw { background: radial-gradient(#ffffff40 2px, transparent 2.5px) 0 0 / 14px 14px, linear-gradient(120deg, #c6ff3d 0 33%, #ff5fa2 33% 66%, #4fd0ff 66%); }
 .vibecard--chat .vibecard__sw { background: linear-gradient(135deg, #3b82ff, #7a5cff); }
+
+/* ---------- VIDEO STATUS: what the video behind the lyrics is doing ---------- */
+.vstat {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 25;
+  display: flex;
+  justify-content: center;
+  width: min(92%, 520px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.vstat > * { pointer-events: auto; }
+.vstat__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 15px 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(14, 14, 20, 0.62);
+  color: #fff;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 16px 40px -14px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+}
+.vstat__bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+.vstat__bars i { width: 3px; height: 100%; border-radius: 2px; background: var(--accent); transform-origin: bottom; animation: vstat-bar 0.9s ease-in-out infinite; }
+.vstat__bars i:nth-child(2) { animation-delay: 0.12s; }
+.vstat__bars i:nth-child(3) { animation-delay: 0.24s; }
+.vstat__bars i:nth-child(4) { animation-delay: 0.36s; }
+@keyframes vstat-bar { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.vstat__live { cursor: pointer; transition: padding 0.4s var(--ease); }
+.vstat__dot { width: 9px; height: 9px; border-radius: 50%; background: #ff4d5e; box-shadow: 0 0 0 0 rgba(255, 77, 94, 0.6); animation: vstat-live 1.8s ease-out infinite; }
+@keyframes vstat-live { 70% { box-shadow: 0 0 0 9px rgba(255, 77, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 77, 94, 0); } }
+.vstat__live-text { display: inline-flex; align-items: baseline; gap: 8px; max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; transition: max-width 0.55s var(--ease), opacity 0.35s; }
+.vstat__live.is-open .vstat__live-text,
+.vstat__live:hover .vstat__live-text,
+.vstat__live:focus-visible .vstat__live-text { max-width: 420px; opacity: 1; }
+.vstat__live:not(.is-open):not(:hover) { padding: 10px; gap: 0; }
+.vstat__live-text b { font-size: 10px; letter-spacing: 0.16em; color: #ff8f9a; }
+.vstat__live-text em { font-style: normal; color: rgba(255, 255, 255, 0.6); font-weight: 500; }
+.vstat__card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 14px 14px 16px;
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)), rgba(14, 14, 20, 0.7);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 24px 60px -16px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+}
+.vstat__icon { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: color-mix(in srgb, var(--accent) 30%, transparent); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16); }
+.vstat__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 12px; line-height: 1.4; color: rgba(255, 255, 255, 0.72); }
+.vstat__text b { font-size: 13.5px; color: #fff; letter-spacing: -0.01em; }
+.vstat__actions { display: flex; align-items: center; gap: 4px; margin-left: auto; flex: none; }
+@media (max-width: 460px) {
+  .vstat__card { flex-wrap: wrap; }
+  .vstat__actions { margin-left: 52px; }
+}
+:root[data-perf='low'] .vstat__pill, :root[data-perf='low'] .vstat__card { background: rgba(14, 14, 20, 0.9); }
+@media (prefers-reduced-motion: reduce) { .vstat__bars i, .vstat__dot { animation: none; } }

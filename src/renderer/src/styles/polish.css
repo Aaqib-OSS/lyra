@@ -369,9 +369,9 @@ select option {
   pointer-events: none;
   border-radius: inherit;
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent),
-    inset 0 0 38px -6px var(--glow),
-    inset 0 0 120px -30px var(--glow-soft);
+    inset 0 0 0 1px color-mix(in srgb, var(--rimc, var(--accent)) 55%, transparent),
+    inset 0 0 38px -6px color-mix(in srgb, var(--rimc, var(--accent)) 60%, transparent),
+    inset 0 0 120px -30px color-mix(in srgb, var(--rimc, var(--accent)) 28%, transparent);
   transition: box-shadow 900ms ease;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -383,3 +383,71 @@ select option {
   0%, 100% { opacity: 0.75; }
   50% { opacity: 1; }
 }
+
+/* ==========================================================================
+   PERFORMANCE
+   - the backdrop picture is pre-blurred (see useTinyArt), so no live blur filter on a screen-sized layer
+   - blobs are plain radial gradients instead of blurred discs
+   - the grain is a normal low-alpha overlay (blend modes force a full-screen readback)
+   - every endless animation pauses while music is paused or the window is hidden ("calm")
+   ========================================================================== */
+.backdrop .backdrop__img {
+  filter: none !important;
+}
+.backdrop__blob {
+  filter: none !important;
+  background: radial-gradient(circle at 50% 50%, var(--tint1) 0%, transparent 66%) !important;
+}
+.backdrop__blob--b {
+  background: radial-gradient(circle at 50% 50%, var(--tint2) 0%, transparent 66%) !important;
+}
+.mini::after,
+.full::after {
+  mix-blend-mode: normal;
+  opacity: 0.045;
+}
+.backdrop--alive .backdrop__img,
+.backdrop__blob {
+  contain: layout paint;
+}
+
+:root[data-calm] .vibefx *,
+:root[data-calm] .vibefx,
+:root[data-calm] .artwork--lift,
+:root[data-calm] .playbtn::after,
+:root[data-calm] .full__titles::before,
+:root[data-calm]::after,
+:root[data-calm] .backdrop__blob,
+:root[data-calm] .backdrop--alive .backdrop__img,
+:root[data-calm] .stage__rest i,
+:root[data-calm] .term__caret,
+:root[data-calm] .bub__dots i {
+  animation-play-state: paused !important;
+}
+
+/* LIGHT: for weak devices and battery saving: no live blur behind panels, no endless motion, flat shadows */
+:root[data-perf='low'] *,
+:root[data-perf='low'] *::before,
+:root[data-perf='low'] *::after {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+:root[data-perf='low'] .vibefx *,
+:root[data-perf='low'] .artwork--lift,
+:root[data-perf='low'] .backdrop__blob,
+:root[data-perf='low'] .backdrop--alive .backdrop__img,
+:root[data-perf='low']::after,
+:root[data-perf='low'] .playbtn::after,
+:root[data-perf='low'] .full__titles::before {
+  animation: none !important;
+}
+:root[data-perf='low'] .mini::after,
+:root[data-perf='low'] .full::after,
+:root[data-perf='low'] .artwork::before {
+  display: none;
+}
+:root[data-perf='low'] .sidepanel,
+:root[data-perf='low'] .full:not(.is-cinema) .full__side {
+  background: color-mix(in srgb, var(--bg-0) 88%, transparent) !important;
+}
+:root[data-perf='low'] .vibefx__grid { transform: perspective(380px) rotateX(62deg); }

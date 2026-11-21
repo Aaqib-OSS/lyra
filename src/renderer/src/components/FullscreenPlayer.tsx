@@ -13,6 +13,7 @@ import { LyricsView } from './LyricsView'
 import { LikeButton } from './MiniPlayer'
 import { ProgressBar } from './ProgressBar'
 import { VideoPicker } from './VideoPicker'
+import { VideoStatus } from './VideoStatus'
 import { ConnectScreen, LoadingScreen, NoMusicScreen, OfflineBanner, OfflineScreen } from './StateScreens'
 
 export function FullscreenPlayer() {
@@ -44,6 +45,7 @@ export function FullscreenPlayer() {
 
   return (
     <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${sideFlipped ? 'is-side-flipped' : ''} ${cinema ? `is-cinema layout-${layout}` : ''}`}>
+      <VideoStatus />
       <header className="full__top">
         <span className="full__device">{device ? `Playing on ${device.name}` : 'Lyra'}</span>
         <div className="full__tools">

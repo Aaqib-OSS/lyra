@@ -156,9 +156,10 @@ export type ThemeMode = 'dark' | 'light' | 'adaptive'
 export type LyricFont = 'sans' | 'serif' | 'rounded' | 'mono'
 export type LyricAnimation = 'glide' | 'focus' | 'fade'
 /** how the sung line is staged in fullscreen: the classic scrolling list, giant kinetic type or a star map */
-export type LyricStyle = 'classic' | 'kinetic' | 'constellation' | 'sticker' | 'chat' | 'type'
+export type LyricStyle = 'classic' | 'kinetic' | 'constellation' | 'sticker' | 'chat' | 'type' | 'diary' | 'subtitle'
+export type VibeMode = 'fixed' | 'cycle' | 'smart'
 /** a whole look: colours, type, background effects (and usually its own way of staging lyrics) */
-export type Vibe = 'none' | 'sticker' | 'chat' | 'crt' | 'neon' | 'chrome' | 'dream'
+export type Vibe = 'none' | 'sticker' | 'chat' | 'crt' | 'neon' | 'chrome' | 'dream' | 'paper' | 'arcade' | 'noir'
 /** how fullscreen lyrics are laid out over a video */
 export type FullLayout = 'auto' | 'cinema' | 'split' | 'poster' | 'focus'
 
@@ -251,8 +252,14 @@ export interface Settings {
   lyricAnimation: LyricAnimation
   lyricStyle: LyricStyle
   vibe: Vibe
+  /** fixed: keep the chosen vibe; cycle: the next vibe of the pool on every song; smart: pick the vibe that suits each song */
+  vibeMode: VibeMode
+  /** the vibes that cycle / smart mode may use (empty = all) */
+  vibePool: Vibe[]
   /** a soft glow in the artwork's colour around the window edge */
   rimLight: boolean
+  /** auto picks Light on weak devices; Smooth always uses every effect; Light saves battery and GPU */
+  performance: 'auto' | 'smooth' | 'light'
   fullLayout: FullLayout
   /** Show a Roman-letter transliteration below Hindi and Punjabi lyrics. */
   romanizeLyrics: boolean
@@ -306,7 +313,10 @@ export const DEFAULT_SETTINGS: Settings = {
   lyricAnimation: 'glide',
   lyricStyle: 'classic',
   vibe: 'none',
+  vibeMode: 'fixed',
+  vibePool: [],
   rimLight: true,
+  performance: 'auto',
   fullLayout: 'cinema',
   wordByWord: true,
   romanizeLyrics: false,

@@ -9,6 +9,7 @@ import { useSettings } from '@/store/settings'
 import { roomLink, useRoom } from '@/store/room'
 import { useJam } from '@/store/jam'
 import QRCode from 'qrcode'
+import { VIBES } from '@shared/vibes'
 import { useUi } from '@/store/ui'
 import { setLanguage, useTranslation, type Language } from '@/i18n'
 
@@ -206,16 +207,6 @@ function Row({ label, hint, info, children }: { label: string; hint?: string; in
     </div>
   )
 }
-
-const VIBES: Array<{ id: Settings['vibe']; style: Settings['lyricStyle']; name: string; tag: string }> = [
-  { id: 'none', style: 'classic', name: 'Artwork', tag: 'Colours from the cover' },
-  { id: 'neon', style: 'kinetic', name: 'Neon', tag: 'Synthwave tubes' },
-  { id: 'chrome', style: 'kinetic', name: 'Chrome', tag: 'Y2K liquid metal' },
-  { id: 'dream', style: 'constellation', name: 'Dream', tag: 'Pastel star map' },
-  { id: 'crt', style: 'type', name: 'Terminal', tag: 'Typed in green' },
-  { id: 'sticker', style: 'sticker', name: 'Stickers', tag: 'Die-cut pop' },
-  { id: 'chat', style: 'chat', name: 'DM', tag: 'The song texts you' }
-]
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange(v: boolean): void; label: string }) {
   return (
@@ -582,6 +573,7 @@ export function SettingsPanel() {
   const s = useSettings((x) => x.settings)
   const set = useSettings((x) => x.set)
   const status = usePlayer((x) => x.status)
+  const vibeWhy = useUi((x) => x.vibeWhy)
   const [version, setVersion] = useState('')
   useEffect(() => {
     void window.lyra.app.info().then((i) => setVersion(i.version))
@@ -705,23 +697,48 @@ export function SettingsPanel() {
       {tab === 'look' && (
       <section>
         <h4>Vibes</h4>
-        <p className="hint">A vibe changes the whole look: colours, type, background effects and how the lyrics appear.</p>
-        <div className="vibes" role="radiogroup" aria-label="Vibe">
-          {VIBES.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              role="radio"
-              aria-checked={s.vibe === v.id}
-              className={`vibecard vibecard--${v.id} ${s.vibe === v.id ? 'is-on' : ''}`}
-              onClick={() => set({ vibe: v.id, lyricStyle: v.style })}
-            >
-              <i className="vibecard__sw" />
-              <b>{v.name}</b>
-              <small>{v.tag}</small>
-            </button>
-          ))}
+        <p className="hint">A vibe changes the whole look: colours, type, background effects and how the lyrics appear. Press V anywhere to switch.</p>
+        <Row label="Change vibe" hint={s.vibeMode === 'fixed' ? 'Stay on the one you pick' : s.vibeMode === 'cycle' ? 'A new vibe from your picks on every song' : vibeWhy ? `Now: ${vibeWhy}` : 'Lyra picks what suits each song'}>
+          <Segmented
+            label="Vibe mode"
+            value={s.vibeMode}
+            onChange={(m) => set({ vibeMode: m })}
+            options={[
+              { v: 'fixed', label: 'Fixed' },
+              { v: 'cycle', label: 'Every song' },
+              { v: 'smart', label: 'Smart' }
+            ]}
+          />
+        </Row>
+        <div className="vibes" role={s.vibeMode === 'fixed' ? 'radiogroup' : 'group'} aria-label="Vibes">
+          {VIBES.filter((v) => s.vibeMode === 'fixed' || v.id !== 'none').map((v) => {
+            const inPool = s.vibePool.length === 0 || s.vibePool.includes(v.id)
+            const on = s.vibeMode === 'fixed' ? s.vibe === v.id : inPool
+            return (
+              <button
+                key={v.id}
+                type="button"
+                role={s.vibeMode === 'fixed' ? 'radio' : 'checkbox'}
+                aria-checked={on}
+                className={`vibecard vibecard--${v.id} ${on ? 'is-on' : ''} ${s.vibeMode !== 'fixed' ? 'is-multi' : ''}`}
+                onClick={() => {
+                  if (s.vibeMode === 'fixed') return set({ vibe: v.id, lyricStyle: v.style })
+                  // empty pool means "all": the first click starts from everything and removes that one
+                  const all = VIBES.map((x) => x.id).filter((x) => x !== 'none')
+                  const cur = s.vibePool.length === 0 ? all : s.vibePool
+                  const next = cur.includes(v.id) ? cur.filter((x) => x !== v.id) : [...cur, v.id]
+                  set({ vibePool: next.length === all.length ? [] : next.length ? next : cur })
+                }}
+              >
+                <i className="vibecard__sw" />
+                <b>{v.name}</b>
+                <small>{v.tag}</small>
+                {s.vibeMode !== 'fixed' && <span className="vibecard__tick" aria-hidden="true">{on ? '✓' : ''}</span>}
+              </button>
+            )
+          })}
         </div>
+        {s.vibeMode !== 'fixed' && <p className="hint">{s.vibePool.length === 0 ? 'Using every vibe.' : `Using ${s.vibePool.length} vibe${s.vibePool.length === 1 ? '' : 's'}.`} Tap a card to add or remove it.</p>}
       </section>
       )}
       {!android && tab === 'look' && (
@@ -794,6 +811,18 @@ export function SettingsPanel() {
               { v: 'classic', label: 'Classic' },
               { v: 'kinetic', label: 'Kinetic' },
               { v: 'constellation', label: 'Stars' }
+            ]}
+          />
+        </Row>
+        <Row label="Performance" hint="Light saves battery and GPU: no live blur, no endless motion">
+          <Segmented
+            label="Performance"
+            value={s.performance}
+            onChange={up('performance')}
+            options={[
+              { v: 'auto', label: 'Auto' },
+              { v: 'smooth', label: 'Smooth' },
+              { v: 'light', label: 'Light' }
             ]}
           />
         </Row>
