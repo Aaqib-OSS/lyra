@@ -234,6 +234,8 @@ export interface Settings {
   backgroundInMini: boolean
   /** adapt the dim to how bright the video is */
   autoDim: boolean
+  /** Optional start gate: hold a fresh song for at most 1.5 s while lyrics and video are still loading (Windows). Off by default. */
+  startGate: boolean
   /** Used for every song that has no media of its own. */
   customBackground: BackgroundMedia | null
   /** Where playback info comes from: Windows media controls (default, no account) or Spotify Web API. */
@@ -305,6 +307,7 @@ export const DEFAULT_SETTINGS: Settings = {
   backgroundDim: 0.5,
   backgroundInMini: false,
   autoDim: true,
+  startGate: false,
   customBackground: null,
   source: 'local',
   defaultMode: 'compact',
