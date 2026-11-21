@@ -21,7 +21,8 @@
     "icons": "electron scripts/icon-from-image.js",
     "dist:local": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dist-local.ps1",
     "test:ui": "node scripts/ui-test/run.mjs",
-    "test:ui:quick": "node scripts/ui-test/run.mjs --quick"
+    "test:ui:quick": "node scripts/ui-test/run.mjs --quick",
+    "test:settings": "node scripts/ui-test/settings.mjs"
   },
   "build": {
     "appId": "dev.lyra.companion",

@@ -709,3 +709,32 @@
 :root[data-platform='android'] .pill { min-height: 40px; padding-inline: 16px; }
 :root[data-platform='android'] .settings section { padding-inline: 18px; }
 :root[data-platform='android'] .sl { width: 150px; }
+
+/* ---------- "More options": folded away until wanted ---------- */
+.more { margin: 4px 0 2px; }
+.more > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fg-2);
+  border-radius: 10px;
+  transition: color 0.2s, background 0.2s;
+}
+.more > summary::-webkit-details-marker { display: none; }
+.more > summary::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.25s var(--ease);
+}
+.more[open] > summary::before { transform: rotate(45deg); }
+.more > summary:hover { color: var(--fg); }
+.more[open] { padding-bottom: 4px; }

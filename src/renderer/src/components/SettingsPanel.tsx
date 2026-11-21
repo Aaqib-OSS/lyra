@@ -235,6 +235,16 @@ function SourceHealthList() {
   )
 }
 
+/** Rarely needed options, folded away so the page stays short. */
+function More({ children, label = 'More options' }: { children: React.ReactNode; label?: string }) {
+  return (
+    <details className="more">
+      <summary>{label}</summary>
+      {children}
+    </details>
+  )
+}
+
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange(v: boolean): void; label: string }) {
   return (
     <button type="button" role="switch" aria-checked={checked} aria-label={label} className="switch" onClick={() => onChange(!checked)}>
@@ -357,11 +367,11 @@ function BackgroundSection() {
     <section>
       <h4>Background</h4>
       <Row
-        label="Video background"
+        label="Video behind the lyrics"
         info="Plays a looping video behind the lyrics in cinematic mode. Lyra tries, in order: your own file, a free 30 s official clip from Apple, YouTube (only if you add a key), then animated cover art. Off = plain blurred cover."
-        hint="Cinematic mode (mini player optional)"
+        hint="The music video when Lyra can find one"
       >
-        <Toggle label="Video background" checked={videoOn} onChange={(v) => set({ backgroundStyle: v ? 'auto' : 'still' })} />
+        <Toggle label="Video behind the lyrics" checked={videoOn} onChange={(v) => set({ backgroundStyle: v ? 'auto' : 'still' })} />
       </Row>
       {videoOn && motionBlocked && (
         <Row label="Reduce motion is on" hint="Videos can't play while it's on">
@@ -372,21 +382,10 @@ function BackgroundSection() {
       )}
       {videoOn && (
         <>
-          <small style={{ opacity: 0.7, display: 'block', padding: '2px 0 8px' }}>
-            Order: your file for this song → your file for all songs → Apple clip (free) → YouTube (needs key) → animated cover art
-          </small>
-      <Row label="Dim" info="Darkens the video so lyrics stay readable. Lower = brighter video." hint="Keeps lyrics readable over video">
+      <Row label="Darken the video" hint="Keeps the lyrics easy to read">
         <Slider label="Background dim" value={s.backgroundDim} min={0.2} max={0.9} step={0.02} onChange={(v) => set({ backgroundDim: v })} format={(v) => `${Math.round(v * 100)}%`} />
       </Row>
-      <Row label="Auto dim" info="Lets Lyra darken bright scenes and ease off on dark ones, using the dim level above as the starting point, so lyrics stay readable without a dull picture.">
-        <Toggle label="Auto dim" checked={s.autoDim} onChange={(v) => set({ autoDim: v })} />
-      </Row>
-      {document.documentElement.dataset.platform !== 'android' && (
-      <Row label="Also in mini player" info="Show the animated background in the mini player too, not only in cinematic mode. Uses a little more CPU/GPU.">
-        <Toggle label="Animated background in mini player" checked={s.backgroundInMini} onChange={(v) => set({ backgroundInMini: v })} />
-      </Row>
-      )}
-      <Row label="Your file for all songs" info="Pick a GIF, image, MP4 or WebM to use behind every song. A copy is stored in Lyra's folder and never uploaded." hint={s.customBackground ? s.customBackground.name : 'GIF, image, MP4 or WebM · up to 200 MB'}>
+      <Row label="Your own video or picture" info="Pick a GIF, image, MP4 or WebM to use behind every song. A copy is stored in Lyra's folder and never uploaded." hint={s.customBackground ? `${s.customBackground.name} · for every song` : 'GIF, picture, MP4 or WebM, for every song'}>
         <button type="button" className="pill" disabled={busy} onClick={() => void run(() => window.lyra.background.pick('global'))}>
           {s.customBackground ? 'Change' : 'Choose'}
         </button>
@@ -396,7 +395,7 @@ function BackgroundSection() {
           </button>
         )}
       </Row>
-      <Row label="This song" info="Pick a file used only for the song that is playing now. It beats every other background." hint={track ? `${track.title}: a file just for this track` : 'Play a song first'}>
+      <Row label="Own video for this song" info="Pick a file used only for the song that is playing now. It beats every other background." hint={track ? `${track.title}: a file just for this track` : 'Play a song first'}>
         <button type="button" className="pill" disabled={busy || !track} onClick={() => track && void run(() => window.lyra.background.pick('song', track.id))}>
           Choose
         </button>
@@ -404,7 +403,7 @@ function BackgroundSection() {
           Remove
         </button>
       </Row>
-      <Row label="YouTube video" info="Optional. A free YouTube Data API v3 key (Google Cloud Console) lets Lyra find the official music video and play it muted. The key is encrypted on this PC. Without it, Lyra uses Apple clips or animated art." hint={hasKey ? 'API key saved (encrypted). Official video plays muted' : 'Optional. Paste a free YouTube Data API v3 key'}>
+      <Row label="YouTube key" info="Optional. A free YouTube Data API v3 key (Google Cloud Console) lets Lyra find the official music video and play it muted. The key is encrypted on this PC. Without it, Lyra uses Apple clips or animated art." hint={hasKey ? 'Saved (encrypted). Full videos play muted' : 'Optional: paste a free YouTube Data API v3 key for full videos'}>
         {hasKey ? (
           <button
             type="button"
@@ -503,8 +502,18 @@ function BackgroundSection() {
         </small>
       )}
       <small style={{ opacity: 0.7, display: 'block', paddingTop: 6 }}>
-        Without a key, Lyra uses a free 30-second official clip from Apple when one exists, otherwise a living version of the cover art. Searching sends the song title and artist to Apple or Google.
+        Without a key Lyra plays a free 30-second clip from Apple when there is one, or a moving version of the cover. Finding a video sends the song title and artist to Apple or Google.
       </small>
+      <More>
+      <Row label="Auto dim" info="Lets Lyra darken bright scenes and ease off on dark ones, using the dim level above as the starting point, so lyrics stay readable without a dull picture.">
+          <Toggle label="Auto dim" checked={s.autoDim} onChange={(v) => set({ autoDim: v })} />
+        </Row>
+      {document.documentElement.dataset.platform !== 'android' && (
+        <Row label="Also in the expanded player" info="Show the video in the expanded player too, not only in fullscreen. Uses a little more CPU/GPU.">
+          <Toggle label="Video in the expanded player" checked={s.backgroundInMini} onChange={(v) => set({ backgroundInMini: v })} />
+        </Row>
+      )}
+      </More>
     </section>
   )
 }
@@ -601,27 +610,28 @@ export function SettingsPanel() {
   const set = useSettings((x) => x.set)
   const status = usePlayer((x) => x.status)
   const vibeWhy = useUi((x) => x.vibeWhy)
+  const vibeNowIsNone = true
   const [version, setVersion] = useState('')
   useEffect(() => {
     void window.lyra.app.info().then((i) => setVersion(i.version))
   }, [])
   const up = <K extends keyof Settings>(k: K) => (v: Settings[K]) => set({ [k]: v } as Partial<Settings>)
+  // six plain tabs; rarely needed options live under "More options" inside them
   const tabs: Array<{ id: string; label: string }> = android
     ? [
-        { id: 'phone', label: t('Phone') },
-        { id: 'lyrics', label: t('Lyrics') },
         { id: 'look', label: t('Look') },
-        { id: 'bg', label: t('Background') },
-        { id: 'share', label: t('Share') },
+        { id: 'lyrics', label: t('Lyrics') },
+        { id: 'bg', label: t('Video') },
+        { id: 'phone', label: t('Phone') },
+        { id: 'share', label: t('Connect') },
         { id: 'about', label: t('About') }
       ]
     : [
-        { id: 'general', label: t('General') },
-        { id: 'lyrics', label: t('Lyrics') },
         { id: 'look', label: t('Look') },
-        { id: 'bg', label: t('Background') },
-        { id: 'share', label: t('Share') },
-        { id: 'keys', label: t('Shortcuts') },
+        { id: 'lyrics', label: t('Lyrics') },
+        { id: 'bg', label: t('Video') },
+        { id: 'general', label: t('Player') },
+        { id: 'share', label: t('Connect') },
         { id: 'about', label: t('About') }
       ]
   const [tab, setTabState] = useState<string>(() => {
@@ -689,49 +699,11 @@ export function SettingsPanel() {
       <div id="settings-panel" role="tabpanel" aria-labelledby={`settings-tab-${tab}`} tabIndex={0}>
       {android && tab === 'phone' && <PhoneSection />}
 
-      {!android && tab === 'general' && (
-      <section>
-        <Row label={t('Language')} hint={t('Choose the language used in Lyra settings')}>
-          <select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label={t('Language')}>
-            <option value="en">English</option>
-            <option value="hi">हिन्दी</option>
-          </select>
-        </Row>
-        <h4>{t('Music source')}</h4>
-        <Segmented
-          label={t('Music source')}
-          value={active}
-          onChange={(v) => {
-            if (v === 'local') void window.lyra.spotify.useLocal()
-            else if (v === 'demo') void window.lyra.spotify.startDemo()
-            else void window.lyra.spotify.connect()
-          }}
-          options={[
-            { v: 'local', label: 'Windows (no login)' },
-            { v: 'api', label: 'Spotify API' },
-            { v: 'demo', label: 'Demo' }
-          ]}
-        />
-        <Row
-          label="Status"
-          hint={
-            status?.state === 'local'
-              ? 'Reads the Spotify app via Windows media controls. No queue; likes are saved locally.'
-              : status?.controlsLimited
-                ? 'Free accounts can’t be remote-controlled — display only'
-                : undefined
-          }
-        >
-          <span className="value">{account}</span>
-        </Row>
-      </section>
-      )}
-
       {tab === 'look' && (
       <section>
         <h4>Vibes</h4>
         <p className="hint">A vibe changes the whole look: colours, type, background effects and how the lyrics appear. Press V anywhere to switch.</p>
-        <Row label="Change vibe" hint={s.vibeMode === 'fixed' ? 'Stay on the one you pick' : s.vibeMode === 'cycle' ? 'A new vibe from your picks on every song' : vibeWhy ? `Now: ${vibeWhy}` : 'Lyra picks what suits each song'}>
+        <Row label="Vibe changes" hint={s.vibeMode === 'fixed' ? 'Stay on the one you pick' : s.vibeMode === 'cycle' ? 'A new vibe from your picks on every song' : vibeWhy ? `Now: ${vibeWhy}` : 'Lyra picks what suits each song'}>
           <Segmented
             label="Vibe mode"
             value={s.vibeMode}
@@ -774,9 +746,170 @@ export function SettingsPanel() {
         {s.vibeMode !== 'fixed' && <p className="hint">{s.vibePool.length === 0 ? 'Using every vibe.' : `Using ${s.vibePool.length} vibe${s.vibePool.length === 1 ? '' : 's'}.`} Tap a card to add or remove it.</p>}
       </section>
       )}
-      {!android && tab === 'look' && (
+      {tab === 'look' && (
       <section>
-        <h4>Widget</h4>
+        <h4>Appearance</h4>
+        <Row label="Theme">
+          <Segmented
+            label="Theme"
+            value={s.theme}
+            onChange={up('theme')}
+            options={[
+              { v: 'adaptive', label: 'Artwork' },
+              { v: 'dark', label: 'Dark' },
+              { v: 'light', label: 'Light' }
+            ]}
+          />
+        </Row>
+        <Row label="Rim light" hint="A soft glow in the album's colour around the window edge">
+          <Toggle label="Rim light" checked={s.rimLight} onChange={up('rimLight')} />
+        </Row>
+        {s.vibe === 'none' && vibeNowIsNone && (
+          <Row label="Lyric style" hint="How the sung line is staged">
+          <Segmented
+            label="Lyric style"
+            value={s.lyricStyle}
+            onChange={up('lyricStyle')}
+            options={[
+              { v: 'classic', label: 'Classic' },
+              { v: 'kinetic', label: 'Kinetic' },
+              { v: 'constellation', label: 'Stars' }
+            ]}
+          />
+        </Row>
+        )}
+        <More>
+        <Row label="Performance" hint="Light saves battery and GPU: no live blur, no endless motion">
+          <Segmented
+            label="Performance"
+            value={s.performance}
+            onChange={up('performance')}
+            options={[
+              { v: 'auto', label: 'Auto' },
+              { v: 'smooth', label: 'Smooth' },
+              { v: 'light', label: 'Light' }
+            ]}
+          />
+        </Row>
+        <Row label="Reduce motion">
+          <Segmented
+            label="Reduce motion"
+            value={s.reducedMotion}
+            onChange={up('reducedMotion')}
+            options={[
+              { v: 'system', label: 'System' },
+              { v: 'on', label: 'On' },
+              { v: 'off', label: 'Off' }
+            ]}
+          />
+        </Row>
+        </More>
+      </section>
+      )}
+      {tab === 'lyrics' && (
+      <section>
+        <h4>Lyrics</h4>
+        <Row label="Roman letters" hint="Under Hindi and Punjabi lyrics (reading help, not a translation)">
+          <Toggle label="Romanized lyrics" checked={s.romanizeLyrics} onChange={up('romanizeLyrics')} />
+        </Row>
+        <Row label="Typeface">
+          <Segmented
+            label="Typeface"
+            value={s.lyricFont}
+            onChange={up('lyricFont')}
+            options={[
+              { v: 'sans', label: 'Sans' },
+              { v: 'serif', label: 'Serif' },
+              { v: 'rounded', label: 'Round' },
+              { v: 'mono', label: 'Mono' }
+            ]}
+          />
+        </Row>
+        <Row label="Size">
+          <Slider label="Lyric size" value={s.lyricFontSize} min={24} max={72} step={2} onChange={up('lyricFontSize')} format={(v) => `${v}px`} />
+        </Row>
+        <Row
+          label="Highlight each word"
+          info="Highlights each word as it is sung. Free lyrics only have one time per line, so Lyra estimates the word timing from syllables and pauses: close, but not perfect. If a source has real word timing, that is used instead."
+          hint="Estimated timing"
+        >
+          <Toggle label="Highlight each word" checked={s.wordByWord} onChange={up('wordByWord')} />
+        </Row>
+        <More>
+        <Row label="Line spacing">
+          <Slider label="Line spacing" value={s.lineSpacing} min={1} max={2} step={0.05} onChange={up('lineSpacing')} format={(v) => v.toFixed(2)} />
+        </Row>
+        <Row label="Animation">
+          <Segmented
+            label="Lyric animation"
+            value={s.lyricAnimation}
+            onChange={up('lyricAnimation')}
+            options={[
+              { v: 'glide', label: 'Glide' },
+              { v: 'focus', label: 'Focus' },
+              { v: 'fade', label: 'Fade' }
+            ]}
+          />
+        </Row>
+        <Row label="Default sync offset" hint="Every song. Fine-tune under the lyrics">
+          <Slider label="Sync offset" value={s.lyricOffsetMs} min={-3000} max={3000} step={50} onChange={up('lyricOffsetMs')} format={(v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)}s`} />
+        </Row>
+        </More>
+      </section>
+      )}
+
+      {tab === 'lyrics' && (
+      <section>
+        <h4>Lyrics services</h4>
+        <SourceHealthList />
+        <p className="hint">If a service is down Lyra uses the next one, keeps your saved copies, and tries again by itself.</p>
+      </section>
+      )}
+
+
+      {tab === 'bg' && <BackgroundSection />}
+
+      {!android && tab === 'general' && (
+      <section>
+        <Row label={t('Language')} hint={t('Choose the language used in Lyra settings')}>
+          <select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label={t('Language')}>
+            <option value="en">English</option>
+            <option value="hi">हिन्दी</option>
+          </select>
+        </Row>
+        <h4>{t('Music source')}</h4>
+        <Segmented
+          label={t('Music source')}
+          value={active}
+          onChange={(v) => {
+            if (v === 'local') void window.lyra.spotify.useLocal()
+            else if (v === 'demo') void window.lyra.spotify.startDemo()
+            else void window.lyra.spotify.connect()
+          }}
+          options={[
+            { v: 'local', label: 'Windows (no login)' },
+            { v: 'api', label: 'Spotify API' },
+            { v: 'demo', label: 'Demo' }
+          ]}
+        />
+        <Row
+          label="Status"
+          hint={
+            status?.state === 'local'
+              ? 'Reads the Spotify app via Windows media controls. No queue; likes are saved locally.'
+              : status?.controlsLimited
+                ? 'Free accounts can’t be remote-controlled — display only'
+                : undefined
+          }
+        >
+          <span className="value">{account}</span>
+        </Row>
+      </section>
+      )}
+
+      {!android && tab === 'general' && (
+      <section>
+        <h4>Window</h4>
         <Row label="Resting size">
           <Segmented
             label="Resting size"
@@ -807,80 +940,7 @@ export function SettingsPanel() {
         <Row label="Hide while screen sharing" hint="Excluded from captures & recordings">
           <Toggle label="Hide while screen sharing" checked={s.hideOnScreenShare} onChange={up('hideOnScreenShare')} />
         </Row>
-      </section>
-      )}
-
-      {tab === 'lyrics' && (
-      <section>
-        <h4>Lyrics services</h4>
-        <SourceHealthList />
-        <p className="hint">If a service is down Lyra uses the next one, keeps your saved copies, and tries again by itself.</p>
-      </section>
-      )}
-      {tab === 'lyrics' && (
-      <section>
-        <h4>Lyrics</h4>
-        <Row label="Romanized lyrics" info="Shows a Roman-letter reading below Hindi (Devanagari) and Punjabi (Gurmukhi) lyrics. This is transliteration, not translation." hint="Off by default">
-          <Toggle label="Romanized lyrics" checked={s.romanizeLyrics} onChange={up('romanizeLyrics')} />
-        </Row>
-        <Row label="Typeface">
-          <Segmented
-            label="Typeface"
-            value={s.lyricFont}
-            onChange={up('lyricFont')}
-            options={[
-              { v: 'sans', label: 'Sans' },
-              { v: 'serif', label: 'Serif' },
-              { v: 'rounded', label: 'Round' },
-              { v: 'mono', label: 'Mono' }
-            ]}
-          />
-        </Row>
-        <Row label="Size">
-          <Slider label="Lyric size" value={s.lyricFontSize} min={24} max={72} step={2} onChange={up('lyricFontSize')} format={(v) => `${v}px`} />
-        </Row>
-        <Row label="Line spacing">
-          <Slider label="Line spacing" value={s.lineSpacing} min={1} max={2} step={0.05} onChange={up('lineSpacing')} format={(v) => v.toFixed(2)} />
-        </Row>
-        <Row label="Lyric style" hint="How the sung line is staged in fullscreen">
-          <Segmented
-            label="Lyric style"
-            value={s.lyricStyle}
-            onChange={up('lyricStyle')}
-            options={[
-              { v: 'classic', label: 'Classic' },
-              { v: 'kinetic', label: 'Kinetic' },
-              { v: 'constellation', label: 'Stars' }
-            ]}
-          />
-        </Row>
-        <Row label="Performance" hint="Light saves battery and GPU: no live blur, no endless motion">
-          <Segmented
-            label="Performance"
-            value={s.performance}
-            onChange={up('performance')}
-            options={[
-              { v: 'auto', label: 'Auto' },
-              { v: 'smooth', label: 'Smooth' },
-              { v: 'light', label: 'Light' }
-            ]}
-          />
-        </Row>
-        <Row label="Rim light" hint="A soft glow in the album's colour around the window edge">
-          <Toggle label="Rim light" checked={s.rimLight} onChange={up('rimLight')} />
-        </Row>
-        <Row label="Animation">
-          <Segmented
-            label="Lyric animation"
-            value={s.lyricAnimation}
-            onChange={up('lyricAnimation')}
-            options={[
-              { v: 'glide', label: 'Glide' },
-              { v: 'focus', label: 'Focus' },
-              { v: 'fade', label: 'Fade' }
-            ]}
-          />
-        </Row>
+        <More>
         <Row label="Fullscreen layout" hint="When a video plays behind the lyrics">
           <Segmented
             label="Fullscreen layout"
@@ -895,70 +955,7 @@ export function SettingsPanel() {
             ]}
           />
         </Row>
-        <Row
-          label="Word by word"
-          info="Highlights each word as it is sung. Free lyrics only have one time per line, so Lyra estimates the word timing from syllables and pauses: close, but not perfect. If a source has real word timing, that is used instead."
-          hint="Estimated timing"
-        >
-          <Toggle label="Word by word" checked={s.wordByWord} onChange={up('wordByWord')} />
-        </Row>
-        <Row label="Default sync offset" hint="Every song. Fine-tune under the lyrics">
-          <Slider label="Sync offset" value={s.lyricOffsetMs} min={-3000} max={3000} step={50} onChange={up('lyricOffsetMs')} format={(v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)}s`} />
-        </Row>
-      </section>
-      )}
-
-      {tab === 'look' && (
-      <section>
-        <h4>Appearance</h4>
-        <Row label="Theme">
-          <Segmented
-            label="Theme"
-            value={s.theme}
-            onChange={up('theme')}
-            options={[
-              { v: 'adaptive', label: 'Artwork' },
-              { v: 'dark', label: 'Dark' },
-              { v: 'light', label: 'Light' }
-            ]}
-          />
-        </Row>
-        <Row label="Reduce motion">
-          <Segmented
-            label="Reduce motion"
-            value={s.reducedMotion}
-            onChange={up('reducedMotion')}
-            options={[
-              { v: 'system', label: 'System' },
-              { v: 'on', label: 'On' },
-              { v: 'off', label: 'Off' }
-            ]}
-          />
-        </Row>
-      </section>
-      )}
-
-      {tab === 'bg' && <BackgroundSection />}
-
-      {tab === 'share' && (
-      <section>
-        <h4>{t('Rooms: listen together')}</h4>
-        <RoomHub />
-      </section>
-      )}
-
-      {!android && tab === 'share' && (
-      <section>
-        <h4>{t('Nearby screens (TV mode)')}</h4>
-        <Row label={t('Show lyrics on other screens')} hint={t('Same Wi-Fi, no internet needed: scan the QR code on a phone, tablet, laptop or TV browser to get big synced lyrics. Off by default')}>
-          <Toggle label={t('TV and party mode')} checked={s.lanViewer} onChange={up('lanViewer')} />
-        </Row>
-        {s.lanViewer && (
-          <Row label={t('Stream sound too (Jam nearby)')} hint={t("Lets devices on your Wi-Fi press Listen and hear this PC's sound with the lyrics. It sends everything this PC plays, only over your local network, and only while someone is listening. For you and the people in your home")}>
-            <Toggle label={t('Stream sound')} checked={s.lanAudio} onChange={up('lanAudio')} />
-          </Row>
-        )}
-        {s.lanViewer && <TvLink />}
+        </More>
       </section>
       )}
 
@@ -980,10 +977,11 @@ export function SettingsPanel() {
       </section>
       )}
 
-      {!android && tab === 'keys' && (
+      {!android && tab === 'general' && (
       <section>
         <h4>Shortcuts</h4>
         <ShortcutEditor />
+        <More label="All keys inside Lyra">
         <dl className="keys">
           {LOCAL_SHORTCUTS.map((k) => (
             <div key={k.keys}>
@@ -992,6 +990,30 @@ export function SettingsPanel() {
             </div>
           ))}
         </dl>
+        </More>
+      </section>
+      )}
+
+
+      {tab === 'share' && (
+      <section>
+        <h4>{t('Rooms: listen together')}</h4>
+        <RoomHub />
+      </section>
+      )}
+
+      {!android && tab === 'share' && (
+      <section>
+        <h4>{t('Nearby screens (TV mode)')}</h4>
+        <Row label={t('Show lyrics on other screens')} hint={t('Same Wi-Fi, no internet needed: scan the QR code on a phone, tablet, laptop or TV browser to get big synced lyrics. Off by default')}>
+          <Toggle label={t('TV and party mode')} checked={s.lanViewer} onChange={up('lanViewer')} />
+        </Row>
+        {s.lanViewer && (
+          <Row label={t('Stream sound too (Jam nearby)')} hint={t("Lets devices on your Wi-Fi press Listen and hear this PC's sound with the lyrics. It sends everything this PC plays, only over your local network, and only while someone is listening. For you and the people in your home")}>
+            <Toggle label={t('Stream sound')} checked={s.lanAudio} onChange={up('lanAudio')} />
+          </Row>
+        )}
+        {s.lanViewer && <TvLink />}
       </section>
       )}
 
