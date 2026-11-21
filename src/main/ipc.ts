@@ -1,14 +1,14 @@
 import { ClipboardItem, Notification, app, clipboard, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
 import { readFile, stat, writeFile } from 'node:fs/promises'
 import { basename } from 'node:path'
-import { CH, EV, type AppInfo, type LanInfo } from '@shared/ipc'
+import { CH, EV, type AppInfo, type ConnectCode, type ConnectStatus, type ConnectView } from '@shared/ipc'
 import type { ConnectionStatus, PlaybackSnapshot, PlayerCommand, Settings, Track, ViewMode } from '@shared/types'
 import { getArtwork } from './artwork'
 import { DemoSource } from './demo/source'
 import { lyricsService } from '@core/lyrics/service'
 import { clearAllCaches } from '@core/cache/persistentCache'
 import { failedVideos } from '@core/background/failedVideos'
-import { lanViewer } from './lan/server'
+import { connectService } from './connect/service'
 import { registerStudioIpc } from './studio'
 import QRCode from 'qrcode'
 import { createLogger, readLogTail } from './logger'
@@ -44,7 +44,7 @@ const send = (channel: string, payload: unknown): void => {
 
 function onSnapshot(s: PlaybackSnapshot): void {
   send(EV.playback, s)
-  lanViewer.publish(s)
+  connectService.onSnapshot(s)
   const id = s.track?.id ?? null
   if (id && id !== lastTrackId && s.isPlaying && settings.get().trackNotifications && Notification.isSupported()) {
     new Notification({ title: s.track!.title, body: s.track!.artists.join(', '), silent: true }).show()
@@ -91,27 +91,9 @@ function on(channel: string, fn: () => void): void {
   })
 }
 
-const pendingOffers = new Map<string, (a: unknown) => void>()
-
 export function registerIpc(): void {
   registerStudioIpc()
-  lanViewer.onOffer = (offer) =>
-    new Promise((resolve) => {
-      const id = Math.random().toString(36).slice(2)
-      const timer = setTimeout(() => {
-        pendingOffers.delete(id)
-        resolve(null)
-      }, 10_000)
-      pendingOffers.set(id, (a) => {
-        clearTimeout(timer)
-        resolve(a)
-      })
-      send(EV.lanOffer, { id, offer })
-    })
-  ipcMain.handle(CH.lanAnswer, (_e, id: string, answer: unknown) => {
-    pendingOffers.get(id)?.(answer)
-    pendingOffers.delete(id)
-  })
+  connectService.runCommand = (cmd) => active.command(cmd)
   spotify = new SpotifySource(new SpotifyAuth(new TokenStore()), clientId)
 
   handle(CH.settingsGet, () => settings.get())
@@ -119,8 +101,6 @@ export function registerIpc(): void {
     const prevId = clientId()
     const prevVolume = settings.get().systemVolume
     const next = settings.update(patch)
-    if (next.lanViewer && !lanViewer.running) lanViewer.start()
-    else if (!next.lanViewer && lanViewer.running) lanViewer.stop()
     if (active === spotify && clientId() !== prevId) spotify.start()
     if (active === local && local && next.systemVolume !== prevVolume) local.restart()
     return next
@@ -293,11 +273,51 @@ export function registerIpc(): void {
   handle(CH.updateCheck, () => updater.check())
   handle(CH.updateInstall, () => updater.install())
   updater.on('state', (st) => send(EV.update, st))
-  handle(CH.lanInfo, async (): Promise<LanInfo> => {
-    const urls = lanViewer.urls()
-    const qr = urls[0] ? await QRCode.toDataURL(urls[0], { margin: 1, width: 240, color: { dark: '#0a0a0a', light: '#ffffff' } }) : null
-    return { running: lanViewer.running, urls, qr }
+  const connectStatus = async (): Promise<ConnectStatus> => {
+    const hub = connectService.api
+    const st = hub.status()
+    const codes: ConnectCode[] = await Promise.all(
+      hub.codes().map(async (c) => ({
+        display: c.display,
+        expiresAt: c.expiresAt,
+        party: c.party,
+        url: c.url,
+        qr: c.url ? await QRCode.toDataURL(c.url, { margin: 1, width: 240, color: { dark: '#0a0a0a', light: '#ffffff' } }) : null
+      }))
+    )
+    const enabled = settings.get().connectEnabled
+    return { enabled, running: st.running, noNetwork: enabled && !st.running, url: st.url, party: st.party, devices: hub.devices(), codes }
+  }
+  connectService.api.on('change', () => void connectStatus().then((s) => send(EV.connectChange, s)))
+  handle(CH.connectStatus, connectStatus)
+  handle(CH.connectEnable, async (on: boolean) => {
+    settings.update({ connectEnabled: !!on })
+    if (on) {
+      await connectService.start()
+      const snap = active.getSnapshot()
+      if (snap) connectService.onSnapshot(snap)
+    } else connectService.stop()
+    return connectStatus()
   })
+  handle(CH.connectCode, async (role: 'viewer' | 'controller') => {
+    if (connectService.running) connectService.api.newCode(role === 'controller' ? 'controller' : 'viewer')
+    return connectStatus()
+  })
+  handle(CH.connectParty, async (on: boolean) => {
+    if (!connectService.running) return connectStatus()
+    if (on) connectService.api.startParty()
+    else connectService.api.endParty()
+    return connectStatus()
+  })
+  handle(CH.connectRevoke, async (id: string) => {
+    connectService.api.revoke(String(id))
+    return connectStatus()
+  })
+  handle(CH.connectRole, async (id: string, role: 'viewer' | 'controller') => {
+    connectService.api.setRole(String(id), role === 'controller' ? 'controller' : 'viewer')
+    return connectStatus()
+  })
+  handle(CH.connectView, (v: ConnectView) => connectService.setView(v))
   handle(CH.appInfo, (): AppInfo => ({ version: app.getVersion(), platform: process.platform, envClientId: !!envClientId() }))
 
   settings.on('change', (next: Settings) => {

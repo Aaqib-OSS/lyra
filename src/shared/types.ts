@@ -276,12 +276,8 @@ export interface Settings {
   systemVolume: boolean
   trackNotifications: boolean
   /** TV & party mode: serve a read-only lyrics page to other devices on the same network. */
-  lanViewer: boolean
-  /** Also stream this PC's sound to the TV-mode page (Jam nearby). */
-  lanAudio: boolean
-  lanPort: number
-  /** Secret in the viewer link (generated on first use). */
-  lanToken: string
+  /** Devices: let paired phones, tablets, TVs and PCs on the local network follow and control Lyra (off by default). */
+  connectEnabled: boolean
   theme: ThemeMode
   lyricFont: LyricFont
   lyricFontSize: number // px, fullscreen base
@@ -349,10 +345,7 @@ export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   systemVolume: false,
   trackNotifications: false,
-  lanViewer: false,
-  lanAudio: false,
-  lanPort: 47813,
-  lanToken: '',
+  connectEnabled: false,
   theme: 'adaptive',
   lyricFont: 'sans',
   lyricFontSize: 40,

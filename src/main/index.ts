@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createLogger } from './logger'
 import { disposePlayback, registerIpc, setBackground, startPlayback } from './ipc'
-import { lanViewer } from './lan/server'
+import { connectService } from './connect/service'
 import { studio } from './studio'
 import { favorites } from './favorites'
 import { moments } from './moments'
@@ -52,21 +52,21 @@ function installCsp(): void {
   session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ['https://www.youtube-nocookie.com/*', 'https://www.youtube.com/*'] }, (details, cb) => {
     cb({ requestHeaders: { ...details.requestHeaders, Referer: 'https://github.com/DhruvHarani1/lyra' } })
   })
-  // Jam nearby: the app window may capture the PC's own sound (loopback), nothing else, and only when sharing is on.
+  // The app window may capture the PC's own sound (loopback) only while the studio is recording.
   session.defaultSession.setDisplayMediaRequestHandler(
     (_request, cb) => {
-      if (!settings.get().lanAudio && !studio.capturing) return cb({})
+      if (!studio.capturing) return cb({})
       void desktopCapturer.getSources({ types: ['screen'] }).then((sources) => cb(sources[0] ? { video: sources[0], audio: 'loopback' } : {}))
     },
     { useSystemPicker: false }
   )
   // The renderer never needs device permissions.
-  // The only exception: our own window may capture the PC's sound while Jam nearby is on.
+  // The only exception: our own window may capture sound while the studio is recording.
   // getDisplayMedia asks for 'media' (and sometimes 'display-capture'); nothing else is ever allowed
   const isCapture = (perm: string): boolean => perm === 'display-capture' || perm === 'media'
   const ownPage = (url: string): boolean => url.startsWith('file://') || url.startsWith('http://localhost')
-  session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(isCapture(perm) && (settings.get().lanAudio || studio.capturing || studio.mic) && ownPage(wc.getURL())))
-  session.defaultSession.setPermissionCheckHandler((wc, perm, origin) => isCapture(perm) && (settings.get().lanAudio || studio.capturing || studio.mic) && ownPage(wc?.getURL() ?? origin))
+  session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(isCapture(perm) && (studio.capturing || studio.mic) && ownPage(wc.getURL())))
+  session.defaultSession.setPermissionCheckHandler((wc, perm, origin) => isCapture(perm) && (studio.capturing || studio.mic) && ownPage(wc?.getURL() ?? origin))
 }
 
 if (!app.requestSingleInstanceLock()) {
@@ -86,7 +86,7 @@ if (!app.requestSingleInstanceLock()) {
     applyShortcuts(settings.get().globalShortcuts, settings.get().shortcuts)
     windows.applySettings(settings.get())
     startPlayback()
-    if (settings.get().lanViewer) lanViewer.start()
+    if (settings.get().connectEnabled) void connectService.start()
     updater.start()
 
     // Slow polling while the widget isn't visible.
@@ -113,7 +113,7 @@ if (!app.requestSingleInstanceLock()) {
   app.on('before-quit', () => {
     disposeShortcuts()
     disposePlayback()
-    lanViewer.stop()
+    connectService.stop()
     settings.flush()
     moments.flush()
     favorites.flush()

@@ -17,6 +17,8 @@ export const useBgState = create<{
   channel: string
   /** the YouTube embed reports it is playing */
   ytReady: boolean
+  /** the YouTube video behind the lyrics right now (shared with connected screens) */
+  videoId: string | null
   setVideo(v: { phase: VideoPhase; problem?: VideoProblem | null; title?: string; channel?: string }): void
   media: 'none' | 'full' | 'mini'
   kind: string | null
@@ -32,6 +34,7 @@ export const useBgState = create<{
   title: '',
   channel: '',
   ytReady: false,
+  videoId: null,
   setVideo: (v) => set({ phase: v.phase, problem: v.problem ?? null, title: v.title ?? '', channel: v.channel ?? '' }),
   media: 'none',
   kind: null,

@@ -9,6 +9,7 @@ import { AndroidUpdateRow } from './AndroidUpdateRow'
 import { useSettings } from '@/store/settings'
 import { roomLink, useRoom } from '@/store/room'
 import { useJam } from '@/store/jam'
+import { DevicesPanel } from './DevicesPanel'
 import QRCode from 'qrcode'
 import { VIBES } from '@shared/vibes'
 import { useUi } from '@/store/ui'
@@ -158,35 +159,6 @@ function RoomHub() {
       />
       {shown === 'host' ? <RoomPanel /> : <JamPanel />}
     </>
-  )
-}
-
-function TvLink() {
-  const { t } = useTranslation()
-  const [info, setInfo] = useState<{ running: boolean; urls: string[]; qr: string | null } | null>(null)
-  useEffect(() => {
-    let alive = true
-    const load = (): void => void window.lyra.lan.info().then((i) => alive && setInfo(i))
-    load()
-    const id = setInterval(load, 3000)
-    return () => {
-      alive = false
-      clearInterval(id)
-    }
-  }, [])
-  if (!info) return null
-  if (!info.running || !info.urls.length) return <p className="hint">{t('Starting… If nothing appears, check that you are connected to Wi-Fi or a network.')}</p>
-  return (
-    <div className="tvlink">
-      {info.qr && <img src={info.qr} width={150} height={150} alt="QR code for the TV link" />}
-      <div>
-        <p className="hint">{t('Open this on any device on the same Wi-Fi. Keep the link private: anyone who has it can see what you play.')}</p>
-        <code onClick={(e) => window.getSelection()?.selectAllChildren(e.currentTarget)}>{info.urls[0]}</code>
-        <button type="button" className="pill" onClick={() => void copyWithToast(info.urls[0]!, t('TV link'))}>
-          {t('Copy link')}
-        </button>
-      </div>
-    </div>
   )
 }
 
@@ -1021,16 +993,8 @@ export function SettingsPanel() {
 
       {!android && show('share') && (
       <section>
-        <h4>{t('Nearby screens (TV mode)')}</h4>
-        <Row label={t('Show lyrics on other screens')} hint={t('Same Wi-Fi, no internet needed: scan the QR code on a phone, tablet, laptop or TV browser to get big synced lyrics. Off by default')}>
-          <Toggle label={t('TV and party mode')} checked={s.lanViewer} onChange={up('lanViewer')} />
-        </Row>
-        {s.lanViewer && (
-          <Row label={t('Stream sound too (Jam nearby)')} hint={t("Lets devices on your Wi-Fi press Listen and hear this PC's sound with the lyrics. It sends everything this PC plays, only over your local network, and only while someone is listening. For you and the people in your home")}>
-            <Toggle label={t('Stream sound')} checked={s.lanAudio} onChange={up('lanAudio')} />
-          </Row>
-        )}
-        {s.lanViewer && <TvLink />}
+        <h4>{t('Devices')}</h4>
+        <DevicesPanel />
       </section>
       )}
 
