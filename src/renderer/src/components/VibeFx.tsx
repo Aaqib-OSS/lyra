@@ -127,6 +127,39 @@ function TrailerFx() {
   )
 }
 
+/** Sketchbook, fullscreen: a notebook spread. A pencil frame draws itself, doodles sketch in and out, the video is a taped print. */
+function SketchFx() {
+  return (
+    <div className="sketchfx">
+      <div className="sketchfx__paper" />
+      <div className="sketchfx__rules" />
+      <div className="sketchfx__spine" />
+      <svg className="sketchfx__frame" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+        <rect x="14" y="14" width="972" height="532" rx="6" pathLength="1" />
+        <rect x="20" y="19" width="962" height="524" rx="8" pathLength="1" />
+      </svg>
+      <svg className="sketchfx__doodle" viewBox="0 0 60 60" style={{ left: '3vw', bottom: '5vh', ['--d' as string]: '0s' }} aria-hidden="true">
+        <path pathLength="1" className="red" d="M30 6 L36 24 L55 24 L40 35 L46 54 L30 42 L14 54 L20 35 L5 24 L24 24 Z" />
+      </svg>
+      <svg className="sketchfx__doodle" viewBox="0 0 90 40" style={{ left: '22vw', bottom: '4vh', width: '14vh', ['--d' as string]: '2s' }} aria-hidden="true">
+        <path pathLength="1" d="M4 24 C24 8 46 36 70 18 M60 8 L74 18 L58 28" />
+      </svg>
+      <svg className="sketchfx__doodle" viewBox="0 0 60 60" style={{ left: '44vw', top: '4vh', ['--d' as string]: '4s' }} aria-hidden="true">
+        <path pathLength="1" d="M30 30 C30 24 38 24 38 30 C38 40 22 40 22 28 C22 14 42 14 44 32 C46 50 14 52 12 28" />
+      </svg>
+      <svg className="sketchfx__doodle" viewBox="0 0 60 60" style={{ right: '3vw', bottom: '4vh', ['--d' as string]: '1s' }} aria-hidden="true">
+        <path pathLength="1" className="red" d="M30 50 C6 34 8 14 22 14 C28 14 30 20 30 20 C30 20 32 14 38 14 C52 14 54 34 30 50 Z" />
+      </svg>
+      <svg className="sketchfx__doodle" viewBox="0 0 90 30" style={{ left: '30vw', top: '3.5vh', width: '16vh', ['--d' as string]: '6s' }} aria-hidden="true">
+        <path pathLength="1" d="M4 16 C14 4 22 28 32 16 C42 4 50 28 60 16 C70 4 78 24 86 14" />
+      </svg>
+      <i className="sketchfx__tape sketchfx__tape--l" />
+      <i className="sketchfx__tape sketchfx__tape--r" />
+      <SceneWindow />
+    </div>
+  )
+}
+
 /** Neon: a rainy alley. The wall, street and fog are the backdrop; this is what moves in front: rain, ripples, the window frame
  *  (the video plays inside it) and a passing car's light sweeping the wall. */
 function NeonAlley() {
@@ -239,19 +272,7 @@ export function VibeFx() {
         </>
       )}
       {vibe === 'paper' && <div className="vibefx__lines" />}
-      {vibe === 'sketch' && (
-        <>
-          <div className="vibefx__paper" />
-          <svg className="vibefx__pencil" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            <path d="M40 150 C90 90 170 80 230 110 C190 120 120 130 70 170" />
-            <path d="M60 160 C120 130 190 130 260 120" />
-            <path d="M250 70 C300 40 340 60 360 100 C330 90 290 90 250 110" />
-            <path d="M110 40 C150 20 190 25 215 55 M120 52 C150 38 185 40 205 62 M130 62 C155 52 180 54 196 70" />
-            <circle cx="205" cy="112" r="15" />
-            <circle cx="205" cy="112" r="6" className="dot" />
-          </svg>
-        </>
-      )}
+      {vibe === 'sketch' && <SketchFx />}
       {vibe === 'stencil' && (
         <>
           <div className="vibefx__concrete" />

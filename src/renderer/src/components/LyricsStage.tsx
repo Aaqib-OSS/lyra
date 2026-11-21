@@ -101,7 +101,7 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
-      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title') && <Sign lines={lines} active={active} variant={mode} />}
+      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title' || mode === 'ink') && <Sign lines={lines} active={active} variant={mode} />}
       {mode === 'bloom' && <Bloom lines={lines} active={active} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">

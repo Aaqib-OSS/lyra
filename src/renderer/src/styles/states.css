@@ -74,15 +74,6 @@
 :root[data-vibe='paper'][data-bg-media] .lyrics__stage:has(.lyrics__scroller--plain)::before, :root[data-vibe='paper'][data-bg-media] .lfb::before { content: ''; position: absolute; top: -12px; left: 50%; width: 90px; height: 24px; margin-left: -45px; background: rgba(255,226,120,.8); transform: rotate(-3deg); }
 :root[data-vibe='paper'][data-bg-media] .lyrics__notice { background: transparent; border-color: rgba(45,42,58,.3); }
 :root[data-vibe='paper'][data-bg-media] .lfb { align-items: flex-start; }
-:root[data-vibe='sketch'][data-bg-media] .backdrop__dim { background: rgba(255, 244, 226, 0.34); }
-:root[data-vibe='sketch'] .full.is-cinema .full__side { background: #fffaf0; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; border-radius: 14px; box-shadow: 0 18px 40px -16px rgba(0,0,0,.6), 0 0 0 1px rgba(45,42,58,.15); transform: rotate(-0.5deg); }
-:root[data-vibe='sketch'][data-bg-media] .lyrics__scroller--plain, :root[data-vibe='sketch'][data-bg-media] .lfb { background: #fffaf0; color: #2d2a3a; --fg: #2d2a3a; --fg-2: #4a4658; --fg-3: #625d73; border-radius: 4px; box-shadow: 0 16px 36px -14px rgba(0,0,0,.55); width: min(560px, 92%); margin: 18px auto; transform: rotate(-0.4deg); position: relative; }
-:root[data-vibe='sketch'][data-bg-media] .lyrics__scroller--plain { flex: 0 1 auto; max-height: calc(100% - 36px); align-self: center; -webkit-mask-image: none; mask-image: none; container-type: normal; }
-:root[data-vibe='sketch'][data-bg-media] .lyrics__inner--plain { padding: 16px 22px 20px !important; }
-:root[data-vibe='sketch'][data-bg-media] .lfb { padding: 22px 26px 16px; max-width: 560px; }
-:root[data-vibe='sketch'][data-bg-media] .lyrics__stage:has(.lyrics__scroller--plain)::before, :root[data-vibe='sketch'][data-bg-media] .lfb::before { content: ''; position: absolute; top: -12px; left: 50%; width: 90px; height: 24px; margin-left: -45px; background: rgba(255,226,120,.8); transform: rotate(-3deg); }
-:root[data-vibe='sketch'][data-bg-media] .lyrics__notice { background: transparent; border-color: rgba(45,42,58,.3); }
-:root[data-vibe='sketch'][data-bg-media] .lfb { align-items: flex-start; }
 [data-vibe='paper'] .lyrics__notice { font-family: 'Caveat', cursive; font-size: 16px; color: var(--fg-2); }
 [data-vibe='paper'] .plain__stanza { font-family: 'Caveat', cursive; font-weight: 600; font-size: max(21px, calc(var(--lyric-size) * 0.85)); line-height: 1.15; letter-spacing: 0; color: #2d2a3a; }
 [data-vibe='paper'] .lfb__poster { display: none; }
@@ -189,12 +180,6 @@
 /* with a video the ghost title collides with the message, so only the message stays */
 :root .full.is-cinema .lfb__poster { display: none; }
 
-[data-vibe='sketch'] .lfb__poster { display: none; }
-[data-vibe='sketch'] .lyrics__notice { background: #f4ead0; border: 2px solid #1f1511; border-radius: 2px; font-weight: 700; }
-[data-vibe='sketch'] .plain__stanza { font-family: 'Unbounded Variable', var(--font); font-weight: 800; letter-spacing: -0.03em; text-transform: uppercase; font-size: max(13px, calc(var(--lyric-size) * 0.45)); color: #1f1511; }
-[data-vibe='sketch'] .plain__stanza > span:nth-child(odd) { color: #d23a2a; }
-[data-vibe='sketch'] .lfb h3 { font-family: 'Unbounded Variable', var(--font); text-transform: uppercase; font-weight: 900; color: #d23a2a; -webkit-text-stroke: .02em #2a0f08; paint-order: stroke fill; }
-[data-vibe='sketch'] .zoom__word, [data-vibe='glitch'] .zoom__word { paint-order: stroke fill; }
 
 /* ===================== GLITCH ===================== */
 [data-vibe='glitch'] .backdrop__stage { filter: contrast(1.2) saturate(.8) hue-rotate(-12deg); }
@@ -227,7 +212,6 @@
 
 /* the small floating card of the light inked vibes is a paper slip with ink text */
 :root[data-vibe='comic'] .full .full__side { background: #fff !important; --fg: #111; --fg-2: #2a2a2a; --fg-3: #444; border: 3px solid #111; box-shadow: 4px 4px 0 #111; border-radius: 10px; -webkit-backdrop-filter: none; backdrop-filter: none; }
-:root[data-vibe='sketch'] .full .full__side { background: #f4ead0 !important; --fg: #1f1511; --fg-2: #3a2a22; --fg-3: #55443a; border: 2px solid #1f1511; box-shadow: 4px 4px 0 #d23a2a; border-radius: 6px; -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 
 

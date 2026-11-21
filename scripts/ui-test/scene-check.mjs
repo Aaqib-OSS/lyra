@@ -11,7 +11,8 @@ const args = Object.fromEntries(process.argv.slice(2).filter((a) => a.startsWith
 const PORT = Number(args.port ?? process.env.UI_PORT ?? 5199)
 const VIBES = String(args.vibe ?? 'neon').split(',')
 const SIZES = String(args.size ?? '1366x768,1920x1080,1024x600,800x1000').split(',').map((s) => { const [w, h] = s.split('x').map(Number); return { id: s, w, h } })
-const BRAG = '&video=%40fs%2FP%3A%2FSong%20Player%2Fbrag-output%2Fbrag'
+// a stand-in video that lives next to the repo (git-ignored): brag-output/brag.mp4, served by the harness through /@fs/
+const BRAG = `&video=${encodeURIComponent('@fs/' + resolve('brag-output', 'brag').replace(/\/g, '/'))}`
 const STATES = {
   A: { name: 'Full: video + synced', q: `vs=live${BRAG}` },
   B: { name: 'Lyrics only', q: 'vs=none' },
