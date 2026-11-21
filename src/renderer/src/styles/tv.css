@@ -1,0 +1,167 @@
+/* ==========================================================================
+   Android TV (10-foot UI). Everything here is scoped by :root[data-platform='tv'], so no other platform changes.
+   The TV page is the full-screen scene experience (the desktop "full" mode: every look that composes its own screen)
+   driven by a remote, so this file only does what a sofa needs:
+     - sizes: the player card is zoomed up, text on it never below ~28 px on a 1080p screen, lyrics stay vh-based (80 px+)
+     - no hover, no cursor, no tiny tools: header tools, volume, sync nudge are hidden (the remote cannot use them)
+     - the card is the "overlay": it fades away after a few idle seconds and returns on any key (useIdle in the renderer)
+     - strong focus ring on whatever the D-pad has selected
+     - safe margins: UI that is not part of a look's own artwork stays inside 5 % of the screen (overscan)
+   The look files (neon.css, sunset.css, ...) keep painting the scene; this file never recolours them.
+   ========================================================================== */
+:root[data-platform='tv'] {
+  --tv-safe-x: 5vw;
+  --tv-safe-y: 5vh;
+  --tv-zoom: 1.5;
+  --u: calc(100vh / 1080); /* 1 design pixel of a 1080p screen: the setup screens scale with the screen height */
+  --tv-focus: #ffffff;
+  --tv-focus-glow: rgba(124, 92, 255, 0.75);
+  font-size: 28px;
+  cursor: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+:root[data-platform='tv'] body { overflow: hidden; background: #000; cursor: none; }
+:root[data-platform='tv'] * { cursor: none !important; -webkit-tap-highlight-color: transparent; }
+
+/* ---- remove what a remote cannot use ---- */
+:root[data-platform='tv'] .full__top,
+:root[data-platform='tv'] .full__volume,
+:root[data-platform='tv'] .lyrics__source,
+:root[data-platform='tv'] .lyrics__kind,
+:root[data-platform='tv'] .offset,
+:root[data-platform='tv'] .resize-grip { display: none !important; }
+
+/* ---- the card: bigger for 10 feet, and it is the overlay that fades when nothing is pressed ---- */
+:root[data-platform='tv'] .full[data-arch='scene'] .full__side { zoom: var(--tv-zoom); }
+:root[data-platform='tv'] .full .full__side { transition: opacity 0.45s ease, translate 0.45s ease; }
+/* scene looks: the card is zoomed by --tv-zoom, so sizes are written as (size on screen) / zoom */
+:root[data-platform='tv'] .full[data-arch='scene'] .full__titles h1 { font-size: calc(40px / var(--tv-zoom)); line-height: 1.12; }
+:root[data-platform='tv'] .full[data-arch='scene'] .full__artist { font-size: calc(29px / var(--tv-zoom)); }
+:root[data-platform='tv'] .full[data-arch='scene'] :is(.full__album, .progress__time) { font-size: calc(28px / var(--tv-zoom)); }
+:root[data-platform='tv'] .full[data-arch='scene'] .full__controls button { min-width: 44px; min-height: 44px; }
+:root[data-platform='tv'] .full[data-arch='scene'] .full__titlerow > button { min-width: 40px; min-height: 40px; }
+/* the plain Artwork look (card left, lyrics right) is not zoomed: its artwork is already sized from the screen */
+:root[data-platform='tv'] .full[data-arch='side'] .full__titles h1 { font-size: 46px; line-height: 1.1; }
+:root[data-platform='tv'] .full[data-arch='side'] .full__artist { font-size: 32px; }
+:root[data-platform='tv'] .full[data-arch='side'] :is(.full__album, .progress__time) { font-size: 28px; }
+:root[data-platform='tv'] .full[data-arch='side'] .full__controls button { min-width: 72px; min-height: 72px; }
+:root[data-platform='tv'] .full[data-arch='side'] .full__titlerow > button { min-width: 64px; min-height: 64px; }
+/* !important: scene.css deliberately keeps the card up on the desktop; on a TV it is the overlay */
+:root[data-platform='tv'] .full.is-idle[data-arch='scene'] .full__side { opacity: 0 !important; translate: 0 2vh; pointer-events: none !important; }
+:root[data-platform='tv'] .full.is-idle .full__side .full__controls { pointer-events: none; }
+
+/* ---- the classic lyric list (Artwork look): about 6 % of the screen height per line, 65 px on 1080p ---- */
+:root[data-platform='tv'] .lyrics--full .lyric { font-size: clamp(40px, 6vh, 110px); }
+
+/* the small print of looks that stage their own lyric context (Stadium's ticker of previous lines) */
+:root[data-platform='tv'] .lt__ticker { font-size: 28px; }
+:root[data-platform='tv'] .lt__bar small { font-size: 20px; }
+
+/* ---- sizes of the app's own messages ---- */
+:root[data-platform='tv'] .toasts { bottom: var(--tv-safe-y); width: calc(100% - 2 * var(--tv-safe-x)); }
+:root[data-platform='tv'] .toast { font-size: 28px; padding: 14px 26px; border-radius: 20px; }
+:root[data-platform='tv'] .full__screen { padding: var(--tv-safe-y) var(--tv-safe-x); font-size: 28px; }
+:root[data-platform='tv'] .full__screen h2 { font-size: 56px; }
+:root[data-platform='tv'] .full__screen p { font-size: 30px; }
+
+/* ---- focus: a white ring plus a coloured glow, readable on every look from the far end of a sofa ---- */
+:root[data-platform='tv'] :is(button, [role='slider'], [data-tvfocus]):focus { outline: none; }
+:root[data-platform='tv'] :is(button, [role='slider'], [data-tvfocus]):focus-visible {
+  /* dark inner ring, white ring, coloured outer ring: visible on a light card and on a dark scene alike */
+  outline: 4px solid var(--tv-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 7px #1a1442, 0 0 0 12px var(--tv-focus-glow), 0 0 36px 14px rgba(124, 92, 255, 0.5);
+  border-radius: 999px;
+  z-index: 5;
+}
+:root[data-platform='tv'] .full__controls button:focus-visible { transform: scale(1.12); }
+
+/* ---- HUD (tv.ts): feedback for seek / pause, and the key hints while the card is up ---- */
+.tvhud { display: none; }
+:root[data-platform='tv'] .tvhud { display: block; position: fixed; inset: 0; pointer-events: none; z-index: 60; }
+:root[data-platform='tv'] .tvhud__say {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  padding: calc(18 * var(--u)) calc(40 * var(--u));
+  border-radius: calc(999 * var(--u));
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font: 700 calc(56 * var(--u))/1 'Inter Variable', system-ui, sans-serif;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+:root[data-platform='tv'] .tvhud__say.is-on { opacity: 1; }
+:root[data-platform='tv'] .tvhud__hints {
+  position: absolute;
+  left: 50%;
+  top: var(--tv-safe-y);
+  translate: -50% 0;
+  white-space: nowrap;
+  display: flex;
+  gap: calc(36 * var(--u));
+  padding: calc(12 * var(--u)) calc(26 * var(--u));
+  border-radius: calc(999 * var(--u));
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.92);
+  font: 500 calc(28 * var(--u))/1.1 'Inter Variable', system-ui, sans-serif;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+:root[data-platform='tv'] .tvhud__hint b { font-weight: 800; margin-right: calc(6 * var(--u)); letter-spacing: 0.04em; }
+:root[data-platform='tv'] .tvhud.is-hints .tvhud__hints { opacity: 1; }
+:root[data-platform='tv'][data-tv-setup] .tvhud__hints { opacity: 0 !important; }
+
+/* ---- the setup / pairing screen (tv.ts), over everything ---- */
+.tvsetup { display: none; }
+:root[data-platform='tv'] .tvsetup {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+  grid-template-rows: auto 1fr auto;
+  gap: 3vh 4vw;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  padding: calc(var(--tv-safe-y) * 1.15) var(--tv-safe-x);
+  background: radial-gradient(120% 100% at 20% 0%, #1d1a33 0%, #0b0b12 60%, #050508 100%);
+  color: #fff;
+  font: 500 calc(28 * var(--u))/1.35 'Inter Variable', system-ui, sans-serif;
+}
+:root[data-platform='tv'] .tvsetup__head { grid-column: 1 / -1; }
+:root[data-platform='tv'] .tvsetup__head h1 { margin: 0; font: 800 calc(64 * var(--u))/1.05 'Inter Variable', system-ui, sans-serif; letter-spacing: -0.01em; }
+:root[data-platform='tv'] .tvsetup__head p { margin: 1.2vh 0 0; font-size: calc(30 * var(--u)); opacity: 0.75; }
+:root[data-platform='tv'] .tvsetup__choices { display: flex; flex-direction: column; gap: 2.4vh; align-self: start; }
+:root[data-platform='tv'] .tvsetup__btn {
+  appearance: none;
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  font: 600 calc(30 * var(--u))/1.2 'Inter Variable', system-ui, sans-serif;
+  text-align: left;
+  padding: calc(26 * var(--u)) calc(34 * var(--u));
+  min-height: calc(96 * var(--u));
+  border-radius: calc(24 * var(--u));
+}
+:root[data-platform='tv'] .tvsetup__btn.is-current { border-color: rgba(255, 255, 255, 0.55); background: rgba(124, 92, 255, 0.28); }
+:root[data-platform='tv'] .tvsetup__btn.is-primary:not(.is-current) { background: rgba(124, 92, 255, 0.38); }
+:root[data-platform='tv'] .tvsetup__btn:focus-visible { border-radius: calc(24 * var(--u)); }
+:root[data-platform='tv'] .tvsetup__detail {
+  display: flex;
+  gap: 3vw;
+  align-items: center;
+  padding: 3.4vh 2.6vw;
+  border-radius: calc(28 * var(--u));
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+:root[data-platform='tv'] .tvsetup__qr { flex: none; padding: 1.6vh; border-radius: calc(20 * var(--u)); background: #fff; }
+:root[data-platform='tv'] .tvsetup__qr img { display: block; width: min(34vh, 24vw); height: min(34vh, 24vw); image-rendering: pixelated; }
+:root[data-platform='tv'] .tvsetup__how { display: flex; flex-direction: column; gap: 2vh; align-items: flex-start; min-width: 0; }
+:root[data-platform='tv'] .tvsetup__step { margin: 0; font-size: calc(30 * var(--u)); }
+:root[data-platform='tv'] .tvsetup__code { margin: 0; white-space: nowrap; font: 800 calc(84 * var(--u))/1 'JetBrains Mono', ui-monospace, Consolas, monospace; letter-spacing: 0.12em; }
+:root[data-platform='tv'] .tvsetup__cmd { margin: 0; padding: calc(18 * var(--u)) calc(24 * var(--u)); border-radius: calc(16 * var(--u)); background: #000; font: 500 calc(28 * var(--u))/1.3 ui-monospace, Consolas, monospace; word-break: break-all; }
+:root[data-platform='tv'] .tvsetup__status { margin: 0; font-size: calc(28 * var(--u)); color: #b9aaff; }
+:root[data-platform='tv'] .tvsetup__foot { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+:root[data-platform='tv'] .tvsetup__foot .tvsetup__btn { min-width: calc(280 * var(--u)); text-align: center; }

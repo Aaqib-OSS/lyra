@@ -3,7 +3,11 @@ import { ready } from './api'
 
 await ready
 
-document.documentElement.dataset.platform = 'android'
+// ?tv=1 is the Android TV activity: same page and bridge, data-platform="tv" (10-foot layout, remote control; see tv.ts)
+const tv = new URLSearchParams(location.search).has('tv')
+document.documentElement.dataset.platform = tv ? 'tv' : 'android'
+// the TV is laid out as a 1920-wide page whatever the screen's density (the activity enables the wide viewport), so 10-foot sizes in CSS are the same on every TV
+if (tv) document.querySelector('meta[name=viewport]')?.setAttribute('content', 'width=1920, viewport-fit=cover')
 if (new URLSearchParams(location.search).has('overlay')) document.documentElement.dataset.overlay = '1'
 
 const params = new URLSearchParams(location.search)
@@ -36,6 +40,11 @@ if (params.has('record')) {
         return true
       }
       return false
+    }
+    if (tv) {
+      const { startTv } = await import('./tv')
+      const { rpc } = await import('./rpc')
+      startTv({ rpc, exit: () => void rpc('finish') }) // after the handler above: the TV's Back replaces it
     }
   })
 }

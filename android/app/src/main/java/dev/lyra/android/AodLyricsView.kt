@@ -40,6 +40,16 @@ class AodLyricsView(ctx: Context) : View(ctx) {
     private var footer: StaticLayout? = null
     private var clockText = ""
     var showClock = true
+
+    /** 1 on phones; the TV screen saver raises it so the lines are readable from a sofa (all text sizes and gaps scale). */
+    var textScale = 1f
+        set(v) {
+            if (v == field) return
+            field = v
+            clockPaint.textSize = 58 * d * v
+            rebuild()
+            invalidate()
+        }
     private var dx = 0
     private var dy = 0
     private val d = resources.displayMetrics.density
@@ -85,7 +95,7 @@ class AodLyricsView(ctx: Context) : View(ctx) {
 
     private fun lay(text: String, sizeSp: Float, bold: Boolean, width: Int, max: Int): StaticLayout {
         val p = TextPaint(TextPaint.ANTI_ALIAS_FLAG).apply {
-            textSize = sizeSp * d
+            textSize = sizeSp * d * textScale
             typeface = if (bold) Typeface.create("sans-serif-medium", Typeface.NORMAL) else Typeface.DEFAULT
         }
         return StaticLayout.Builder.obtain(text, 0, text.length, p, width)
@@ -119,7 +129,7 @@ class AodLyricsView(ctx: Context) : View(ctx) {
             clockPaint.color = shade(0.38f)
             c.drawText(clockText, cx, height * 0.14f, clockPaint)
         }
-        val gap = 18 * d
+        val gap = 18 * d * textScale
         val total = layouts.sumOf { it.first.height.toDouble() }.toFloat() + gap * (layouts.size - 1).coerceAtLeast(0)
         var y = (height * 0.5f - total / 2f).coerceAtLeast(height * 0.2f)
         val left = (width - width * 0.84f) / 2f
@@ -146,7 +156,12 @@ class AodLyricsView(ctx: Context) : View(ctx) {
  * Keeps an [AodLyricsView] current with the least possible wake-ups: one update per lyric line while music plays,
  * one per minute for the clock and the pixel shift, and nothing at all while paused (apart from the clock minute).
  */
-class AodDriver(private val ctx: Context, private val view: AodLyricsView) {
+class AodDriver(
+    private val ctx: Context,
+    private val view: AodLyricsView,
+    /** Where "what is playing" comes from: this device (default) or, on a TV, a paired Lyra app. */
+    private val source: dev.lyra.android.tv.PlaybackSource = dev.lyra.android.tv.LocalSource
+) {
     private val h = Handler(Looper.getMainLooper())
     private val listener = { tick() }
     private val kg = ctx.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
@@ -163,14 +178,14 @@ class AodDriver(private val ctx: Context, private val view: AodLyricsView) {
         if (running) return
         running = true
         view.showClock = clockOn
-        MediaMonitor.addListener(listener)
+        source.addListener(listener)
         tick()
     }
 
     fun stop() {
         running = false
         h.removeCallbacks(tickRunnable)
-        MediaMonitor.removeListener(listener)
+        source.removeListener(listener)
     }
 
     /** Cover colour pushed to full strength; the view then draws it very dim. Neutral when the cover is grey. */
@@ -193,7 +208,7 @@ class AodDriver(private val ctx: Context, private val view: AodLyricsView) {
     private fun tick() {
         if (!running) return
         h.removeCallbacks(tickRunnable)
-        val now = MediaMonitor.now()
+        val now = source.now()
         val locked = kg.isKeyguardLocked && !LyricsNotifier.publicOnLock(ctx) // privacy: no lyric lines over a locked screen
         var delay = Long.MAX_VALUE
         if (now == null || now.isAd) {

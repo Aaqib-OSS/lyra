@@ -30,7 +30,13 @@ import java.util.concurrent.Executors
  *
  * Serves both the app screen (with an [activity]) and the floating widget (without one).
  */
-class Rpc(private val ctx: Context, private val web: LyraWebView, private val activity: Activity? = null) {
+class Rpc(
+    private val ctx: Context,
+    private val web: LyraWebView,
+    private val activity: Activity? = null,
+    /** Where "what is playing" comes from: this device's media sessions (default), or on a TV a paired Lyra app. */
+    private val source: dev.lyra.android.tv.PlaybackSource = dev.lyra.android.tv.LocalSource
+) {
     private val io = Executors.newCachedThreadPool()
     private val main = Handler(Looper.getMainLooper())
     private val listener = { pushState() }
@@ -44,17 +50,17 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
         WebViewCompat.addWebMessageListener(web, "AndroidRpc", setOf(ASSET_ORIGIN)) { _, message, _, isMainFrame, reply ->
             if (isMainFrame) handle(message, reply)
         }
-        MediaMonitor.addListener(listener)
-        MediaMonitor.refresh(ctx)
+        source.addListener(listener)
+        source.refresh(ctx)
         io.execute { dev.lyra.android.update.UpdateManager.schedule(ctx) } // idempotent; keeps the 12 h update check scheduled
     }
 
-    fun dispose() = MediaMonitor.removeListener(listener)
+    fun dispose() = source.removeListener(listener)
 
     /** Push the latest playback state to the page (main frame only, via evaluateJavascript). */
     fun pushState() {
-        val snap = MediaMonitor.snapshotJson(ctx)
-        val status = MediaMonitor.statusJson(ctx)
+        val snap = source.snapshotJson(ctx)
+        val status = source.statusJson(ctx)
         web.post {
             web.evaluateJavascript(
                 "window.__lyraNative&&window.__lyraNative.push(${JSONObject.quote(snap)},${JSONObject.quote(status)})",
@@ -83,17 +89,17 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
 
         when (req.optString("method")) {
             "carInfo" -> ui { ok(dev.lyra.android.car.CarModeSupport.infoJson(ctx)) }
-            "snapshot" -> ui { ok(MediaMonitor.snapshotJson(ctx)) }
-            "status" -> ui { ok(MediaMonitor.statusJson(ctx)) }
-            "queue" -> ui { ok(MediaMonitor.queueJson()) }
+            "snapshot" -> ui { ok(source.snapshotJson(ctx)) }
+            "status" -> ui { ok(source.statusJson(ctx)) }
+            "queue" -> ui { ok(source.queueJson()) }
             "widgetVibe" -> ui {
                 LyraWidgetUpdater.setVibe(ctx, args.optString(0, ""))
                 ok(true)
             }
-            "command" -> ui { ok(MediaMonitor.command(args.getString(0))) }
-            "hasAccess" -> ok(MediaMonitor.hasAccess(ctx))
+            "command" -> ui { ok(source.command(args.getString(0))) }
+            "hasAccess" -> ok(source.hasAccess(ctx))
             "refresh" -> {
-                MediaMonitor.refresh(ctx)
+                source.refresh(ctx)
                 ok(true)
             }
             "openAccessSettings" -> ui { MediaMonitor.openAccessSettings(ctx); ok(true) }
@@ -258,6 +264,7 @@ class Rpc(private val ctx: Context, private val web: LyraWebView, private val ac
                     fail(e.message ?: "fetch failed")
                 }
             }
+            in dev.lyra.android.tv.TvRpc.METHODS -> ui { ok(dev.lyra.android.tv.TvRpc.call(ctx, req.optString("method"), args)) } // Android TV setup / pairing
             in dev.lyra.android.update.UpdateRpc.METHODS -> io.execute {
                 try {
                     ok(dev.lyra.android.update.UpdateRpc.call(ctx, req.optString("method"), args))
