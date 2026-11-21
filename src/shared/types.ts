@@ -136,6 +136,16 @@ export interface LyricsCandidateInfo {
   instrumental: boolean
 }
 
+/** How one lyrics service is doing (Settings shows it, so a problem is never a mystery). */
+export interface SourceHealth {
+  id: string
+  name: string
+  state: 'ok' | 'slow' | 'down'
+  lastError: string
+  retryInSec: number
+  lastOkAt: number
+}
+
 export interface LyricsResult {
   trackId: string
   status: LyricsStatus
@@ -145,9 +155,13 @@ export interface LyricsResult {
   wordSynced?: boolean
   /** True when the user manually picked this match. */
   pinned?: boolean
+  /** The lyrics came from the user (pasted or imported), not from a service. */
+  imported?: boolean
+  /** Served from an old copy because the services could not be reached right now. */
+  stale?: boolean
   /** What the provider matched, so the UI can reveal wrong matches. */
   matched?: { title: string; artist: string; durationMs: number }
-  error?: { kind: 'network' | 'rate-limit' | 'server' | 'unknown'; message: string; retryable: boolean }
+  error?: { kind: 'network' | 'rate-limit' | 'server' | 'unknown'; message: string; retryable: boolean; /** seconds until the services are worth asking again */ retryInSec?: number }
 }
 
 // ---------- Settings ----------
@@ -256,6 +270,8 @@ export interface Settings {
   vibeMode: VibeMode
   /** the vibes that cycle / smart mode may use (empty = all) */
   vibePool: Vibe[]
+  /** the vibe you liked for a particular song (by song identity); wins over cycle / smart mode */
+  songVibes: Record<string, Vibe>
   /** a soft glow in the artwork's colour around the window edge */
   rimLight: boolean
   /** auto picks Light on weak devices; Smooth always uses every effect; Light saves battery and GPU */
@@ -315,6 +331,7 @@ export const DEFAULT_SETTINGS: Settings = {
   vibe: 'none',
   vibeMode: 'fixed',
   vibePool: [],
+  songVibes: {},
   rimLight: true,
   performance: 'auto',
   fullLayout: 'cinema',

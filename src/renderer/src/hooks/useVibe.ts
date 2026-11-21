@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { trackKey } from '@core/songKey'
 import { pickVibe, stepVibe, vibeInfo } from '@shared/vibes'
 import type { LyricStyle, Settings, Vibe } from '@shared/types'
 import { useLyrics } from '@/store/lyrics'
@@ -26,9 +27,21 @@ export function cycleVibe(dir: 1 | -1 = 1): void {
   const current = effectiveVibe(settings, ui.vibeNow).vibe
   const next = stepVibe(current, settings.vibePool, dir)
   const info = vibeInfo(next)
-  if (settings.vibeMode === 'fixed') set({ vibe: next, lyricStyle: info.style })
-  else ui.setVibeNow(next, 'picked by you')
-  ui.toast(`Vibe · ${info.name}`)
+  if (settings.vibeMode === 'fixed') {
+    set({ vibe: next, lyricStyle: info.style })
+    ui.toast(`Vibe · ${info.name}`)
+  } else {
+    // in cycle / smart mode a vibe you pick by hand is remembered for THIS song (by its identity), and used next time
+    ui.setVibeNow(next, 'your pick for this song')
+    const track = usePlayer.getState().snapshot?.track
+    if (track) {
+      const songVibes = { ...settings.songVibes, [trackKey(track)]: next }
+      const keys = Object.keys(songVibes)
+      if (keys.length > 300) delete songVibes[keys[0]!]
+      set({ songVibes })
+    }
+    ui.toast(`Vibe · ${info.name} (remembered for this song)`)
+  }
 }
 
 /** HSL of a CSS colour string (works with the computed rgb() the browser returns for the animated accent). */
@@ -65,6 +78,12 @@ export function useVibeConductor(): void {
     if (lastCycle.current === id) return
     const { settings } = useSettings.getState()
     const ui = useUi.getState()
+    const remembered = track ? settings.songVibes[trackKey(track)] : undefined
+    if (remembered) {
+      lastCycle.current = id
+      ui.setVibeNow(remembered, 'your pick for this song')
+      return
+    }
     const cur = effectiveVibe(settings, ui.vibeNow).vibe
     // the very first song keeps the vibe you chose; every later song moves on
     const next = lastCycle.current === null && ui.vibeNow === null && settings.vibe !== 'none' ? settings.vibe : stepVibe(cur, settings.vibePool, 1)
@@ -77,6 +96,12 @@ export function useVibeConductor(): void {
   useEffect(() => {
     if (mode !== 'smart' || !track) return
     if (lastSmart.current === track.id) return
+    const remembered = useSettings.getState().settings.songVibes[trackKey(track)]
+    if (remembered) {
+      lastSmart.current = track.id
+      useUi.getState().setVibeNow(remembered, 'your pick for this song')
+      return
+    }
     const ready = lyrics.phase === 'ready' && lyrics.result.trackId === track.id
     const decide = (): void => {
       if (lastSmart.current === track.id) return

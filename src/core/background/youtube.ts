@@ -1,5 +1,6 @@
 import type { Track, YoutubeVideo } from '@shared/types'
 import { logger, platform, type Store } from '../platform'
+import { retry } from '../resilience'
 import { parseIsoDuration, rankKaraoke, rankVideos, type VideoCandidate } from './rank'
 
 const log = logger('youtube')
@@ -80,7 +81,15 @@ class YoutubeService {
     const url = `${API}/${path}?${new URLSearchParams({ ...params, key })}`
     let res: Response
     try {
-      res = await platform().fetch(url, { signal: AbortSignal.timeout(12_000) })
+      // a dropped connection or a 5xx is worth one more try (backoff); a 4xx answer is final
+      res = await retry(
+        async () => {
+          const r = await platform().fetch(url, { signal: AbortSignal.timeout(12_000) })
+          if (r.status >= 500) throw new Error(`YouTube error ${r.status}`)
+          return r
+        },
+        { retries: 1, baseMs: 900 }
+      )
     } catch (e) {
       return { ok: false, message: `Couldn’t reach YouTube: ${(e as Error).message}` }
     }
@@ -101,12 +110,21 @@ class YoutubeService {
     if (hit && (hit.video || Date.now() - hit.at < MISS_TTL)) {
       return Promise.resolve(hit.video ? { state: 'found', video: hit.video, list: hit.list } : { state: 'none', list: hit.list })
     }
-    if (Date.now() < this.cooldownUntil) return Promise.resolve({ state: 'error', message: 'YouTube quota is used up for now; trying again later.' })
+    if (Date.now() < this.cooldownUntil) return Promise.resolve(this.staleOr(hit, 'YouTube quota is used up for now; trying again later.'))
     const running = this.inflight.get(track.id)
     if (running) return running
-    const p = this.search(track, key).finally(() => this.inflight.delete(track.id))
+    const p = this.search(track, key)
+      // when the search fails but we once knew an answer (even an old one), use it instead of an error
+      .then((r) => (r.state === 'error' ? this.staleOr(hit, r.message) : r))
+      .finally(() => this.inflight.delete(track.id))
     this.inflight.set(track.id, p)
     return p
+  }
+
+  /** An older answer (a pick or a "nothing found") beats an error message. */
+  private staleOr(hit: Entry | undefined, message: string): YoutubeResult {
+    if (hit?.video) return { state: 'found', video: hit.video, list: hit.list }
+    return { state: 'error', message }
   }
 
   private async search(track: Track, key: string): Promise<YoutubeResult> {

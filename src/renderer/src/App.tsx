@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Backdrop } from '@/components/Backdrop'
 import { VibeFx } from '@/components/VibeFx'
+import { isImportError } from '@shared/lrc'
 import { cycleVibe, useVibeConductor } from '@/hooks/useVibe'
 import { CompactWidget } from '@/components/CompactWidget'
 import { FullscreenPlayer } from '@/components/FullscreenPlayer'
@@ -81,6 +82,47 @@ function useThemeVars(): void {
     r.setProperty('--tint1', p.tint1)
     r.setProperty('--tint2', p.tint2)
   }, [pal, theme])
+}
+
+/** Drop a .lrc / .srt / .txt file anywhere on the window to use it as the lyrics of the song that is playing. */
+function useLyricDrop(): boolean {
+  const [over, setOver] = useState(false)
+  useEffect(() => {
+    const hasFile = (e: DragEvent): boolean => !!e.dataTransfer?.types.includes('Files')
+    const onOver = (e: DragEvent): void => {
+      if (!hasFile(e)) return
+      e.preventDefault()
+      setOver(true)
+    }
+    const onLeave = (e: DragEvent): void => {
+      if (!e.relatedTarget) setOver(false)
+    }
+    const onDrop = (e: DragEvent): void => {
+      if (!hasFile(e)) return
+      e.preventDefault()
+      setOver(false)
+      const file = e.dataTransfer?.files[0]
+      const track = usePlayer.getState().snapshot?.track
+      const toast = useUi.getState().toast
+      if (!file || !track) return void toast('Play a song first, then drop its lyrics.', 'error')
+      if (!/\.(lrc|srt|txt)$/i.test(file.name) || file.size > 1_000_000) return void toast('Drop a .lrc, .srt or .txt file (under 1 MB).', 'error')
+      void file.text().then(async (text) => {
+        const r = await window.lyra.lyrics.importText(track, text)
+        if (isImportError(r)) return toast(r.error, 'error')
+        useLyrics.getState().apply(r)
+        toast('Your lyrics are saved for this song')
+      })
+    }
+    window.addEventListener('dragover', onOver)
+    window.addEventListener('dragleave', onLeave)
+    window.addEventListener('drop', onDrop)
+    return () => {
+      window.removeEventListener('dragover', onOver)
+      window.removeEventListener('dragleave', onLeave)
+      window.removeEventListener('drop', onDrop)
+    }
+  }, [])
+  return over
 }
 
 function useHotkeys(): void {
@@ -189,6 +231,7 @@ export default function App() {
   useThemeVars()
   useVibeConductor()
   useHotkeys()
+  const dropping = useLyricDrop()
 
   // "Fade when idle": main decides from the cursor position; we just apply it.
   useEffect(() => window.lyra.window.onFade(setFaded), [])
@@ -245,6 +288,7 @@ export default function App() {
           {(mode === 'mini' || mode === 'full') && <SidePanel />}
           {!onboarded && (mode === 'mini' || mode === 'full') && <Welcome />}
           <Toasts />
+          {dropping && <div className="dropzone">Drop the lyrics file here</div>}
           {(mode === 'mini' || mode === 'compact' || mode === 'minimal') && <ResizeGrip />}
         </motion.div>
       </div>

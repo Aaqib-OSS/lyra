@@ -14,6 +14,7 @@ import { useUi } from '@/store/ui'
 import { useControlsLocked } from './Controls'
 import { Icon, type IconName } from './Icon'
 import { ShareCard } from './ShareCard'
+import { LyricsFallback } from './LyricsFallback'
 import { LyricsStage } from './LyricsStage'
 import { useEffectiveVibe } from '@/hooks/useVibe'
 
@@ -25,7 +26,6 @@ interface Props {
 
 export function LyricsView({ variant }: Props) {
   const state = useLyrics((s) => s.state)
-  const retry = useLyrics((s) => s.retry)
   const s = useSettings((x) => x.settings)
 
   const style = {
@@ -55,25 +55,7 @@ export function LyricsView({ variant }: Props) {
           }
         />
       )
-    else if (r.status === 'error')
-      body = (
-        <LyricsMessage
-          icon={r.error?.kind === 'network' ? 'wifiOff' : 'alert'}
-          title={r.error?.kind === 'rate-limit' ? 'Lyrics service is busy' : 'Couldn’t load lyrics'}
-          body={r.error?.kind === 'rate-limit' ? 'The free lyrics service is busy right now. Lyra will keep trying in the background.' : (r.error?.message ?? 'Something went wrong while fetching lyrics.')}
-          action={r.error?.retryable === false ? undefined : { label: 'Try again', icon: 'refresh', run: retry }}
-        />
-      )
-    else
-      body = (
-        <LyricsMessage
-          icon="note"
-          title="No lyrics for this track"
-          body="We couldn’t find a match from the lyrics provider. The song may be too new, or listed under a different title."
-          action={{ label: 'Search again', icon: 'refresh', run: retry }}
-          secondary={{ label: 'Pick a match manually', run: () => useUi.getState().setPanel('lyrics') }}
-        />
-      )
+    else body = <LyricsFallback result={r} />
   }
 
   return (
@@ -418,7 +400,7 @@ function LyricsFooter({ result }: { result: LyricsResult }) {
   const wordByWord = useSettings((s) => s.settings.wordByWord)
   const synced = result.status === 'synced'
   const m = result.matched
-  const providerName = result.provider === 'lrclib' ? 'LRCLIB' : result.provider === 'demo' ? 'Demo' : result.provider
+  const providerName = result.provider === 'lrclib' ? 'LRCLIB' : result.provider === 'demo' ? 'Demo' : result.provider === 'you' ? 'Your lyrics' : result.provider
   return (
     <div className="lyrics__footer" data-nodrag>
       <span className="lyrics__source">
@@ -426,7 +408,8 @@ function LyricsFooter({ result }: { result: LyricsResult }) {
           {providerName}
           <span className="lyrics__kind">
             {synced ? (result.wordSynced ? ' · word-synced' : wordByWord ? ' · words estimated' : ' · line-synced') : ' · plain text'}
-            {result.pinned ? ' · your pick' : ''}
+            {result.imported ? ' · yours' : result.pinned ? ' · your pick' : ''}
+            {result.stale ? ' · saved copy' : ''}
           </span>
         </span>
         {result.provider !== 'demo' && (

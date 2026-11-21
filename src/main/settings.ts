@@ -20,6 +20,7 @@ function sanitize(s: Settings): Settings {
     lyricStyle: (['classic', 'kinetic', 'constellation', 'sticker', 'chat', 'type', 'diary', 'subtitle', 'chatlog', 'lowerthird'] as const).includes(s.lyricStyle) ? s.lyricStyle : d.lyricStyle,
     vibe: (ALL_VIBES as readonly string[]).includes(s.vibe) ? s.vibe : d.vibe,
     vibeMode: (['fixed', 'cycle', 'smart'] as const).includes(s.vibeMode) ? s.vibeMode : d.vibeMode,
+    songVibes: Object.fromEntries(Object.entries(s.songVibes && typeof s.songVibes === 'object' ? s.songVibes : {}).filter(([, v]) => (ALL_VIBES as readonly string[]).includes(v as string)).slice(-300)),
     vibePool: Array.isArray(s.vibePool) ? s.vibePool.filter((v) => (ALL_VIBES as readonly string[]).includes(v)) : d.vibePool,
     rimLight: s.rimLight !== false,
     performance: (['auto', 'smooth', 'light'] as const).includes(s.performance) ? s.performance : d.performance,

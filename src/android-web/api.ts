@@ -176,6 +176,22 @@ function dropIfUnused(file: string): void {
   if (!used) void rpc('mediaDelete', file).catch(() => undefined)
 }
 
+/** Ask the phone for a small text file (a browser file picker inside the WebView) and read it. Null when cancelled. */
+function pickTextFile(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.lrc,.srt,.txt,text/plain'
+    input.onchange = () => {
+      const f = input.files?.[0]
+      if (!f || f.size > 1_000_000) return resolve(null)
+      void f.text().then(resolve, () => resolve(null))
+    }
+    input.oncancel = () => resolve(null)
+    input.click()
+  })
+}
+
 /** One quiet retry when the free lyrics service hiccups (the app and the floating widget can ask at the same moment). */
 async function withRetry<T extends { status: string }>(first: () => Promise<T>, again: () => Promise<T>): Promise<T> {
   const r = await first()
@@ -261,7 +277,13 @@ export const androidApi: LyraApi & { android: NonNullable<LyraApi['android']> } 
     refresh: (t) => lyricsService.get(t, true),
     candidates: (t) => lyricsService.candidates(t),
     choose: (t, provider, id) => lyricsService.choose(t, provider, id),
-    clearPin: (t) => lyricsService.clearPin(t)
+    clearPin: (t) => lyricsService.clearPin(t),
+    importText: async (t, text) => lyricsService.importText(t, text, 'pasted'),
+    importFile: async (t) => {
+      const text = await pickTextFile()
+      return text === null ? null : lyricsService.importText(t, text, 'file')
+    },
+    health: async () => lyricsService.health()
   },
   art: { get: artDataUrl },
   moments: {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { LOCAL_SHORTCUTS } from '@shared/shortcuts'
-import type { Settings, YoutubeVideo } from '@shared/types'
+import type { Settings, SourceHealth, YoutubeVideo } from '@shared/types'
 import { useBackgroundVersion } from '@/hooks/useBackground'
 import { usePlayer } from '@/store/player'
 import { ShortcutEditor } from './ShortcutEditor'
@@ -204,6 +204,33 @@ function Row({ label, hint, info, children }: { label: string; hint?: string; in
         {hint && <small>{hint}</small>}
       </div>
       <div className="srow__ctl">{children}</div>
+    </div>
+  )
+}
+
+/** Is each lyrics service working? A problem is never a mystery: it says what and when Lyra tries again. */
+function SourceHealthList() {
+  const [items, setItems] = useState<SourceHealth[] | null>(null)
+  useEffect(() => {
+    let live = true
+    const load = (): void => void window.lyra.lyrics.health().then((h) => live && setItems(h)).catch(() => undefined)
+    load()
+    const id = setInterval(load, 4000)
+    return () => {
+      live = false
+      clearInterval(id)
+    }
+  }, [])
+  if (!items) return null
+  return (
+    <div className="health" role="list" aria-label="Lyrics services">
+      {items.map((h) => (
+        <div key={h.id} className="health__row" data-state={h.state} role="listitem" title={h.lastError || undefined}>
+          <i className="health__dot" />
+          <span>{h.name}</span>
+          <small>{h.state === 'ok' ? 'working' : h.state === 'slow' ? 'checking…' : `resting, back in ${h.retryInSec}s`}</small>
+        </div>
+      ))}
     </div>
   )
 }
@@ -777,6 +804,13 @@ export function SettingsPanel() {
       </section>
       )}
 
+      {tab === 'lyrics' && (
+      <section>
+        <h4>Lyrics services</h4>
+        <SourceHealthList />
+        <p className="hint">If a service is down Lyra uses the next one, keeps your saved copies, and tries again by itself.</p>
+      </section>
+      )}
       {tab === 'lyrics' && (
       <section>
         <h4>Lyrics</h4>

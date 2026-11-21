@@ -16,6 +16,15 @@ const snap = (): PlaybackSnapshot => ({
   track, isPlaying: playing, positionMs: Date.now() - startedAt, sampledAt: Date.now(),
   device: { name: 'Studio PC', type: 'Computer', volume: 70 } as never, shuffle: false, repeat: 'off', isAdOrUnknown: false
 })
+const lyricsFor = (id: string): unknown => {
+  const ly = q.get('ly')
+  if (ly === 'offline') return { trackId: id, status: 'error', provider: 'lrclib', lines: [], error: { kind: 'network', message: 'offline', retryable: true } }
+  if (ly === 'resting') return { trackId: id, status: 'error', provider: 'lrclib', lines: [], error: { kind: 'rate-limit', message: 'resting', retryable: true, retryInSec: 24 } }
+  if (ly === 'error') return { trackId: id, status: 'error', provider: 'lrclib', lines: [], error: { kind: 'server', message: 'boom', retryable: true } }
+  if (ly === 'none') return { trackId: id, status: 'none', provider: 'lrclib', lines: [] }
+  if (ly === 'stale') return { ...demoLyrics(id), stale: true }
+  return demoLyrics(id)
+}
 const sub = () => () => {}
 const noop = async () => undefined
 const api: any = {
@@ -23,7 +32,16 @@ const api: any = {
   window: { setMode: noop, getMode: async () => (q.get('mode') ?? 'mini'), onMode: sub, onFade: sub, settle() {}, resizeStart() {}, resizeMove() {}, resizeEnd() {}, dragStart() {}, dragMove() {}, dragEnd() {}, hide() {}, minimize() {}, quit() {} },
   spotify: { connect: noop, disconnect: noop, startDemo: noop, useLocal: noop, getStatus: async () => ({ state: 'demo' }), getSnapshot: async () => snap(), onStatus: sub, onPlayback: (cb: (s: PlaybackSnapshot) => void) => { playbackListeners.push(cb); return () => {} } },
   player: { command: async () => ({ ok: true }), isLiked: async () => false, setLiked: async () => ({ ok: true }), queue: async () => DEMO_TRACKS.slice(1).map((t) => ({ track: t })), recent: async () => [], openInSpotify: noop },
-  lyrics: { get: async (t: { id: string }) => demoLyrics(t.id), refresh: async (t: { id: string }) => demoLyrics(t.id), candidates: async () => ({ items: [] }), choose: async () => demoLyrics(track.id), clearPin: async () => demoLyrics(track.id) },
+  // ?ly= simulates the lyrics outcome: offline | resting | error | none | stale
+  lyrics: {
+    get: async (t: { id: string }) => lyricsFor(t.id),
+    refresh: async (t: { id: string }) => lyricsFor(t.id),
+    importText: async (_t: unknown, text: string) => ({ trackId: track.id, status: 'plain', provider: 'you', lines: [], plain: text, imported: true, pinned: true }),
+    importFile: async () => null,
+    health: async () => [
+      { id: 'lrclib', name: 'LRCLIB', state: q.get('ly') === 'resting' ? 'down' : q.get('ly') === 'offline' ? 'slow' : 'ok', lastError: '', retryInSec: q.get('ly') === 'resting' ? 24 : 0, lastOkAt: 0 },
+      { id: 'public-domain', name: 'Public-domain library', state: 'ok', lastError: '', retryInSec: 0, lastOkAt: 0 }
+    ], candidates: async () => ({ items: [] }), choose: async () => demoLyrics(track.id), clearPin: async () => demoLyrics(track.id) },
   art: { get: async (u: string) => u },
   moments: { list: async () => [], add: async () => [], remove: async () => [] },
   background: {
