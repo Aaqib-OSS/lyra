@@ -22,6 +22,8 @@
   --sc-lb: 26vh;
   --sc-lbs: 26vh;
 }
+/* the lock screen has its own edge (status bar + home indicator): no generic rim light on top of it, like every other look */
+:root[data-vibe='lock'][data-rim='on']::after { display: none; }
 :root[data-vibe='lock'][data-bg-media]:has(.full[data-arch='scene'] .full__lyrics .lfb) { --sc-ww: 100vw; }
 /* a soft scrim so the glass reads on any picture */
 [data-vibe='lock'] .scenewin { box-shadow: none; background: linear-gradient(180deg, rgba(14, 8, 48, 0.5), rgba(14, 8, 48, 0.08) 38%, rgba(14, 8, 48, 0.1) 60%, rgba(14, 8, 48, 0.62)); }
