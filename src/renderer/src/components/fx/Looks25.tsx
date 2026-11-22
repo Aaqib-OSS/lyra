@@ -73,7 +73,7 @@ export function RouteFx() {
 
 /** Editor: an IDE. Title bar, tabs, breadcrumb, a preview pane and a status line (language, Ln/Col, encoding); the file name and the language follow the song. The activity bar, minimap and progress line are the window edge. */
 export function EditorFx() {
-  const title = usePlayer((x) => x.snapshot?.track?.title ?? 'Song')
+  const title = usePlayer((x) => x.snapshot?.track?.title ?? '')
   const lyrics = useLyrics((x) => x.state)
   const lines = useMemo(() => (lyrics.phase === 'ready' ? lyrics.result.lines : []), [lyrics])
   const active = useActiveLine(lines)
