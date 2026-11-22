@@ -134,4 +134,9 @@
 :root[data-vibe='filmstrip'] .sidepanel .settings section { background: rgba(20, 16, 10, 0.07); }
 :root[data-vibe='filmstrip'] .sidepanel h3, :root[data-vibe='filmstrip'] .sidepanel .settings h4 { font-family: 'Unbounded Variable', sans-serif; font-weight: 900; color: #14100a; text-transform: uppercase; letter-spacing: -0.02em; }
 :root[data-vibe='filmstrip'] .sidepanel .stabs button.is-on { background: #14100a; color: #ffb400; }
-:root[data-platform='android'][data-vibe='filmstrip'] .mini--phone { background: radial-gradient(90% 60% at 30% 10%, #ffc933, #ffb400 60%, #e59a00); color: #14100a; --fg: #14100a; --fg-2: rgba(20, 16, 10, 0.8); --fg-3: rgba(20, 16, 10, 0.6); }
+:root[data-platform='android'][data-vibe='filmstrip'] .mini--phone { background: radial-gradient(90% 60% at 30% 10%, #ffc933, #ffb400 60%, #e59a00); color: #14100a; --fg: #14100a; --fg-2: rgba(20, 16, 10, 0.8); --fg-3: rgba(20, 16, 10, 0.6); }
+
+/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
+@media (max-height: 800px) {
+  [data-vibe='filmstrip'] .sign--intertitle .sign__row { font-size: min(5.6vw, 7.4vh); }
+}

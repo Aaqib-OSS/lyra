@@ -141,4 +141,10 @@
 [data-vibe='crt'] .plain__stanza { font-size: min(1.8vw, 3.4vh); }
 [data-vibe='crt'] .termfx__pane--video, [data-vibe='crt'] .termfx__pane--log, [data-vibe='crt'] .termfx__pane--eq { background: rgba(2, 14, 6, 0.4); }
 
-:root[data-vibe='crt'] .full__device { visibility: hidden; }
+:root[data-vibe='crt'] .full__device { visibility: hidden; }
+
+/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
+/* ---------- Terminal in the mini window and on the phone: the log keeps a readable size; a long line is cut with an ellipsis ---------- */
+:root[data-vibe='crt']:is([data-mode='mini'], [data-platform='android']) .termlog__row { font-size: max(11px, min(1.7vw, 3.4vh)); min-width: 0; }
+:root[data-vibe='crt']:is([data-mode='mini'], [data-platform='android']) .termlog__row.is-current { font-size: max(12px, min(2.2vw, 4.2vh)); }
+:root[data-vibe='crt']:is([data-mode='mini'], [data-platform='android']) .termlog__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

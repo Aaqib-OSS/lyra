@@ -253,4 +253,28 @@
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { font-size: min(2.3vw, 4.3vh); }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub.is-live .bub__body { font-size: min(2.7vw, 5vh); }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub:is(.bub--k-voice, .bub--k-location, .bub--k-poll, .bub--k-contact, .bub--k-photo, .bub--k-link, .bub--k-gif, .bub--k-sticker, .bub--k-reply, .bub--k-fwd) .bub__body { font-size: min(2vw, 3.5vh); }
-:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__feed { gap: 1.1vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__feed { gap: 1.1vh; }
+
+/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
+/* ---------- DM in the mini window: a compact thread (header on one row, no day chip, small rich cards) ---------- */
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head { flex-direction: row; justify-content: center; gap: 8px; padding: 0 0 4px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head i { width: 22px; height: 22px; flex: none; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head img { width: 22px; height: 22px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__head .chat__status,
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__day,
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__shared { display: none; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { font-size: max(10.5px, min(2.3vw, 4.3vh)); padding: 6px 10px 7px; border-radius: 14px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bub.is-live .bub__body { font-size: max(11px, min(2.7vw, 5vh)); }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bub:is(.bub--k-voice, .bub--k-location, .bub--k-poll, .bub--k-contact, .bub--k-photo, .bub--k-link, .bub--k-gif, .bub--k-sticker, .bub--k-reply, .bub--k-fwd) .bub__body { font-size: max(10.5px, min(2vw, 3.5vh)); }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .chat__feed { gap: 6px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk { min-width: 0; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk-photo i,
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk-photo img { height: 54px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk-map { height: 44px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk-gif { height: 54px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk-sticker { width: 56px; height: 56px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk-contact__act { display: none; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk-voice__play { width: 26px; height: 26px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bk-wave { height: 24px; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--out .bub__body { background: #0a55b8; }
+:root[data-vibe='chat'][data-mode='mini']:not([data-platform='android']) .full.full[data-arch='scene'] .bub--in .bub__body { background: #2b2b33; }

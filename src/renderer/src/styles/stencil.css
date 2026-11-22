@@ -127,4 +127,11 @@
 :root[data-vibe='stencil'] .sidepanel { border-radius: 0; box-shadow: inset 0 0 0 2px #ff6a00; }
 :root[data-platform='android'][data-vibe='stencil'] .mini--phone { background-image: radial-gradient(120% 60% at 50% 0%, rgba(255, 106, 0, 0.12), transparent 70%); }
 .stencilfx__drip { display: none !important; }
-:root[data-vibe='stencil'][data-mode='mini']:not([data-platform='android']) .sign--spray .sign__row { font-size: min(5.6vw, 11vh); }
+:root[data-vibe='stencil'][data-mode='mini']:not([data-platform='android']) .sign--spray .sign__row { font-size: min(5.6vw, 11vh); }
+
+/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
+@media (min-width: 900px) and (max-height: 900px) {
+  :root[data-platform='android'][data-vibe='stencil'] .sign--spray .sign__row { font-size: min(4.3vw, 9vh); }
+}
+/* ---------- Stencil on the phone: the widest word (WATCHING) must fit the stage width ---------- */
+@media (max-width: 600px) { :root[data-platform='android'][data-vibe='stencil'] .stage--spray .sign__row { font-size: min(6.8vw, 9vh); } }

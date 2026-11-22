@@ -19,7 +19,8 @@ import App from './App'
  *        looks2 (the lock/wallet/route/editor/metro/web/lens/picto/wall/flap row card) + wallet, route, editor, metro, web, lens, flap,
  *        wall, picto, dm(edge-chat), diary(edge-paper), journal(+journal-ink), doodle, arcade, noir, then videofit, android-scenes,
  *        car, tv (platform screens), then glitch, comic, stencil, film, filmstrip, lock
- *   4. fit-full, fit-mini (last-word size fixes per look), android-looks, mini-looks, minsizes: loaded last on purpose, they win over the looks
+ *   4. android-looks, mini-looks, minsizes: loaded last on purpose, they win over the looks (the per-look last-word size fixes sit at the
+ *      end of each look's own file)
  */
 import './styles/tokens.css'
 import './styles/base.css'
@@ -121,8 +122,6 @@ import './styles/filmstrip.css'
 import './styles/edge-filmstrip.css'
 import './styles/lock.css'
 import './styles/edge-lock.css'
-import './styles/fit-full.css'
-import './styles/fit-mini.css'
 import './styles/android-looks.css'
 import './styles/mini-looks.css'
 import './styles/minsizes.css'

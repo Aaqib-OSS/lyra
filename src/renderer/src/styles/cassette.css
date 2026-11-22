@@ -171,4 +171,9 @@
 :root[data-vibe='cassette']:is([data-mode='full']) .full__top { --fg: #d4cfc4; --fg-2: #d4cfc4; --fg-3: #bdb7ab; color: #d4cfc4; }
 :root[data-vibe='cassette']:is([data-mode='full']) .full__device { color: #bdb7ab !important; }
 :root[data-vibe='cassette'][data-mode='mini'] :is(.cassettefx__vu, .cassettefx__plate::after) { display: none; }
-:root[data-vibe='cassette'][data-mode='mini'] .cassettefx__plate { height: 3.2vh; }
+:root[data-vibe='cassette'][data-mode='mini'] .cassettefx__plate { height: 3.2vh; }
+
+/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
+/* Cassette: the dark no-lyrics card must keep light text */
+[data-vibe='cassette'] .lfb h3 { color: #ffcf8a; }
+[data-vibe='cassette'] .lfb :is(p, small) { color: rgba(255, 226, 176, 0.9); }

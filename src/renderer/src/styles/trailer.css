@@ -168,4 +168,7 @@
 :root[data-vibe='trailer'] .sidepanel { background: #0b0a09; border: 0; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(201, 162, 74, 0.5), inset 0 0 0 5px #0b0a09, inset 0 0 0 6px rgba(201, 162, 74, 0.25), 0 3vh 8vh rgba(0, 0, 0, 0.6); }
 :root[data-vibe='trailer'] .sidepanel h3 { font: 500 17px 'Fraunces Variable', Georgia, serif; letter-spacing: 0.34em; text-transform: uppercase; color: #c9a24a; }
 :root[data-vibe='trailer'] .sidepanel .stabs button.is-on { background: transparent; color: #f6ecda; box-shadow: inset 0 -2px 0 #c9a24a; border-radius: 0; }
-:root[data-vibe='trailer'][data-mode='mini'] .trailerfx::before, :root[data-vibe='trailer'][data-mode='mini'] .trailerfx::after { display: none; }
+:root[data-vibe='trailer'][data-mode='mini'] .trailerfx::before, :root[data-vibe='trailer'][data-mode='mini'] .trailerfx::after { display: none; }
+
+/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
+[data-vibe='trailer'] .sign--title .sign__row { font-size: min(3.3vw, 6.2vh); }

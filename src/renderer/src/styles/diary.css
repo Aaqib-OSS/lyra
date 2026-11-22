@@ -171,4 +171,12 @@
 :root[data-vibe='paper'] .sidepanel .stabs button.is-on { background: #c9a46a; color: #2a1c12; }
 /* phone */
 :root[data-platform='android'][data-vibe='paper'] .phone__dock { --fg: #2a1c12; --fg-2: #4a3322; --fg-3: #6a4c34; background: #c9a46a !important; color: #2a1c12; border-radius: 6px 24px 24px 6px !important; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); }
-:root[data-platform='android'][data-vibe='paper'] .phone__bar { background: linear-gradient(180deg, rgba(255, 194, 122, 0.16), transparent); }
+:root[data-platform='android'][data-vibe='paper'] .phone__bar { background: linear-gradient(180deg, rgba(255, 194, 122, 0.16), transparent); }
+
+/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
+/* Diary (night corner): the old cream-card rules for unsynced / no-lyrics over a video made cream text on a cream card */
+:root[data-vibe='paper'][data-bg-media] :is(.lyrics__scroller--plain, .lfb), :root[data-vibe='paper'] :is(.lyrics__scroller--plain, .lfb) { background: transparent; box-shadow: none; border-radius: 0; color: #fff1d8; --fg: #fff1d8; --fg-2: rgba(255, 241, 216, 0.78); --fg-3: rgba(255, 241, 216, 0.55); }
+:root[data-vibe='paper'][data-bg-media] .lyrics__stage:has(.lyrics__scroller--plain)::before, :root[data-vibe='paper'][data-bg-media] .lfb::before { display: none; }
+:root[data-vibe='paper'][data-bg-media] .lyrics__notice, :root[data-vibe='paper'] .lyrics__notice { background: rgba(255, 241, 216, 0.1); border-color: rgba(255, 241, 216, 0.4); color: #fff1d8; }
+:root[data-vibe='paper'] .plain__stanza { color: #fff1d8; }
+:root[data-vibe='paper'] .lfb h3 { color: #fff1d8; background: none; }

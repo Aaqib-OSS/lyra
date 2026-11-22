@@ -142,4 +142,14 @@
 /* settings: a cinema programme */
 :root[data-vibe='film'] .sidepanel { border-radius: 0; box-shadow: inset 0 0 0 1px rgba(255, 244, 220, 0.4), inset 0 0 0 5px #0a0805, inset 0 0 0 6px rgba(255, 244, 220, 0.25); }
 :root[data-vibe='film'] .sidepanel h3, :root[data-vibe='film'] .sidepanel .settings h4 { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; letter-spacing: 0.02em; }
-:root[data-platform='android'][data-vibe='film'] .mini--phone { filter: grayscale(0.85); }
+:root[data-platform='android'][data-vibe='film'] .mini--phone { filter: grayscale(0.85); }
+
+/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
+@media (max-height: 700px) {
+  :root[data-vibe='film'] { --sc-lb: 21vh; --sc-lbs: 21vh; }
+  [data-vibe='film'] .sign--intertitle .sign__row { font-size: min(3.1vw, 4.6vh); }
+}
+/* Film Reel: the lyric box was once as tall as the picture; it must end above the ticket */
+@media (min-aspect-ratio: 1/1) {
+  :root[data-vibe='film']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__lyrics { height: auto; }
+}
