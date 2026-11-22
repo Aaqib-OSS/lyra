@@ -2,3 +2,11 @@
 .feed__word, .feed__txt .feed__word { font-size: max(10px, 1em); }
 .mc__who { font-size: max(10px, 1em); }
 .termlog__ts { font-size: max(10px, 0.7em); }
+
+/* unsynced (plain) lyrics and the small notice above them on phones and small windows: the looks size them in vw / vh for a desktop
+   window, which gives 5 to 9 px here. Floors only, and only at small sizes, so desktop sizes are untouched. */
+@media (max-width: 760px), (max-height: 800px) {
+  :root[data-arch='scene'] .plain__stanza,
+  :root[data-arch='scene'] .plain__stanza > span { font-size: max(13px, 2.2vw, 2.6vh) !important; }
+  :root[data-arch='scene'] .lyrics__notice { font-size: max(10.5px, 1.4vh) !important; }
+}
