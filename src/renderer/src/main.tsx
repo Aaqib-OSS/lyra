@@ -111,7 +111,6 @@ import './styles/android-scenes.css'
 import './styles/car.css'
 import './styles/tv.css'
 import { effectiveVibe } from './hooks/useVibe'
-import { vibeInfo } from '@shared/vibes'
 import { useSettings } from './store/settings'
 import { usePlayer } from './store/player'
 import { useUi } from './store/ui'
@@ -148,7 +147,7 @@ const applyLook = (): void => {
   root.dataset.motion = st.reducedMotion === 'on' ? 'off' : 'on'
   const vibe = effectiveVibe(st, useUi.getState().vibeNow).vibe
   root.dataset.vibe = vibe
-  root.dataset.arch = vibeInfo(vibe).layout
+  root.dataset.arch = 'scene'
   root.dataset.rim = st.rimLight ? 'on' : 'off'
   root.dataset.mode = useUi.getState().mode
   root.dataset.perf = st.performance === 'light' || (st.performance === 'auto' && weakDevice()) ? 'low' : 'high'
