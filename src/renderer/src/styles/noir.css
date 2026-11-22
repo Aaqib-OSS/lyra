@@ -84,7 +84,7 @@
 [data-vibe='noir'] .lfb p { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; color: rgba(255, 255, 255, 0.85); text-shadow: 0 0 0.8vh #000; }
 [data-vibe='noir'] .lfb__actions { justify-content: center; }
 
-/*  merged from x-noir.css  */
+/* ---- second pass, was x-noir.css ---- */
 /* ==========================================================================
    CINEMA, premium pass: a proper widescreen. The picture is a 2.39:1 scope frame with black letterbox bars above and below
    (the video plays in black and white inside the gate); the subtitles live in the lower bar like a real print; the ticket stub is
@@ -142,4 +142,4 @@
 :root[data-platform='android'][data-vibe='noir'] .phone__dock { background: #000 !important; border-radius: 0 !important; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4); }
 :root[data-platform='android'][data-vibe='noir'] .phone__bar { background: #000; }
 /* the video itself is not dimmed in the theatre */
-:root[data-vibe='noir'] .backdrop__stage .backdrop__media { filter: brightness(1.15) saturate(0.85); }
+:root[data-vibe='noir'] .backdrop__stage .backdrop__media { filter: brightness(1.15) saturate(0.85); }

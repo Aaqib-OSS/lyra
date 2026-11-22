@@ -118,7 +118,7 @@
   :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__shared { display: none; }
 }
 
-/*  merged from x-chat.css  */
+/* ---- second pass, was x-chat.css ---- */
 /* ==========================================================================
    DM, premium pass: a messenger on a phone. The thread sits in a real phone bezel on the LEFT (dynamic-island pill, glass
    reflection); the video is a story on the right inside the turning ring; the card is the message bar under the story.
@@ -164,7 +164,7 @@
 :root[data-platform='android'][data-vibe='chat'] .phone__dock { border-radius: 28px; background: #1b2750; box-shadow: inset 0 0 0 1px rgba(91, 140, 255, 0.35); }
 :root[data-platform='android'][data-vibe='chat'] .phone__bar { background: linear-gradient(180deg, rgba(91, 140, 255, 0.18), transparent); }
 
-/*  merged from x-chat2.css  */
+/* ---- second pass, was x-chat2.css ---- */
 /* ==========================================================================
    DM, message kinds (fullscreen): the lyric thread reads like a real messenger. Which kind each line is comes from DmKinds.tsx
    (voice note, reply, forwarded, location, poll, sticker, contact, photo, link, GIF, emoji + reaction), plus clock times, blue
@@ -253,4 +253,4 @@
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub__body { font-size: min(2.3vw, 4.3vh); }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub.is-live .bub__body { font-size: min(2.7vw, 5vh); }
 :root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .bub:is(.bub--k-voice, .bub--k-location, .bub--k-poll, .bub--k-contact, .bub--k-photo, .bub--k-link, .bub--k-gif, .bub--k-sticker, .bub--k-reply, .bub--k-fwd) .bub__body { font-size: min(2vw, 3.5vh); }
-:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__feed { gap: 1.1vh; }
+:root[data-vibe='chat']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .chat__feed { gap: 1.1vh; }

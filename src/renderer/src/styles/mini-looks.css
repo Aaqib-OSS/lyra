@@ -9,99 +9,99 @@
 @media (max-aspect-ratio: 1/1) {
   /* Cinema: a 2.39:1 scope screen across the whole width, subtitles under it */
   :root[data-arch='scene'][data-vibe='noir'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 8vw !important;
-    --sc-ww: 84vw !important;
-    --sc-wt: 11vh !important;
-    --sc-wh: 42vw !important;
-    --sc-lt: calc(11vh + 42vw + 5vh) !important;
+    --sc-wl: 8vw;
+    --sc-ww: 84vw;
+    --sc-wt: 11vh;
+    --sc-wh: 42vw;
+    --sc-lt: calc(11vh + 42vw + 5vh);
   }
   /* Sunset Drive: a wide windscreen panorama */
   :root[data-arch='scene'][data-vibe='sunset'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 4vw !important;
-    --sc-ww: 92vw !important;
-    --sc-wt: 9vh !important;
-    --sc-wh: 38vw !important;
-    --sc-lt: calc(9vh + 38vw + 6vh) !important;
+    --sc-wl: 4vw;
+    --sc-ww: 92vw;
+    --sc-wt: 9vh;
+    --sc-wh: 38vw;
+    --sc-lt: calc(9vh + 38vw + 6vh);
   }
   /* Artwork: a framed print with a wall around it */
   :root[data-arch='scene'][data-vibe='none'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 14vw !important;
-    --sc-ww: 72vw !important;
-    --sc-wt: 9vh !important;
-    --sc-wh: 40.5vw !important;
-    --sc-lt: calc(9vh + 40.5vw + 8vh) !important;
+    --sc-wl: 14vw;
+    --sc-ww: 72vw;
+    --sc-wt: 9vh;
+    --sc-wh: 40.5vw;
+    --sc-lt: calc(9vh + 40.5vw + 8vh);
   }
   /* Journal: a small taped polaroid on the page, the handwriting under it */
   :root[data-arch='scene'][data-vibe='journal'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 14vw !important;
-    --sc-ww: 62vw !important;
-    --sc-wt: 8vh !important;
-    --sc-wh: 36vw !important;
-    --sc-lt: calc(8vh + 36vw + 13vh) !important;
+    --sc-wl: 14vw;
+    --sc-ww: 62vw;
+    --sc-wt: 8vh;
+    --sc-wh: 36vw;
+    --sc-lt: calc(8vh + 36vw + 13vh);
   }
   /* Lens: a 4:3 viewfinder */
   :root[data-arch='scene'][data-vibe='lens'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 10vw !important;
-    --sc-ww: 80vw !important;
-    --sc-wt: 8vh !important;
-    --sc-wh: 60vw !important;
-    --sc-lt: calc(8vh + 60vw + 3vh) !important;
+    --sc-wl: 10vw;
+    --sc-ww: 80vw;
+    --sc-wt: 8vh;
+    --sc-wh: 60vw;
+    --sc-lt: calc(8vh + 60vw + 3vh);
   }
   /* Route: the video is a small street-view inset in the corner, the stops get the room */
   :root[data-arch='scene'][data-vibe='route'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 47vw !important;
-    --sc-ww: 48vw !important;
-    --sc-wt: 8vh !important;
-    --sc-wh: 28vw !important;
-    --sc-lt: calc(8vh + 28vw + 3vh) !important;
+    --sc-wl: 47vw;
+    --sc-ww: 48vw;
+    --sc-wt: 8vh;
+    --sc-wh: 28vw;
+    --sc-lt: calc(8vh + 28vw + 3vh);
   }
   /* Editor: a small preview pane at the top right, the code gets the height */
   :root[data-arch='scene'][data-vibe='editor'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 55vw !important;
-    --sc-ww: 40vw !important;
-    --sc-wt: 11vh !important;
-    --sc-wh: 22.5vw !important;
-    --sc-lt: calc(11vh + 22.5vw + 2vh) !important;
+    --sc-wl: 55vw;
+    --sc-ww: 40vw;
+    --sc-wt: 11vh;
+    --sc-wh: 22.5vw;
+    --sc-lt: calc(11vh + 22.5vw + 2vh);
   }
 
   /* Stencil: a small pasted poster at the right, huge sprayed words get the width */
   :root[data-arch='scene'][data-vibe='stencil'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 42vw !important;
-    --sc-ww: 54vw !important;
-    --sc-wt: 9vh !important;
-    --sc-wh: 30vw !important;
-    --sc-lt: calc(9vh + 30vw + 3vh) !important;
+    --sc-wl: 42vw;
+    --sc-ww: 54vw;
+    --sc-wt: 9vh;
+    --sc-wh: 30vw;
+    --sc-lt: calc(9vh + 30vw + 3vh);
   }
   /* Trailer: an edge-to-edge hero frame, no window around it */
   :root[data-arch='scene'][data-vibe='trailer'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 0 !important;
-    --sc-ww: 100vw !important;
-    --sc-wt: 0 !important;
-    --sc-wh: 56.25vw !important;
-    --sc-wr: 0px !important;
-    --sc-lt: calc(56.25vw + 5vh) !important;
+    --sc-wl: 0;
+    --sc-ww: 100vw;
+    --sc-wt: 0;
+    --sc-wh: 56.25vw;
+    --sc-wr: 0px;
+    --sc-lt: calc(56.25vw + 5vh);
   }
   /* Lock Screen: the video is the wallpaper behind the clock and the notification stack */
   :root[data-arch='scene'][data-vibe='lock'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 0 !important;
-    --sc-ww: 100vw !important;
-    --sc-wt: 0 !important;
-    --sc-wh: 100vh !important;
-    --sc-wr: 0px !important;
+    --sc-wl: 0;
+    --sc-ww: 100vw;
+    --sc-wt: 0;
+    --sc-wh: 100vh;
+    --sc-wr: 0px;
   }
   /* Web: a round dewdrop hanging in the web */
   :root[data-arch='scene'][data-vibe='web'][data-mode='mini']:not([data-platform='android']) {
-    --sc-wl: 22vw !important;
-    --sc-ww: 56vw !important;
-    --sc-wt: 7vh !important;
-    --sc-wh: 56vw !important;
-    --sc-wr: 50% !important;
-    --sc-lt: calc(7vh + 56vw + 3vh) !important;
+    --sc-wl: 22vw;
+    --sc-ww: 56vw;
+    --sc-wt: 7vh;
+    --sc-wh: 56vw;
+    --sc-wr: 50%;
+    --sc-lt: calc(7vh + 56vw + 3vh);
   }
   /* Dream: the moon disc is big, so the constellation stops above it */
   :root[data-arch='scene'][data-vibe='dream'][data-mode='mini']:not([data-platform='android']) {
-    --sc-lb: 31vh !important;
-    --sc-lbs: 31vh !important;
+    --sc-lb: 31vh;
+    --sc-lbs: 31vh;
   }
 }
 /* Artwork: the lyrics stage is a little smaller so a whole line sits under the print */

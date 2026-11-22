@@ -63,7 +63,7 @@
   :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { padding: 1.4vh 2vh !important; }
 }
 
-/*  merged from recomp1-dream.css  */
+/* ---- second pass, was recomp1.css ---- */
 /* ===== DREAM: the video behind frosted fog, constellation lyrics, the card a floating moon disc ===== */
 :root[data-vibe='dream'] {
   --sc-cw: 33vh;
@@ -109,4 +109,4 @@
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__fill { background: #6a4cc0 !important; }
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .ibtn { color: #2b1a52; }
 :root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .playbtn { background: #2b1a52 !important; color: #fff !important; }
-:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__time { color: #4b3680 !important; }
+:root[data-vibe='dream']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .progress__time { color: #4b3680 !important; }

@@ -219,7 +219,7 @@
 :root[data-vibe='neon'][data-mode='mini'] .neonfx__rain, :root[data-vibe='neon'][data-platform='android'] .neonfx__rain { opacity: 0.55; }
 :root[data-vibe='neon'][data-mode='mini'] .neonfx__ring, :root[data-vibe='neon'][data-platform='android'] .neonfx__ring { display: none; }
 
-/*  merged from recomp1-neon.css  */
+/* ---- second pass, was recomp1.css ---- */
 /* ===== NEON: sign-shop wall: huge tube lyrics on the left, the video in a neon-tube window on the right, the card a sign hung from its frame ===== */
 :root[data-vibe='neon'] {
   --sc-ww: min(40vw, 64vh);
@@ -292,4 +292,4 @@
 :root[data-vibe='neon'] .sign--sign .sign__word.is-in { color: rgba(255, 79, 163, 0.14); -webkit-text-stroke: 0.3vh #ffe3f1; text-shadow: 0 0 0.6vh #fff, 0 0 2vh #ff4fa3, 0 0 5vh rgba(255, 79, 163, 0.7); }
 :root[data-vibe='neon'] .sign--sign .sign__word.is-now { color: rgba(107, 234, 255, 0.16); -webkit-text-stroke: 0.3vh #effcff; text-shadow: 0 0 0.6vh #fff, 0 0 2vh #6beaff, 0 0 5vh rgba(107, 234, 255, 0.7); }
 :root[data-vibe='neon'] .sign__next { font: 700 max(10.5px, min(2.2vw, 3.6vh))/1.2 'Unbounded Variable', sans-serif; letter-spacing: -0.02em; text-transform: uppercase; color: rgba(150, 175, 215, 0.4); }
-:root[data-vibe='neon'] .sign--sign .sign__refl { display: none; }
+:root[data-vibe='neon'] .sign--sign .sign__refl { display: none; }

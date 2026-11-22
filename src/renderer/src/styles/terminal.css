@@ -113,7 +113,7 @@
   :root[data-vibe='crt']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { height: 11.6vh !important; }
 }
 
-/*  merged from recomp1-crt.css  */
+/* ---- second pass, was recomp1.css ---- */
 /* ===== TERMINAL: tiled tmux: video pane + spectrum pane on the left, the log pane on the right, a status line along the bottom ===== */
 :root[data-vibe='crt'] {
   --sc-ww: min(40vw, 62vh);
@@ -141,4 +141,4 @@
 [data-vibe='crt'] .plain__stanza { font-size: min(1.8vw, 3.4vh); }
 [data-vibe='crt'] .termfx__pane--video, [data-vibe='crt'] .termfx__pane--log, [data-vibe='crt'] .termfx__pane--eq { background: rgba(2, 14, 6, 0.4); }
 
-:root[data-vibe='crt'] .full__device { visibility: hidden; }
+:root[data-vibe='crt'] .full__device { visibility: hidden; }

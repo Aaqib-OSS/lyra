@@ -106,7 +106,7 @@
 [data-vibe='glitch'] .lfb__eq i { background: #fff; box-shadow: -2px 0 0 var(--gl-red), 2px 0 0 var(--gl-cyan); }
 :root[data-calm] [data-vibe='glitch'] .lfb h3 { animation: none; }
 
-/*  merged from p-glitch.css  */
+/* ---- second pass, was p-glitch.css ---- */
 /* ==========================================================================
    GLITCH, premium pass: a broadcast monitor in the middle of a dead channel.
    The video is a wide centred monitor with a REC / channel HUD and crop brackets; vertical channel labels run up both sides;
@@ -164,4 +164,4 @@
 :root[data-vibe='glitch'] .sidepanel .settings section { border-radius: 0; }
 /* the phone: scanlines over the whole screen, a bleeding dock */
 :root[data-platform='android'][data-vibe='glitch'] .mini--phone { background-image: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 4px); }
-:root[data-platform='android'] .glitchfx::before, :root[data-platform='android'] .glitchfx::after, :root[data-mode='mini'] .glitchfx::before, :root[data-mode='mini'] .glitchfx::after { display: none; }
+:root[data-platform='android'] .glitchfx::before, :root[data-platform='android'] .glitchfx::after, :root[data-mode='mini'] .glitchfx::before, :root[data-mode='mini'] .glitchfx::after { display: none; }

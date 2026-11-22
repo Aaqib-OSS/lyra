@@ -132,7 +132,7 @@
 /* chrome text sits on paper: dark ink */
 [data-vibe="doodle"] :is(.full__device, .lyrics__footer, .lyrics__footer *) { color: rgba(20, 17, 15, 0.62) !important; text-shadow: none !important; }
 
-/*  merged from x-doodle.css  */
+/* ---- second pass, was x-doodle.css ---- */
 /* ==========================================================================
    DOODLE, premium pass: a drawing of a TV. The video is a hand-drawn television set in the bottom-right (pink body with a thick
    marker outline, a knob panel, two antennas); the marker lettering fills the top-left of the page; the speech-bubble card sits at
@@ -192,4 +192,4 @@
 :root[data-platform='android'][data-vibe='doodle'] .phone__dock { --fg: #14110f; --fg-2: #3a332e; --fg-3: #4a423c; background: #fff !important; color: #14110f; border: 3px solid #14110f; border-radius: 26px 26px 26px 6px !important; box-shadow: 5px 6px 0 #ffd84a; }
 :root[data-platform='android'][data-vibe='doodle'] .phone__bar { background: transparent; }
 /* the small window: smaller marker lettering so the whole line fits */
-:root[data-vibe='doodle'][data-mode='mini'] .sign--scrawl .sign__row { font-size: min(5vw, 7.6vh); }
+:root[data-vibe='doodle'][data-mode='mini'] .sign--scrawl .sign__row { font-size: min(5vw, 7.6vh); }

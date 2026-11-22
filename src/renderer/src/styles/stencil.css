@@ -88,7 +88,7 @@
 [data-vibe='stencil'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='stencil'] .lfb__eq i { background: var(--st-orange); border-radius: 0; box-shadow: none; }
 
-/*  merged from p-stencil.css  */
+/* ---- second pass, was p-stencil.css ---- */
 /* ==========================================================================
    STENCIL, premium pass: a wall with a giant sprayed line.
    The words take the whole wall, huge and cut like a stencil (a bridge cuts every letter), the video is a small wheat-pasted
@@ -127,4 +127,4 @@
 :root[data-vibe='stencil'] .sidepanel { border-radius: 0; box-shadow: inset 0 0 0 2px #ff6a00; }
 :root[data-platform='android'][data-vibe='stencil'] .mini--phone { background-image: radial-gradient(120% 60% at 50% 0%, rgba(255, 106, 0, 0.12), transparent 70%); }
 .stencilfx__drip { display: none !important; }
-:root[data-vibe='stencil'][data-mode='mini']:not([data-platform='android']) .sign--spray .sign__row { font-size: min(5.6vw, 11vh); }
+:root[data-vibe='stencil'][data-mode='mini']:not([data-platform='android']) .sign--spray .sign__row { font-size: min(5.6vw, 11vh); }

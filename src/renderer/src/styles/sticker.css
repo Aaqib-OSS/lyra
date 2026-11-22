@@ -67,7 +67,7 @@
 [data-vibe='sticker'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='sticker'] .lfb__eq i { background: var(--sk-lime); border-radius: 99px; box-shadow: 0 0 0 0.2vh #fff; }
 
-/*  merged from recomp1-sticker.css  */
+/* ---- second pass, was recomp1.css ---- */
 /* ===== STICKERS: a collage board: a big tilted peeled-corner video sticker on a paper scrap, stacked word stickers, the card a sticker sheet ===== */
 :root[data-vibe='sticker'] {
   --sc-ww: min(48vw, 76vh);
@@ -112,4 +112,4 @@
 :root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { border-radius: 50% !important; box-shadow: 0 0 0 0.7vh #fff, 0 0 0 1.1vh #15101f !important; }
 /* the words: a stack of word stickers, folding into a second column when the line is long */
 :root[data-vibe='sticker'] .stk { place-items: center start; }
-:root[data-vibe='sticker'] .stk__words { flex-flow: column wrap; align-content: flex-start; justify-content: center; align-items: flex-start; height: 100%; gap: 0.22em 0.5em; padding: 0; font-size: calc(min(10cqw, 14cqh) * var(--k, 1)); }
+:root[data-vibe='sticker'] .stk__words { flex-flow: column wrap; align-content: flex-start; justify-content: center; align-items: flex-start; height: 100%; gap: 0.22em 0.5em; padding: 0; font-size: calc(min(10cqw, 14cqh) * var(--k, 1)); }

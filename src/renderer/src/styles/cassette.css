@@ -108,7 +108,7 @@
   :root[data-vibe='cassette']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { padding-bottom: 1.6vh !important; }
 }
 
-/*  merged from cassette-v2.css  */
+/* ---- second pass, was cassette-v2.css ---- */
 /* ==========================================================================
    CASSETTE v2: a hi-fi tape deck seen straight on (fullscreen, mini and phone; mechanics in scene.css).
    The room is gone: the screen IS the faceplate, brushed aluminium with screws in the corners and a black strip printed with
@@ -171,4 +171,4 @@
 :root[data-vibe='cassette']:is([data-mode='full']) .full__top { --fg: #d4cfc4; --fg-2: #d4cfc4; --fg-3: #bdb7ab; color: #d4cfc4; }
 :root[data-vibe='cassette']:is([data-mode='full']) .full__device { color: #bdb7ab !important; }
 :root[data-vibe='cassette'][data-mode='mini'] :is(.cassettefx__vu, .cassettefx__plate::after) { display: none; }
-:root[data-vibe='cassette'][data-mode='mini'] .cassettefx__plate { height: 3.2vh; }
+:root[data-vibe='cassette'][data-mode='mini'] .cassettefx__plate { height: 3.2vh; }

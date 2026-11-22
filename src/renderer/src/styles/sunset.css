@@ -126,7 +126,7 @@
 [data-vibe='sunset'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='sunset'] .lfb__eq i { background: linear-gradient(180deg, #ffe9cf, #ff9f7a); box-shadow: none; }
 
-/*  merged from sunset-v2.css  */
+/* ---- second pass, was sunset-v2.css ---- */
 /* ==========================================================================
    SUNSET DRIVE v2: golden hour as a panorama (fullscreen, mini and phone; mechanics in scene.css).
    The video is a wide windscreen strip across the sky (about 2.4:1, cropped), a big low sun sinks behind the hills on the right,
@@ -191,4 +191,4 @@
 :root[data-vibe='sunset'][data-platform='android'] .sunsetfx { display: block; position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 :root[data-vibe='sunset'][data-platform='android'] .sunsetfx :is(.sunsetfx__ray, .sunsetfx__mote, .sunsetfx__glass) { display: none; }
 :root[data-vibe='sunset'][data-platform='android'] .sunsetfx__sun { display: block; position: absolute; left: 50%; right: auto; margin-left: -14vh; bottom: 30vh; width: 28vh; height: 28vh; border-radius: 50%; background: radial-gradient(circle at 50% 45%, #fff3d2 0 18%, #ffcf86 42%, #ff9a6a 72%, #f2706a); box-shadow: 0 0 5vh 1vh rgba(255, 160, 100, 0.5); }
-:root[data-vibe='sunset'][data-platform='android'] .sunsetfx__hills { height: 17vh; bottom: 22vh; background: linear-gradient(180deg, #3a2447 30%, rgba(26, 18, 48, 0)); }
+:root[data-vibe='sunset'][data-platform='android'] .sunsetfx__hills { height: 17vh; bottom: 22vh; background: linear-gradient(180deg, #3a2447 30%, rgba(26, 18, 48, 0)); }

@@ -189,7 +189,7 @@
   :root[data-vibe='arcade']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { padding-inline: 1vh !important; gap: 0.8vh; }
 }
 
-/*  merged from x-arcade.css  */
+/* ---- second pass, was x-arcade.css ---- */
 /* ==========================================================================
    ARCADE, premium pass: the cabinet seen from the front. A dark cabinet body stands in the middle of the room with pink and cyan
    side-art stripes; the CRT is centred in a thick plastic bezel with a curved-glass reflection; the song is spelled in pixel type
@@ -230,4 +230,4 @@
 :root[data-vibe='arcade'] .sidepanel .stabs button.is-on { background: #ffe14d; color: #0a0a2a; border-radius: 0; }
 /* phone: the PLAYER 1 panel */
 :root[data-platform='android'][data-vibe='arcade'] .phone__dock { background: #0a0a2a !important; border-radius: 0 !important; box-shadow: 0 0 0 3px #3df2ff, 0 0 0 6px #0a0a2a, 0 0 0 8px #ff2d6f; margin: 8px; }
-:root[data-platform='android'][data-vibe='arcade'] .phone__bar { background: linear-gradient(180deg, rgba(61, 242, 255, 0.16), transparent); }
+:root[data-platform='android'][data-vibe='arcade'] .phone__bar { background: linear-gradient(180deg, rgba(61, 242, 255, 0.16), transparent); }

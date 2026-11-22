@@ -117,7 +117,7 @@
 [data-vibe='paper'] .lfb__actions { justify-content: flex-start; }
 [data-vibe='paper'] .lfb__eq i { background: var(--dy-warm); box-shadow: none; }
 
-/*  merged from x-paper.css  */
+/* ---- second pass, was x-paper.css ---- */
 /* ==========================================================================
    DIARY, premium pass: the view from a cosy room at night. The video is a big wooden WINDOW in the middle of the wall (cross
    mullions, a sill), the polaroid is gone, fairy lights hang along the top edge and light up with the song, the words are written
@@ -171,4 +171,4 @@
 :root[data-vibe='paper'] .sidepanel .stabs button.is-on { background: #c9a46a; color: #2a1c12; }
 /* phone */
 :root[data-platform='android'][data-vibe='paper'] .phone__dock { --fg: #2a1c12; --fg-2: #4a3322; --fg-3: #6a4c34; background: #c9a46a !important; color: #2a1c12; border-radius: 6px 24px 24px 6px !important; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); }
-:root[data-platform='android'][data-vibe='paper'] .phone__bar { background: linear-gradient(180deg, rgba(255, 194, 122, 0.16), transparent); }
+:root[data-platform='android'][data-vibe='paper'] .phone__bar { background: linear-gradient(180deg, rgba(255, 194, 122, 0.16), transparent); }

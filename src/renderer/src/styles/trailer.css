@@ -126,7 +126,7 @@
 /* portrait: 16:9 instead of a thin letterbox, so the bars do not look like dead space */
 @media (max-aspect-ratio: 1/1) { :root[data-vibe='trailer'] { --sc-lt: calc(9vh + 90vw * 0.5625 + 3vh) !important; } }
 
-/*  merged from trailer-v2.css  */
+/* ---- second pass, was trailer-v2.css ---- */
 /* ==========================================================================
    TRAILER v2: a theatrical teaser (fullscreen, mini and phone; mechanics in scene.css).
    The 2.39:1 picture stays full width, but the black bars now carry print like a real teaser: "A LYRA PICTURE" top left, the
@@ -168,4 +168,4 @@
 :root[data-vibe='trailer'] .sidepanel { background: #0b0a09; border: 0; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(201, 162, 74, 0.5), inset 0 0 0 5px #0b0a09, inset 0 0 0 6px rgba(201, 162, 74, 0.25), 0 3vh 8vh rgba(0, 0, 0, 0.6); }
 :root[data-vibe='trailer'] .sidepanel h3 { font: 500 17px 'Fraunces Variable', Georgia, serif; letter-spacing: 0.34em; text-transform: uppercase; color: #c9a24a; }
 :root[data-vibe='trailer'] .sidepanel .stabs button.is-on { background: transparent; color: #f6ecda; box-shadow: inset 0 -2px 0 #c9a24a; border-radius: 0; }
-:root[data-vibe='trailer'][data-mode='mini'] .trailerfx::before, :root[data-vibe='trailer'][data-mode='mini'] .trailerfx::after { display: none; }
+:root[data-vibe='trailer'][data-mode='mini'] .trailerfx::before, :root[data-vibe='trailer'][data-mode='mini'] .trailerfx::after { display: none; }

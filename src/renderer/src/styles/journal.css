@@ -143,7 +143,7 @@
 /* chrome text sits on paper: dark ink */
 [data-vibe="journal"] :is(.full__device, .lyrics__footer, .lyrics__footer *) { color: rgba(34, 48, 92, 0.62) !important; text-shadow: none !important; }
 
-/*  merged from x-journal.css  */
+/* ---- second pass, was x-journal.css ---- */
 /* ==========================================================================
    JOURNAL, premium pass: an open notebook lying on a green cutting mat. The window is the desk (mat with a fine grid), the page is
    a real sheet with a rounded edge, a centre spine, ruled lines and a red margin; the polaroid is taped on the left page, the words
@@ -205,4 +205,4 @@
 }
 :root[data-vibe='journal']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .jfx__rules {
   clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, calc(var(--sc-wl) - 3.5vw) calc(var(--sc-wt) - 10vh), calc(var(--sc-wl) - 3.5vw + var(--sc-ww)) calc(var(--sc-wt) - 10vh), calc(var(--sc-wl) - 3.5vw + var(--sc-ww)) calc(var(--sc-wt) - 10vh + var(--sc-wh)), calc(var(--sc-wl) - 3.5vw) calc(var(--sc-wt) - 10vh + var(--sc-wh)), calc(var(--sc-wl) - 3.5vw) calc(var(--sc-wt) - 10vh));
-}
+}

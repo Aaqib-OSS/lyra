@@ -92,7 +92,7 @@
 :root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:first-child,
 :root[data-vibe='sketch']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls .ibtn:last-child { display: none; }
 
-/*  merged from sketch-v2.css  */
+/* ---- second pass, was sketch-v2.css ---- */
 /* ==========================================================================
    SKETCHBOOK v2: a draughtsman's drawing board (fullscreen, mini and phone; mechanics in scene.css).
    Pale drafting paper with a fine blue-grey grid, graphite only (plus one red pencil). The video is "FIG. 1": corner crop marks, a
@@ -213,4 +213,4 @@
 /* settings: a drawing sheet with a title block */
 :root[data-vibe='sketch'] .sidepanel { background: repeating-linear-gradient(0deg, rgba(70, 100, 140, 0.14) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(70, 100, 140, 0.14) 0 1px, transparent 1px 22px), #f4f2ea; border: 2px solid #23262b; border-radius: 0; box-shadow: inset 0 0 0 5px #f4f2ea, inset 0 0 0 6px #23262b, 8px 9px 0 rgba(35, 38, 43, 0.16); }
 :root[data-vibe='sketch'] .sidepanel h3 { font: 700 15px 'Unbounded Variable', sans-serif; letter-spacing: 0.2em; text-transform: uppercase; color: #23262b; }
-:root[data-vibe='sketch'] .sidepanel .stabs button.is-on { background: #23262b; color: #f4f2ea; border-radius: 0; }
+:root[data-vibe='sketch'] .sidepanel .stabs button.is-on { background: #23262b; color: #f4f2ea; border-radius: 0; }

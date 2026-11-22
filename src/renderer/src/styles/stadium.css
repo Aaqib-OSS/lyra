@@ -77,7 +77,7 @@
   :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { height: 12vh !important; }
 }
 
-/*  merged from stadium-v2.css  */
+/* ---- second pass, was stadium-v2.css ---- */
 /* ==========================================================================
    STADIUM v2: the broadcast desk (fullscreen, mini and phone; mechanics in scene.css).
    The jumbotron is now big and on the LEFT with a gantry of lamps above it, the lyric lower third sits under the screen like a
@@ -160,4 +160,4 @@
   :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titlerow { grid-area: titles; }
   :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__controls { grid-area: controls; }
   :root[data-vibe='stadium']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__chrome > .progress { grid-area: progress; }
-}
+}

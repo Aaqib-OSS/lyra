@@ -213,7 +213,7 @@
 /* ---------------- mini player / phone: blobs and light only ---------------- */
 :root[data-vibe='chrome'][data-mode='mini'] .chromefx__edge, :root[data-vibe='chrome'][data-platform='android'] .chromefx__edge { display: none; }
 
-/*  merged from recomp1-chrome.css  */
+/* ---- second pass, was recomp1.css ---- */
 /* ===== CHROME: a showroom: the video big and centred in its bezel, embossed 3D type below, the card a glossy pod ===== */
 :root[data-vibe='chrome'] {
   --sc-ww: min(46vw, 66vh);
@@ -260,4 +260,4 @@
 :root[data-vibe='chrome'] .sign--liquid .sign__word.is-in { background: none; -webkit-text-fill-color: #eef3ff; -webkit-text-stroke: 0; filter: none; text-shadow: 0 1px 0 #fff, 0 2px 0 #c5d4f6, 0 3px 0 #98b0e8, 0 4px 0 #7592d6, 0 5px 0 #5670bc, 0 6px 0 #3e569c, 0 7px 0 #2b4084, 0 10px 14px rgba(0, 0, 30, 0.6); }
 :root[data-vibe='chrome'] .sign--liquid .sign__word.is-now { background: none; -webkit-text-fill-color: #fff2fd; text-shadow: 0 1px 0 #fff, 0 2px 0 #ffd1f5, 0 3px 0 #f09ee0, 0 4px 0 #d070c4, 0 5px 0 #a8489c, 0 6px 0 #7e2e74, 0 7px 0 #5a1d55, 0 10px 14px rgba(40, 0, 40, 0.6), 0 0 2.6vh rgba(255, 150, 240, 0.6); }
 :root[data-vibe='chrome'] .sign--liquid .sign__next { text-align: center; font-style: normal; font-weight: 700; letter-spacing: 0.02em; }
-:root[data-vibe='chrome'] .sign--liquid .sign__refl { display: none; }
+:root[data-vibe='chrome'] .sign--liquid .sign__refl { display: none; }
