@@ -40,5 +40,3 @@
 :root[data-vibe='sticker']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side {
   background: radial-gradient(circle at 92% 14%, #ff6fb0 0 1.8vh, transparent 1.9vh), radial-gradient(circle at 99% 50%, #4de3ff 0 1.1vh, transparent 1.2vh), #fff7e3 !important;
 }
-/* Stencil: the drips run behind the card, not over it */
-:root[data-vibe='stencil'] .edge { z-index: 0; }

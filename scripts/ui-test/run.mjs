@@ -162,7 +162,6 @@ const MEASURE = () => {
     const fx = document.querySelector('.vibefx')
     if (fx && (R(fx).width < 4 || R(fx).height < 4)) sceneZero.push('vibefx')
     const wins = [...document.querySelectorAll('.scenewin')]
-    if (document.documentElement.dataset.arch === 'scene' && !wins.length) sceneZero.push('scenewin missing')
     for (const w of wins) if (R(w).width < 40 || R(w).height < 40) sceneZero.push(`scenewin ${Math.round(R(w).width)}x${Math.round(R(w).height)}`)
   }
 

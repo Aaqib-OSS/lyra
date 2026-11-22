@@ -12,5 +12,7 @@
 .edge__d { top: 0; bottom: 0; left: 0; width: 0; }
 :root[data-rim='on'] .edge { display: block; }
 :root[data-platform='tv'] .edge { display: none; }
+/* full-window fills (vignettes, inner glows) must never tint the settings sheet, the welcome card or the share / record dialogs above them */
+:root:has(.sidepanel, .welcome, .sharecard) .edge { z-index: 19; }
 :root[data-motion='off'] .edge * { animation: none !important; }
 :root[data-calm] .edge * { animation-play-state: paused !important; }
