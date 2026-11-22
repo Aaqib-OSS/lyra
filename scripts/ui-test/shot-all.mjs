@@ -1,6 +1,6 @@
 // Regression net for CSS/TSX refactors: every look x 5 sizes x 3 states, frozen (paused clock, animations off, seeded Math.random).
 //   npx vite build -c scripts/harness/vite.config.ts --outDir ../../ui-test-out/dist-base --emptyOutDir
-//   node scripts/ui-test/shot-all.mjs --dist=ui-test-out/dist-base --out=ui-test-out/base [--vibe=neon,chrome] [--size=full1366,mini] [--conc=4]
+//   node scripts/ui-test/shot-all.mjs --dist=ui-test-out/dist-base --out=ui-test-out/base [--vibe=neon,chrome] [--size=full1366,mini] [--only=neon__mini__plain,...] [--conc=4]
 //   (without --dist it screenshots the dev server on UI_PORT instead)
 // Then:  node scripts/ui-test/diff-shots.mjs ui-test-out/base ui-test-out/after
 import { chromium } from 'playwright'
@@ -52,9 +52,13 @@ const STATES = [
 ]
 const jobs = []
 for (const v of vibes) for (const s of SIZES) for (const st of STATES) jobs.push({ v, s, st })
+if (args.only) { const keep = new Set(args.only.split(",")); jobs.splice(0, jobs.length, ...jobs.filter((j) => keep.has(j.v + "__" + j.s.id + "__" + j.st.id))) } // re-shoot just the flagged ones
 const b = await chromium.launch()
 const ctx = await b.newContext({ deviceScaleFactor: 1, reducedMotion: 'no-preference' })
 await ctx.addInitScript(() => {
+  // `new Date()` is frozen (the Lock look draws the wall-clock time); Date.now() stays real
+  const RealDate = Date
+  globalThis.Date = class extends RealDate { constructor(...a) { if (a.length) super(...a); else super(1767264120000) } }
   let a = 0x9e3779b9
   Math.random = () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
 })

@@ -206,7 +206,3 @@
 :root[data-vibe='journal']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .jfx__rules {
   clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, calc(var(--sc-wl) - 3.5vw) calc(var(--sc-wt) - 10vh), calc(var(--sc-wl) - 3.5vw + var(--sc-ww)) calc(var(--sc-wt) - 10vh), calc(var(--sc-wl) - 3.5vw + var(--sc-ww)) calc(var(--sc-wt) - 10vh + var(--sc-wh)), calc(var(--sc-wl) - 3.5vw) calc(var(--sc-wt) - 10vh + var(--sc-wh)), calc(var(--sc-wl) - 3.5vw) calc(var(--sc-wt) - 10vh));
 }
-
-/* ---- last-word size fixes (found by the UI test at short / narrow windows), were in fit-*.css ---- */
-/* the swing of a tilted word must not touch the edge of its region */
-.sign--jot .sign__line { padding-inline: 1.2vh; box-sizing: border-box; }

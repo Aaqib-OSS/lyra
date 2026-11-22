@@ -5,13 +5,14 @@ import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from 
 import { join } from 'node:path'
 
 const [a, b] = process.argv.slice(2).filter((x) => !x.startsWith('--'))
+const partial = process.argv.includes('--partial') // only compare what exists in both dirs
 const pct = Number((process.argv.find((x) => x.startsWith('--pct=')) ?? '--pct=0.2').split('=')[1])
 const diffDir = join(b, '..', 'diff')
 mkdirSync(diffDir, { recursive: true })
 const bad = []
 let n = 0
 for (const f of readdirSync(a).filter((x) => x.endsWith('.png'))) {
-  if (!existsSync(join(b, f))) { bad.push(`${f}  MISSING in after`); continue }
+  if (!existsSync(join(b, f))) { if (partial) continue; bad.push(`${f}  MISSING in after`); continue }
   const A = PNG.sync.read(readFileSync(join(a, f))), B = PNG.sync.read(readFileSync(join(b, f)))
   n++
   if (A.width !== B.width || A.height !== B.height) { bad.push(`${f}  SIZE ${A.width}x${A.height} vs ${B.width}x${B.height}`); continue }
