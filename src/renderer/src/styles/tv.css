@@ -159,8 +159,6 @@
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 255, 255, 0.1);
 }
-:root[data-platform='tv'] .tvsetup__qr { flex: none; padding: 1.6vh; border-radius: calc(20 * var(--u)); background: #fff; }
-:root[data-platform='tv'] .tvsetup__qr img { display: block; width: min(34vh, 24vw); height: min(34vh, 24vw); image-rendering: pixelated; }
 :root[data-platform='tv'] .tvsetup__how { display: flex; flex-direction: column; gap: 2vh; align-items: flex-start; min-width: 0; }
 :root[data-platform='tv'] .tvsetup__step { margin: 0; font-size: calc(30 * var(--u)); }
 :root[data-platform='tv'] .tvsetup__code { margin: 0; white-space: nowrap; font: 800 calc(84 * var(--u))/1 'JetBrains Mono', ui-monospace, Consolas, monospace; letter-spacing: 0.12em; }

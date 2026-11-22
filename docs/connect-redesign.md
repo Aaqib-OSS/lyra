@@ -10,7 +10,7 @@ Protocol spec for client authors: `docs/connect-protocol.md`.
 
 Three overlapping features, all "show Lyra on another screen":
 
-1. **TV and party mode** (`src/main/lan/server.ts`, `viewerHtml.ts`; settings `lanViewer`, `lanPort`, `lanToken`).
+1. **TV and party mode** (the removed src/main/lan/server.ts and viewerHtml.ts; settings `lanViewer`, `lanPort`, `lanToken`).
    A Node `http` server bound to `0.0.0.0` (every interface, including VPN / virtual adapters), default port 47813.
    Authentication: one static 12-hex-character secret (`?k=`) stored in settings, passed in the URL query of every
    request. Transport: plain http, Server-Sent Events (`/events`, a state message every 4 s plus on change),
@@ -18,7 +18,7 @@ Three overlapping features, all "show Lyra on another screen":
    all devices: nobody could be removed except by rotating the key for everyone (there was no UI to rotate it). No
    pairing, no device list, no roles, no remote control, no clock-offset (the page used the host `now` stamp and
    assumed zero skew). The link with the key was shown as text and QR in Settings.
-2. **Jam nearby / Stream sound** (`src/renderer/src/store/nearby.ts`, `/rtc/offer` on the same server, setting `lanAudio`).
+2. **Jam nearby / Stream sound** (the removed renderer store nearby.ts, `/rtc/offer` on the same server, setting `lanAudio`).
    The viewer could request WebRTC audio of the PC's whole system sound (loopback capture of everything the PC plays)
    which also needed a display-capture permission handler in `src/main/index.ts`.
 3. **Rooms / Jam** (`store/room.ts`, `store/jam.ts`, `website/room.html`). Host a room or join one by code through the

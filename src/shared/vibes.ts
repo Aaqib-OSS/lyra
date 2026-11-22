@@ -44,7 +44,7 @@ export const VIBES: readonly VibeInfo[] = [
   { id: 'comic', layout: 'scene', style: 'bubble', name: 'Pop Comic', tag: 'Halftone page, speech bubbles, POW' },
   { id: 'stencil', layout: 'scene', style: 'spray', name: 'Stencil', tag: 'Sprayed on a concrete wall' },
   { id: 'film', layout: 'scene', style: 'intertitle', name: 'Film Reel', tag: 'Running film stock, silent-film titles' },
-  { id: 'filmstrip', layout: 'scene', style: 'intertitle', name: 'Film Strip', tag: 'The film advances frame by frame (draft B)' },
+  { id: 'filmstrip', layout: 'scene', style: 'intertitle', name: 'Film Strip', tag: 'The film advances frame by frame' },
   { id: 'lock', layout: 'scene', style: 'lockscreen', name: 'Lock Screen', tag: 'Each line arrives as a notification' },
   { id: 'wallet', layout: 'scene', style: 'wallet', name: 'Wallet', tag: 'The song as a run of payments' },
   { id: 'route', layout: 'scene', style: 'route', name: 'Route', tag: 'A pin for every line on a map' },

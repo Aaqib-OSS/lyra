@@ -301,7 +301,10 @@ const releases = async (repo) => {
 }
 // the newest release whose tag matches (Windows tags are v0.24.1, Android tags are android-v0.10.1) and that really carries the file
 const pick = (rs, tagRe, ext) => {
-  const r = rs.find((x) => tagRe.test(x.tag) && x.assets.some((a) => a.name.toLowerCase().endsWith(ext)))
+  // GitHub does not list releases strictly newest first (android-v0.9.0 can come before android-v0.10.1): take the highest version
+  const ver = (t) => t.replace(/^\D+/, '').split(/[.-]/).map((n) => parseInt(n, 10) || 0)
+  const newer = (a, b) => { const x = ver(a.tag), y = ver(b.tag); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d > 0 } return false }
+  const r = rs.filter((x) => tagRe.test(x.tag) && x.assets.some((a) => a.name.toLowerCase().endsWith(ext))).reduce((best, x) => (!best || newer(x, best) ? x : best), null)
   if (!r) return null
   const a = r.assets.find((x) => x.name.toLowerCase().endsWith(ext))
   return { v: r.tag.replace(/^\D+/, ''), url: a.url, size: a.size, page: r.url }
