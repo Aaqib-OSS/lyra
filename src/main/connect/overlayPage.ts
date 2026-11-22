@@ -23,14 +23,14 @@ import { HMAC_JS } from '@core/connect/hmac'
 
 export const OVERLAY_CORE_JS = String.raw`
 var LOOKS = {
-  none: 'classic', sunset: 'classic', lens: 'classic', dream: 'classic', wall: 'classic', web: 'classic', route: 'classic', metro: 'classic', picto: 'classic', flap: 'classic',
+  none: 'classic', sunset: 'classic', dusk: 'classic', lens: 'classic', dream: 'classic', wall: 'classic', web: 'classic', route: 'classic', metro: 'classic', picto: 'classic', flap: 'classic',
   neon: 'neon',
   chrome: 'chrome',
   crt: 'terminal', editor: 'terminal', blocks: 'terminal',
   noir: 'subtitle', film: 'subtitle', filmstrip: 'subtitle', trailer: 'subtitle', stadium: 'subtitle',
   chat: 'chat', lock: 'chat', wallet: 'chat',
   sticker: 'sticker', comic: 'sticker', stencil: 'sticker',
-  paper: 'hand', sketch: 'hand', cassette: 'hand',
+  paper: 'hand', journal: 'hand', doodle: 'hand', sketch: 'hand', cassette: 'hand',
   arcade: 'pixel',
   glitch: 'glitch'
 }

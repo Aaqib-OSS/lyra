@@ -1,0 +1,122 @@
+/* ==========================================================================
+   EDITOR: an IDE (fullscreen: one file, layout mechanics are in scene.css).
+   Title bar, tabs and breadcrumb on top, the lyrics typed as code with a caret and line numbers, the video in a "Preview" pane on
+   the right, the player as the blue status bar at the bottom.
+   Edge (edge-editor.css): the activity bar on the left (a badge pings on each line), the minimap on the right with a slider that
+   follows the current line, the thin progress bar under the tabs that fills with the line.
+   ========================================================================== */
+:root[data-vibe='editor'] {
+  --rimc: #3b9eff;
+  --nv-bg: #007acc;
+  --nv-shadow: none;
+  --sc-ww: min(30vw, 46vh);
+  --sc-wl: calc(100vw - 9vh - var(--sc-ww) - 1.4vw);
+  --sc-wt: 15.5vh;
+  --sc-wr: 0.6vh;
+  --sc-cl: 0px;
+  --sc-cb: 0px;
+  --sc-ct: auto;
+  --sc-cw: 100vw;
+  --sc-ll: 5vh;
+  --sc-lt: 12.4vh;
+  --sc-lw: calc(var(--sc-wl) - 1.4vh - 5vh - 1vw);
+  --sc-lb: 13.2vh;
+  --sc-lbs: 13.2vh;
+}
+:root[data-vibe='editor'][data-rim='on']::after { display: none; }
+[data-vibe='editor'] .backdrop .backdrop__field { background: #1e1e1e; }
+[data-vibe='editor'] .scenewin { box-shadow: 0 0 0 1px #3c3c3c, 0 1.6vh 4vh rgba(0, 0, 0, 0.5); }
+
+.edfx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.edfx__title { position: absolute; left: 0; right: 0; top: 0; height: 4.2vh; background: #181818; box-shadow: 0 1px 0 #2b2b2b; display: flex; align-items: center; justify-content: center; font: 500 1.5vh/1 'Inter Variable', system-ui, sans-serif; color: #9d9d9d; }
+.edfx__title i { position: absolute; top: 1.35vh; width: 1.5vh; height: 1.5vh; border-radius: 50%; background: #ff5f57; left: 1.6vh; }
+.edfx__title i:nth-child(2) { left: 4vh; background: #febc2e; }
+.edfx__title i:nth-child(3) { left: 6.4vh; background: #28c840; }
+.edfx__tabs { position: absolute; left: 5vh; right: 9vh; top: 4.2vh; height: 4.4vh; background: #252526; display: flex; font: 500 1.5vh/1 'Cascadia Code', Consolas, monospace; color: #8b8b8b; }
+.edfx__tabs span { display: flex; align-items: center; padding: 0 2.2vh; border-right: 1px solid #1e1e1e; }
+.edfx__tabs .is-on { background: #1e1e1e; color: #e8e8e8; box-shadow: inset 0 0.25vh 0 #007acc; }
+.edfx__crumb { position: absolute; left: 5vh; right: 9vh; top: 8.6vh; height: 3vh; display: flex; align-items: center; padding-left: 2.2vh; background: #1e1e1e; font: 500 1.3vh/1 'Inter Variable', sans-serif; color: #858585; letter-spacing: 0.02em; }
+.edfx__pane { position: absolute; left: calc(var(--sc-wl) - 1.4vh); width: calc(var(--sc-ww) + 2.8vh); top: 8.6vh; bottom: 7.4vh; border-left: 1px solid #333; transition: width 0.7s; }
+.edfx__pane span { position: absolute; left: 1.4vh; top: 3.4vh; font: 600 1.3vh/1 'Inter Variable', sans-serif; letter-spacing: 0.06em; color: #a8a8a8; text-transform: uppercase; }
+.edfx__pane b { color: #3b9eff; margin-right: 0.6vh; }
+:root[data-vibe='editor']:not(:is([data-mode='full'], [data-mode='mini'])) .edfx > :not(.scenewin) { display: none; }
+:root[data-platform='android'][data-vibe='editor'] .edfx > :not(.scenewin) { display: none; }
+@media (max-aspect-ratio: 1/1) { .edfx__pane, .edfx__crumb { display: none; } }
+
+/* ---------------- the status bar (the player) ---------------- */
+:root[data-vibe='editor']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side { height: auto !important; min-height: 7.4vh; padding: 0.6vh 3vw 0.6vh 6vh !important; border-top: 1px solid rgba(255, 255, 255, 0.25) !important; }
+:root[data-vibe='editor']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__side .artwork { width: 5.2vh !important; border-radius: 0.4vh !important; }
+:root[data-vibe='editor']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__titles h1 { font: 600 1.9vh/1.1 'Cascadia Code', Consolas, monospace; letter-spacing: 0; }
+:root[data-vibe='editor']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) .full.full[data-arch='scene'] .full__artist { font-family: 'Cascadia Code', Consolas, monospace; font-size: max(10.5px, 1.3vh); }
+
+/* ---------------- lyrics: a source file (stage 'editor', components/LyricsStage.tsx CodeStage + lib/codeGen.ts) ---------------- */
+.stage--editor { display: flex; flex-direction: column; justify-content: flex-end; }
+.code { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; min-height: 0; overflow: hidden; font: 500 max(10.5px, min(1.45vw, 2.5vh))/1.62 'Cascadia Code', 'JetBrains Mono', Consolas, monospace; color: #d4d4d4; font-variant-ligatures: none; -webkit-mask: linear-gradient(180deg, transparent 0, #000 16%); mask: linear-gradient(180deg, transparent 0, #000 16%); }
+.code__row { position: relative; display: flex; align-items: flex-start; min-width: 0; }
+.code__row.is-current { background: rgba(255, 255, 255, 0.055); box-shadow: inset 0 1px 0 #2d2d30, inset 0 -1px 0 #2d2d30; animation: ed-in 0.32s ease-out 1; }
+.code__gut { position: relative; flex: none; width: 8vh; display: flex; align-items: baseline; justify-content: flex-end; gap: 0.5vh; padding-right: 1.2vh; box-sizing: border-box; color: #6e7681; font-size: max(10.5px, 0.8em); user-select: none; }
+.code__row.is-current .code__gut { color: #c6c6c6; }
+.code__ln { min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
+.code__fold { width: 1.2ch; color: #858585; }
+.code__git { position: absolute; left: 0.9vh; top: 0.15em; bottom: 0.15em; width: 0.4vh; border-radius: 0.1vh; background: transparent; }
+.code__row[data-git='add'] .code__git { background: #2ea043; }
+.code__row[data-git='mod'] .code__git { background: #0078d4; }
+.code__src { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 4ch) 0 0 / calc(var(--depth, 0) * 4ch) 100% no-repeat; }
+.tk--kw { color: #569cd6; }
+.tk--type { color: #4ec9b0; }
+.tk--str { color: #ce9178; }
+.tk--lyric { color: #ce9178; }
+.tk--com { color: #6a9955; font-style: italic; display: inline-block; white-space: nowrap; }
+.tk--num { color: #b5cea8; }
+.tk--fn { color: #dcdcaa; }
+.tk--id { color: #9cdcfe; }
+.tk--ann { color: #4ec9b0; }
+.tk--punc { color: #d4d4d4; }
+.tk--m { box-shadow: inset 0 0 0 1px #9a9a9a; background: rgba(140, 140, 140, 0.28); border-radius: 0.2vh; }
+.code__w { opacity: 0.4; transition: opacity 0.2s; }
+.code__w.is-in { opacity: 1; }
+.code__w.is-now { color: #f5c897; background: rgba(38, 79, 120, 0.9); box-shadow: 0 0 0 0.25vh rgba(38, 79, 120, 0.9); border-radius: 0.3vh; }
+.code__caret { display: inline-block; width: 0.3vh; height: 1.15em; margin-left: 0.2vh; vertical-align: text-bottom; background: #fff; animation: ed-blink 1s steps(1) infinite; }
+/* an instrumental break is already written as a comment row */
+.stage--editor .stage__rest { display: none; }
+@keyframes ed-blink { 50% { opacity: 0; } }
+@keyframes ed-in { from { opacity: 0; transform: translateY(0.8vh); } to { opacity: 1; transform: none; } }
+:root[data-motion='off'] .code__row.is-current, :root[data-motion='off'] .code__caret { animation: none; }
+:root[data-calm] .code__caret { animation-play-state: paused; }
+
+/* the title bar is the chrome, so the device label that would sit under its traffic lights is dropped */
+:root[data-vibe='editor']:is([data-mode='full'], [data-mode='mini']) .full__device { visibility: hidden; }
+/* the editor's own status line (language, Ln/Col, encoding) sits above the player's status bar */
+.edfx__status { position: absolute; left: 5vh; right: 9vh; bottom: 10.1vh; height: 2.8vh; display: flex; align-items: center; gap: 2vh; padding: 0 2vh; background: #181818; border-top: 1px solid #2b2b2b; font: 500 max(10.5px, 1.3vh)/1 'Inter Variable', system-ui, sans-serif; color: #a8a8a8; white-space: nowrap; overflow: hidden; }
+.edfx__status em { flex: 1; }
+.edfx__lang { color: #e8e8e8; }
+@media (max-aspect-ratio: 1/1) { .edfx__status { display: none; } }
+:root[data-platform='android'][data-vibe='editor'] .edfx__status { display: none; }
+
+:root[data-vibe='editor'] .plain__stanza, :root[data-vibe='editor'] .lfb h3, :root[data-vibe='editor'] .lfb p, :root[data-vibe='editor'] .lfb small, :root[data-vibe='editor'] .lyrics__notice { font-family: 'Cascadia Code', Consolas, monospace; }
+:root[data-vibe='editor'] .lyrics__notice { margin-left: 8vh; }
+:root[data-vibe='editor'] .lfb { padding-left: 8vh; }
+:root[data-vibe='editor'] .plain__stanza { padding-left: 8vh; color: #6a9955; font-style: italic; font-weight: 500; letter-spacing: 0; }
+:root[data-vibe='editor'] .plain__stanza::before { content: '/**'; display: block; }
+:root[data-vibe='editor'] .plain__stanza::after { content: ' */'; display: block; }
+:root[data-vibe='editor'] .plain__stanza > span::before { content: ' * '; }
+:root[data-vibe='editor'] .lfb h3 { color: #569cd6; font-weight: 600; letter-spacing: 0; text-transform: none; }
+:root[data-vibe='editor'] .lfb h3::before { content: 'function '; color: #c586c0; }
+:root[data-vibe='editor'] .lfb h3::after { content: '()'; color: #d4d4d4; }
+
+/* ---------------- settings + picker swatch ---------------- */
+:root[data-vibe='editor'] .sidepanel {
+  --panel: #252526; --fg: #d4d4d4; --fg-2: #b4b4b4; --fg-3: #8e8e8e; --line: rgba(255,255,255,.1); --line-2: rgba(255,255,255,.18); --accent: #3b9eff; --glow: #3b9eff; --glow-soft: transparent;
+  background: #252526; color: #d4d4d4; border: 1px solid #3c3c3c; border-radius: 6px; box-shadow: 0 24px 60px rgba(0,0,0,.7);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+:root[data-vibe='editor'] .sidepanel .settings section { background: #1e1e1e; box-shadow: 0 0 0 1px #3c3c3c; border-radius: 3px; }
+:root[data-vibe='editor'] .sidepanel h3, :root[data-vibe='editor'] .sidepanel .settings h4 { font-family: 'Cascadia Code', Consolas, monospace; text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; color: #bbbbbb; }
+:root[data-vibe='editor'] .sidepanel .stabs button.is-on { background: #007acc; color: #fff; box-shadow: none; border-radius: 2px; }
+.vibecard--editor .vibecard__sw { background: linear-gradient(90deg, #333 0 12%, transparent 12%), linear-gradient(180deg, #1e1e1e 0 78%, #007acc 78%); }
+
+/* ---------------- Android: an editor sheet, status-bar dock ---------------- */
+:root[data-platform='android'][data-vibe='editor'] .mini--phone .phone__dock { background: #007acc; border-radius: 0; box-shadow: none; --fg: #fff; }
+
+/* a small window and a phone: the file is the whole screen, the preview is the video window */
+@media (max-aspect-ratio: 1/1) { :root[data-vibe='editor'] :is(.edfx__title, .edfx__tabs) { display: none; } }

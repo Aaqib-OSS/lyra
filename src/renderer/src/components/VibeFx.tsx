@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { getPosition, usePlayer } from '@/store/player'
 import { useEffectiveVibe } from '@/hooks/useVibe'
+import { EditorFx, MetroFx, RouteFx, WalletFx, WebFx } from '@/components/fx/Looks25'
+import { FlapFx, LensFx, PictoFx, WallFx } from './fx/FourFx'
 
 const PALM = 'M50 300 C48 220 52 150 60 90 C40 100 18 96 0 80 C24 78 44 82 58 74 C52 52 36 40 14 36 C40 30 62 44 66 66 C74 46 92 34 112 34 C96 44 82 58 76 80 C96 84 116 82 140 70 C120 92 94 98 70 98 C62 150 58 220 62 300 Z'
 
@@ -18,6 +20,20 @@ function SceneWindow({ children }: { children?: ReactNode }) {
         </div>
       </div>
       {children}
+    </div>
+  )
+}
+
+/** Artwork: a gallery wall. The wall is the cover's colours, the video hangs as a framed print under a brass picture light. */
+function NoneFx() {
+  return (
+    <div className="nonefx">
+      <div className="nonefx__wall" />
+      <div className="nonefx__lamp" />
+      <SceneWindow />
+      <div className="nonefx__frame" />
+      <div className="nonefx__bar" />
+      <div className="nonefx__floor" />
     </div>
   )
 }
@@ -81,6 +97,7 @@ function GoldenHour() {
       <i className="sunsetfx__ray sunsetfx__ray--a" />
       <i className="sunsetfx__ray sunsetfx__ray--b" />
       <i className="sunsetfx__ray sunsetfx__ray--c" />
+      <i className="sunsetfx__sun" />
       <div className="sunsetfx__hills" />
       {motes.map((m, i) => (
         <i key={i} className="sunsetfx__mote" style={{ left: `${m.left}%`, bottom: `${m.bottom}%`, width: m.size, height: m.size, animationDuration: `${m.dur}s`, animationDelay: `${m.delay}s` }} />
@@ -278,6 +295,13 @@ function TermFx() {
       <SceneWindow />
       <div className="termfx__pane termfx__pane--video" data-title="video.mp4" />
       <div className="termfx__pane termfx__pane--log" data-title="lyrics.log" />
+      <div className="termfx__pane termfx__pane--eq" data-title="spectrum">
+        <div className="termfx__bars">
+          {Array.from({ length: 28 }, (_, i) => (
+            <i key={i} style={{ ['--d' as string]: `${-((i * 0.37) % 1.4).toFixed(2)}s` }} />
+          ))}
+        </div>
+      </div>
       <div className="termfx__cursor" />
       <div className="termfx__roll" />
       <div className="termfx__scan" />
@@ -345,6 +369,159 @@ function DiaryFx() {
   )
 }
 
+/**
+ * Dusk Ridge, fullscreen: twilight over mountains. A star field that twinkles out of step (a few bright ones with a flare, a shooting
+ * star now and then), swinging rays from the low sun, three mountain ranges lit from the side by the setting sun (hazy far range,
+ * gold-rimmed mid range, dark near range with sparks on its peaks), mist in the valleys and a glow behind the ridge.
+ */
+const DUSK_STARS = (() => {
+  let s = 20261122
+  const r = (): number => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296)
+  const cols = ['#ffffff', '#fff3d6', '#cfe0ff', '#ffd9a8', '#ffe9f2']
+  return Array.from({ length: 78 }, (_, i) => {
+    const big = i % 11 === 0
+    return { left: r() * 100, top: r() * 100, s: big ? 3.2 + r() * 1.6 : 1.1 + r() * 1.7, c: cols[Math.floor(r() * cols.length)]!, d: 2.6 + r() * 4.4, w: -r() * 7, big }
+  })
+})()
+function DuskFx() {
+  const motes = useMemo(() => Array.from({ length: 14 }, (_, i) => ({ left: 4 + ((i * 37) % 90), bottom: 4 + ((i * 53) % 34), size: 2 + (i % 3), dur: 12 + (i % 6) * 3, delay: -(i * 1.7) })), [])
+  const FAR = 'M0 320 L0 190 L120 150 L230 185 L360 120 L470 170 L600 130 L740 180 L880 110 L1010 165 L1150 135 L1290 175 L1420 125 L1600 170'
+  const MID = 'M0 320 L0 230 L90 210 L200 170 L310 215 L430 190 L560 235 L700 150 L830 220 L960 200 L1100 160 L1230 215 L1370 185 L1500 225 L1600 205'
+  const NEAR = 'M0 320 L0 270 L140 250 L260 280 L400 240 L520 270 L660 255 L800 285 L940 245 L1080 275 L1220 250 L1360 280 L1480 255 L1600 275'
+  const peaks: Array<[number, number]> = [[360, 120], [880, 110], [1420, 125], [700, 150], [1100, 160], [400, 240], [940, 245], [1220, 250]]
+  return (
+    <div className="duskfx">
+      <div className="duskfx__stars">
+        {DUSK_STARS.map((st, i) => (
+          <i key={i} className={`duskfx__star${st.big ? ' duskfx__star--big' : ''}`} style={{ left: `${st.left}%`, top: `${st.top}%`, ['--s' as string]: `${st.s}px`, ['--c' as string]: st.c, ['--d' as string]: `${st.d}s`, ['--w' as string]: `${st.w}s` }} />
+        ))}
+        <i className="duskfx__shoot" />
+        <i className="duskfx__shoot duskfx__shoot--b" />
+      </div>
+      <i className="duskfx__ray duskfx__ray--a" />
+      <i className="duskfx__ray duskfx__ray--b" />
+      <i className="duskfx__ray duskfx__ray--c" />
+      <div className="duskfx__glow" />
+      <svg className="duskfx__ridges" viewBox="0 0 1600 320" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="dusk-rim" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#ffe2a8" />
+            <stop offset="0.45" stopColor="#ff9f7a" />
+            <stop offset="1" stopColor="#8d7ad9" stopOpacity="0.5" />
+          </linearGradient>
+        </defs>
+        <path className="duskfx__far" d={`${FAR} L1600 320 Z`} />
+        <path className="duskfx__rim duskfx__rim--far" d={FAR} />
+        <path className="duskfx__mid" d={`${MID} L1600 320 Z`} />
+        <path className="duskfx__rim" d={MID} />
+        <path className="duskfx__near" d={`${NEAR} L1600 320 Z`} />
+        {peaks.map(([x, y], i) => (
+          <circle key={i} className="duskfx__spark" cx={x} cy={y} r="2.6" style={{ ['--w' as string]: `${-i * 0.7}s` }} />
+        ))}
+      </svg>
+      <div className="duskfx__mist" />
+      {motes.map((m, i) => (
+        <i key={i} className="duskfx__mote" style={{ left: `${m.left}%`, bottom: `${m.bottom}%`, width: m.size, height: m.size, animationDuration: `${m.dur}s`, animationDelay: `${m.delay}s` }} />
+      ))}
+      <div className="duskfx__haze" />
+    </div>
+  )
+}
+
+/**
+ * Journal, fullscreen: a page of a paper diary. Ruled lines and a rose margin with punched holes, a date stamp, the video as a
+ * polaroid taped to the page with washi tape and a paper clip, a pressed flower, a heart sticker, a coffee ring and doodles that
+ * draw themselves in and out. (The night-corner Diary is the other paper look; this one is bright, written by hand in blue-black ink
+ * with a yellow highlighter.)
+ */
+function JournalFx() {
+  const title = usePlayer((x) => x.snapshot?.track?.title ?? '')
+  const stamp = useMemo(() => {
+    const d = new Date()
+    return `${d.toLocaleDateString('en', { weekday: 'short' })} · ${d.getDate()} ${d.toLocaleDateString('en', { month: 'short' })}`.toUpperCase()
+  }, [])
+  return (
+    <div className="jfx">
+      <div className="jfx__paper" />
+      <div className="jfx__rules" />
+      <div className="jfx__margin" />
+      {[16, 50, 84].map((t) => (
+        <i key={t} className="jfx__hole" style={{ top: `${t}%` }} />
+      ))}
+      <div className="jfx__stamp">{stamp}</div>
+      <div className="jfx__coffee" />
+      <svg className="jfx__doodle jfx__doodle--heart" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M24 41 C8 29 5 17 14 11 C19 8 23 11 24 15 C25 11 29 8 34 11 C43 17 40 29 24 41 Z" />
+      </svg>
+      <svg className="jfx__doodle jfx__doodle--star" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M24 5 L29 19 L44 19 L32 28 L36 43 L24 34 L12 43 L16 28 L4 19 L19 19 Z" />
+      </svg>
+      <svg className="jfx__doodle jfx__doodle--squig" viewBox="0 0 120 30" aria-hidden="true">
+        <path d="M4 18 C14 4 22 4 30 18 S46 32 56 18 S74 4 84 18 S104 30 116 14" />
+      </svg>
+      <svg className="jfx__flower" viewBox="0 0 80 120" aria-hidden="true">
+        <path className="stem" d="M40 118 C38 88 44 66 40 40" />
+        <path className="leaf" d="M40 86 C26 84 18 74 16 62 C30 62 38 72 40 86 Z" />
+        <path className="leaf" d="M41 70 C54 66 62 56 62 44 C50 46 42 56 41 70 Z" />
+        {[0, 72, 144, 216, 288].map((a) => (
+          <ellipse key={a} className="petal" cx="40" cy="20" rx="8" ry="15" transform={`rotate(${a} 40 32)`} />
+        ))}
+        <circle className="core" cx="40" cy="32" r="6" />
+      </svg>
+      <SceneWindow />
+      <div className="jfx__polaroid" />
+      <div className="jfx__caption">{title}</div>
+      <i className="jfx__tape jfx__tape--l" />
+      <i className="jfx__tape jfx__tape--r" />
+      <i className="jfx__clip" />
+      <i className="jfx__corner" />
+    </div>
+  )
+}
+
+/**
+ * Doodle, fullscreen: a kid's drawing page. Off-white paper with a dot grid, fat black marker outlines, flat bright colour shapes
+ * (sun, cloud, stars, spiral, arrows) that draw themselves in and out, the video in a wobbly hand-drawn frame with a colour offset
+ * and arrows pointing at it. Words are marker lettering; the one being sung gets a hand-drawn circle.
+ */
+function DoodleFx() {
+  return (
+    <div className="dfx">
+      <div className="dfx__dots" />
+      <div className="dfx__frame" />
+      <svg className="dfx__d dfx__sun" viewBox="0 0 100 100" aria-hidden="true">
+        <circle className="fill" cx="50" cy="50" r="22" />
+        <circle cx="50" cy="50" r="22" />
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+          <path key={a} d="M50 14 L50 24" transform={`rotate(${a} 50 50)`} />
+        ))}
+      </svg>
+      <svg className="dfx__d dfx__cloud" viewBox="0 0 140 80" aria-hidden="true">
+        <path className="fill" d="M30 64 C10 64 8 40 28 38 C26 18 54 12 62 30 C72 14 100 20 98 40 C122 38 126 64 104 64 Z" />
+        <path d="M30 64 C10 64 8 40 28 38 C26 18 54 12 62 30 C72 14 100 20 98 40 C122 38 126 64 104 64 Z" />
+      </svg>
+      <svg className="dfx__d dfx__star dfx__star--a" viewBox="0 0 48 48" aria-hidden="true">
+        <path className="fill" d="M24 4 L29 18 L44 18 L32 27 L37 42 L24 33 L11 42 L16 27 L4 18 L19 18 Z" />
+        <path d="M24 4 L29 18 L44 18 L32 27 L37 42 L24 33 L11 42 L16 27 L4 18 L19 18 Z" />
+      </svg>
+      <svg className="dfx__d dfx__star dfx__star--b" viewBox="0 0 48 48" aria-hidden="true">
+        <path className="fill" d="M24 4 L29 18 L44 18 L32 27 L37 42 L24 33 L11 42 L16 27 L4 18 L19 18 Z" />
+        <path d="M24 4 L29 18 L44 18 L32 27 L37 42 L24 33 L11 42 L16 27 L4 18 L19 18 Z" />
+      </svg>
+      <svg className="dfx__d dfx__spiral" viewBox="0 0 80 80" aria-hidden="true">
+        <path d="M40 40 C40 34 48 34 48 42 C48 54 30 54 30 40 C30 24 56 24 58 44 C60 66 26 68 22 42 C18 16 62 8 68 44" />
+      </svg>
+      <svg className="dfx__d dfx__arrow" viewBox="0 0 120 70" aria-hidden="true">
+        <path d="M6 54 C30 60 70 50 100 20" />
+        <path d="M82 18 L102 18 L98 40" />
+      </svg>
+      <svg className="dfx__d dfx__zig" viewBox="0 0 160 30" aria-hidden="true">
+        <path d="M4 22 L24 6 L44 22 L64 6 L84 22 L104 6 L124 22 L144 6 L156 16" />
+      </svg>
+    </div>
+  )
+}
+
 /** Cinema, fullscreen: a black-and-white screening. Venetian-blind light drifts, grain, a projector flicker, a beam with dust. */
 function NoirFx() {
   const dust = useMemo(() => Array.from({ length: 22 }, (_, i) => ({ left: 8 + ((i * 37 + 5) % 84), top: 30 + ((i * 19) % 62), dur: 8 + (i % 6) * 2, delay: -((i * 1.1) % 12) })), [])
@@ -383,6 +560,15 @@ function StadiumFx() {
 function CassetteFx() {
   return (
     <div className="cassettefx">
+      <div className="cassettefx__plate" />
+      <i className="cassettefx__screw cassettefx__screw--a" />
+      <i className="cassettefx__screw cassettefx__screw--b" />
+      <i className="cassettefx__screw cassettefx__screw--c" />
+      <i className="cassettefx__screw cassettefx__screw--d" />
+      <div className="cassettefx__vu">
+        <div className="cassettefx__dial"><i className="cassettefx__needle" /></div>
+        <div className="cassettefx__dial cassettefx__dial--r"><i className="cassettefx__needle" /></div>
+      </div>
       <div className="cassettefx__wood" />
       <div className="cassettefx__light" />
       <SceneWindow>
@@ -401,6 +587,9 @@ function BlocksFx() {
       <i className="blocksfx__cloud blocksfx__cloud--a" />
       <i className="blocksfx__cloud blocksfx__cloud--b" />
       <i className="blocksfx__cloud blocksfx__cloud--c" />
+      <i className="blocksfx__sun" />
+      <i className="blocksfx__torch blocksfx__torch--l" />
+      <i className="blocksfx__torch blocksfx__torch--r" />
       <div className="blocksfx__ground" />
       <div className="blocksfx__leaves" />
       <SceneWindow />
@@ -409,7 +598,7 @@ function BlocksFx() {
 }
 
 /** The ten looks inspired by the phone-screen / motion-scene styles: shared shell, each one adds its own few pieces. */
-const NEW_LOOKS = ['lock', 'wallet', 'route', 'editor', 'metro', 'web', 'lens', 'picto', 'wall', 'flap']
+const NEW_LOOKS = ['lock', 'lens', 'picto', 'wall', 'flap'] // wallet, route, editor, metro and web draw their own scene (components/fx/Looks25.tsx)
 function NewLookFx({ vibe }: { vibe: string }) {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
@@ -483,15 +672,10 @@ function NewLookFx({ vibe }: { vibe: string }) {
           <path d={web} />
         </svg>
       )}
-      {vibe === 'lens' && <i className="nvfx__lens" />}
-      {vibe === 'picto' && <div className="nvfx__plus" />}
-      {vibe === 'wall' && <div className="nvfx__panels" />}
-      {vibe === 'flap' && (
-        <div className="nvfx__board">
-          <span>Departures</span>
-          <span>LY 208 · gate 4</span>
-        </div>
-      )}
+      {vibe === 'lens' && <LensFx />}
+      {vibe === 'picto' && <PictoFx />}
+      {vibe === 'wall' && <WallFx />}
+      {vibe === 'flap' && <FlapFx />}
       <SceneWindow />
     </div>
   )
@@ -551,7 +735,7 @@ export function VibeFx() {
       })),
     []
   )
-  if (vibe === 'none') return null
+  if (vibe === 'none') return <NoneFx />
   return (
     <div className={`vibefx vibefx--${vibe}`} aria-hidden="true">
       <i className="vibeflash" key={vibe} />
@@ -567,6 +751,7 @@ export function VibeFx() {
           <GoldenHour />
         </>
       )}
+      {vibe === 'dusk' && <DuskFx />}
       {vibe === 'blocks' && <BlocksFx />}
       {vibe === 'stadium' && <StadiumFx />}
       {vibe === 'cassette' && <CassetteFx />}
@@ -580,6 +765,8 @@ export function VibeFx() {
       )}
       {vibe === 'noir' && <NoirFx />}
       {vibe === 'paper' && <DiaryFx />}
+      {vibe === 'journal' && <JournalFx />}
+      {vibe === 'doodle' && <DoodleFx />}
       {vibe === 'sketch' && <SketchFx />}
       {vibe === 'stencil' && <StencilFx />}
       {vibe === 'film' && <FilmFx />}
@@ -593,6 +780,11 @@ export function VibeFx() {
       {vibe === 'sticker' && <StickerFx />}
       {vibe === 'chat' && <DmFx />}
       {NEW_LOOKS.includes(vibe) && <NewLookFx vibe={vibe} />}
+      {vibe === 'wallet' && <WalletFx />}
+      {vibe === 'route' && <RouteFx />}
+      {vibe === 'editor' && <EditorFx />}
+      {vibe === 'metro' && <MetroFx />}
+      {vibe === 'web' && <WebFx />}
     </div>
   )
 }

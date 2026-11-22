@@ -457,12 +457,15 @@
 :root[data-perf='low'] .vstat__pill, :root[data-perf='low'] .vstat__card { background: rgba(14, 14, 20, 0.9); }
 @media (prefers-reduced-motion: reduce) { .vstat__bars i, .vstat__dot { animation: none; } }
 
+.vibecard--dusk .vibecard__sw { background: linear-gradient(180deg, #0d0b24, #3a2a63 45%, #ff8f70 78%, #0c0a1f 78%); }
 .vibecard--sunset .vibecard__sw { background: linear-gradient(180deg, #2b0a5a, #ff5e9b 55%, #ffb347 80%, #1a0630 80%); }
 .vibecard--blocks .vibecard__sw { background: linear-gradient(180deg, #5aa7e8 0 62%, #5aa83a 62% 72%, #8b5a2b 72%); image-rendering: pixelated; }
 .vibecard--stadium .vibecard__sw { background: repeating-linear-gradient(90deg, #1f8f45 0 12px, #1a7d3b 12px 24px); box-shadow: inset 0 -10px 0 -4px #0b1b2e; }
 .vibecard--cassette .vibecard__sw { background: radial-gradient(circle at 30% 60%, #2a1a0e 0 12%, transparent 13%), radial-gradient(circle at 70% 60%, #2a1a0e 0 12%, transparent 13%), linear-gradient(#e9d9bd, #cdb893); }
 .vibecard--trailer .vibecard__sw { background: linear-gradient(180deg, #000 0 14%, transparent 14% 86%, #000 86%), radial-gradient(circle, #3a2c1c, #050404); box-shadow: inset 0 0 0 1px rgba(255,217,160,.25); }
 .vibecard--paper .vibecard__sw { background: repeating-linear-gradient(180deg, #fffbf1 0 9px, #b9c8ee 9px 10px); }
+.vibecard--doodle .vibecard__sw { background: radial-gradient(circle at 30% 40%, #ffd84a 0 22%, transparent 23%), radial-gradient(circle at 70% 60%, #ff8fb1 0 20%, transparent 21%), #fffdf4; }
+.vibecard--journal .vibecard__sw { background: repeating-linear-gradient(180deg, #fdf4e6 0 9px, #cfdcf3 9px 10px), linear-gradient(90deg, transparent 18%, #e0556d 18% 20%, transparent 20%); }
 .vibecard--arcade .vibecard__sw { background: linear-gradient(135deg, #14143a, #ff2d6f 60%, #ffe14d); image-rendering: pixelated; }
 .vibecard--noir .vibecard__sw { background: linear-gradient(180deg, #000 0 14%, #3a3a3a 14% 86%, #000 86%); }
 

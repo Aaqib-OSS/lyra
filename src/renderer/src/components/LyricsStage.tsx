@@ -1,4 +1,5 @@
 import { memo, useMemo, useRef, useState } from 'react'
+import { KindCard, Meta, emojiFor, kindOf, reactionsFor } from './DmKinds'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { LyricLine, LyricStyle } from '@shared/types'
 import { useFrame } from '@/hooks/useLyricsSync'
@@ -7,6 +8,8 @@ import { lyricPosition } from '@/hooks/useLyricsSync'
 import { useArtwork } from '@/hooks/useArtwork'
 import { usePlayer } from '@/store/player'
 import { clamp } from '@/lib/format'
+import { countRepeats, lineInk, normLine, wordInk, type LineInk } from '@/lib/journalInk'
+import { buildFile, escapeLiteral, pickLang, type CodeLine, type Tok } from '@/lib/codeGen'
 
 /**
  * Staged lyrics for fullscreen: one phrase at a time instead of a scrolling list.
@@ -101,10 +104,11 @@ export function LyricsStage({ lines, active, mode }: StageProps) {
       {mode === 'subtitle' && <Subtitles lines={lines} active={active} />}
       {mode === 'chatlog' && <ChatLog lines={lines} active={active} />}
       {mode === 'lowerthird' && <LowerThird lines={lines} active={active} />}
-      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title' || mode === 'ink' || mode === 'glitch' || mode === 'bubble' || mode === 'spray' || mode === 'intertitle' || mode === 'note' || mode === 'label' || mode === 'metro' || mode === 'weave' || mode === 'picto' || mode === 'wall' || mode === 'flap') && <Sign lines={lines} active={active} variant={mode} />}
+      {(mode === 'sign' || mode === 'liquid' || mode === 'pixel' || mode === 'title' || mode === 'ink' || mode === 'glitch' || mode === 'bubble' || mode === 'spray' || mode === 'intertitle' || mode === 'note' || mode === 'jot' || mode === 'scrawl' || mode === 'label' || mode === 'metro' || mode === 'weave' || mode === 'picto' || mode === 'wall' || mode === 'flap') && <Sign lines={lines} active={active} variant={mode} />}
       {mode === 'bloom' && <Bloom lines={lines} active={active} />}
       {mode === 'log' && <TermLog lines={lines} active={active} />}
-      {(mode === 'lockscreen' || mode === 'wallet' || mode === 'route' || mode === 'editor') && <Feed lines={lines} active={active} variant={mode} />}
+      {(mode === 'lockscreen' || mode === 'wallet' || mode === 'route') && <Feed lines={lines} active={active} variant={mode} />}
+      {mode === 'editor' && <CodeStage lines={lines} active={active} />}
       {active >= 0 && !live && (
         <div className="stage__rest" aria-label="instrumental break">
           <i />
@@ -354,7 +358,7 @@ function Chat({ lines, active }: { lines: readonly LyricLine[]; active: number }
   const track = usePlayer((s) => s.snapshot?.track ?? null)
   const art = useArtwork(track?.artworkUrl ?? null)
   const shown: number[] = []
-  for (let i = active; i >= 0 && shown.length < 4; i--) if (lines[i] && lines[i]!.text !== '') shown.unshift(i)
+  for (let i = active; i >= 0 && shown.length < 5; i--) if (lines[i] && lines[i]!.text !== '') shown.unshift(i)
   const cur = shown[shown.length - 1]
   return (
     <div className="chat">
@@ -363,8 +367,10 @@ function Chat({ lines, active }: { lines: readonly LyricLine[]; active: number }
         <div>
           <b>{track?.artists[0] ?? 'Lyra'}</b>
           <span>{track?.title ?? ''}</span>
+          <ChatStatus line={cur !== undefined ? lines[cur] : undefined} nextTime={cur !== undefined ? lines[cur + 1]?.timeMs : undefined} />
         </div>
       </header>
+      <div className="chat__day">Today</div>
       <div className="chat__shared">
         {art ? <img src={art} alt="" /> : <i />}
         <div>
@@ -375,7 +381,7 @@ function Chat({ lines, active }: { lines: readonly LyricLine[]; active: number }
       <div className="chat__feed">
         <AnimatePresence initial={false}>
           {shown.map((i, n) => (
-            <Bubble key={i} line={lines[i]!} nextTime={lines[i + 1]?.timeMs} side={i % 2 === 0 ? 'in' : 'out'} age={shown.length - 1 - n} live={i === cur} />
+            <Bubble key={i} index={i} prev={lines[i - 1]?.text ?? ''} line={lines[i]!} nextTime={lines[i + 1]?.timeMs} side={i % 2 === 0 ? 'in' : 'out'} age={shown.length - 1 - n} live={i === cur} />
           ))}
         </AnimatePresence>
       </div>
@@ -383,14 +389,27 @@ function Chat({ lines, active }: { lines: readonly LyricLine[]; active: number }
   )
 }
 
-const Bubble = memo(function Bubble({ line, nextTime, side, age, live }: { line: LyricLine; nextTime: number | undefined; side: 'in' | 'out'; age: number; live: boolean }) {
+/** "typing…" while the line is being sung, "online" in the gaps. */
+function ChatStatus({ line, nextTime }: { line: LyricLine | undefined; nextTime: number | undefined }) {
+  const words = useMemo(() => (line ? stageWords(line, nextTime) : []), [line, nextTime])
+  const revealed = useRevealed(words)
+  const typing = words.length > 0 && revealed < words.length
+  return <em className={`chat__status ${typing ? 'is-typing' : ''}`}>{typing ? 'typing…' : 'online'}</em>
+}
+
+const Bubble = memo(function Bubble({ line, nextTime, side, age, live, index, prev }: { line: LyricLine; nextTime: number | undefined; side: 'in' | 'out'; age: number; live: boolean; index: number; prev: string }) {
   const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
   const revealed = useRevealed(words, !live)
   const typing = live && revealed === 0
+  const track = usePlayer((s) => s.snapshot?.track ?? null)
+  const art = useArtwork(track?.artworkUrl ?? null)
+  const kind = kindOf(index)
+  const reacts = reactionsFor(kind, index)
+  const done = live ? revealed >= words.length : true
   return (
     <motion.div
       layout="position"
-      className={`bub bub--${side} ${live ? 'is-live' : ''}`}
+      className={`bub bub--${side} bub--k-${kind} ${live ? 'is-live' : ''}`}
       initial={{ opacity: 0, y: 40, scale: 0.7 }}
       animate={{ opacity: live ? 1 : Math.max(0.5, 0.85 - age * 0.14), y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -50, scale: 0.9 }}
@@ -404,15 +423,19 @@ const Bubble = memo(function Bubble({ line, nextTime, side, age, live }: { line:
             <i />
           </span>
         )}
+        <KindCard kind={kind} index={index} words={words.map((w) => w.text)} shown={revealed} title={track?.title ?? ''} artist={track?.artists[0] ?? ''} art={art} prev={prev} />
         <span className="bub__text">
+          {kind === 'emoji' && <em className="bub__emoji">{emojiFor(index)} </em>}
           {words.map((w, i) => (
             <span key={i} className={i < revealed ? 'is-in' : ''}>
               {w.text}{' '}
             </span>
           ))}
         </span>
+        <Meta index={index} out={side === 'out'} read={done} />
+        {reacts.length > 0 && <span className="bub__react">{reacts.join(' ')}</span>}
       </div>
-      {live && revealed >= words.length && <small className="bub__read">Read ✓✓</small>}
+      {live && revealed >= words.length && <small className="bub__read">{side === 'out' ? 'Read ✓✓' : 'Delivered'}</small>}
     </motion.div>
   )
 })
@@ -634,21 +657,62 @@ const LtBar = memo(function LtBar({ line, nextTime }: { line: LyricLine; nextTim
   )
 })
 
+/** Journal: the margin marks of a line: a star, an arrow, an exclamation mark, a small number, or a brace and a note for a chorus line. */
+function JotMargin({ ink }: { ink: LineInk }) {
+  if (ink.chorus) {
+    return (
+      <>
+        <svg className="jl__brace" viewBox="0 0 20 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M16 2 C8 2 10 10 10 26 C10 40 8 46 2 50 C8 54 10 60 10 74 C10 90 8 98 16 98" />
+        </svg>
+        <span className="jl__chorus">{`chorus ×${ink.chorus}`}</span>
+      </>
+    )
+  }
+  if (ink.tag === 'star')
+    return (
+      <svg className="jl__tag jl__tag--star" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M24 5 L29 19 L44 19 L32 28 L36 43 L24 34 L12 43 L16 28 L4 19 L19 19 Z" />
+      </svg>
+    )
+  if (ink.tag === 'arrow')
+    return (
+      <svg className="jl__tag jl__tag--arrow" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M4 30 C16 36 30 30 40 16" />
+        <path d="M28 14 L41 14 L38 27" />
+      </svg>
+    )
+  if (ink.tag === 'excl')
+    return (
+      <svg className="jl__tag jl__tag--excl" viewBox="0 0 48 48" aria-hidden="true">
+        <path d="M22 6 C21 18 22 26 24 32" />
+        <path d="M24 40 L24.5 41" />
+      </svg>
+    )
+  if (ink.tag === 'num') return <span className="jl__num">{ink.num}</span>
+  return null
+}
+
 // ---------- sign: the song is lit word by word on a wall sign, the next line waits underneath ----------
 const Sign = memo(function Sign({ lines, active, variant }: { lines: readonly LyricLine[]; active: number; variant: string }) {
+  const repeats = useMemo(() => (variant === 'jot' ? countRepeats(lines) : null), [lines, variant])
   const line = active >= 0 ? lines[active] : undefined
   const live = line && line.text !== '' ? line : undefined
   const next = lines.slice(active + 1).find((l) => l.text !== '')
   return (
     <div className={`sign sign--${variant}`}>
       <AnimatePresence mode="wait" initial={false}>
-        {live && <SignLine key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} next={next?.text} variant={variant} />}
+        {live && <SignLine key={active} line={live} index={active} nextTime={lines[active + 1]?.timeMs} next={next?.text} variant={variant} occurrences={repeats?.get(normLine(live.text)) ?? 0} />}
       </AnimatePresence>
     </div>
   )
 })
-const SignLine = memo(function SignLine({ line, index, nextTime, next, variant }: { line: LyricLine; index: number; nextTime: number | undefined; next: string | undefined; variant: string }) {
+const SignLine = memo(function SignLine({ line, index, nextTime, next, variant, occurrences }: { line: LyricLine; index: number; nextTime: number | undefined; next: string | undefined; variant: string; occurrences: number }) {
   const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  // Journal: every line is marked up with its own pens (see lib/journalInk.ts)
+  const jot = variant === 'jot'
+  const inks = useMemo(() => (jot ? wordInk(index, line.text, words.map((w) => w.text)) : null), [jot, index, line.text, words])
+  const lineMark = useMemo(() => (jot ? lineInk(index, line.text, occurrences) : null), [jot, index, line.text, occurrences])
   const revealed = useRevealed(words)
   // one word per line flickers now and then, like a tired tube (picked from the line itself so it stays put)
   const tired = hash(index, line.text) % words.length
@@ -657,8 +721,9 @@ const SignLine = memo(function SignLine({ line, index, nextTime, next, variant }
       {words.map((w, i) => (
         <span
           key={i}
-          className={['sign__word', i < revealed ? 'is-in' : '', i === revealed - 1 ? 'is-now' : '', i === tired ? 'is-tired' : ''].join(' ')}
+          className={['sign__word', i < revealed ? 'is-in' : '', i === revealed - 1 ? 'is-now' : '', i === tired ? 'is-tired' : '', inks?.[i]?.mark ? `jm jm--${inks[i]!.mark}` : ''].join(' ')}
           style={{ ['--wi' as string]: i, ['--wn' as string]: words.length }}
+          data-note={inks?.[i]?.note}
         >
           {variant === 'flap'
             ? Array.from(w.text).map((c, j) => (
@@ -678,13 +743,14 @@ const SignLine = memo(function SignLine({ line, index, nextTime, next, variant }
   )
   return (
     <motion.div
-      className="sign__line"
-      style={{ ['--r' as string]: words.length ? revealed / words.length : 0 }}
+      className={lineMark ? `sign__line jl jl--${lineMark.ink}${lineMark.chorus ? ' jl--chorus' : ''}` : 'sign__line'}
+      style={{ ['--r' as string]: words.length ? revealed / words.length : 0, ...(lineMark ? { ['--jt' as string]: `${lineMark.tilt / 10}deg` } : {}) }}
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10, transition: { duration: 0.22 } }}
       transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
     >
+      {lineMark && <JotMargin ink={lineMark} />}
       <div className="sign__row">{row}</div>
       {next && <div className="sign__next">{next}</div>}
       <div className="sign__refl" aria-hidden="true">
@@ -801,6 +867,57 @@ const Feed = memo(function Feed({ lines, active, variant }: { lines: readonly Ly
     </div>
   )
 })
+
+// ---------- editor: the song as a source file (real syntax in one of seven languages, picked from the title; see lib/codeGen.ts) ----------
+const CodeStage = memo(function CodeStage({ lines, active }: { lines: readonly LyricLine[]; active: number }) {
+  const title = usePlayer((s) => s.snapshot?.track?.title ?? '')
+  const lang = useMemo(() => pickLang(title), [title])
+  const rows = useMemo(() => {
+    const statements = []
+    for (let i = 0; i <= active && i < lines.length; i++) statements.push({ index: i, text: lines[i]!.text, timeMs: lines[i]!.timeMs })
+    return buildFile(lang, title, statements, { keep: 4 })
+  }, [lines, active, lang, title])
+  return (
+    <div className={`code code--${lang}`} data-lang={lang}>
+      {rows.map((r) => (
+        <CodeRow key={`${r.kind}${r.n}`} row={r} lang={lang} line={r.lyric !== undefined ? lines[r.lyric] : undefined} nextTime={r.lyric !== undefined ? lines[r.lyric + 1]?.timeMs : undefined} current={r.lyric !== undefined && r.lyric === active} />
+      ))}
+    </div>
+  )
+})
+const CodeRow = memo(function CodeRow({ row, lang, line, nextTime, current }: { row: CodeLine; lang: string; line: LyricLine | undefined; nextTime: number | undefined; current: boolean }) {
+  return (
+    <div className={`code__row code__row--${row.kind}${current ? ' is-current' : ''}`} data-git={row.git} style={{ ['--depth' as string]: row.depth }}>
+      <span className="code__gut">
+        <i className="code__git" />
+        <span className="code__ln">{row.n}</span>
+        <span className="code__fold">{row.kind === 'fold' ? '▸' : row.depth > 0 && row.kind === 'code' ? '▾' : ''}</span>
+      </span>
+      <span className="code__src">
+        {row.toks.map((t, i) => (t.t === 'lyric' && line ? <CodeWords key={i} lang={lang} line={line} nextTime={nextTime} current={current} /> : <CodeTok key={i} tok={t} />))}
+        {row.kind === 'fold' && <span className="tk tk--com"> {row.folded} {row.folded === 1 ? 'line' : 'lines'}</span>}
+        {current && <i className="code__caret" />}
+      </span>
+    </div>
+  )
+})
+function CodeTok({ tok }: { tok: Tok }) {
+  return tok.t === 'ws' ? <>{tok.s}</> : <span className={`tk tk--${tok.t}${tok.m ? ' tk--m' : ''}`}>{tok.s}</span>
+}
+function CodeWords({ lang, line, nextTime, current }: { lang: string; line: LyricLine; nextTime: number | undefined; current: boolean }) {
+  const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
+  const revealed = useRevealed(words, !current)
+  return (
+    <span className="tk tk--lyric">
+      {words.map((w, i) => (
+        <span key={i} className={['code__w', i < revealed ? 'is-in' : '', current && i === revealed - 1 ? 'is-now' : ''].join(' ')}>
+          {escapeLiteral(lang as never, w.text)}
+          {i < words.length - 1 ? ' ' : ''}
+        </span>
+      ))}
+    </span>
+  )
+}
 const FeedRow = memo(function FeedRow({ line, index, nextTime, age }: { line: LyricLine; index: number; nextTime: number | undefined; age: number }) {
   const words = useMemo(() => stageWords(line, nextTime), [line, nextTime])
   const revealed = useRevealed(words, age > 0)
