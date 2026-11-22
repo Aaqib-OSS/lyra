@@ -1,15 +1,7 @@
 import type { LyricStyle, Vibe } from './types'
 
-/**
- * Where the card and the lyrics go in fullscreen (and with a video behind):
- *  side  card on the left, lyrics on the right (the classic arrangement)
- *  dock  the card becomes a slim bar along the bottom, the lyrics own the stage above it
- *  orb   a small floating pill in the corner, the lyrics fill the whole screen
- *  bar   controls live inside the bottom letterbox bar, the lyrics are subtitles above
- *  chat  one centred column like a messaging app, the controls are the message bar
- *  term  a framed sidebar next to a framed log, like two terminal panes
- */
-export type LayoutArch = 'side' | 'dock' | 'orb' | 'bar' | 'chat' | 'term' | 'scene'
+/** Where the card and the lyrics go: every look composes its own screen (a 'scene': the video window, the card and the lyrics are placed by styles/scene.css and the look's own file). */
+export type LayoutArch = 'scene'
 
 export interface VibeInfo {
   id: Vibe
