@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { SavedMoment } from '@shared/types'
+import { useTranslation } from '@/i18n'
 import { usePlayer } from '@/store/player'
 import { useUi, type Panel } from '@/store/ui'
 import { Artwork } from './Artwork'
@@ -14,6 +15,7 @@ import { momentCaption, momentsToMarkdown, searchMoments } from '@shared/moments
 const TITLES: Record<Exclude<Panel, 'none'>, string> = { queue: 'Queue', moments: 'Moments', settings: 'Settings', lyrics: 'Lyrics match', keys: 'Keyboard shortcuts' }
 
 export function SidePanel() {
+  const { t } = useTranslation()
   const panel = useUi((s) => s.panel)
   const setPanel = useUi((s) => s.setPanel)
   const phone = document.documentElement.dataset.platform === 'android'
@@ -35,7 +37,7 @@ export function SidePanel() {
             key="panel"
             className="sidepanel"
             role="dialog"
-            aria-label={TITLES[panel]}
+            aria-label={t(TITLES[panel])}
             initial={phone ? { y: '100%' } : { x: '100%', opacity: 0.6 }}
             animate={phone ? { y: 0 } : { x: 0, opacity: 1 }}
             exit={phone ? { y: '100%' } : { x: '100%', opacity: 0 }}
@@ -43,7 +45,7 @@ export function SidePanel() {
           >
             {phone && <i className="sidepanel__grip" aria-hidden="true" />}
             <header className="sidepanel__head">
-              <h3>{TITLES[panel]}</h3>
+              <h3>{t(TITLES[panel])}</h3>
               <IconButton icon="close" label="Close panel" size={16} onClick={() => setPanel('none')} />
             </header>
             <div className="sidepanel__body">
@@ -61,6 +63,7 @@ export function SidePanel() {
 }
 
 function QueuePanel() {
+  const { t } = useTranslation()
   const track = usePlayer((s) => s.snapshot?.track ?? null)
   const queue = usePlayer((s) => s.queue)
   const recent = usePlayer((s) => s.recent)
@@ -78,7 +81,7 @@ function QueuePanel() {
     <div className="list">
       {track && (
         <>
-          <h4>Now playing</h4>
+          <h4>{t('Now playing')}</h4>
           <div className="item item--now">
             <Artwork url={track.artworkUrl} size={44} radius={8} />
             <div>
@@ -88,7 +91,7 @@ function QueuePanel() {
           </div>
         </>
       )}
-      <h4>Next up</h4>
+      <h4>{t('Next up')}</h4>
       {!loaded ? (
         <p className="list__empty" role="status">Loading…</p>
       ) : queue === null ? (
@@ -105,7 +108,7 @@ function QueuePanel() {
           )}
         </p>
       ) : queue.length === 0 ? (
-        <p className="list__empty">Nothing queued after this track.</p>
+        <p className="list__empty">{t('Nothing queued after this track.')}</p>
       ) : (
         queue.map((q, i) => (
           <div key={`${q.id}-${i}`} className="item">
@@ -119,7 +122,7 @@ function QueuePanel() {
       )}
       {recent && recent.length > 0 && (
         <>
-          <h4>Recently played</h4>
+          <h4>{t('Recently played')}</h4>
           {recent.slice(0, 8).map((q, i) => (
             <div key={`${q.id}-r${i}`} className="item item--dim">
               <Artwork url={q.artworkUrl} size={36} radius={6} />

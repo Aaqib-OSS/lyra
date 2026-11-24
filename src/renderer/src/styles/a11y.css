@@ -1,0 +1,92 @@
+/* Accessibility layer. Loaded last so it wins over per-look rules without touching them.
+   See docs/accessibility.md. Do not add look-specific colours here. */
+
+/* ---------- visible keyboard focus in every look ----------
+   A black ring directly against the control and a white ring around it: one of the two always
+   contrasts with whatever the look draws behind (3:1 needed). Looks may override --focus-in / --focus-out. */
+:focus-visible {
+  outline: 2px solid var(--focus-out, #fff);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--focus-in, #000);
+}
+/* sliders and inputs draw their own thumb/border; keep the same two-tone ring on the thumb */
+input[type='range']:focus-visible {
+  outline-offset: 4px;
+}
+/* lyric lines are reached with the keyboard to seek: ring without moving the text */
+.lyric:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid var(--focus-out, #fff);
+  box-shadow: 0 0 0 2px var(--focus-in, #000);
+}
+/* the scrollable lyrics region takes focus to scroll with the arrow keys */
+.lyrics__scroller:focus-visible {
+  outline: 2px solid var(--focus-out, #fff);
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 2px var(--focus-in, #000);
+}
+
+/* ---------- screen-reader-only text (live regions, extra labels) ---------- */
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Android: 48dp touch targets without moving the layout ---------- */
+/* !important: the per-look Android rules are more specific; 48 is a floor no look may go under */
+:root[data-platform='android'] .ibtn {
+  min-width: 48px !important;
+  min-height: 48px !important;
+}
+:root[data-platform='android'] :is(.pill, .seg button, [role='tab'], [role='radio'], .menu__pop button, select) {
+  min-height: 48px !important;
+}
+/* small controls keep their look; android-scenes.css already gives them an invisible 44px hit area, raised here to 48 */
+:root[data-platform='android'] .lyrics__footer button::after,
+:root[data-platform='android'] .lyrics__footer .pill::after,
+:root[data-platform='android'] .ambsw .switch::after {
+  width: max(100%, 48px);
+  height: 48px;
+}
+
+/* ---------- text size: let long words and big text wrap instead of overflowing ---------- */
+.sidepanel,
+.sharecard__box,
+.welcome {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Windows high contrast / forced colours ---------- */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 3px solid Highlight;
+    box-shadow: none;
+  }
+  .pill,
+  .ibtn,
+  .seg button,
+  .field,
+  select,
+  .switch {
+    border: 1px solid ButtonText;
+    forced-color-adjust: auto;
+  }
+  .switch[aria-checked='true'] {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* ---------- lyrics keep their own direction whatever the UI direction is ----------
+   Each line decides for itself (Arabic and Hebrew lines run right to left inside an LTR app, and English
+   lines stay left to right inside an RTL app). */
+.lyric__text,
+.lyrics__plain p {
+  unicode-bidi: plaintext;
+}

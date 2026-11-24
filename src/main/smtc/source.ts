@@ -214,7 +214,7 @@ export class SmtcSource extends PlaybackSource {
   }
 
   async command(cmd: PlayerCommand): Promise<CommandResult> {
-    if (!this.proc) return { ok: false, reason: 'offline', error: 'Windows media bridge isn’t running.' }
+    if (!this.proc) return { ok: false, reason: 'offline', error: 'Lyra’s Windows media helper isn’t running. Restart Lyra and try again.' }
     if (!this.snapshot?.track && cmd.type !== 'toggle' && cmd.type !== 'play') {
       return { ok: false, reason: 'no-device', error: 'Spotify isn’t playing anything.' }
     }

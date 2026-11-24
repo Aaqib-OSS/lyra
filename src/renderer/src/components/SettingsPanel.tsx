@@ -459,7 +459,7 @@ function BackgroundSection() {
           </button>
         ) : (
           <>
-            <input className="field" type="password" autoComplete="off" spellCheck={false} placeholder="API key" value={key} onChange={(e) => setKey(e.target.value)} style={{ width: 150 }} />
+            <input className="field" type="password" autoComplete="off" spellCheck={false} placeholder="API key" aria-label="API key" value={key} onChange={(e) => setKey(e.target.value)} style={{ width: 150 }} />
             <button
               type="button"
               className="pill"
@@ -981,6 +981,7 @@ export function SettingsPanel() {
           <select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label={t('Language')}>
             <option value="en">English</option>
             <option value="hi">हिन्दी</option>
+            <option value="gu">ગુજરાતી</option>
           </select>
         </Row>
         <h4>{t('Music source')}</h4>

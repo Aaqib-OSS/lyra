@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from '@/i18n'
 import { usePlayer } from '@/store/player'
 import { useSettings } from '@/store/settings'
 import { Icon, type IconName } from './Icon'
@@ -16,13 +17,15 @@ interface BtnProps {
 }
 
 export function IconButton({ icon, label, onClick, active, disabled, size = 18, filled, className = '', title }: BtnProps) {
+  const { t } = useTranslation()
+  const name = t(label)
   return (
     <button
       type="button"
       className={`ibtn ${active ? 'is-active' : ''} ${className}`}
-      aria-label={label}
+      aria-label={name}
       aria-pressed={active}
-      title={title ?? label}
+      title={title ? t(title) : name}
       disabled={disabled}
       onClick={onClick}
     >
@@ -52,6 +55,7 @@ export function useCaps(): { queue: boolean; shuffleRepeat: boolean } {
 }
 
 export function Transport({ size = 'md', extras: wantExtras = false }: TransportProps) {
+  const { t } = useTranslation()
   const caps = useCaps()
   const extras = wantExtras && caps.shuffleRepeat
   const playing = usePlayer((s) => !!s.snapshot?.isPlaying)
@@ -64,7 +68,7 @@ export function Transport({ size = 'md', extras: wantExtras = false }: Transport
   const main = size === 'sm' ? 30 : size === 'md' ? 44 : 60
 
   return (
-    <div className={`transport transport--${size}`} role="group" aria-label="Playback controls" title={reason}>
+    <div className={`transport transport--${size}`} role="group" aria-label={t('Playback controls')} title={reason && t(reason)}>
       {extras && (
         <IconButton icon="shuffle" label="Shuffle" active={shuffle} disabled={locked} size={px - 2} onClick={() => void command({ type: 'shuffle', on: !shuffle })} />
       )}
@@ -73,8 +77,8 @@ export function Transport({ size = 'md', extras: wantExtras = false }: Transport
         type="button"
         className="playbtn"
         style={{ width: main, height: main }}
-        aria-label={playing ? 'Pause' : 'Play'}
-        title={reason ?? (playing ? 'Pause' : 'Play')}
+        aria-label={playing ? t('Pause') : t('Play')}
+        title={reason ? t(reason) : playing ? t('Pause') : t('Play')}
         disabled={locked}
         onClick={toggle}
       >
@@ -84,7 +88,7 @@ export function Transport({ size = 'md', extras: wantExtras = false }: Transport
       {extras && (
         <IconButton
           icon={repeat === 'track' ? 'repeatOne' : 'repeat'}
-          label={`Repeat: ${repeat}`}
+          label={t('Repeat: {mode}', { mode: t(repeat === 'off' ? 'off' : repeat === 'track' ? 'this song' : 'all') })}
           active={repeat !== 'off'}
           disabled={locked}
           size={px - 2}
@@ -96,6 +100,7 @@ export function Transport({ size = 'md', extras: wantExtras = false }: Transport
 }
 
 export function VolumeControl({ wide = false }: { wide?: boolean }) {
+  const { t } = useTranslation()
   const isLocal = usePlayer((s) => s.status?.state === 'local')
   const volumeOn = useSettings((s) => s.settings.systemVolume)
   const hidden = isLocal && !volumeOn
@@ -132,12 +137,12 @@ export function VolumeControl({ wide = false }: { wide?: boolean }) {
         setLocal(next)
         commit(next)
       }}
-      title={supported ? undefined : device ? `${device.name} doesn’t support volume control from here` : 'No active device'}
+      title={supported ? undefined : device ? t('{name} doesn’t support volume control from here', { name: device.name }) : t('No active device')}
     >
       <button
         type="button"
         className="ibtn"
-        aria-label={value === 0 ? 'Unmute' : 'Mute'}
+        aria-label={value === 0 ? t('Unmute') : t('Mute')}
         disabled={!supported}
         onClick={() => {
           if (value > 0) {
@@ -162,7 +167,7 @@ export function VolumeControl({ wide = false }: { wide?: boolean }) {
         max={100}
         value={value}
         disabled={!supported}
-        aria-label="Volume"
+        aria-label={t('Volume')}
         aria-valuetext={`${value}%`}
         style={{ ['--fill' as string]: `${value}%` }}
         onChange={(e) => {

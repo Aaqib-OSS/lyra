@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { LyricLine } from '@shared/types'
 import { momentCaption } from '@shared/moments'
 import { cardDataUrl, cardTheme, drawCard, FORMAT_H, type CardFormat } from '@/lib/shareCard'
+import { useDialog } from '@/hooks/useDialog'
+import { useTranslation } from '@/i18n'
 import { useEffectiveVibe } from '@/hooks/useVibe'
 import { usePlayer } from '@/store/player'
 import { useUi } from '@/store/ui'
@@ -11,6 +13,9 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
   const track = usePlayer((s) => s.snapshot?.track)
   const { vibe } = useEffectiveVibe()
   const canvas = useRef<HTMLCanvasElement>(null)
+  const { t } = useTranslation()
+  const dialog = useRef<HTMLDivElement>(null)
+  useDialog(dialog, onClose)
   const [from, setFrom] = useState(index)
   const [count, setCount] = useState(1)
   const [look, setLook] = useState<'classic' | 'doodle'>('doodle')
@@ -64,7 +69,7 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
     try {
       return cardDataUrl(canvas.current!)
     } catch {
-      toast('Couldn’t make the image (the cover blocks it). Try another song', 'error')
+      toast(t('Couldn’t make the image (the cover blocks it). Try another song'), 'error')
       return null
     }
   }
@@ -77,7 +82,7 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
     const url = data()
     if (!url) return
     if (kind === 'copy') {
-      toast((await window.lyra.app.copyImage(url)) ? 'Image copied. Paste it anywhere' : 'Couldn’t copy the image', 'info')
+      toast((await window.lyra.app.copyImage(url)) ? t('Image copied. Paste it anywhere') : t('Couldn’t copy the image'), 'info')
     } else {
       const r = await window.lyra.app.shareImage(url, name)
       if (r === 'saved') toast('Card saved')
@@ -86,28 +91,28 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
   }
 
   return (
-    <div className="sharecard" role="dialog" aria-label="Share a lyric card" aria-modal="true" data-nodrag>
-      <div className="sharecard__box" ref={box} tabIndex={-1}>
+    <div ref={dialog} className="sharecard" role="dialog" aria-modal="true" aria-label={t('Share a lyric card')} data-nodrag>
+      <div className="sharecard__box">
         <header>
-          <b>Share a lyric card</b>
-          <button type="button" className="ibtn" aria-label="Close" onClick={onClose}>
+          <b>{t('Share a lyric card')}</b>
+          <button type="button" className="ibtn" aria-label={t('Close')} onClick={onClose}>
             ✕
           </button>
         </header>
         <canvas ref={canvas} className="sharecard__canvas" style={{ aspectRatio: `1080 / ${FORMAT_H[format]}` }} role="img" aria-label={`Preview of the card: ${text.join(' ')}`} />
         <div className="sharecard__row">
-          <span>Lines</span>
-          <div className="seg" role="group" aria-label="Number of lines">
+          <span>{t('Lines')}</span>
+          <div className="seg" role="group" aria-label={t('Number of lines')}>
             {[1, 2, 3].map((n) => (
               <button key={n} type="button" aria-pressed={count === n} className={count === n ? 'is-on' : ''} onClick={() => setCount(n)}>
                 {n}
               </button>
             ))}
           </div>
-          <div className="seg" role="group" aria-label="Card style">
+          <div className="seg" role="group" aria-label={t('Card style')}>
             {(['doodle', 'classic'] as const).map((k) => (
               <button key={k} type="button" aria-pressed={look === k} className={look === k ? 'is-on' : ''} onClick={() => setLook(k)}>
-                {k === 'doodle' ? 'Doodle' : 'Classic'}
+                {k === 'doodle' ? t('Doodle') : t('Classic')}
               </button>
             ))}
           </div>
@@ -119,10 +124,10 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
             ))}
           </div>
           <button type="button" className="pill" disabled={from <= 0} onClick={() => setFrom((f) => Math.max(0, f - 1))}>
-            ↑ Earlier
+            ↑ {t('Earlier')}
           </button>
           <button type="button" className="pill" disabled={from + count >= lines.length} onClick={() => setFrom((f) => f + 1)}>
-            ↓ Later
+            ↓ {t('Later')}
           </button>
         </div>
         <div className="sharecard__row sharecard__row--end">
@@ -131,11 +136,11 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
           </button>
           {!android && (
             <button type="button" className="pill" onClick={() => void act('copy')}>
-              Copy image
+              {t('Copy image')}
             </button>
           )}
           <button type="button" className="pill pill--primary" onClick={() => void act('share')}>
-            {android ? 'Share' : 'Save image'}
+            {android ? t('Share') : t('Save image')}
           </button>
         </div>
       </div>

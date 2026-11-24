@@ -17,6 +17,7 @@ import { LyricsView } from './LyricsView'
 import { KaraokeScreen } from './KaraokeScreen'
 import { RecordDialog } from './RecordDialog'
 import { StudioDialog } from './StudioDialog'
+import { useTranslation } from '@/i18n'
 import { ProgressBar } from './ProgressBar'
 import { ConnectScreen, LoadingScreen, NoMusicScreen, OfflineBanner, OfflineScreen } from './StateScreens'
 
@@ -142,13 +143,14 @@ export function OverflowMenu({ items, size = 16 }: { items: Array<{ icon: IconNa
 
 /** Android: a small switch to turn ambient mode on or off. */
 function AmbientSwitch() {
+  const { t } = useTranslation()
   const on = document.documentElement.dataset.ambient === '1'
   return (
-    <span className="ambsw" title="Ambient mode">
+    <span className="ambsw" title={t('Ambient mode')}>
       <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
         <path fill="currentColor" d="M12.1 22c-5.5 0-10-4.5-10-10 0-4.8 3.4-8.9 8-9.8.4-.1.8.3.6.7-.5 1.1-.7 2.3-.7 3.4 0 4.4 3.6 8 8 8 .6 0 1.2-.1 1.8-.2.4-.1.8.3.6.7-1.3 4.2-5.3 7.2-9.8 7.2z" />
       </svg>
-      <button type="button" role="switch" aria-checked={on} aria-label="Ambient mode" className="switch switch--sm" onClick={() => void window.lyra.android?.toggleAmbient()}>
+      <button type="button" role="switch" aria-checked={on} aria-label={t('Ambient mode')} className="switch switch--sm" onClick={() => void window.lyra.android?.toggleAmbient()}>
         <i />
       </button>
     </span>

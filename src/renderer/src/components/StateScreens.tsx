@@ -128,6 +128,7 @@ function DesktopConnect() {
                   spellCheck={false}
                   autoComplete="off"
                   placeholder="32-character Client ID"
+                  aria-label="Client ID"
                   value={id}
                   onChange={(e) => setId(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && id.trim().length >= 20 && connect()}

@@ -7,6 +7,7 @@ import { useReducedMotion } from '@/hooks/useMotion'
 import { clamp } from '@/lib/format'
 import { estimateWords } from '@shared/wordTiming'
 import { useLyrics } from '@/store/lyrics'
+import { useTranslation } from '@/i18n'
 import { usePlayer } from '@/store/player'
 import { OFFSET_STEP_MS, nudgeSongOffset, resetSongOffset, useLyricOffset, useSongOffset } from '@/store/offsets'
 import { describeOffset, linesToText, scrollMode, scrollTarget, textDirection, windowedDist } from '@/lib/lyricsView'
@@ -85,6 +86,7 @@ export function LyricsView({ variant }: Props) {
 // ---------------------------------------------------------------------------------------------
 
 function SyncedLyrics({ result, variant }: { result: LyricsResult; variant: 'mini' | 'full' }) {
+  const { t } = useTranslation()
   const wordByWord = useSettings((x) => x.settings.wordByWord)
   const showRomanization = useSettings((x) => x.settings.romanizeLyrics)
   const durationMs = usePlayer((x) => x.snapshot?.track?.durationMs)
@@ -237,7 +239,7 @@ function SyncedLyrics({ result, variant }: { result: LyricsResult; variant: 'min
             onClick={resume}
           >
             <Icon name="chevronDown" size={14} />
-            Current line
+            {t('Current line')}
           </motion.button>
         )}
       </AnimatePresence>
@@ -260,6 +262,7 @@ interface RowProps {
 }
 
 const LyricRow = memo(function LyricRow({ line, showRomanization, dist, nextTime, canSeek, onSeek, onSave, onShare, index, register }: RowProps) {
+  const { t } = useTranslation()
   const isActive = dist === 0
   const d = Math.min(Math.abs(dist), 6)
   const gap = line.text === ''
@@ -278,7 +281,7 @@ const LyricRow = memo(function LyricRow({ line, showRomanization, dist, nextTime
       aria-current={isActive ? 'true' : undefined}
     >
       {gap ? (
-        <span className="lyric__dots" aria-label="instrumental break">
+        <span className="lyric__dots" aria-label={t('instrumental break')}>
           <i />
           <i />
           <i />
@@ -300,10 +303,10 @@ const LyricRow = memo(function LyricRow({ line, showRomanization, dist, nextTime
               </span>
             )}
           </button>
-          <button type="button" className="lyric__save" aria-label="Save this line to your moments" title="Save line" onClick={() => onSave(line)}>
+          <button type="button" className="lyric__save" aria-label={t('Save this line to your moments')} title={t('Save line')} onClick={() => onSave(line)}>
             <Icon name="bookmark" size={14} />
           </button>
-          <button type="button" className="lyric__save" aria-label="Share this line as a card" title="Share as a card" onClick={() => onShare(line)}>
+          <button type="button" className="lyric__save" aria-label={t('Share this line as a card')} title={t('Share as a card')} onClick={() => onShare(line)}>
             <Icon name="share" size={14} />
           </button>
         </>
@@ -359,6 +362,7 @@ function WordLine({ line, nextTime }: { line: LyricLine; nextTime: number | unde
 // ---------------------------------------------------------------------------------------------
 
 function PlainLyrics({ result }: { result: LyricsResult }) {
+  const { t } = useTranslation()
   const showRomanization = useSettings((x) => x.settings.romanizeLyrics)
   const journal = useEffectiveVibe().vibe === 'journal' // Journal marks the unsynced lines with its own pens too (lib/journalInk.ts)
   // split, pen choice and romanisation are pure functions of the text: computed once per song, not on every re-render
@@ -376,7 +380,7 @@ function PlainLyrics({ result }: { result: LyricsResult }) {
     <div className="lyrics__scroller lyrics__scroller--plain" data-nodrag tabIndex={-1}>
       <div className="lyrics__inner lyrics__inner--plain">
         <p className="lyrics__notice" role="note">
-          <Icon name="alert" size={13} /> These lyrics aren’t time-synced, so they won’t follow the song.
+          <Icon name="alert" size={13} /> {t('These lyrics aren’t time-synced, so they won’t follow the song.')}
         </p>
         {paragraphs.map((p, i) => (
           <p key={i} className="plain__stanza">
@@ -399,9 +403,10 @@ function PlainLyrics({ result }: { result: LyricsResult }) {
 }
 
 function LyricsSkeleton() {
+  const { t } = useTranslation()
   const widths = [62, 80, 54, 72, 44, 68]
   return (
-    <div className="lyrics__skeleton" aria-busy="true" aria-label="Loading lyrics">
+    <div className="lyrics__skeleton" aria-busy="true" aria-label={t('Loading lyrics')}>
       {widths.map((w, i) => (
         <i key={i} style={{ width: `${w}%`, animationDelay: `${i * 90}ms` }} />
       ))}
@@ -449,6 +454,7 @@ function LyricsTranscript({ lines }: { lines: readonly LyricLine[] }) {
   )
 }
 function LyricsFooter({ result }: { result: LyricsResult }) {
+  const { t } = useTranslation()
   const songOffset = useSongOffset()
   const togglePanel = useUi((s) => s.togglePanel)
   const wordByWord = useSettings((s) => s.settings.wordByWord)
@@ -481,7 +487,7 @@ function LyricsFooter({ result }: { result: LyricsResult }) {
         </span>
         {result.provider !== 'demo' && (
           <button type="button" className="linkbtn" onClick={() => togglePanel('lyrics')}>
-            Wrong lyrics?
+            {t('Wrong lyrics?')}
           </button>
         )}
         {!synced && (
@@ -494,8 +500,8 @@ function LyricsFooter({ result }: { result: LyricsResult }) {
         </button>
       </span>
       {synced && (
-        <span className="offset" title="Shift this song's lyrics earlier / later (remembered per song)">
-          <button type="button" aria-label="Show lyrics later" onClick={() => nudgeSongOffset(-OFFSET_STEP_MS)}>
+        <span className="offset" title={t('Shift this song\'s lyrics earlier / later (remembered per song)')}>
+          <button type="button" aria-label={t('Show lyrics later')} onClick={() => nudgeSongOffset(-OFFSET_STEP_MS)}>
             −
           </button>
           <output aria-live="polite"

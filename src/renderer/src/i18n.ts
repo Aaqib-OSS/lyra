@@ -1,113 +1,38 @@
 import { useEffect, useState } from 'react'
+import { gu } from './locales/gu'
+import { hi } from './locales/hi'
 
-export type Language = 'en' | 'hi'
+/**
+ * UI translation. The key is the English sentence itself: t('Share a lyric card').
+ *  - English needs no dictionary; a key missing from another language falls back to English.
+ *  - Values: t('Cleared {n} saved lookups', { n: 3 }).
+ *  - Plurals: tp('{n} line', '{n} lines', count) picks by the language's plural rule.
+ *  - Numbers, dates and durations go through formatNumber / formatDate / formatDuration (Intl, per language).
+ *  - `npm run check:i18n` lists keys a language lacks and user-visible strings still hard-coded in English.
+ * Lyrics are never translated here; only the app's own words.
+ */
+export type Language = 'en' | 'hi' | 'gu'
+
+export const LANGUAGES: { id: Language; name: string; english: string; dir: 'ltr' | 'rtl'; locale: string }[] = [
+  { id: 'en', name: 'English', english: 'English', dir: 'ltr', locale: 'en' },
+  { id: 'hi', name: 'हिन्दी', english: 'Hindi', dir: 'ltr', locale: 'hi-IN' },
+  { id: 'gu', name: 'ગુજરાતી', english: 'Gujarati', dir: 'ltr', locale: 'gu-IN' }
+]
 
 const STORAGE_KEY = 'lyra.language'
 
-const translations: Record<Language, Record<string, string>> = {
-  en: {},
-  hi: {
-    'Phone': 'फ़ोन',
-    'Lyrics': 'गीत के बोल',
-    'Lyrics & video': 'बोल और वीडियो',
-    'Search settings': 'सेटिंग खोजें',
-    'Startup & keys': 'स्टार्टअप और कीज़',
-    'A small pop-up when the song changes': 'गाना बदलने पर एक छोटा पॉप-अप',
-    'Keys that work even when Lyra is in the background': 'ऐसी कीज़ जो Lyra के बैकग्राउंड में होने पर भी चलती हैं',
-    'Look': 'रूप',
-    'Background': 'पृष्ठभूमि',
-    'Share': 'शेयर',
-    'About': 'परिचय',
-    'General': 'सामान्य',
-    'Shortcuts': 'शॉर्टकट',
-    'Settings sections': 'सेटिंग अनुभाग',
-    'Language': 'भाषा',
-    'Choose the language used in Lyra settings': 'Lyra की सेटिंग के लिए भाषा चुनें',
-    'Music source': 'संगीत स्रोत',
-    'Rooms: listen together': 'रूम: साथ में सुनें',
-    'Host a room': 'रूम शुरू करें',
-    'Share a link: friends open it in any browser and see your synced lyrics live. Friends with Lyra can also join to listen in sync with you': 'लिंक साझा करें: दोस्त किसी भी ब्राउज़र में आपके साथ सिंक हुए बोल देख सकते हैं। Lyra वाले दोस्त साथ में सुनने के लिए जुड़ भी सकते हैं।',
-    'Start a room': 'रूम शुरू करें',
-    'Stop room': 'रूम बंद करें',
-    'Opening the room…': 'रूम खुल रहा है…',
-    'Room': 'रूम',
-    'person': 'व्यक्ति',
-    'people': 'लोग',
-    'watching. Guests connect straight to this device, so they can see its network address. Stop the room any time.': 'देख रहे हैं। मेहमान सीधे इस डिवाइस से जुड़ते हैं और इसका नेटवर्क पता देख सकते हैं। आप कभी भी रूम बंद कर सकते हैं।',
-    'Room link': 'रूम लिंक',
-    'Copy link': 'लिंक कॉपी करें',
-    'Join a room': 'रूम से जुड़ें',
-    'Paste a room link or code. Everyone plays the same song in their own Spotify; Lyra keeps your play, pause and position in step with the host': 'रूम का लिंक या कोड डालें। हर कोई अपने Spotify में वही गाना चलाता है; Lyra प्ले, पॉज़ और गाने की स्थिति को होस्ट के साथ सिंक रखता है।',
-    'Leave room': 'रूम छोड़ें',
-    'Room link or code': 'रूम लिंक या कोड',
-    'Join': 'जुड़ें',
-    'Joining…': 'जुड़ रहे हैं…',
-    'the host is not playing yet': 'होस्ट ने अभी गाना नहीं चलाया है',
-    'playing': 'चल रहा है',
-    'paused': 'रुका हुआ है',
-    'Play {title} by {artists} in your player.': 'अपने प्लेयर में {artists} का {title} गाना चलाएँ।',
-    'Find it in Spotify': 'Spotify में खोजें',
-    'Syncing with the host…': 'होस्ट के साथ सिंक हो रहा है…',
-    'In sync ✓': 'सिंक हो गया ✓',
-    'Sync is off: you are playing on your own.': 'सिंक बंद है: आप अपने हिसाब से सुन रहे हैं।',
-    'Keep my player in sync': 'मेरे प्लेयर को सिंक रखें',
-    "Matches the host's play, pause and position": 'होस्ट के प्ले, पॉज़ और गाने की स्थिति से मिलाता है',
-    'Room role': 'रूम की भूमिका',
-    'Nearby screens (TV mode)': 'पास की स्क्रीन (TV मोड)',
-    'Show lyrics on other screens': 'दूसरी स्क्रीन पर बोल दिखाएँ',
-    'Same Wi-Fi, no internet needed: scan the QR code on a phone, tablet, laptop or TV browser to get big synced lyrics. Off by default': 'एक ही Wi-Fi पर इंटरनेट की ज़रूरत नहीं। फ़ोन, टैबलेट, लैपटॉप या TV ब्राउज़र से QR कोड स्कैन करके बड़े, सिंक हुए बोल देखें। डिफ़ॉल्ट रूप से बंद।',
-    'TV and party mode': 'TV और पार्टी मोड',
-    'Stream sound too (Jam nearby)': 'आवाज़ भी स्ट्रीम करें (Jam nearby)',
-    "Lets devices on your Wi-Fi press Listen and hear this PC's sound with the lyrics. It sends everything this PC plays, only over your local network, and only while someone is listening. For you and the people in your home": 'आपके Wi-Fi पर डिवाइस Listen दबाकर बोलों के साथ इस PC की आवाज़ सुन सकते हैं। आवाज़ केवल स्थानीय नेटवर्क पर और सुनने के दौरान भेजी जाती है।',
-    'Stream sound': 'आवाज़ स्ट्रीम करें',
-    'Starting… If nothing appears, check that you are connected to Wi-Fi or a network.': 'शुरू हो रहा है… अगर कुछ न दिखे, तो Wi-Fi या नेटवर्क कनेक्शन जाँचें।',
-    'Open this on any device on the same Wi-Fi. Keep the link private: anyone who has it can see what you play.': 'इसे उसी Wi-Fi पर किसी भी डिवाइस में खोलें। लिंक निजी रखें: जिसके पास लिंक होगा, वह देख सकेगा कि आप क्या चला रहे हैं।',
-    'TV link': 'TV लिंक',
-    'System': 'सिस्टम',
-    'Launch at startup': 'स्टार्टअप पर शुरू करें',
-    'Applies to installed builds': 'इंस्टॉल किए गए संस्करणों पर लागू',
-    'Control system volume': 'सिस्टम वॉल्यूम नियंत्रित करें',
-    'Windows source. Loads a helper that some antivirus tools flag': 'Windows स्रोत। एक सहायक प्रोग्राम लोड होता है जिसे कुछ एंटीवायरस चिह्नित कर सकते हैं।',
-    'Global shortcuts': 'ग्लोबल शॉर्टकट',
-    'Track change notifications': 'गाना बदलने की सूचनाएँ',
-    'Open': 'खोलें',
-    'Notification access': 'सूचना एक्सेस',
-    'Lets Lyra see what is playing': 'Lyra को चल रहा गाना देखने देता है',
-    'Storage': 'स्टोरेज',
-    'Clear cache': 'कैश साफ़ करें',
-    'Forget saved lyrics and video lookups. Your own picks and files stay.': 'सहेजे हुए बोल और वीडियो की खोज भूल जाएँ। आपकी अपनी पसंद और फ़ाइलें बनी रहती हैं।',
-    'Cleared {n} saved lookups': '{n} सहेजी हुई खोजें साफ़ की गईं',
-    'The cache was already empty': 'कैश पहले से खाली था',
-    'Couldn’t clear the cache': 'कैश साफ़ नहीं हो सका',
-    'Reset my choices for this song': 'इस गाने के लिए मेरी पसंद रीसेट करें',
-    'Back to automatic for this song': 'इस गाने के लिए फिर से ऑटोमैटिक',
-    'Best match': 'सबसे अच्छा मेल',
-    'synced': 'सिंक्ड',
-    'plain': 'सादा',
-    'Ranked by title, artist, channel and length. Best match is what Lyra plays on its own.': 'शीर्षक, कलाकार, चैनल और लंबाई के हिसाब से क्रमबद्ध। सबसे अच्छा मेल वही है जो Lyra खुद चलाता है।',
-    'Why this lyrics? Entries are ranked by same song, then synced to the music, then closest length. Your pick is remembered for this song.': 'ये बोल क्यों? पहले वही गाना, फिर संगीत से सिंक्ड, फिर सबसे करीबी लंबाई के हिसाब से क्रम। आपकी पसंद इस गाने के लिए याद रखी जाती है।',
-    'from the artist’s channel': 'कलाकार के चैनल से',
-    'titled official': 'शीर्षक में official',
-    'same length as the song': 'गाने जितनी ही लंबाई',
-    'HD': 'HD',
-    'different length': 'अलग लंबाई',
-    'looks like a cover, live or edit': 'कवर, लाइव या एडिट जैसा लगता है',
-    'a short clip': 'छोटी क्लिप',
-    'still image (auto-generated channel)': 'स्थिर तस्वीर (ऑटो-जनरेटेड चैनल)',
-    'title differs': 'शीर्षक अलग है',
-    'artist not found': 'कलाकार नहीं मिला',
-    'same song': 'वही गाना',
-    'synced to the music': 'संगीत से सिंक्ड',
-    'same length': 'वही लंबाई',
-    'no timing (plain text)': 'टाइमिंग नहीं (सादा टेक्स्ट)',
-    'instrumental': 'इंस्ट्रुमेंटल',
-    'may be a different song': 'शायद कोई और गाना'
-  }
+const translations: Record<Language, Record<string, string>> = { en: {}, hi, gu }
+
+function isLanguage(v: unknown): v is Language {
+  return typeof v === 'string' && v in translations
 }
 
 function readLanguage(): Language {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'hi' ? 'hi' : 'en'
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (isLanguage(stored)) return stored
+    const system = (typeof navigator !== 'undefined' ? navigator.language : 'en').slice(0, 2).toLowerCase()
+    return isLanguage(system) ? system : 'en'
   } catch {
     return 'en'
   }
@@ -116,31 +41,106 @@ function readLanguage(): Language {
 let currentLanguage = readLanguage()
 const listeners = new Set<() => void>()
 
+/** Keep <html lang> and dir right so screen readers pick the voice and the layout mirrors for RTL languages. */
+function applyDocument(): void {
+  if (typeof document === 'undefined') return
+  const info = LANGUAGES.find((l) => l.id === currentLanguage)!
+  document.documentElement.lang = currentLanguage
+  document.documentElement.dir = info.dir
+}
+applyDocument()
+
+export function getLanguage(): Language {
+  return currentLanguage
+}
+
 export function setLanguage(language: Language): void {
-  currentLanguage = language
+  currentLanguage = isLanguage(language) ? language : 'en'
   try {
-    localStorage.setItem(STORAGE_KEY, language)
+    localStorage.setItem(STORAGE_KEY, currentLanguage)
   } catch {
     // The selection still applies for this session when storage is unavailable.
   }
+  applyDocument()
   listeners.forEach((listener) => listener())
 }
 
-export function translate(key: string, values?: Record<string, string>): string {
-  const translated = translations[currentLanguage][key] ?? key
-  return Object.entries(values ?? {}).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, value), translated)
+type Values = Record<string, string | number>
+
+function fill(text: string, values?: Values): string {
+  if (!values) return text
+  return Object.entries(values).reduce((out, [name, value]) => out.replaceAll(`{${name}}`, typeof value === 'number' ? formatNumber(value) : value), text)
 }
 
-export function useTranslation(): { language: Language; setLanguage: typeof setLanguage; t: typeof translate } {
+export function translate(key: string, values?: Values): string {
+  return fill(translations[currentLanguage][key] ?? key, values)
+}
+
+/** Plural by the current language's rule. `n` is also available as {n}. */
+export function translatePlural(one: string, other: string, n: number, values?: Values): string {
+  const rule = new Intl.PluralRules(localeOf()).select(n)
+  return translate(rule === 'one' ? one : other, { n, ...values })
+}
+
+function localeOf(): string {
+  return LANGUAGES.find((l) => l.id === currentLanguage)?.locale ?? 'en'
+}
+
+export function formatNumber(n: number, options?: Intl.NumberFormatOptions): string {
+  try {
+    return new Intl.NumberFormat(localeOf(), options).format(n)
+  } catch {
+    return String(n)
+  }
+}
+
+export function formatDate(date: Date | number, options: Intl.DateTimeFormatOptions = { dateStyle: 'medium' }): string {
+  try {
+    return new Intl.DateTimeFormat(localeOf(), options).format(date)
+  } catch {
+    return new Date(date).toDateString()
+  }
+}
+
+/** 3:07 for a song length; always Latin digits and a colon so it lines up with the progress bar. */
+export function formatDuration(ms: number): string {
+  const total = Math.max(0, Math.round(ms / 1000))
+  const h = Math.floor(total / 3600)
+  const m = Math.floor((total % 3600) / 60)
+  const s = total % 60
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`
+}
+
+const RTL_CHARS = /[֐-ࣿיִ-﷿ﹰ-﻿]/
+const LATIN_OR_OTHER = /[A-Za-zÀ-֏ऀ-﬜]/
+
+/** 'rtl' when the first letter of a lyric line is Hebrew, Arabic, Syriac, Thaana etc.; else 'ltr'. Use as dir={lineDir(text)} on a line wrapper. */
+export function lineDir(text: string): 'ltr' | 'rtl' {
+  for (const ch of text) {
+    if (RTL_CHARS.test(ch)) return 'rtl'
+    if (LATIN_OR_OTHER.test(ch)) return 'ltr'
+  }
+  return 'ltr'
+}
+
+export function useTranslation(): {
+  language: Language
+  setLanguage: typeof setLanguage
+  t: typeof translate
+  tp: typeof translatePlural
+  formatNumber: typeof formatNumber
+  formatDate: typeof formatDate
+} {
   const [language, setCurrentLanguage] = useState<Language>(currentLanguage)
 
   useEffect(() => {
     const update = (): void => setCurrentLanguage(currentLanguage)
     listeners.add(update)
+    update() // the language may have changed between render and effect
     return () => {
       listeners.delete(update)
     }
   }, [])
 
-  return { language, setLanguage, t: translate }
+  return { language, setLanguage, t: translate, tp: translatePlural, formatNumber, formatDate }
 }

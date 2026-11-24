@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { LyricsResult } from '@shared/types'
+import { useTranslation } from '@/i18n'
 import { useLyrics } from '@/store/lyrics'
 import { usePlayer } from '@/store/player'
 import { useUi } from '@/store/ui'
@@ -27,6 +28,7 @@ const COPY: Record<Kind, { title: string; body: string }> = {
  * the ways out: try now, pick a match, paste your own.
  */
 export function LyricsFallback({ result }: { result: LyricsResult }) {
+  const { t } = useTranslation()
   const track = usePlayer((s) => s.snapshot?.track ?? null)
   const retryAt = useLyrics((s) => s.retryAt)
   const retry = useLyrics((s) => s.retry)
@@ -59,16 +61,16 @@ export function LyricsFallback({ result }: { result: LyricsResult }) {
           <i key={i} style={{ animationDelay: `${(i * 137) % 900}ms` }} />
         ))}
       </div>
-      <h3>{COPY[kind].title}</h3>
-      <p>{COPY[kind].body}</p>
+      <h3>{t(COPY[kind].title)}</h3>
+      <p>{t(COPY[kind].body)}</p>
       {kind !== 'none' && (
         <p className="lfb__status">
           {waiting ? (
             <>
-              <i className="lfb__pulse" /> Trying again in {left}s <small>· attempt {retryAt!.attempt}</small>
+              <i className="lfb__pulse" /> {t('Trying again in {n}s', { n: left })} <small>· {t('attempt {n}', { n: retryAt!.attempt })}</small>
             </>
           ) : gaveUp ? (
-            'Paused. Lyra retries when the connection returns, or press Try now.'
+            t('Paused. Lyra retries when the connection returns, or press Try now.')
           ) : null}
         </p>
       )}
@@ -76,19 +78,19 @@ export function LyricsFallback({ result }: { result: LyricsResult }) {
         {kind !== 'none' ? (
           <button type="button" className="pill pill--primary" onClick={retry}>
             <Icon name="refresh" size={14} />
-            Try now
+            {t('Try now')}
           </button>
         ) : (
           <button type="button" className="pill pill--primary" onClick={retry}>
             <Icon name="refresh" size={14} />
-            Search again
+            {t('Search again')}
           </button>
         )}
         <button type="button" className="pill" onClick={open}>
-          Pick a match
+          {t('Pick a match')}
         </button>
         <button type="button" className="pill" onClick={paste}>
-          Paste lyrics
+          {t('Paste lyrics')}
         </button>
       </div>
     </div>

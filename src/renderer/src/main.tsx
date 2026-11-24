@@ -130,6 +130,7 @@ import './styles/mini-looks.css'
 import './styles/minsizes.css'
 import './styles/capture.css'
 import './styles/small-features.css'
+import './styles/a11y.css'
 
 // Let CSS honour the in-app settings: reduced motion, rim light and the vibe in effect (a cycled / smart vibe is
 // temporary and lives in the UI store; the OS reduced-motion preference is handled by media queries).

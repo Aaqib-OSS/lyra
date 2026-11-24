@@ -390,7 +390,7 @@ function mapCommandError(e: unknown): CommandResult {
   }
   if (e instanceof NetworkError) return { ok: false, reason: 'offline', error: 'Can’t reach Spotify.' }
   if (e instanceof ApiError) {
-    if (e.status === 429) return { ok: false, reason: 'rate-limited', error: 'Spotify is rate limiting — try again in a moment.' }
+    if (e.status === 429) return { ok: false, reason: 'rate-limited', error: 'Spotify asked Lyra to slow down. Try again in a moment.' }
     if (e.reason === 'PREMIUM_REQUIRED')
       return { ok: false, reason: 'premium-required', error: 'Spotify only allows remote playback control on Premium accounts. Use the Spotify app to control playback.' }
     if (e.reason === 'NO_ACTIVE_DEVICE' || e.status === 404)
