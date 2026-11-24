@@ -122,6 +122,8 @@ const modeChanged = emitter<ModeEvent>()
 
 // ---------------- playback (pushed by the app)
 let snapshot: PlaybackSnapshot | null = null
+/** Lyra Connect hosting is a desktop feature: on Android the panel sees it as switched off */
+const OFF_CONNECT = { enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }
 let status: ConnectionStatus = { state: 'offline', message: 'Starting…' }
 const playbackChanged = emitter<PlaybackSnapshot>()
 const statusChanged = emitter<ConnectionStatus>()
@@ -436,15 +438,19 @@ export const androidApi: LyraApi &{ android: NonNullable<LyraApi['android']> } =
   },
   studio: { open: async () => null, write: async () => undefined, close: async () => undefined, discard: async () => undefined, end: async () => undefined, reveal: async () => undefined, setMic: async () => undefined, saveImage: async () => null, frameCaptureStart: async () => false, frameCaptureStop: async () => null, frameRead: async () => null, frameCaptureClear: async () => undefined, audioStart: async () => ({ ok: false, reason: 'Not available on Android' }), audioStop: async () => undefined, onAudio: () => () => undefined, stageStart: async () => ({ ok: false, reason: 'Not available on Android' }), uiStart: async () => ({ ok: false, reason: 'Not available on Android' }), stageSeek: async () => undefined, stageSync: async () => undefined, stageStop: async () => undefined, onFrame: () => () => undefined },
   connect: {
-    status: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
-    setEnabled: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
-    newCode: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
-    party: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
-    revoke: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
-    setRole: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    status: async () => OFF_CONNECT,
+    setEnabled: async () => OFF_CONNECT,
+    newCode: async () => OFF_CONNECT,
+    party: async () => OFF_CONNECT,
+    revoke: async () => OFF_CONNECT,
+    setRole: async () => OFF_CONNECT,
     publishView: () => undefined,
-    addOverlay: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }),
+    addOverlay: async () => OFF_CONNECT,
     overlayLink: async () => null,
+    rename: async () => OFF_CONNECT,
+    revokeAll: async () => OFF_CONNECT,
+    test: async () => ({ ok: false, message: 'Not available on Android', ms: null, ip: null, port: 0, mdns: false }),
+    setIdleStop: async () => OFF_CONNECT,
     onChange: () => () => undefined
   },
   app: {

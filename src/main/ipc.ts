@@ -286,7 +286,20 @@ export function registerIpc(): void {
       }))
     )
     const enabled = settings.get().connectEnabled
-    return { enabled, running: st.running, noNetwork: enabled && !st.running, url: st.url, party: st.party, devices: hub.devices(), codes }
+    return {
+      enabled,
+      running: st.running,
+      noNetwork: enabled && !st.running,
+      url: st.url,
+      party: st.party,
+      devices: hub.devices(),
+      codes,
+      port: st.port,
+      network: st.network,
+      waiting: st.waiting,
+      online: hub.onlineCount(),
+      idleStopHours: settings.get().connectIdleStopHours
+    }
   }
   connectService.api.on('change', () => void connectStatus().then((s) => send(EV.connectChange, s)))
   handle(CH.connectStatus, connectStatus)
@@ -322,6 +335,25 @@ export function registerIpc(): void {
     return connectStatus()
   })
   handle(CH.connectOverlayLink, (id: string) => connectService.api.overlayUrl(String(id)))
+  handle(CH.connectRename, async (id: string, name: string) => {
+    connectService.api.rename(String(id), String(name ?? '').slice(0, 40))
+    return connectStatus()
+  })
+  handle(CH.connectRevokeAll, async () => {
+    connectService.api.revokeAll()
+    return connectStatus()
+  })
+  handle(CH.connectTest, () => connectService.api.selfTest())
+  handle(CH.connectIdle, async (hours: number) => {
+    const h = Number(hours)
+    settings.update({ connectIdleStopHours: [0, 1, 4, 12, 24].includes(h) ? h : 0 })
+    return connectStatus()
+  })
+  // the host turned itself off (idle): keep the setting in step so it does not come back on the next launch
+  connectService.api.on('idle-stop', () => {
+    settings.update({ connectEnabled: false })
+    void connectStatus().then((s) => send(EV.connectChange, s))
+  })
   handle(CH.connectView, (v: ConnectView) => connectService.setView(v))
   handle(CH.appInfo, (): AppInfo => ({ version: app.getVersion(), platform: process.platform, envClientId: !!envClientId() }))
 

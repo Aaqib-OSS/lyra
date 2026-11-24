@@ -91,6 +91,10 @@ export const CH = {
   connectView: 'connect:view',
   connectOverlayAdd: 'connect:overlay-add',
   connectOverlayLink: 'connect:overlay-link',
+  connectRename: 'connect:rename',
+  connectRevokeAll: 'connect:revoke-all',
+  connectTest: 'connect:test',
+  connectIdle: 'connect:idle',
   studioOpen: 'studio:open',
   studioWrite: 'studio:write',
   studioClose: 'studio:close',
@@ -174,6 +178,25 @@ export interface ConnectStatus {
   party: boolean
   devices: ConnectDevice[]
   codes: ConnectCode[]
+  /** port the host listens on */
+  port?: number
+  /** the network card the address belongs to ("Wi-Fi") */
+  network?: string | null
+  /** switched on, but waiting for a network to serve on */
+  waiting?: boolean
+  /** devices connected right now */
+  online?: number
+  /** auto-off after this many idle hours (0 = never) */
+  idleStopHours?: number
+}
+
+export interface ConnectTestResult {
+  ok: boolean
+  message: string
+  ms: number | null
+  ip: string | null
+  port: number
+  mdns: boolean
 }
 
 export interface ConnectView {
@@ -393,6 +416,13 @@ export interface LyraApi {
     addOverlay(): Promise<ConnectStatus>
     /** the overlay link for that device (carries its credential in the URL fragment), or null; keep it private */
     overlayLink(id: string): Promise<string | null>
+    rename(id: string, name: string): Promise<ConnectStatus>
+    /** forget and disconnect every paired device */
+    revokeAll(): Promise<ConnectStatus>
+    /** "Check this setup": really connects to this PC's own network address and reports */
+    test(): Promise<ConnectTestResult>
+    /** turn Connect off after this many hours with no device connected (0 = never) */
+    setIdleStop(hours: number): Promise<ConnectStatus>
     onChange(cb: (s: ConnectStatus) => void): Unsubscribe
   }
   app: {

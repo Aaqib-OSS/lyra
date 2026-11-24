@@ -284,6 +284,8 @@ export interface Settings {
   /** TV & party mode: serve a read-only lyrics page to other devices on the same network. */
   /** Devices: let paired phones, tablets, TVs and PCs on the local network follow and control Lyra (off by default). */
   connectEnabled: boolean
+  /** Devices: turn Connect off after this many hours with nobody connected (0 = never). */
+  connectIdleStopHours: number
   theme: ThemeMode
   lyricFont: LyricFont
   lyricFontSize: number // px, fullscreen base
@@ -354,6 +356,7 @@ export const DEFAULT_SETTINGS: Settings = {
   smoothSongChange: true,
   volumeFade: false,
   connectEnabled: false,
+  connectIdleStopHours: 0,
   theme: 'adaptive',
   lyricFont: 'sans',
   lyricFontSize: 40,
