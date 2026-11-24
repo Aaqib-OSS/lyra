@@ -6,12 +6,15 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { CH, EV } from '@shared/ipc'
 import { windows } from './window'
+import { ExportPaths, validChunk } from './exportPaths'
 
 /**
  * Lyric-video export (main side): picks the output file, appends the encoded MP4 as it is produced (a long video
  * is never held in memory) and lets the app window capture the PC's sound only while an export is running.
  */
 const files = new Map<number, FileHandle>()
+/** Files the user picked in the save dialog for an export (and the covers saved beside them). */
+const exportPaths = new ExportPaths()
 let nextId = 1
 let capturing = false
 let blocker: number | null = null
@@ -160,7 +163,7 @@ async function startUi(o: { width: number; height: number; fps: number; vibe: st
   win.webContents.on('paint', (_e, _dirty, image) => handOver(image, height))
   win.on('closed', () => windows.captures.delete(win))
   try {
-    const dev = process.env['ELECTRON_RENDERER_URL']
+    const dev = app.isPackaged ? undefined : process.env['ELECTRON_RENDERER_URL']
     const vibe = /^[a-z0-9-]{2,30}$/.test(String(o.vibe)) ? String(o.vibe) : ''
     if (dev) await win.loadURL(`${dev}${dev.includes('?') ? '&' : '?'}capture=1&vibe=${vibe}`)
     else await win.loadFile(join(__dirname, '../renderer/index.html'), { query: { capture: '1', vibe } })
@@ -271,7 +274,7 @@ function spotifyRootPid(): Promise<number | null> {
   return new Promise((resolve) => {
     // Spotify runs many processes; the one without a --type flag is the parent, and capturing it includes its children
     const ps = "(Get-CimInstance Win32_Process -Filter \"Name='Spotify.exe'\" | Where-Object { $_.CommandLine -notmatch '--type=' } | Select-Object -First 1).ProcessId"
-    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps], { windowsHide: true, timeout: 8000 }, (err, out) => {
+    execFile(join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'), ['-NoProfile', '-NonInteractive', '-Command', ps], { windowsHide: true, timeout: 8000 }, (err, out) => {
       const n = Number(String(out).trim())
       resolve(!err && Number.isFinite(n) && n > 0 ? n : null)
     })
@@ -309,32 +312,39 @@ async function startAudio(): Promise<{ ok: boolean; reason?: string }> {
 }
 
 export function registerStudioIpc(): void {
-  ipcMain.handle(CH.studioAudioStart, () => startAudio())
-  ipcMain.handle(CH.studioAudioStop, () => stopAudio())
-  ipcMain.handle(CH.studioMic, (_e, on: boolean) => {
+  // Every export call must come from the app window (or its own capture window), like the rest of the IPC.
+  const handle = (channel: string, fn: (e: Electron.IpcMainInvokeEvent, ...args: any[]) => unknown): void => {
+    ipcMain.handle(channel, (e, ...args) => {
+      if (!windows.isAppContents(e.sender)) throw new Error('Blocked IPC from unknown sender')
+      return fn(e, ...args)
+    })
+  }
+  handle(CH.studioAudioStart, () => startAudio())
+  handle(CH.studioAudioStop, () => stopAudio())
+  handle(CH.studioMic, (_e, on: boolean) => {
     micOpen = !!on
   })
-  ipcMain.handle(CH.studioFrameCaptureStart, () => frameCaptureStart())
-  ipcMain.handle(CH.studioFrameCaptureStop, () => frameCaptureStop())
-  ipcMain.handle(CH.studioFrameRead, async (_e, index: number) => {
+  handle(CH.studioFrameCaptureStart, () => frameCaptureStart())
+  handle(CH.studioFrameCaptureStop, () => frameCaptureStop())
+  handle(CH.studioFrameRead, async (_e, index: number) => {
     const s = sink
     if (!s?.reader || !Number.isInteger(index) || index < 0 || index >= s.times.length) return null
     const buf = Buffer.allocUnsafe(s.lengths[index]!)
     await s.reader.read(buf, 0, buf.length, s.offsets[index]!)
     return buf
   })
-  ipcMain.handle(CH.studioFrameCaptureClear, () => frameCaptureClear())
-  ipcMain.handle(CH.studioStageStart, (_e, o) => startStage(o))
-  ipcMain.handle(CH.studioUiStart, (_e, o) => startUi(o))
-  ipcMain.handle(CH.studioStageSeek, async (_e, sec: number) => {
+  handle(CH.studioFrameCaptureClear, () => frameCaptureClear())
+  handle(CH.studioStageStart, (_e, o) => startStage(o))
+  handle(CH.studioUiStart, (_e, o) => startUi(o))
+  handle(CH.studioStageSeek, async (_e, sec: number) => {
     if (stage && !stage.isDestroyed() && Number.isFinite(sec)) await stage.webContents.executeJavaScript(`(() => { const v = document.querySelector('video'); if (v) { v.currentTime = ${Math.max(0, sec)}; v.play() } })()`)
   })
-  ipcMain.handle(CH.studioStageSync, async (_e, sec: number) => {
+  handle(CH.studioStageSync, async (_e, sec: number) => {
     if (!stage || stage.isDestroyed() || !Number.isFinite(sec)) return
     await stage.webContents.executeJavaScript(`(() => { const v = document.querySelector('video'); if (v && Math.abs(v.currentTime - ${sec}) > 0.7) v.currentTime = ${Math.max(0, sec)} })()`)
   })
-  ipcMain.handle(CH.studioStageStop, () => stopStage())
-  ipcMain.handle(CH.studioOpen, async (_e, suggested: string) => {
+  handle(CH.studioStageStop, () => stopStage())
+  handle(CH.studioOpen, async (_e, suggested: string) => {
     const name = String(suggested || 'lyra-video.mp4').replace(/[\\/:*?"<>|]/g, '-')
     const win = windows.window
     const opts = { title: 'Save lyric video', defaultPath: name, filters: [{ name: 'MP4 video', extensions: ['mp4'] }] }
@@ -343,35 +353,41 @@ export function registerStudioIpc(): void {
     const r = test ? { canceled: false, filePath: test } : win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts)
     if (r.canceled || !r.filePath) return null
     const fh = await open(r.filePath, 'w')
+    exportPaths.allow(r.filePath)
     const id = nextId++
     files.set(id, fh)
     setExporting(true)
     return { id, path: r.filePath }
   })
-  ipcMain.handle(CH.studioWrite, async (_e, id: number, position: number, chunk: Uint8Array) => {
+  handle(CH.studioWrite, async (_e, id: number, position: number, chunk: Uint8Array) => {
     const fh = files.get(id)
-    if (!fh || !Number.isFinite(position) || position < 0) return
+    if (!fh || !validChunk(position, chunk)) return
     await fh.write(chunk, 0, chunk.byteLength, position)
   })
-  ipcMain.handle(CH.studioClose, async (_e, id: number) => {
+  handle(CH.studioClose, async (_e, id: number) => {
     const fh = files.get(id)
     files.delete(id)
     await fh?.close()
   })
-  ipcMain.handle(CH.studioDiscard, async (_e, path: string) => {
-    if (typeof path === 'string' && path.toLowerCase().endsWith('.mp4')) await rm(path, { force: true })
+  handle(CH.studioDiscard, async (_e, path: string) => {
+    // only a file this export itself created (the path the save dialog gave): never any other .mp4 on the disk
+    if (exportPaths.has(path) && path.toLowerCase().endsWith('.mp4')) {
+      await rm(path, { force: true })
+      exportPaths.forget(path)
+    }
   })
-  ipcMain.handle(CH.studioEnd, () => {
+  handle(CH.studioEnd, () => {
     setExporting(false)
     void frameCaptureClear()
   })
-  ipcMain.handle(CH.studioSaveImage, async (_e, videoPath: string, jpeg: Uint8Array) => {
-    if (typeof videoPath !== 'string' || !videoPath.toLowerCase().endsWith('.mp4') || !(jpeg instanceof Uint8Array) || jpeg.byteLength > 20 * 1024 * 1024) return null
+  handle(CH.studioSaveImage, async (_e, videoPath: string, jpeg: Uint8Array) => {
+    if (!exportPaths.has(videoPath) || !videoPath.toLowerCase().endsWith('.mp4') || !(jpeg instanceof Uint8Array) || jpeg.byteLength > 20 * 1024 * 1024) return null
     const out = videoPath.replace(/\.mp4$/i, ' (cover).jpg')
     await writeFile(out, jpeg)
+    exportPaths.allow(out)
     return out
   })
-  ipcMain.handle(CH.studioReveal, (_e, path: string) => {
-    if (typeof path === 'string' && path.toLowerCase().endsWith('.mp4')) shell.showItemInFolder(path)
+  handle(CH.studioReveal, (_e, path: string) => {
+    if (exportPaths.has(path)) shell.showItemInFolder(path)
   })
 }
