@@ -30,6 +30,11 @@ export abstract class PlaybackSource extends EventEmitter {
     /* optional */
   }
 
+  /** The machine woke from sleep / was unlocked: refresh now instead of waiting out a stale timer. */
+  wake(): void {
+    /* optional */
+  }
+
   getStatus(): ConnectionStatus {
     return this.status
   }
@@ -38,8 +43,8 @@ export abstract class PlaybackSource extends EventEmitter {
   }
 
   protected setStatus(s: ConnectionStatus): void {
-    this.status = s
-    this.emit('status', s)
+    this.status = { ...s, source: this.kind }
+    this.emit('status', this.status)
   }
   protected setSnapshot(s: PlaybackSnapshot): void {
     this.snapshot = s
