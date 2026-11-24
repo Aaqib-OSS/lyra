@@ -26,6 +26,9 @@ const MAX_DISK_ENTRIES = 600
 const MAX_MEMORY_ENTRIES = 200
 const MAX_IMPORTS = 300
 const MAX_IMPORT_CHARS = 200_000
+const MAX_PINS = 3000
+/** one cached song is a few KB; anything bigger is junk and is not worth keeping on disk */
+const MAX_ENTRY_CHARS = 400_000
 
 interface CacheEntry {
   at: number
@@ -44,6 +47,20 @@ interface Imported {
 }
 
 const NO_KEY = '|'
+
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null
+
+/** A cache file can be hand edited, half written or from another version: only well-formed entries are served. */
+export function isCacheEntry(v: unknown): v is CacheEntry {
+  if (!isObj(v) || typeof v.at !== 'number' || !Number.isFinite(v.at) || !isObj(v.result)) return false
+  const r = v.result
+  if (typeof r.status !== 'string' || !['synced', 'plain', 'instrumental', 'none'].includes(r.status)) return false
+  if (!Array.isArray(r.lines)) return false
+  if (!r.lines.every((l) => isObj(l) && typeof l.timeMs === 'number' && typeof l.text === 'string')) return false
+  if (r.status === 'synced' && r.lines.length === 0) return false
+  if (r.status === 'plain' && (typeof r.plain !== 'string' || !r.plain.trim())) return false
+  return true
+}
 
 export class LyricsService {
   private pinStore: Store<{ pins: Record<string, Pin> }> | null = null
@@ -124,9 +141,23 @@ export class LyricsService {
   private readDisk(id: string): CacheEntry | null {
     try {
       const raw = this.disk().read(id)
-      return raw ? (JSON.parse(raw) as CacheEntry) : null
-    } catch {
+      if (!raw) return null
+      const entry = JSON.parse(raw) as unknown
+      if (isCacheEntry(entry)) return entry
+      log.warn('dropping a damaged lyrics cache entry')
+      this.dropDisk(id)
       return null
+    } catch {
+      this.dropDisk(id)
+      return null
+    }
+  }
+
+  private dropDisk(id: string): void {
+    try {
+      this.disk().write(id, '') // an empty entry reads as a miss and is rewritten by the next lookup
+    } catch {
+      /* best effort: the shape check skips a damaged entry on every read anyway */
     }
   }
 
@@ -136,7 +167,9 @@ export class LyricsService {
     const entry = { at: this.now(), result }
     this.remember(id, entry)
     try {
-      this.disk().write(id, JSON.stringify(entry))
+      const json = JSON.stringify(entry)
+      if (json.length > MAX_ENTRY_CHARS) return // memory copy only
+      this.disk().write(id, json)
     } catch (e) {
       log.warn('cache write failed', e)
     }
@@ -266,7 +299,12 @@ export class LyricsService {
   /** Pin a specific provider entry to this song (remembered across restarts and across players). */
   async choose(track: Track, provider: string, id: string): Promise<LyricsResult> {
     const store = (this.pinStore ??= platform().store<{ pins: Record<string, Pin> }>('lyrics-pins.json', { pins: {} }))
-    store.set({ pins: { ...store.get().pins, [this.key(track)]: { provider, id }, [track.id]: { provider, id } } })
+    const pins = { ...store.get().pins }
+    delete pins[this.key(track)] // re-insert so the newest pick sits last
+    pins[this.key(track)] = { provider, id }
+    pins[track.id] = { provider, id }
+    for (const k of Object.keys(pins).slice(0, Math.max(0, Object.keys(pins).length - MAX_PINS))) delete pins[k]
+    store.set({ pins })
     userChoices().setChoice(this.key(track), { lyrics: { provider, id }, durationMs: track.durationMs })
     this.clearImport(track) // choosing a service match replaces anything you pasted before
     const result = await this.fetchPinned(track, { provider, id })
