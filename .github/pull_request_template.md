@@ -6,4 +6,4 @@
 - [ ] Focused: one thing per pull request
 - [ ] No secrets, keys, tokens or personal data
 - [ ] No new tracking, accounts or network calls (or they are explained above)
-- [ ] `npm run typecheck` passes
+- [ ] `npm run check` passes (typecheck, unit tests, docs and site checks)
