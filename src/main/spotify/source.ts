@@ -10,6 +10,8 @@ import { createLogger } from '../logger'
 import { PlaybackSource } from '../source'
 import { ApiError, NetworkError, SpotifyApi } from './api'
 import { AuthError, SpotifyAuth } from './auth'
+import { needsReanchor } from '@core/snapshotDelta'
+import { authFailureAction, backoffMs, nextPollDelay, retryAfterSec } from './pollPolicy'
 
 const log = createLogger('spotify')
 
@@ -79,6 +81,8 @@ export class SpotifySource extends PlaybackSource {
   private lastEmitted: PlaybackSnapshot | null = null
   private liked = new Map<string, boolean>()
   private inflight = false
+  /** when playback last stopped (null while playing): drives the idle poll backoff */
+  private idleSince: number | null = null
 
   readonly api: SpotifyApi
 
@@ -130,7 +134,13 @@ export class SpotifySource extends PlaybackSource {
   }
 
   setBackground(hidden: boolean): void {
+    const wasHidden = this.background
     this.background = hidden
+    // window shown again: refresh now so the UI is not stale after a long hidden stretch
+    if (wasHidden && !hidden && this.running) {
+      this.idleSince = null
+      this.schedule(200)
+    }
   }
 
   private begin(): void {
@@ -165,12 +175,25 @@ export class SpotifySource extends PlaybackSource {
 
   private nextDelay(): number {
     const s = this.snapshot
-    if (!s || !s.track) return this.background ? 15_000 : 5_000
-    if (!s.isPlaying) return this.background ? 12_000 : 6_000
-    const base = this.background ? 8_000 : 3_000
-    const remaining = s.track.durationMs - (s.positionMs + (Date.now() - s.sampledAt))
-    // wake right after the track ends so we notice the next one quickly
-    return remaining > 0 ? Math.max(500, Math.min(base, remaining + 400)) : base
+    const playing = !!s?.track && s.isPlaying
+    if (playing) this.idleSince = null
+    else this.idleSince ??= Date.now()
+    return nextPollDelay({
+      hasTrack: !!s?.track,
+      isPlaying: playing,
+      background: this.background,
+      positionNowMs: s ? s.positionMs + (Date.now() - s.sampledAt) : 0,
+      durationMs: s?.track?.durationMs ?? 0,
+      idleForMs: this.idleSince ? Date.now() - this.idleSince : 0
+    })
+  }
+
+  /** Back from sleep / screen unlock: the network may need a moment, but do not wait out a stale timer. */
+  wake(): void {
+    if (!this.running) return
+    this.idleSince = null
+    this.failures = 0
+    this.schedule(this.inflight ? 1500 : 1000)
   }
 
   private async poll(): Promise<void> {
@@ -192,20 +215,20 @@ export class SpotifySource extends PlaybackSource {
   }
 
   private handlePollError(e: unknown): void {
-    if (e instanceof AuthError) {
+    if (e instanceof AuthError && authFailureAction(e.kind) === 'sign-out') {
       this.stop()
       this.setStatus({ state: 'disconnected', message: 'Your Spotify session expired. Please sign in again.' })
       return
     }
     if (e instanceof ApiError && e.status === 429) {
-      const wait = e.retryAfterSec ?? 10
+      const wait = retryAfterSec(e.retryAfterSec)
       this.setStatus({ ...this.status, state: 'offline', message: 'Spotify is rate limiting requests. Retrying shortly.', retryInSec: wait })
       this.schedule(wait * 1000 + 500)
       return
     }
     this.failures++
-    const backoff = Math.min(30_000, 2_000 * 2 ** Math.min(this.failures, 4))
-    if (e instanceof NetworkError) {
+    const backoff = backoffMs(this.failures)
+    if (e instanceof NetworkError || (e instanceof AuthError && e.kind === 'network')) {
       this.setStatus({ ...this.status, state: 'offline', message: 'Can’t reach Spotify. Check your connection.', retryInSec: Math.round(backoff / 1000) })
     } else if (e instanceof ApiError && e.status === 403) {
       this.setStatus({
@@ -245,12 +268,10 @@ export class SpotifySource extends PlaybackSource {
   private shouldEmit(n: PlaybackSnapshot): boolean {
     const o = this.lastEmitted
     if (!o) return true
-    if (o.track?.id !== n.track?.id || o.isPlaying !== n.isPlaying || o.shuffle !== n.shuffle || o.repeat !== n.repeat) return true
-    if (o.isAdOrUnknown !== n.isAdOrUnknown) return true
+    if (o.track?.id !== n.track?.id || o.shuffle !== n.shuffle || o.repeat !== n.repeat) return true
     if (o.device?.name !== n.device?.name || o.device?.volumePercent !== n.device?.volumePercent) return true
-    const predicted = o.positionMs + (o.isPlaying ? n.sampledAt - o.sampledAt : 0)
-    // seek or drift: re-anchor the renderer's clock once it is off by a noticeable amount (1.2 s left lyrics/video visibly out)
-    return Math.abs(predicted - n.positionMs) > 400
+    // play/pause, ads, seeks and drift: re-anchor the renderer's clock once it is off by a noticeable amount
+    return needsReanchor(o, n)
   }
 
   /** Force a fresh poll shortly after a command so the UI reflects the real state. */
@@ -363,7 +384,10 @@ function mapDevice(d: NonNullable<SpPlayer['device']>) {
 }
 
 function mapCommandError(e: unknown): CommandResult {
-  if (e instanceof AuthError) return { ok: false, reason: 'unauthorized', error: 'Spotify session expired. Sign in again.' }
+  if (e instanceof AuthError) {
+    if (authFailureAction(e.kind) === 'retry') return { ok: false, reason: 'offline', error: 'Can’t reach Spotify right now.' }
+    return { ok: false, reason: 'unauthorized', error: 'Spotify session expired. Sign in again.' }
+  }
   if (e instanceof NetworkError) return { ok: false, reason: 'offline', error: 'Can’t reach Spotify.' }
   if (e instanceof ApiError) {
     if (e.status === 429) return { ok: false, reason: 'rate-limited', error: 'Spotify is rate limiting — try again in a moment.' }

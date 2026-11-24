@@ -343,6 +343,11 @@ export function setBackground(hidden: boolean): void {
   active?.setBackground(hidden)
 }
 
+/** Called on resume from sleep / screen unlock. */
+export function wakePlayback(): void {
+  active?.wake()
+}
+
 export function disposePlayback(): void {
   active?.stop()
   log.info('playback stopped')

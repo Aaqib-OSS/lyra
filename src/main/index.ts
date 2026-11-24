@@ -1,8 +1,8 @@
-import { app, desktopCapturer, session } from 'electron'
+import { app, desktopCapturer, powerMonitor, session } from 'electron'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createLogger } from './logger'
-import { disposePlayback, registerIpc, setBackground, startPlayback } from './ipc'
+import { disposePlayback, registerIpc, setBackground, startPlayback, wakePlayback } from './ipc'
 import { connectService } from './connect/service'
 import { studio } from './studio'
 import { favorites } from './favorites'
@@ -100,6 +100,9 @@ if (!app.requestSingleInstanceLock()) {
     win.on('minimize', () => setBackground(true))
     win.on('show', () => setBackground(false))
     win.on('restore', () => setBackground(false))
+    // back from sleep / unlocked: refresh the music source now instead of waiting out a stale timer
+    powerMonitor.on('resume', wakePlayback)
+    powerMonitor.on('unlock-screen', wakePlayback)
 
     let shortcutKey = JSON.stringify([settings.get().globalShortcuts, settings.get().shortcuts])
     settings.on('change', (s) => {

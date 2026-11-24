@@ -11,6 +11,7 @@ import { favorites } from '../favorites'
 import { releaseYear } from '../meta/musicbrainz'
 import { settings } from '../settings'
 import { smtcScript } from './script'
+import { needsReanchor } from '@core/snapshotDelta'
 
 const log = createLogger('smtc')
 
@@ -200,12 +201,15 @@ export class SmtcSource extends PlaybackSource {
   private shouldEmit(n: PlaybackSnapshot): boolean {
     const o = this.lastEmitted
     if (!o) return true
-    if (o.track?.id !== n.track?.id || o.isPlaying !== n.isPlaying || o.isAdOrUnknown !== n.isAdOrUnknown) return true
+    if (o.track?.id !== n.track?.id) return true
     if (o.track?.artworkUrl !== n.track?.artworkUrl || o.track?.releaseYear !== n.track?.releaseYear) return true // artwork arrives a tick after the track
     if (o.device?.volumePercent !== n.device?.volumePercent) return true
-    const predicted = o.positionMs + (o.isPlaying ? n.sampledAt - o.sampledAt : 0)
-    // re-anchor the renderer's clock as soon as it is off by a noticeable amount (a loose threshold left lyrics/video up to 1.5 s out)
-    return Math.abs(predicted - n.positionMs) > 400
+    return needsReanchor(o, n)
+  }
+
+  /** After sleep the WinRT session handles can be dead: a fresh bridge is cheap and always right. */
+  wake(): void {
+    if (!this.stopped) this.restart()
   }
 
   async command(cmd: PlayerCommand): Promise<CommandResult> {

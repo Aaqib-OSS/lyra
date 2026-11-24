@@ -1,17 +1,13 @@
 import { app, safeStorage } from 'electron'
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createLogger } from '../logger'
 
 const log = createLogger('tokens')
 
-export interface TokenRecord {
-  accessToken: string
-  refreshToken: string
-  /** epoch ms */
-  expiresAt: number
-  clientId: string
-}
+import { parseTokenRecord, type TokenRecord } from './tokenRecord'
+
+export type { TokenRecord }
 
 /**
  * Persists tokens encrypted with the OS credential store (Windows DPAPI via safeStorage).
@@ -27,8 +23,9 @@ export class TokenStore {
     if (this.memory) return this.memory
     try {
       if (!existsSync(this.file) || !safeStorage.isEncryptionAvailable()) return null
-      const json = safeStorage.decryptString(readFileSync(this.file))
-      this.memory = JSON.parse(json) as TokenRecord
+      const rec = parseTokenRecord(safeStorage.decryptString(readFileSync(this.file)))
+      if (!rec) throw new Error('stored token record is malformed')
+      this.memory = rec
       return this.memory
     } catch (e) {
       log.warn('stored tokens unreadable; ignoring', e)
@@ -40,8 +37,12 @@ export class TokenStore {
   save(rec: TokenRecord): void {
     this.memory = rec
     try {
-      if (safeStorage.isEncryptionAvailable()) writeFileSync(this.file, safeStorage.encryptString(JSON.stringify(rec)))
-      else log.warn('OS encryption unavailable; session tokens kept in memory only')
+      if (safeStorage.isEncryptionAvailable()) {
+        // write-then-rename: a crash mid-write must never leave a truncated token file
+        const tmp = `${this.file}.tmp`
+        writeFileSync(tmp, safeStorage.encryptString(JSON.stringify(rec)))
+        renameSync(tmp, this.file)
+      } else log.warn('OS encryption unavailable; session tokens kept in memory only')
     } catch (e) {
       log.error('could not persist tokens', e)
     }

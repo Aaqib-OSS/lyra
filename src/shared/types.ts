@@ -68,6 +68,8 @@ export type ConnectionState =
 
 export interface ConnectionStatus {
   state: ConnectionState
+  /** which source this status belongs to (so the UI does not blame Spotify for a local-bridge problem) */
+  source?: 'spotify' | 'demo' | 'smtc' | 'mpris'
   message?: string
   /** Seconds until the next retry when rate-limited. */
   retryInSec?: number
