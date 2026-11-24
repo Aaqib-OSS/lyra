@@ -178,7 +178,9 @@ export function NoMusicScreen({ ad = false }: { ad?: boolean }) {
           ? 'Lyrics will return when your music does.'
           : status?.state === 'demo'
             ? 'Demo is idle.'
-            : 'Press play in Spotify on any device and it will appear here.'}
+            : status?.source === 'smtc'
+              ? 'Play something in the Spotify desktop app and it will appear here.'
+              : 'Press play in Spotify on any device and it will appear here.'}
       </p>
       <button type="button" className="pill" data-nodrag onClick={() => void window.lyra.player.openInSpotify(null)}>
         <Icon name="external" size={14} /> Open Spotify
@@ -203,20 +205,28 @@ export function NoMusicScreen({ ad = false }: { ad?: boolean }) {
 
 export function OfflineScreen() {
   const status = usePlayer((s) => s.status)
+  const local = isLocalSource(status?.source)
   return (
     <div className="screen screen--center">
       <div className="empty__glyph empty__glyph--warn" aria-hidden="true">
         <Icon name="wifiOff" size={26} />
       </div>
-      <h2 className="screen__title">Can’t reach Spotify</h2>
-      <p className="screen__sub">{status?.message ?? 'Something is blocking the connection.'}</p>
+      <h2 className="screen__title">{local ? 'Lost the media connection' : 'Can’t reach Spotify'}</h2>
+      <p className="screen__sub" role="status">
+        {status?.message ?? 'Something is blocking the connection.'}
+      </p>
       {status?.retryInSec ? <RetryCountdown seconds={status.retryInSec} /> : null}
-      <button type="button" className="textbtn" data-nodrag onClick={() => void window.lyra.spotify.disconnect()}>
-        Sign out and reconnect
-      </button>
+      {/* signing out of Spotify is no remedy for a local bridge problem; that one retries by itself */}
+      {!local && (
+        <button type="button" className="textbtn" data-nodrag onClick={() => void window.lyra.spotify.disconnect()}>
+          Sign out and reconnect
+        </button>
+      )}
     </div>
   )
 }
+
+const isLocalSource = (s: string | undefined): boolean => s === 'smtc' || s === 'mpris'
 
 function RetryCountdown({ seconds }: { seconds: number }) {
   const [left, setLeft] = useState(seconds)
@@ -226,7 +236,7 @@ function RetryCountdown({ seconds }: { seconds: number }) {
     return () => clearInterval(t)
   }, [seconds])
   return (
-    <p className="screen__hint">
+    <p className="screen__hint" role="timer" aria-live="off">
       <Spinner size={12} /> Retrying in {left}s
     </p>
   )
@@ -254,7 +264,9 @@ export function WidgetStatus({ view }: { view: 'loading' | 'connect' | 'offline'
           ? 'Waiting for Spotify approval…'
           : 'Spotify isn’t connected'
         : view === 'offline'
-          ? 'Can’t reach Spotify'
+          ? isLocalSource(status?.source)
+            ? 'Lost the media connection'
+            : 'Can’t reach Spotify'
           : view === 'ad'
             ? 'Advertisement playing'
             : 'Nothing playing'
