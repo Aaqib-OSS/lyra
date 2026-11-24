@@ -196,6 +196,9 @@ class Rpc(
                     else io.execute { ok(MediaFiles.import(ctx, uri)) }
                 }
             }
+            "clipWarm" -> { io.execute { ClipCache.warm(ctx, args.getString(0)) }; ok(true) }
+            "clipCacheInfo" -> io.execute { val (n, b) = ClipCache.info(ctx); ok(JSONObject().put("files", n).put("bytes", b)) }
+            "clipCacheClear" -> io.execute { ClipCache.clear(ctx); ok(true) }
             "mediaDelete" -> { MediaFiles.delete(ctx, args.getString(0)); ok(true) }
             "lyricsNotificationState" -> ok(JSONObject().put("enabled", LyricsNotifier.enabled(ctx)).put("public", LyricsNotifier.publicOnLock(ctx)))
             "lyricsNotification" -> ui {
