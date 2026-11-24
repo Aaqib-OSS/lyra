@@ -87,7 +87,8 @@ class Rpc(
             }
         }
 
-        when (req.optString("method")) {
+        // A missing or mistyped argument from the page (JSONException, ...) must answer with an error, never crash the app.
+        try { when (req.optString("method")) {
             "carInfo" -> ui { ok(dev.lyra.android.car.CarModeSupport.infoJson(ctx)) }
             "snapshot" -> ui { ok(source.snapshotJson(ctx)) }
             "status" -> ui { ok(source.statusJson(ctx)) }
@@ -275,7 +276,10 @@ class Rpc(
                     fail(e.message ?: "update failed")
                 }
             }
+            in SelfCheck.METHODS -> ui { ok(SelfCheck.call(ctx, activity, req.optString("method"), args)) } // "Why isn't it working?"
             else -> fail("unknown method")
+        } } catch (e: Exception) {
+            fail(e.message ?: "bad request")
         }
     }
 
@@ -314,6 +318,7 @@ class Rpc(
     private fun fetch(url: String, headers: JSONObject?): JSONObject {
         val u = URL(url)
         require(u.protocol == "https") { "https only" }
+        require(NetGuard.isAllowedHost(u.host)) { "this address is not allowed" }
         val c = u.openConnection() as HttpURLConnection
         c.connectTimeout = 12_000
         c.readTimeout = 20_000

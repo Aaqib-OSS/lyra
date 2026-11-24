@@ -1,10 +1,12 @@
 package dev.lyra.android
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.graphics.Color
 import android.util.Base64
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
@@ -17,7 +19,7 @@ import java.net.URL
 /** Shared by the app screen and the floating widget: both run the same Lyra web UI in a locked-down WebView. */
 object WebSetup {
     @SuppressLint("SetJavaScriptEnabled")
-    fun configure(web: LyraWebView, ctx: Context, transparent: Boolean = false) {
+    fun configure(web: LyraWebView, ctx: Context, transparent: Boolean = false, onRenderGone: (() -> Unit)? = null) {
         if (ctx.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) WebView.setWebContentsDebuggingEnabled(true)
         web.setBackgroundColor(if (transparent) Color.TRANSPARENT else Color.BLACK)
         web.settings.javaScriptEnabled = true
@@ -26,6 +28,9 @@ object WebSetup {
         web.settings.allowFileAccess = false
         web.settings.allowContentAccess = false
         web.settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+        web.settings.setSupportMultipleWindows(false) // no pop-up windows, from the page or from an embedded frame
+        web.settings.javaScriptCanOpenWindowsAutomatically = false
+        web.settings.setGeolocationEnabled(false)
 
         val assets = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(ctx))
@@ -40,6 +45,19 @@ object WebSetup {
 
             // Only Lyra's own page may load as the top-level document; links to other sites are not followed.
             override fun shouldOverrideUrlLoading(v: WebView, request: WebResourceRequest): Boolean = !Rpc.isLyraPage(request.url)
+
+            // The WebView's render process was killed (low memory, the WebView being updated). Unhandled, this takes the whole
+            // app down; instead the screen is rebuilt (an Activity recreates itself, the floating widget supplies its own).
+            override fun onRenderProcessGone(v: WebView, detail: RenderProcessGoneDetail): Boolean {
+                v.post {
+                    val a = v.context as? Activity
+                    when {
+                        onRenderGone != null -> onRenderGone()
+                        a != null && !a.isFinishing -> a.recreate()
+                    }
+                }
+                return true
+            }
         }
     }
 

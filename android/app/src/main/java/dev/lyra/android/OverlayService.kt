@@ -56,7 +56,7 @@ class OverlayService : Service() {
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Floating lyrics", NotificationManager.IMPORTANCE_MIN))
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val n: Notification = NotificationCompat.Builder(this, CHANNEL)
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(R.drawable.ic_stat_lyra)
             .setContentTitle("Floating lyrics are on")
             .setContentText("Shown over other apps. Turn off in Lyra settings.")
             .setContentIntent(open)
@@ -77,7 +77,7 @@ class OverlayService : Service() {
 
         val lp = WindowManager.LayoutParams(
             width,
-            dp(26) + dp(150),
+            dp(STRIP_DP) + dp(150),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
@@ -102,9 +102,12 @@ class OverlayService : Service() {
             setTextColor(Color.argb(200, 255, 255, 255))
             textSize = 14f
             gravity = Gravity.CENTER
+            contentDescription = "Close floating lyrics"
+            minimumWidth = dp(48)
+            minimumHeight = dp(48)
             setOnClickListener { set(this@OverlayService, false) }
         }
-        strip.addView(close, FrameLayout.LayoutParams(dp(40), dp(26), Gravity.END or Gravity.CENTER_VERTICAL))
+        strip.addView(close, FrameLayout.LayoutParams(dp(48), dp(48), Gravity.END or Gravity.CENTER_VERTICAL))
         var downX = 0f
         var downY = 0f
         var startX = 0
@@ -130,7 +133,7 @@ class OverlayService : Service() {
         }
 
         val view = LyraWebView(this)
-        WebSetup.configure(view, this, transparent = true)
+        WebSetup.configure(view, this, transparent = true, onRenderGone = { rebuild() })
         val box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = GradientDrawable().apply {
@@ -138,7 +141,7 @@ class OverlayService : Service() {
                 setColor(Color.argb(235, 14, 14, 18))
             }
             clipToOutline = true
-            addView(strip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(26)))
+            addView(strip, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(STRIP_DP)))
             addView(view, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         }
         root = box
@@ -150,6 +153,20 @@ class OverlayService : Service() {
 
     fun applyVisibility() {
         root?.visibility = if (appInForeground) View.GONE else View.VISIBLE
+        // hidden behind Lyra's own screen: let the page rest (saves battery), wake it when the widget shows again
+        if (appInForeground) web?.onPause() else web?.onResume()
+    }
+
+    /** The page's render process died (WebView update, low memory): build the window again instead of leaving it blank. */
+    private fun rebuild() {
+        root?.let { runCatching { wm?.removeView(it) } }
+        rpc?.dispose()
+        web?.destroy()
+        root = null
+        web = null
+        rpc = null
+        create()
+        applyVisibility()
     }
 
     override fun onDestroy() {
@@ -165,6 +182,7 @@ class OverlayService : Service() {
     companion object {
         private const val CHANNEL = "overlay"
         private const val KEY = "enabled"
+        private const val STRIP_DP = 48 // drag strip with the close button: a full 48 dp touch target
         private var instance: OverlayService? = null
         private var appInForeground = false
 
