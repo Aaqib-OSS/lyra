@@ -13,6 +13,15 @@ export function sanitize(s: Settings): Settings {
   // Settings that were removed from the page (or renamed in an older Lyra) must never break loading: only keys that
   // still exist are kept, everything else in an old settings.json is dropped on the next save.
   const known = Object.fromEntries(Object.entries(s && typeof s === 'object' ? s : {}).filter(([k]) => k in d)) as Settings
+  // Every plain on/off, number and text value must be the same kind as its default ("false" or 5 for a switch,
+  // NaN for a slider, a 5 MB string for an id are all replaced by the default); ranges are clamped below.
+  for (const k of Object.keys(known) as Array<keyof Settings>) {
+    const dv = d[k]
+    const v = known[k]
+    if ((typeof dv === 'boolean' || typeof dv === 'number' || typeof dv === 'string') && typeof v !== typeof dv) (known as Record<string, unknown>)[k] = dv
+    else if (typeof v === 'number' && !Number.isFinite(v)) (known as Record<string, unknown>)[k] = dv
+    else if (typeof v === 'string' && v.length > 300) (known as Record<string, unknown>)[k] = dv
+  }
   s = known
   return {
     ...d,
@@ -30,7 +39,7 @@ export function sanitize(s: Settings): Settings {
     lyricStyle: (LYRIC_STYLES as readonly string[]).includes(s.lyricStyle) ? s.lyricStyle : d.lyricStyle,
     vibe: (ALL_VIBES as readonly string[]).includes(s.vibe) ? s.vibe : d.vibe,
     vibeMode: (['fixed', 'cycle', 'smart'] as const).includes(s.vibeMode) ? s.vibeMode : d.vibeMode,
-    songVibes: Object.fromEntries(Object.entries(s.songVibes && typeof s.songVibes === 'object' ? s.songVibes : {}).filter(([, v]) => (ALL_VIBES as readonly string[]).includes(v as string)).slice(-300)),
+    songVibes: Object.fromEntries(Object.entries(s.songVibes && typeof s.songVibes === 'object' ? s.songVibes : {}).filter(([id, v]) => id.length <= 300 && (ALL_VIBES as readonly string[]).includes(v as string)).slice(-300)),
     vibePool: Array.isArray(s.vibePool) ? s.vibePool.filter((v) => (ALL_VIBES as readonly string[]).includes(v)) : d.vibePool,
     performance: (['auto', 'smooth', 'light'] as const).includes(s.performance) ? s.performance : d.performance,
     lyricOffsetMs: clamp(s.lyricOffsetMs, -5000, 5000),
@@ -72,7 +81,7 @@ class SettingsService extends EventEmitter {
 
   private ensure(): JsonStore<Settings> {
     if (!this.store) {
-      this.store = new JsonStore<Settings>('settings.json', DEFAULT_SETTINGS)
+      this.store = new JsonStore<Settings>('settings.json', DEFAULT_SETTINGS, true)
       this.store.set(sanitize(this.store.get()))
     }
     return this.store

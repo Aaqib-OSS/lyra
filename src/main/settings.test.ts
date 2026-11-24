@@ -38,7 +38,7 @@ describe('settings sanitize', () => {
     const out = sanitize(withSettings({ opacity: 9, lyricOffsetMs: -99999, compactWidth: Number.NaN, backgroundDim: -1, ambientBrightness: 5 }))
     expect(out.opacity).toBe(1)
     expect(out.lyricOffsetMs).toBe(-5000)
-    expect(out.compactWidth).toBe(320)
+    expect(out.compactWidth).toBe(DEFAULT_SETTINGS.compactWidth)
     expect(out.backgroundDim).toBe(0.2)
     expect(out.ambientBrightness).toBe(0.6)
   })
@@ -62,6 +62,24 @@ describe('settings sanitize', () => {
   it('rejects a custom background file name that is not a hashed local file', () => {
     expect(sanitize(withSettings({ customBackground: { file: '../../etc/passwd', name: 'x', kind: 'video' } })).customBackground).toBeNull()
     expect(sanitize(withSettings({ customBackground: { file: '0123456789abcdef.mp4', name: 'x', kind: 'video' } })).customBackground).toEqual({ file: '0123456789abcdef.mp4', name: 'x', kind: 'video' })
+  })
+
+  it('replaces a value of the wrong kind with its default, for every plain setting', () => {
+    const junk = { alwaysOnTop: 'false', autoHide: 1, trackNotifications: null, volumeFade: 'yes', opacity: '0.5', lyricOffsetMs: Infinity, spotifyClientId: 'x'.repeat(5000), ambientClock: 0 }
+    const out = sanitize(withSettings(junk))
+    expect(out.alwaysOnTop).toBe(DEFAULT_SETTINGS.alwaysOnTop)
+    expect(out.autoHide).toBe(false)
+    expect(out.trackNotifications).toBe(false)
+    expect(out.volumeFade).toBe(false)
+    expect(out.opacity).toBe(DEFAULT_SETTINGS.opacity)
+    expect(out.lyricOffsetMs).toBe(0)
+    expect(out.spotifyClientId).toBe('')
+    expect(out.ambientClock).toBe(DEFAULT_SETTINGS.ambientClock)
+  })
+
+  it('keeps valid values of every kind unchanged (the defaults are a fixed point)', () => {
+    expect(sanitize(DEFAULT_SETTINGS)).toEqual(DEFAULT_SETTINGS)
+    expect(sanitize(sanitize(withSettings({ opacity: 0.6, volumeFade: true, vibe: 'neon' })))).toEqual(sanitize(withSettings({ opacity: 0.6, volumeFade: true, vibe: 'neon' })))
   })
 
   it('survives a settings file that is not an object at all', () => {
