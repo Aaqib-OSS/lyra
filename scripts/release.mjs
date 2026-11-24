@@ -88,6 +88,13 @@ async function main() {
   if (cmd === 'notes') {
     const platform = args[1] === 'android' ? 'android' : 'windows'
     const version = platform === 'android' ? readProperties(read(P.props)).versionName : JSON.parse(read(P.pkg)).version
+    if (platform === 'android') {
+      // the Android body is the store changelog for this versionCode (card titles carry the Windows version)
+      const f = join(P.changelogs, `${versionCodeFor(version)}.txt`)
+      if (!existsSync(f)) die(`no fastlane changelog for Android ${version}`)
+      process.stdout.write(`${read(f).trim()}\n\nAll changes: https://github.com/${repo}/commits/android-v${version}\n`)
+      return
+    }
     const card = findNotesCard(read(P.notes), version)
     if (!card) die(`no whats-new card for ${version}`)
     process.stdout.write(notesMarkdown(card, { platform, version, repo }))
@@ -199,21 +206,23 @@ Then verify what was published:
     }
     const problems = []
 
-    const rel = await withRetry(() => getJson(`https://api.github.com/repos/${repo}/releases/tags/v${version}`))
-    const ly = rel.assets.find((a) => a.name === 'latest.yml')
-    const latest = ly ? parseLatestYml((await getBuffer(ly.browser_download_url)).toString('utf8')) : null
-    problems.push(...verifyWindowsRelease(rel, latest, version).map((m) => `Windows: ${m}`))
-    if (flag('deep') && latest) {
-      const exe = rel.assets.find((a) => a.name === `Lyra-Setup-${version}.exe`)
-      const entry = latest.files.find((f) => f.url === `Lyra-Setup-${version}.exe`)
-      if (exe && entry?.sha512) {
-        console.log(`downloading ${exe.name} (${(exe.size / 1048576).toFixed(0)} MB) to check its sha512 ...`)
-        const got = createHash('sha512').update(await getBuffer(exe.browser_download_url)).digest('base64')
-        if (got !== entry.sha512) problems.push('Windows: the sha512 of the uploaded installer does not match latest.yml (the updater would reject it)')
+    if (!flag('android-only')) {
+      const rel = await withRetry(() => getJson(`https://api.github.com/repos/${repo}/releases/tags/v${version}`))
+      const ly = rel.assets.find((a) => a.name === 'latest.yml')
+      const latest = ly ? parseLatestYml((await getBuffer(ly.browser_download_url)).toString('utf8')) : null
+      problems.push(...verifyWindowsRelease(rel, latest, version).map((m) => `Windows: ${m}`))
+      if (flag('deep') && latest) {
+        const exe = rel.assets.find((a) => a.name === `Lyra-Setup-${version}.exe`)
+        const entry = latest.files.find((f) => f.url === `Lyra-Setup-${version}.exe`)
+        if (exe && entry?.sha512) {
+          console.log(`downloading ${exe.name} (${(exe.size / 1048576).toFixed(0)} MB) to check its sha512 ...`)
+          const got = createHash('sha512').update(await getBuffer(exe.browser_download_url)).digest('base64')
+          if (got !== entry.sha512) problems.push('Windows: the sha512 of the uploaded installer does not match latest.yml (the updater would reject it)')
+        }
       }
+      const latestRel = await getJson(`https://api.github.com/repos/${repo}/releases/latest`).catch(() => null)
+      if (latestRel && !/^v/.test(latestRel.tag_name)) problems.push(`"latest" release is ${latestRel.tag_name}; the Windows updater needs it to be the v* release (publish Android with --latest=false)`)
     }
-    const latestRel = await getJson(`https://api.github.com/repos/${repo}/releases/latest`).catch(() => null)
-    if (latestRel && !/^v/.test(latestRel.tag_name)) problems.push(`"latest" release is ${latestRel.tag_name}; the Windows updater needs it to be the v* release (publish Android with --latest=false)`)
 
     if (androidV) {
       const arel = await withRetry(() => getJson(`https://api.github.com/repos/${repo}/releases/tags/android-v${androidV}`))
@@ -226,7 +235,7 @@ Then verify what was published:
       for (const m of problems) console.error(`  PROBLEM: ${m}`)
       die('the published release is not right')
     }
-    console.log(`v${version}${androidV ? ` and android-v${androidV}` : ''}: assets present, latest.yml matches${flag('deep') ? ', installer sha512 matches' : ''}`)
+    console.log(`${flag('android-only') ? '' : 'v' + version}${androidV ? ` and android-v${androidV}` : ''}: assets present, latest.yml matches${flag('deep') ? ', installer sha512 matches' : ''}`)
     return
   }
 
