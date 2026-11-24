@@ -1,6 +1,7 @@
 import { ClipboardItem, Notification, app, clipboard, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron'
 import { readFile, stat, writeFile } from 'node:fs/promises'
 import { basename } from 'node:path'
+import { decodeLyricsBytes } from '@shared/lrc'
 import { CH, EV, type AppInfo, type ConnectCode, type ConnectStatus, type ConnectView } from '@shared/ipc'
 import type { ConnectionStatus, PlaybackSnapshot, PlayerCommand, Settings, Track, ViewMode } from '@shared/types'
 import { getArtwork } from './artwork'
@@ -188,7 +189,7 @@ export function registerIpc(): void {
     try {
       const file = r.filePaths[0]
       if ((await stat(file)).size > 1_000_000) return { error: 'That file is too big to be lyrics (limit 1 MB).' }
-      return lyricsService.importText(t, await readFile(file, 'utf8'), basename(file))
+      return lyricsService.importText(t, decodeLyricsBytes(await readFile(file)), basename(file))
     } catch {
       return { error: 'Couldn’t read that file.' }
     }

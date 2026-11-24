@@ -3,7 +3,7 @@ import { AnimatePresence, MotionConfig, motion } from 'framer-motion'
 import { Backdrop } from '@/components/Backdrop'
 import { VibeFx } from '@/components/VibeFx'
 import { EdgeFx } from '@/components/EdgeFx'
-import { isImportError } from '@shared/lrc'
+import { decodeLyricsBytes, isImportError } from '@shared/lrc'
 import { cycleVibe, useVibeConductor } from '@/hooks/useVibe'
 import { usePrefetchNext } from '@/hooks/usePrefetchNext'
 import { useStartGate } from '@/hooks/useStartGate'
@@ -111,7 +111,8 @@ function useLyricDrop(): boolean {
       const toast = useUi.getState().toast
       if (!file || !track) return void toast('Play a song first, then drop its lyrics.', 'error')
       if (!/\.(lrc|srt|txt)$/i.test(file.name) || file.size > 1_000_000) return void toast('Drop a .lrc, .srt or .txt file (under 1 MB).', 'error')
-      void file.text().then(async (text) => {
+      void file.arrayBuffer().then(async (buf) => {
+        const text = decodeLyricsBytes(new Uint8Array(buf))
         const r = await window.lyra.lyrics.importText(track, text)
         if (isImportError(r)) return toast(r.error, 'error')
         useLyrics.getState().apply(r)

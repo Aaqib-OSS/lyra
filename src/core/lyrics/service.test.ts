@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Track } from '@shared/types'
 import { setPlatform, type CorePlatform } from '../platform'
-import { LyricsService } from './service'
+import { LyricsService, isCacheEntry } from './service'
 import { LyricsProviderError, type LyricsProvider, type ProviderResult } from './provider'
 
 function memoryPlatform(): CorePlatform {
@@ -191,5 +191,44 @@ describe('synced lyrics always win', () => {
     clock += 25 * 3600_000
     await s.get(track())
     expect(a.calls).toBe(2)
+  })
+})
+
+describe('lyrics cache hardening', () => {
+  it('recognises only well-formed entries', () => {
+    const ok = { at: 1, result: { trackId: 'x', status: 'synced', provider: 'a', lines: [{ timeMs: 1, text: 'hi' }] } }
+    expect(isCacheEntry(ok)).toBe(true)
+    expect(isCacheEntry(null)).toBe(false)
+    expect(isCacheEntry({ at: 'now', result: ok.result })).toBe(false)
+    expect(isCacheEntry({ at: 1, result: { ...ok.result, lines: 'oops' } })).toBe(false)
+    expect(isCacheEntry({ at: 1, result: { ...ok.result, lines: [] } })).toBe(false) // synced with no lines
+    expect(isCacheEntry({ at: 1, result: { ...ok.result, status: 'plain', lines: [] } })).toBe(false) // plain without text
+    expect(isCacheEntry({ at: 1, result: { ...ok.result, status: 'weird' } })).toBe(false)
+  })
+
+  it('ignores a damaged disk entry and looks the song up again', async () => {
+    const blobs = new Map<string, string>()
+    const base = memoryPlatform()
+    setPlatform({ ...base, blobCache: () => ({ read: (k) => blobs.get(k) ?? null, write: (k, v) => void blobs.set(k, v) }) })
+    const a = new Fake('a', () => found())
+    const s = svc(a)
+    await s.get(track())
+    const key = [...blobs.keys()][0]!
+    blobs.set(key, JSON.stringify({ at: clock, result: { status: 'synced', lines: 'broken' } }))
+    const fresh = svc(a) // a new service has no memory copy: it must read the damaged disk entry
+    const r = await fresh.get(track())
+    expect(r.status).toBe('synced')
+    expect(a.calls).toBe(2)
+    blobs.set(key, '{not json')
+    expect((await svc(a).get(track())).status).toBe('synced')
+  })
+
+  it('keeps oversized results out of the disk cache', async () => {
+    const blobs = new Map<string, string>()
+    setPlatform({ ...memoryPlatform(), blobCache: () => ({ read: (k) => blobs.get(k) ?? null, write: (k, v) => void blobs.set(k, v) }) })
+    const huge = '[00:01.00]' + 'x'.repeat(450_000) + '\n' + LRC
+    const r = await svc(new Fake('a', () => ({ kind: 'found', synced: huge, matched: MATCHED }))).get(track())
+    expect(r.status).toBe('synced')
+    expect([...blobs.values()].some((v) => v.length > 400_000)).toBe(false)
   })
 })

@@ -126,3 +126,17 @@ export function parseImported(raw: string): ImportedLyrics {
 
 /** The import calls answer with lyrics or `{ error }`; lyrics results may carry an `error` object too, so check its type. */
 export const isImportError = (r: unknown): r is { error: string } => typeof (r as { error?: unknown } | null)?.error === 'string'
+
+/**
+ * Turn the bytes of a lyrics file into text. Handles the BOMs of UTF-8 / UTF-16 (Windows Notepad "Unicode" saves
+ * UTF-16), and falls back to Windows-1252 when the bytes are not valid UTF-8 (old tools), so accents survive.
+ */
+export function decodeLyricsBytes(bytes: Uint8Array): string {
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder('utf-16le').decode(bytes.subarray(2))
+  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) return new TextDecoder('utf-16be').decode(bytes.subarray(2))
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+  } catch {
+    return new TextDecoder('windows-1252').decode(bytes)
+  }
+}
