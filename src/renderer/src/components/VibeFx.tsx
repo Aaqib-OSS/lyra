@@ -48,7 +48,9 @@ function ArcadeFx() {
   const track = usePlayer((x) => x.snapshot?.track ?? null)
   const [t, setT] = useState(0)
   useEffect(() => {
-    const id = setInterval(() => setT(getPosition()), 1000)
+    const id = setInterval(() => {
+      if (!document.hidden) setT(getPosition()) // a hidden window draws nothing: no re-render
+    }, 1000)
     return () => clearInterval(id)
   }, [])
   const score = String(Math.floor(t / 1000) * 100).padStart(6, '0')
@@ -229,6 +231,7 @@ function FilmStripFx() {
     const root = document.documentElement
     const N = 5
     const tick = (): void => {
+      if (document.hidden) return
       const p = duration > 0 ? Math.min(0.999, getPosition() / duration) : 0
       root.style.setProperty('--film-k', String(Math.floor(p * N)))
     }

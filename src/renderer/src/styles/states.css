@@ -68,7 +68,9 @@
 [data-vibe='paper'] .lfb__eq i { background: #2d2a3a; border-radius: 1px; width: 3px; }
 
 /* small covers (the dock next to the title, phone strips) keep a thin frame: a thick one would overlap the title beside it */
-:root .full.is-cinema .artwork--lift, :root .full[data-arch='scene'] .artwork--lift, :root .mini__dock .artwork--lift, :root .phone__dock .artwork--lift { outline-width: 2px !important; outline-offset: 0 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.55), 0 8px 20px -6px rgba(0,0,0,.6) !important; animation: none !important; }
+:root .full.is-cinema .artwork--lift,
+:root .full[data-arch='scene'] .artwork--lift,
+:root .phone__dock .artwork--lift { outline-width: 2px !important; outline-offset: 0 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.55), 0 8px 20px -6px rgba(0,0,0,.6) !important; animation: none !important; }
 
 /* ===================== ARCADE ===================== */
 /* unsynced words: the high-score table: rows, a marker, no highlight that moves */
@@ -119,7 +121,7 @@
 [data-vibe='blocks'] .lfb__eq i { background: #55ff55; border-radius: 0; box-shadow: inset -2px -2px 0 #2a7a0a; }
 
 /* ===================== STADIUM ===================== */
-:root[data-vibe='stadium'][data-bg-media] .vibefx__pitch { opacity: .25; }
+
 :root[data-vibe='stadium'][data-bg-media] .backdrop__dim { background: rgba(2, 20, 10, .25); }
 [data-vibe='stadium'] .lyrics__notice { background: #e11d2e; border: 0; border-radius: 3px; color: #fff; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: 10px; }
 /* unsynced words: the team sheet: a blue board with a gold edge, numbered rows, nothing live */
