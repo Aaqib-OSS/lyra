@@ -408,7 +408,7 @@ export type UpdateState =
   | { state: 'disabled'; reason: string }
   | { state: 'idle' }
   | { state: 'checking' }
-  | { state: 'none' } // up to date
-  | { state: 'downloading'; version: string; percent: number }
-  | { state: 'ready'; version: string }
-  | { state: 'error'; message: string }
+  | { state: 'none'; checkedAt?: number } // up to date; when it was last checked (ms)
+  | { state: 'downloading'; version: string; percent: number; notes?: string }
+  | { state: 'ready'; version: string; notes?: string } // notes: plain text of the release notes
+  | { state: 'error'; message: string; willRetry?: boolean }

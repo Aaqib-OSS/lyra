@@ -1,10 +1,11 @@
-import { app } from 'electron'
+import { app, net } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { EventEmitter } from 'node:events'
 import { accessSync, constants, mkdirSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { UpdateState } from '@shared/types'
 import { createLogger } from './logger'
+import { friendlyUpdateError, isTransient, releaseNotesToText, retryDelayMs } from './updateHelpers'
 
 const log = createLogger('updater')
 
@@ -13,13 +14,24 @@ const EVERY_MS = 6 * 3600_000
 
 /**
  * Self-updates from GitHub releases. electron-updater downloads only the changed blocks (blockmap),
- * keeps the downloaded installer in its cache and verifies it, so nothing is downloaded twice;
- * the update installs when the app quits (or immediately via `install()`).
+ * keeps the downloaded installer in its cache and verifies its sha512 against latest.yml before it is ever run,
+ * so nothing is downloaded twice and a corrupted file is never installed; the update installs when the app quits
+ * (or immediately via `install()`).
+ *
+ * Reliability: a failed check because of the network is retried after 5 min, 15 min and 1 h (then the normal 6 h
+ * cadence continues); no scheduled check is started while the PC is offline; a finished update's installer is removed
+ * from the cache once the app is up to date.
  */
 class Updater extends EventEmitter {
   private current: UpdateState = { state: 'idle' }
   private timer: NodeJS.Timeout | null = null
+  private retryTimer: NodeJS.Timeout | null = null
   private started = false
+  private failures = 0
+  /** the 'error' event and the rejected promise report the same failure; count it once per check */
+  private errorSeen = false
+  private notes: string | undefined
+  private cacheDir: string | null = null
 
   get state(): UpdateState {
     return this.current
@@ -49,20 +61,38 @@ class Updater extends EventEmitter {
     }
 
     autoUpdater.on('checking-for-update', () => this.set({ state: 'checking' }))
-    autoUpdater.on('update-not-available', () => this.set({ state: 'none' }))
-    autoUpdater.on('update-available', (i) => this.set({ state: 'downloading', version: i.version, percent: 0 }))
+    autoUpdater.on('update-not-available', () => {
+      this.failures = 0
+      this.set({ state: 'none', checkedAt: Date.now() })
+      this.pruneStaleDownloads()
+    })
+    autoUpdater.on('update-available', (i) => {
+      this.failures = 0
+      this.notes = releaseNotesToText(i.releaseNotes)
+      this.set({ state: 'downloading', version: i.version, percent: 0, notes: this.notes })
+    })
     autoUpdater.on('download-progress', (p) => {
       const v = this.current.state === 'downloading' ? this.current.version : ''
-      this.set({ state: 'downloading', version: v, percent: Math.round(p.percent) })
+      this.set({ state: 'downloading', version: v, percent: Math.round(p.percent), notes: this.notes })
     })
-    autoUpdater.on('update-downloaded', (i) => this.set({ state: 'ready', version: i.version }))
-    autoUpdater.on('error', (e) => {
-      log.warn('update error', e?.message ?? e)
-      this.set({ state: 'error', message: friendly(e?.message ?? String(e)) })
-    })
+    autoUpdater.on('update-downloaded', (i) =>
+      this.set({ state: 'ready', version: i.version, notes: this.notes ?? releaseNotesToText(i.releaseNotes) })
+    )
+    autoUpdater.on('error', (e) => this.fail(e?.message ?? String(e)))
 
-    setTimeout(() => void this.check(), FIRST_CHECK_MS)
-    this.timer = setInterval(() => void this.check(), EVERY_MS)
+    setTimeout(() => void this.check(true), FIRST_CHECK_MS)
+    this.timer = setInterval(() => void this.check(true), EVERY_MS)
+  }
+
+  /** One place for failures: friendly message, and a sooner retry when the cause is probably temporary. */
+  private fail(raw: string): void {
+    this.errorSeen = true
+    log.warn('update error', raw)
+    this.failures++
+    const delay = isTransient(raw) ? retryDelayMs(this.failures) : null
+    this.set({ state: 'error', message: friendlyUpdateError(raw), willRetry: delay !== null })
+    if (this.retryTimer) clearTimeout(this.retryTimer)
+    this.retryTimer = delay === null ? null : setTimeout(() => void this.check(true), delay)
   }
 
   /**
@@ -78,6 +108,7 @@ class Updater extends EventEmitter {
       accessSync(dir, constants.W_OK)
       const adapter = (autoUpdater as unknown as { app: object }).app
       Object.defineProperty(adapter, 'baseCachePath', { get: () => dir, configurable: true })
+      this.cacheDir = dir
       log.info('update downloads go to', dir)
       // an earlier build cached inside the install folder; drop it so it can never block an uninstall
       rmSync(join(dirname(process.execPath), 'updates'), { recursive: true, force: true })
@@ -89,14 +120,30 @@ class Updater extends EventEmitter {
     }
   }
 
-  async check(): Promise<void> {
+  /** The app is up to date, so a cached installer of an older release is dead weight (tens of MB). Never runs during a download. */
+  private pruneStaleDownloads(): void {
+    if (!this.cacheDir) return
+    try {
+      rmSync(join(this.cacheDir, 'lyra-updater', 'pending'), { recursive: true, force: true })
+    } catch (e) {
+      log.warn('could not clean the update cache', (e as Error).message)
+    }
+  }
+
+  /** @param scheduled true for the timers (skipped silently while offline); a click on "Check now" always tries. */
+  async check(scheduled = false): Promise<void> {
     if (!app.isPackaged) return
     // don't interrupt a finished or in-flight download
     if (this.current.state === 'downloading' || this.current.state === 'ready' || this.current.state === 'checking') return
+    if (scheduled && !net.isOnline()) {
+      log.info('offline, skipping the scheduled update check')
+      return
+    }
+    this.errorSeen = false
     try {
       await autoUpdater.checkForUpdates()
     } catch (e) {
-      this.set({ state: 'error', message: friendly((e as Error).message) })
+      if (!this.errorSeen) this.fail((e as Error).message ?? String(e))
     }
   }
 
@@ -106,14 +153,8 @@ class Updater extends EventEmitter {
 
   dispose(): void {
     if (this.timer) clearInterval(this.timer)
+    if (this.retryTimer) clearTimeout(this.retryTimer)
   }
-}
-
-function friendly(msg: string): string {
-  if (/ENOTFOUND|ETIMEDOUT|ECONNRESET|net::|network/i.test(msg)) return 'Couldn’t reach GitHub. Check your connection.'
-  if (/404|Not Found|latest\.yml/i.test(msg)) return 'No update information was found yet.'
-  if (/rate limit|403/i.test(msg)) return 'GitHub is rate limiting update checks. Try again later.'
-  return msg.slice(0, 160)
 }
 
 export const updater = new Updater()
