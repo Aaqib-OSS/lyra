@@ -34,6 +34,26 @@ running one or a failed one stops the publish with an error that says so. This a
 - `android.yml` runs `./gradlew testDebugUnitTest lintDebug` before building the APK (the Kotlin unit tests did not run in CI before).
 - After a green CI the order is: bump version, merge to main, wait for CI, then tag or run the workflow.
 
+## Releasing (one script, nothing is pushed or published by it)
+
+`node scripts/release.mjs` (also `npm run release -- ...`):
+
+| Command | What it does |
+|---|---|
+| `prepare 0.28.0 [--android 0.13.0] [--dry-run] [--skip-tests]` | Refuses a version that is not higher (semver, so 0.9.0 < 0.10.1), requires a clean tree and the notes **before** it changes anything (the `website/whats-new.html` card, and for Android the `fastlane/.../changelogs/<versionCode>.txt`), then bumps `package.json`, both places in `package-lock.json` and `android/app/version.properties` (versionCode = minor * 1000 + patch), re-checks consistency, runs typecheck and unit tests, and prints the exact `git` / `gh` commands for the PR, the wait for green CI and the two `publish=true` workflow runs. |
+| `check [--tag v0.28.0]` | Versions agree everywhere, the notes card and the changelog exist, versionCode fits versionName, changelog is at most 500 characters. Runs in CI (`npm run release:check`) and at the start of both release workflows. Warns when `fdroid/dev.lyra.android.yml` lags (it is updated when you submit to F-Droid). |
+| `notes [windows\|android]` | The release body: the whats-new card (Windows) or the fastlane changelog (Android). The workflows use it instead of an auto-generated PR list. |
+| `changelog [--from v0.27.1]` | Draft notes from commit subjects since the last tag, grouped by type. Edit it into the whats-new card in plain words. |
+| `verify 0.28.0 [--android 0.13.0] [--deep]` | After publishing: assets present, `latest.yml` names this version and the installer's size, "latest" is still the `v*` release, the Android `.sha256` equals GitHub's digest of the APK; `--deep` downloads the installer and compares its sha512 with `latest.yml`. HTTPS only. The workflows run it after publishing. |
+
+Bad release: nothing in electron-updater rolls back. Mark the release as pre-release on GitHub (the updater only serves "latest"), or ship a higher fixed version.
+Sitemap: `website/sitemap.xml` lists the three pages and has no per-release entries, so it does not need regenerating.
+Ideas not built: a nightly prerelease (add a `schedule` trigger that builds `X.Y.Z-nightly.<date>` and publishes with `--prerelease`, plus a "Windows channel" setting like Android's); a scheduled job that runs `verify` on the latest release.
+
+## Code signing (Windows)
+
+The installer is unsigned. The wiring is ready but off: `release.yml` signs only when the Azure secrets (`AZURE_SIGN_ACCOUNT` and friends) or `WIN_CSC_LINK` exist, then fails unless the signature is valid. Options, costs and exact steps: `docs/release-audit.md`.
+
 ## Directories and communities
 - **AlternativeTo** (list as an alternative to Musixmatch, Lyrically, Spotify's lyrics view), **Product Hunt**, **Show HN**.
 - **Reddit:** r/spotify, r/opensource, r/FOSS, r/androidapps, r/windows, r/developersIndia (read each sub's self-promo rules first).
