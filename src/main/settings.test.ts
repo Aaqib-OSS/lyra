@@ -11,6 +11,11 @@ import { sanitize } from './settings'
 const withSettings = (patch: Record<string, unknown>): Settings => ({ ...DEFAULT_SETTINGS, ...patch }) as Settings
 
 describe('settings sanitize', () => {
+  it('update channel is stable unless it is exactly beta', () => {
+    expect(sanitize(withSettings({})).updateChannel).toBe('stable')
+    expect(sanitize(withSettings({ updateChannel: 'beta' })).updateChannel).toBe('beta')
+    expect(sanitize(withSettings({ updateChannel: 'nightly' })).updateChannel).toBe('stable')
+  })
   it('keeps every vibe id and every lyric style', () => {
     for (const vibe of VIBE_IDS) expect(sanitize(withSettings({ vibe })).vibe).toBe(vibe)
     for (const lyricStyle of LYRIC_STYLES) expect(sanitize(withSettings({ lyricStyle })).lyricStyle).toBe(lyricStyle)

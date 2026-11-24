@@ -37,6 +37,7 @@ export function sanitize(s: Settings): Settings {
     rimLight: true,
     theme: (['adaptive', 'dark', 'light'] as const).includes(s.theme) ? s.theme : d.theme,
     reducedMotion: (['system', 'on', 'off'] as const).includes(s.reducedMotion) ? s.reducedMotion : d.reducedMotion,
+    updateChannel: s.updateChannel === 'beta' ? 'beta' : 'stable',
     source: s.source === 'api' ? 'api' : 'local',
     opacity: clamp(s.opacity, 0.4, 1),
     lyricStyle: (LYRIC_STYLES as readonly string[]).includes(s.lyricStyle) ? s.lyricStyle : d.lyricStyle,

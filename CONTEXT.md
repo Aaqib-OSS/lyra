@@ -49,6 +49,7 @@ npm run check:docs         # relative links and referenced src paths in the docs
 Harness URL switches: `?mode=mini|compact|minimal|full`, `?android=1`, `?paused=1&t=<ms>`, `?video=night|day`, `?vs=searching|nokey|none|error|live|preview`, `?ly=offline|resting|error|none|stale|plain`, `?lang=hi|pa`, `?s=<json settings>`, `?panel=settings|queue|lyrics`. `window.__next()` plays the next demo song. Playwright + Chromium work in the cloud container; `ffmpeg` generates the test clips (`scripts/harness/make-video.sh`). Details: `docs/ui-testing.md`.
 
 ## 5. Release procedure
+Shortcut: `node scripts/release.mjs prepare <x.y.z> [--android <x.y.z>]` does steps 2 and the checks and prints the commands; `node scripts/release.mjs verify <x.y.z>` does step 4 (see `docs/DISTRIBUTION.md`, "Releasing").
 1. Work on a branch, open a PR, wait for CI (`check`, `ui`, CodeQL), squash-merge.
 2. Bump `package.json` (+ lock) and `android/app/version.properties` (versionCode must rise).
 3. Dispatch the workflows **on main with `publish=true`**: `release.yml` (Windows installer, `latest.yml`, becomes "latest", the updater serves it) and `android.yml` (APK, `--latest=false`). GitHub creates the tag and release itself. Pre-release is decided from the **version** (a dash means pre-release), not the tag name. **The release workflows require a green CI for the commit, with a force override** (being added by another agent in this round: check `.github/workflows/release.yml` and `android.yml` for the exact input name before relying on it; not verified at the time of writing).

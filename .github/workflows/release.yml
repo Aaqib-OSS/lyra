@@ -19,9 +19,18 @@ permissions:
   contents: write
   actions: read # the release gate reads the CI runs of this commit
 
+# two releases of the same workflow never build at once
+concurrency:
+  group: release-windows
+  cancel-in-progress: false
+
 jobs:
   windows:
     runs-on: windows-latest
+    env:
+      # Code signing is OFF until the owner adds these secrets (docs/release-audit.md, "Code signing"). Absent = unsigned, as today.
+      HAS_AZURE_SIGN: ${{ secrets.AZURE_SIGN_ACCOUNT != '' }}
+      HAS_PFX: ${{ secrets.WIN_CSC_LINK != '' }}
     steps:
       # A release is published only for a commit whose CI run (typecheck, tests, build, UI checks) is green. This workflow
       # runs on its own, so without this gate a tag or "Run workflow" could ship a commit CI had rejected (0.24.1 did).
@@ -53,11 +62,43 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # version files agree, a tag matches package.json, and the release notes card exists (scripts/release.mjs)
+      - name: Check the release metadata
+        shell: bash
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then node scripts/release.mjs check --tag "${{ github.ref_name }}"; else node scripts/release.mjs check; fi
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+
+      # Signing, only when the owner has added the secrets. Two routes: Azure Trusted Signing, or a .pfx certificate.
+      - name: Enable Azure Trusted Signing
+        if: env.HAS_AZURE_SIGN == 'true'
+        shell: bash
+        run: |
+          echo "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> "$GITHUB_ENV"
+          echo "AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> "$GITHUB_ENV"
+          echo "AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" >> "$GITHUB_ENV"
+          echo "SIGN_ARGS=-c.win.azureSignOptions.publisherName=${{ secrets.AZURE_PUBLISHER_NAME }} -c.win.azureSignOptions.endpoint=${{ secrets.AZURE_SIGN_ENDPOINT }} -c.win.azureSignOptions.codeSigningAccountName=${{ secrets.AZURE_SIGN_ACCOUNT }} -c.win.azureSignOptions.certificateProfileName=${{ secrets.AZURE_SIGN_PROFILE }}" >> "$GITHUB_ENV"
+      - name: Enable certificate signing
+        if: env.HAS_PFX == 'true' && env.HAS_AZURE_SIGN != 'true'
+        shell: bash
+        run: |
+          echo "CSC_LINK=${{ secrets.WIN_CSC_LINK }}" >> "$GITHUB_ENV"
+          echo "CSC_KEY_PASSWORD=${{ secrets.WIN_CSC_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+
       - name: Build installer
-        run: npm run dist
+        shell: bash
+        run: npm run dist -- $SIGN_ARGS
+
+      # a signing secret that is set must produce a valid signature, or the release stops here
+      - name: Verify the installer signature
+        if: env.HAS_AZURE_SIGN == 'true' || env.HAS_PFX == 'true'
+        shell: pwsh
+        run: |
+          $bad = Get-ChildItem release/Lyra-Setup-*.exe | Where-Object { (Get-AuthenticodeSignature $_.FullName).Status -ne 'Valid' }
+          if ($bad) { Write-Error "Not validly signed: $($bad.Name)"; exit 1 }
+          Get-ChildItem release/Lyra-Setup-*.exe | ForEach-Object { (Get-AuthenticodeSignature $_.FullName).SignerCertificate.Subject }
       - name: Keep the installer as a build artifact (download it from the run page to test before releasing)
         uses: actions/upload-artifact@v7
         with:

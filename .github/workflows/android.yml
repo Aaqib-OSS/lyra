@@ -20,6 +20,10 @@ permissions:
   contents: write
   actions: read # the release gate reads the CI runs of this commit
 
+concurrency:
+  group: release-android
+  cancel-in-progress: false
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -89,6 +93,8 @@ jobs:
             exit 1
           fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
+          # versionCode matches versionName and the fastlane changelog exists (scripts/release.mjs)
+          node scripts/release.mjs check
 
       - name: Decode the signing key (only when the secrets exist)
         if: env.HAS_KEY == 'true'
@@ -138,6 +144,8 @@ jobs:
           # judge the VERSION, not the tag: "android-v0.4.0" contains a dash but is a normal release; "0.4.0-beta.1" is not
           PRE=""
           case "${{ steps.v.outputs.version }}" in *-*) PRE="--prerelease" ;; esac
+          # the body is the fastlane changelog of this versionCode
+          node scripts/release.mjs notes android > "$RUNNER_TEMP/notes.md"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" "$APK.sha256" --clobber   # tag was moved: replace the APK
             [ -z "$PRE" ] && gh release edit "$TAG" --prerelease=false --latest=false || true
@@ -145,6 +153,13 @@ jobs:
             gh release create "$TAG" "$APK" "$APK.sha256" \
               --target "${{ github.sha }}" \
               --title "Lyra for Android ${{ steps.v.outputs.version }}" \
-              --generate-notes $PRE \
+              --notes-file "$RUNNER_TEMP/notes.md" $PRE \
               --latest=false   # keep the Windows release as "latest": the desktop updater reads it
           fi
+
+      - name: Verify the published release
+        if: ${{ github.ref_type == 'tag' || inputs.publish }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release.mjs verify --android-only --android "${{ steps.v.outputs.version }}"

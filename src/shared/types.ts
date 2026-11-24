@@ -331,6 +331,8 @@ export interface Settings {
   ambientCardWhenOff: boolean
   lyricOffsetMs: number
   reducedMotion: 'system' | 'on' | 'off'
+  /** Windows auto-update channel: stable releases only, or beta = nightly pre-releases first (falls back to stable) */
+  updateChannel: 'stable' | 'beta'
   compactWidth: number
   /** User-resized size of the expanded player (null = automatic). */
   miniSize: { width: number; height: number } | null
@@ -387,6 +389,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ambientCardWhenOff: true,
   lyricOffsetMs: 0,
   reducedMotion: 'system',
+  updateChannel: 'stable',
   compactWidth: 380,
   miniSize: null,
   position: null,
@@ -416,7 +419,7 @@ export type UpdateState =
   | { state: 'disabled'; reason: string }
   | { state: 'idle' }
   | { state: 'checking' }
-  | { state: 'none' } // up to date
-  | { state: 'downloading'; version: string; percent: number }
-  | { state: 'ready'; version: string }
-  | { state: 'error'; message: string }
+  | { state: 'none'; checkedAt?: number } // up to date; when it was last checked (ms)
+  | { state: 'downloading'; version: string; percent: number; notes?: string }
+  | { state: 'ready'; version: string; notes?: string } // notes: plain text of the release notes
+  | { state: 'error'; message: string; willRetry?: boolean }
