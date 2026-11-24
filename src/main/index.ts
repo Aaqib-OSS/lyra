@@ -13,6 +13,7 @@ import { installElectronPlatform } from './platform'
 import { BG_SCHEME, background, registerBackgroundScheme } from './background/service'
 import { productionCsp } from '@shared/csp'
 import { createTray } from './tray'
+import { handleLaunch, setupTaskbar } from './taskbar'
 import { updater } from './updater'
 import { windows } from './window'
 import { attachWindowGuard, installCrashGuard, isSafeMode } from './crashGuard'
@@ -82,7 +83,8 @@ function installCsp(): void {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
-  app.on('second-instance', () => windows.show())
+  // A second launch (double-click, jump list task) hands its arguments to this one and exits.
+  app.on('second-instance', (_e, argv) => handleLaunch(argv))
 
   app.whenReady().then(() => {
     app.setAppUserModelId('dev.lyra.companion')
@@ -100,6 +102,9 @@ if (!app.requestSingleInstanceLock()) {
     // safe mode (two unfinished starts in a row): skip the optional network services
     if (settings.get().connectEnabled && !isSafeMode()) void connectService.start()
     if (!isSafeMode()) updater.start()
+    setupTaskbar()
+    if (process.argv.some((a) => a.startsWith('--cmd='))) void windows.uiReady().then(() => handleLaunch(process.argv))
+    if (windows.startedHidden) setBackground(true) // started in the tray: no hide event fires, so slow the polling here
 
     // Slow polling while the widget isn't visible.
     win.on('hide', () => setBackground(true))

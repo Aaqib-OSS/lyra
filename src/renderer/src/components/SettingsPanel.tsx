@@ -1054,6 +1054,11 @@ export function SettingsPanel() {
         <Row label={t('Launch at startup')} hint={t('Applies to installed builds')}>
           <Toggle label={t('Launch at startup')} checked={s.launchAtStartup} onChange={up('launchAtStartup')} />
         </Row>
+        {s.launchAtStartup && (
+          <Row label={t('Start in the tray')} hint={t('When Windows starts Lyra, keep it hidden until you open it from the tray')}>
+            <Toggle label={t('Start in the tray')} checked={s.startInTray} onChange={up('startInTray')} />
+          </Row>
+        )}
         <Row label={t('Track change notifications')} hint={t('A small pop-up when the song changes')}>
           <Toggle label={t('Track change notifications')} checked={s.trackNotifications} onChange={up('trackNotifications')} />
         </Row>

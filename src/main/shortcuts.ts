@@ -22,10 +22,13 @@ const ACTIONS: Record<(typeof GLOBAL_SHORTCUTS)[number]['id'], () => void> = {
     windows.show()
     windows.toggleFullscreen()
   },
-  'toggle-visible': () => windows.toggleVisible()
+  'toggle-visible': () => windows.toggleVisible(),
+  peek: () => windows.peek(),
+  'toggle-lock': () => windows.toggleLocked()
 }
 
 let failed: string[] = []
+let lastReported = ''
 
 /** Ids of shortcuts that could not be registered (taken by another app). */
 export function failedShortcuts(): string[] {
@@ -48,7 +51,18 @@ export function applyShortcuts(enabled: boolean, overrides: Record<string, strin
       log.warn(`failed to register ${accel}`, e)
     }
   }
+  reportFailures(failed)
   return failed
+}
+
+/** Tell the user (once per distinct set) which keys another app already owns; otherwise "nothing happens" is a mystery. */
+function reportFailures(ids: string[]): void {
+  const key = ids.join(',')
+  if (key === lastReported) return
+  lastReported = key
+  if (ids.length === 0) return
+  const names = ids.map((id) => GLOBAL_SHORTCUTS.find((s) => s.id === id)?.label ?? id)
+  windows.notice(`${names.join(', ')}: another app already uses ${ids.length === 1 ? 'that key' : 'those keys'}. Change it in Settings, Startup & keys.`, 'error')
 }
 
 export function disposeShortcuts(): void {

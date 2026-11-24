@@ -56,6 +56,9 @@ export const CH = {
   windowHide: 'window:hide',
   windowMinimize: 'window:minimize',
   windowQuit: 'window:quit',
+  windowResizeBy: 'window:resize-by',
+  windowNowLine: 'window:now-line',
+  windowSetLock: 'window:set-lock',
   spotifyConnect: 'spotify:connect',
   spotifyDisconnect: 'spotify:disconnect',
   spotifyStatus: 'spotify:status-get',
@@ -151,6 +154,7 @@ export const EV = {
   command: 'ev:command',
   update: 'ev:update',
   fade: 'ev:fade',
+  notice: 'ev:notice',
   connectChange: 'ev:connect-change',
   studioFrame: 'ev:studio-frame',
   studioAudio: 'ev:studio-audio'
@@ -239,6 +243,12 @@ export interface LyraApi {
     resizeStart(): void
     resizeMove(): void
     resizeEnd(): void
+    /** Keyboard resize (arrow keys on the grip): grow / shrink by a few pixels within the mode's limits. */
+    resizeBy(dw: number, dh: number): void
+    /** The line being sung (or the song), shown as the tray tooltip while the widget is hidden. */
+    nowLine(text: string): void
+    /** Click-through lock for the small widgets (the mouse passes through). Not saved; the tray and a global shortcut undo it. */
+    lock(on: boolean): void
     dragStart(): void
     dragMove(): void
     dragEnd(): void
@@ -452,5 +462,7 @@ export interface LyraApi {
     /** Ids of global shortcuts another app already owns. */
     failedShortcuts(): Promise<string[]>
     onCommand(cb: (c: AppCommand) => void): Unsubscribe
+    /** A message from the main process worth showing as a toast (for example a global shortcut another app already owns). */
+    onNotice(cb: (n: { message: string; kind: 'info' | 'error' }) => void): Unsubscribe
   }
 }

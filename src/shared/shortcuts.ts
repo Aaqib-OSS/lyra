@@ -5,7 +5,9 @@ export const GLOBAL_SHORTCUTS = [
   { id: 'previous', accel: 'Control+Alt+Left', label: 'Previous track' },
   { id: 'toggle-expand', accel: 'Control+Alt+L', label: 'Expand / collapse' },
   { id: 'toggle-fullscreen', accel: 'Control+Alt+F', label: 'Fullscreen lyrics' },
-  { id: 'toggle-visible', accel: 'Control+Alt+H', label: 'Show / hide widget' }
+  { id: 'toggle-visible', accel: 'Control+Alt+H', label: 'Show / hide widget' },
+  { id: 'peek', accel: 'Control+Alt+K', label: 'Peek at the widget for a few seconds' },
+  { id: 'toggle-lock', accel: 'Control+Alt+U', label: 'Click-through lock (widget)' }
 ] as const
 
 /** In-app shortcuts (active while the widget is focused). */
@@ -14,8 +16,10 @@ export const LOCAL_SHORTCUTS = [
   { keys: '← / →', label: 'Seek 5 s' },
   { keys: 'Shift + ← / →', label: 'Previous / next track' },
   { keys: '↑ / ↓', label: 'Volume' },
-  { keys: 'F', label: 'Fullscreen' },
-  { keys: 'Esc', label: 'Exit fullscreen / collapse' },
+  { keys: 'F', label: 'Fullscreen lyrics' },
+  { keys: 'M', label: 'Next window size (minimal, compact, expanded, fullscreen)' },
+  { keys: 'Esc', label: 'Close menu / panel, then leave fullscreen, then collapse' },
+  { keys: '?', label: 'This list of keys' },
   { keys: 'D', label: 'Distraction-free (fullscreen)' },
   { keys: '[ / ]', label: 'Lyrics later / earlier' },
   { keys: 'V / Shift + V', label: 'Next / previous vibe' },

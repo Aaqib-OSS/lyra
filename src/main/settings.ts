@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { ACCEL_PATTERN, GLOBAL_SHORTCUTS } from '@shared/shortcuts'
+import { sanitizePoint } from '@shared/windowGeometry'
 import { ALL_VIBES } from '@shared/vibes'
 import { DEFAULT_SETTINGS, LYRIC_STYLES, type Settings } from '@shared/types'
 import { JsonStore } from './jsonStore'
@@ -9,7 +10,7 @@ const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.m
 /** Validate/normalise a settings object so corrupt files can't break the UI. */
 export function sanitize(s: Settings): Settings {
   const d = DEFAULT_SETTINGS
-  const pos = s && typeof s === 'object' ? s.position : null
+  const pos = sanitizePoint(s && typeof s === 'object' ? s.position : null)
   // Settings that were removed from the page (or renamed in an older Lyra) must never break loading: only keys that
   // still exist are kept, everything else in an old settings.json is dropped on the next save.
   const known = Object.fromEntries(Object.entries(s && typeof s === 'object' ? s : {}).filter(([k]) => k in d)) as Settings
@@ -52,6 +53,7 @@ export function sanitize(s: Settings): Settings {
       )
     ),
     onboarded: !!s.onboarded,
+    startInTray: !!s.startInTray,
     backgroundStyle: (['auto', 'living', 'custom', 'youtube', 'still'] as const).includes(s.backgroundStyle) ? s.backgroundStyle : d.backgroundStyle,
     backgroundDim: clamp(s.backgroundDim, 0.2, 0.9),
     backgroundInMini: !!s.backgroundInMini,
@@ -72,8 +74,7 @@ export function sanitize(s: Settings): Settings {
         ? { width: Math.round(clamp(s.miniSize.width, 360, 700)), height: Math.round(clamp(s.miniSize.height, 480, 1200)) }
         : null,
     defaultMode: (['minimal', 'compact', 'mini'] as const).includes(s.defaultMode as 'mini') ? s.defaultMode : d.defaultMode,
-    position:
-      pos && Number.isFinite(pos.x) && Number.isFinite(pos.y) ? { x: Math.round(pos.x), y: Math.round(pos.y) } : null,
+    position: pos,
     spotifyClientId: typeof s.spotifyClientId === 'string' ? s.spotifyClientId.trim() : ''
   }
 }

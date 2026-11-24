@@ -1,7 +1,7 @@
-import { Menu, Tray, app, nativeImage, type NativeImage } from 'electron'
+import { Menu, Tray, app, nativeImage, type MenuItemConstructorOptions, type NativeImage } from 'electron'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import type { AppCommand } from '@shared/types'
+import type { AppCommand, ViewMode } from '@shared/types'
 import { windows } from './window'
 import { settings } from './settings'
 
@@ -60,12 +60,31 @@ export function setTrayConnectLabel(label: string | null): void {
 export function createTray(): Tray {
   tray = new Tray(appIcon().resize({ width: 32, height: 32 }))
   tray.setToolTip('Lyra')
+  const modeItem = (label: string, mode: ViewMode): MenuItemConstructorOptions => ({
+    label,
+    type: 'radio',
+    checked: windows.getMode() === mode,
+    click: () => windows.showMode(mode)
+  })
   const rebuild = (): void => {
     const s = settings.get()
+    const now = windows.nowPlaying
     tray?.setContextMenu(
       Menu.buildFromTemplate([
+        ...(now ? ([{ label: now.length > 60 ? `${now.slice(0, 59)}…` : now, enabled: false }, { type: 'separator' }] as MenuItemConstructorOptions[]) : []),
         { label: 'Show / hide widget', click: () => windows.toggleVisible() },
-        { label: 'Fullscreen lyrics', click: () => { windows.show(); windows.setMode('full') } },
+        {
+          label: 'Window size',
+          submenu: [modeItem('Minimal', 'minimal'), modeItem('Compact', 'compact'), modeItem('Expanded player', 'mini'), modeItem('Fullscreen lyrics', 'full')]
+        },
+        { label: 'Bring back to screen', click: () => { windows.show(); windows.recoverPlacement(true) } },
+        {
+          label: 'Click-through lock (mouse passes through the widget)',
+          type: 'checkbox',
+          checked: windows.isLocked(),
+          enabled: windows.getMode() !== 'full',
+          click: () => windows.toggleLocked()
+        },
         { type: 'separator' },
         { label: 'Play / pause', click: () => send('toggle-play') },
         { label: 'Next', click: () => send('next') },
@@ -77,16 +96,28 @@ export function createTray(): Tray {
           checked: s.alwaysOnTop,
           click: (i) => settings.update({ alwaysOnTop: i.checked })
         },
-        { label: 'Settings…', click: () => { windows.show(); if (windows.getMode() !== 'mini') windows.setMode('mini'); send('open-settings') } },
+        { label: 'Settings…', click: () => { windows.showMode('mini'); send('open-settings') } },
         ...(connectLabel ? [{ label: connectLabel, enabled: false } as const] : []),
         { type: 'separator' },
         { label: 'Quit Lyra', click: () => app.quit() }
       ])
     )
   }
+  const refreshTip = (): void => tray?.setToolTip(windows.tooltip())
   rebuild()
   rebuildTray = rebuild
   settings.on('change', rebuild)
+  // the menu shows the song and the mode / lock state; the tooltip shows the line being sung while the widget is hidden
+  windows.on('now', () => {
+    rebuild()
+    refreshTip()
+  })
+  windows.on('tip', refreshTip)
+  windows.on('mode', rebuild)
+  windows.on('lock', () => {
+    rebuild()
+    refreshTip()
+  })
   tray.on('click', () => windows.toggleVisible())
   return tray
 }

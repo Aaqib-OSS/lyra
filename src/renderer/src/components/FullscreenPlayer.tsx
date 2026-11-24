@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cycleVibe } from '@/hooks/useVibe'
 import { useWindowDrag } from '@/hooks/useWindowDrag'
 import { useEffectiveVibe } from '@/hooks/useVibe'
@@ -15,6 +15,7 @@ import { LyricsView } from './LyricsView'
 import { LikeButton, OverflowMenu } from './MiniPlayer'
 import { KaraokeScreen } from './KaraokeScreen'
 import { StudioDialog } from './StudioDialog'
+import { openShortcuts } from './ShortcutsHelp'
 import { ProgressBar } from './ProgressBar'
 import { VideoPicker } from './VideoPicker'
 import { VideoStatus } from './VideoStatus'
@@ -33,6 +34,14 @@ export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
   const togglePanel = useUi((s) => s.togglePanel)
   const df = useUi((s) => s.distractionFree)
   const toggleDf = useUi((s) => s.toggleDistractionFree)
+  // an action picked in the small widget's menu (Karaoke, Export) that needs this player: run it now that it is on screen
+  const pending = useUi((s) => s.pending)
+  useEffect(() => {
+    if (!pending) return
+    if (pending === 'karaoke') setKaraoke(true)
+    else setStudio(true)
+    useUi.getState().setPending(null)
+  }, [pending])
 
   const quiet = !mini && idle && panel === 'none'
   // cinema layout: a video is playing, so get the UI out of its way
@@ -58,7 +67,9 @@ export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
                 { icon: 'bookmark' as const, label: 'Saved lyric moments', run: () => togglePanel('moments') },
                 { icon: 'mic' as const, label: 'Karaoke', run: () => setKaraoke(true) },
                 { icon: 'film' as const, label: 'Export lyric video', run: () => setStudio(true) },
-                { icon: 'vibe' as const, label: 'Next vibe', run: () => cycleVibe(1) }
+                { icon: 'vibe' as const, label: 'Next vibe', run: () => cycleVibe(1) },
+                { icon: 'lock' as const, label: 'Click-through lock', run: () => window.lyra.window.lock(true) },
+                { icon: 'keyboard' as const, label: 'Keyboard shortcuts', run: () => openShortcuts() }
               ]}
             />
             <IconButton icon="minus" label="Minimize" size={16} onClick={() => window.lyra.window.minimize()} />
@@ -76,7 +87,8 @@ export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
               items={[
                 { icon: 'mic' as const, label: 'Karaoke', run: () => setKaraoke(true) },
                 { icon: 'film' as const, label: 'Export lyric video', run: () => setStudio(true) },
-                { icon: 'vibe' as const, label: 'Next vibe', run: () => cycleVibe(1) }
+                { icon: 'vibe' as const, label: 'Next vibe', run: () => cycleVibe(1) },
+                { icon: 'keyboard' as const, label: 'Keyboard shortcuts', run: () => openShortcuts() }
               ]}
             />
             <IconButton icon="exitFullscreen" label="Exit fullscreen (Esc)" onClick={() => requestMode('mini')} />

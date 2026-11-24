@@ -287,6 +287,9 @@ export const androidApi: LyraApi &{ android: NonNullable<LyraApi['android']> } =
     resizeStart: noop,
     resizeMove: noop,
     resizeEnd: noop,
+    resizeBy: noop,
+    nowLine: noop,
+    lock: noop,
     dragStart: noop,
     dragMove: noop,
     dragEnd: noop,
@@ -468,7 +471,8 @@ export const androidApi: LyraApi &{ android: NonNullable<LyraApi['android']> } =
     copyImage: async () => false,
     shareImage: async (dataUrl, name) => ((await rpc<boolean>('shareImage', dataUrl.slice(dataUrl.indexOf(',') + 1), name)) ? 'shared' : 'failed'),
     failedShortcuts: async () => [],
-    onCommand: () => noop
+    onCommand: () => noop,
+    onNotice: () => noop
   },
   android: {
     hasAccess: () => rpc<boolean>('hasAccess'),

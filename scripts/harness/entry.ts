@@ -70,7 +70,7 @@ const sub = () => () => {}
 const noop = async () => undefined
 const api: any = {
   settings: { get: async () => settings, set: async (p: Partial<Settings>) => (settings = { ...settings, ...p }), reset: async () => settings, onChange: sub },
-  window: { setMode: noop, getMode: async () => (q.get('mode') ?? (tv ? 'full' : 'mini')), onMode: sub, onFade: sub, settle() {}, resizeStart() {}, resizeMove() {}, resizeEnd() {}, dragStart() {}, dragMove() {}, dragEnd() {}, hide() {}, minimize() {}, quit() {} },
+  window: { setMode: noop, getMode: async () => (q.get('mode') ?? (tv ? 'full' : 'mini')), onMode: sub, onFade: sub, settle() {}, resizeStart() {}, resizeMove() {}, resizeEnd() {}, resizeBy() {}, nowLine() {}, lock() {}, dragStart() {}, dragMove() {}, dragEnd() {}, hide() {}, minimize() {}, quit() {} },
   // ?connect=on shows Settings > Devices as if the host were running with a few devices; ?connect=wait shows the offline state
   connect: (() => {
     const q = new URLSearchParams(location.search).get('connect')
@@ -123,7 +123,7 @@ const api: any = {
     pick: async () => ({ ok: false }), clear: noop, hasYoutubeKey: async () => false, setYoutubeKey: async () => ({ ok: true }), clearYoutubeKey: noop, youtubeCandidates: async () => ({ items: [] }), karaokeVideos: async () => karaokeItems(), youtubeChoose: noop },
   update: { get: async () => ({ state: 'idle' }), check: noop, install: noop, onState: sub },
   studio: { setMic: noop }, lan: { info: async () => ({ running: false, urls: [], qr: null }), onOffer: sub, answer: noop },
-  app: { info: async () => ({ version: '0.17.1', platform: 'win32', envClientId: false }), diagnostics: async () => '', copy: async () => true, copyImage: async () => true, shareImage: async () => 'saved', failedShortcuts: async () => [], onCommand: sub }
+  app: { onNotice: sub, info: async () => ({ version: '0.17.1', platform: 'win32', envClientId: false }), diagnostics: async () => '', copy: async () => true, copyImage: async () => true, shareImage: async () => 'saved', failedShortcuts: async () => [], onCommand: sub }
 }
 ;(window as any).lyra = api
 // window.__setPlaying(false|true) pauses / resumes the fake player live (used by the video sync test)
