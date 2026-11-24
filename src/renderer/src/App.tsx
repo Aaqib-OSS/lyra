@@ -16,6 +16,7 @@ import { MiniPlayer } from '@/components/MiniPlayer'
 import { ResizeGrip } from '@/components/ResizeGrip'
 import { SidePanel } from '@/components/SidePanel'
 import { Toasts } from '@/components/Toasts'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Welcome } from '@/components/Welcome'
 import { useArtwork, usePalette } from '@/hooks/useArtwork'
 import { useReducedMotion } from '@/hooks/useMotion'
@@ -234,6 +235,16 @@ export default function App() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  // the main process shows a message here after it reloaded a crashed window
+  useEffect(() => {
+    const onNotice = (e: Event): void => {
+      const d = (e as CustomEvent<{ message: string; kind?: 'info' | 'error' }>).detail
+      if (d?.message) useUi.getState().toast(d.message, d.kind)
+    }
+    window.addEventListener('lyra:notice', onNotice)
+    return () => window.removeEventListener('lyra:notice', onNotice)
+  }, [])
+
   // First run: open the roomy player once so the welcome card has space.
   const onboarded = settings.onboarded
   useEffect(() => {
@@ -265,16 +276,22 @@ export default function App() {
               animate={{ opacity: 1, scale: 1, transition: { duration: 0.24, ease: [0.22, 1, 0.36, 1] } }}
               exit={{ opacity: 0, scale: 0.99, transition: { duration: 0.12 } }}
             >
-              {mode === 'full' ? (
-                <FullscreenPlayer />
-              ) : mode === 'mini' ? (
-                <MiniPlayer />
-              ) : (
-                <CompactWidget minimal={mode === 'minimal'} />
-              )}
+              <ErrorBoundary label="This view" key={mode}>
+                {mode === 'full' ? (
+                  <FullscreenPlayer />
+                ) : mode === 'mini' ? (
+                  <MiniPlayer />
+                ) : (
+                  <CompactWidget minimal={mode === 'minimal'} />
+                )}
+              </ErrorBoundary>
             </motion.div>
           </AnimatePresence>
-          {(mode === 'mini' || mode === 'full') && <SidePanel />}
+          {(mode === 'mini' || mode === 'full') && (
+            <ErrorBoundary label="The side panel">
+              <SidePanel />
+            </ErrorBoundary>
+          )}
           {!onboarded && (mode === 'mini' || mode === 'full') && <Welcome />}
           <Toasts />
           <CarOffer />

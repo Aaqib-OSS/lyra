@@ -58,7 +58,7 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
     } else {
       const r = await window.lyra.app.shareImage(url, name)
       if (r === 'saved') toast('Card saved')
-      else if (r === 'failed') toast('Couldn’t save the card', 'error')
+      else if (r === 'failed') toast('Couldn’t save the card. Pick another folder or copy the image instead', 'error')
     }
   }
 

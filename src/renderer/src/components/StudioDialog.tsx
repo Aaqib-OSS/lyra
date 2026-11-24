@@ -168,7 +168,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
       setOwn((o) => ({ ...o, audio: buf, audioName: f.name, durationMs: Math.round(decoded.duration * 1000), title: o.title || base }))
       setPreset('chorus')
     } catch {
-      useUi.getState().toast('Couldn’t read that audio file', 'error')
+      useUi.getState().toast('Couldn’t read that audio file. Try an MP3, WAV, M4A or OGG file', 'error')
     }
   }
 

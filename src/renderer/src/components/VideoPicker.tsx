@@ -45,7 +45,7 @@ export function VideoPicker() {
           setItems(r.items)
           if (r.error) setError(r.error)
         })
-        .catch(() => setError('Couldn’t load other videos.'))
+        .catch(() => setError('Couldn’t load other videos. Check your connection and reopen this list'))
     }
   }
   const choose = (id: string | null): void => {

@@ -172,7 +172,7 @@ function StorageRow() {
     window.lyra.cache
       .clear()
       .then((r) => useUi.getState().toast(r.cleared > 0 ? t('Cleared {n} saved lookups', { n: String(r.cleared) }) : t('The cache was already empty')))
-      .catch(() => useUi.getState().toast(t('Couldn’t clear the cache'), 'error'))
+      .catch(() => useUi.getState().toast(t('Couldn’t clear the cache. Close Lyra, delete the cache folder by hand and start again'), 'error'))
       .finally(() => setBusy(false))
   }
   return (
@@ -318,7 +318,7 @@ function ResetButton() {
         void window.lyra.settings
           .reset()
           .then(() => useUi.getState().toast('Settings reset to defaults'))
-          .catch(() => useUi.getState().toast('Couldn’t reset settings', 'error'))
+          .catch(() => useUi.getState().toast('Couldn’t reset settings. Try again, or restart Lyra first', 'error'))
       }}
     >
       {armed ? 'Click again to confirm' : 'Reset settings'}
@@ -1024,11 +1024,16 @@ export function SettingsPanel() {
               .diagnostics()
               .then((t) => window.lyra.app.copy(t))
               .then(() => useUi.getState().toast('Diagnostics copied — paste it into your bug report'))
-              .catch(() => useUi.getState().toast('Couldn’t copy diagnostics', 'error'))
+              .catch(() => useUi.getState().toast('Couldn’t copy diagnostics. Use Open log folder and attach lyra.log to your report instead', 'error'))
           }
         >
           Copy diagnostics
         </button>
+        {!window.lyra.android && (
+          <button type="button" className="pill" onClick={() => void window.lyra.app.openLogs()}>
+            Open log folder
+          </button>
+        )}
         <ResetButton />
         <button type="button" className="pill" onClick={() => window.lyra.window.quit()}>
           Quit Lyra
