@@ -8,7 +8,8 @@ import { clamp } from '@/lib/format'
 import { estimateWords } from '@shared/wordTiming'
 import { useLyrics } from '@/store/lyrics'
 import { usePlayer } from '@/store/player'
-import { OFFSET_STEP_MS, nudgeSongOffset, useLyricOffset, useSongOffset } from '@/store/offsets'
+import { OFFSET_STEP_MS, nudgeSongOffset, resetSongOffset, useLyricOffset, useSongOffset } from '@/store/offsets'
+import { describeOffset, linesToText, scrollMode, scrollTarget, textDirection, windowedDist } from '@/lib/lyricsView'
 import { useSettings } from '@/store/settings'
 import { useUi } from '@/store/ui'
 import { useControlsLocked } from './Controls'
@@ -110,8 +111,8 @@ function SyncedLyrics({ result, variant }: { result: LyricsResult; variant: 'min
       const box = scroller.current
       const el = refs.current[Math.max(0, active)]
       if (!box || !el) return
-      const top = el.offsetTop - box.clientHeight * (variant === 'full' ? 0.36 : 0.3) + el.offsetHeight / 2
-      box.scrollTo({ top: Math.max(0, top), behavior: instant || reduced ? 'auto' : 'smooth' })
+      const top = scrollTarget(el.offsetTop, el.offsetHeight, box.clientHeight, variant === 'full' ? 0.36 : 0.3)
+      box.scrollTo({ top, behavior: instant ? 'auto' : scrollMode(box.scrollTop, top, box.clientHeight, reduced) })
     },
     [active, reduced, variant]
   )
@@ -180,7 +181,18 @@ function SyncedLyrics({ result, variant }: { result: LyricsResult; variant: 'min
     [locked, seek, offset]
   )
 
-  if (staged) return <LyricsStage lines={lines} active={active} mode={lyricStyle} />
+  const registerRow = useCallback((i: number, el: HTMLDivElement | null) => {
+    refs.current[i] = el
+  }, [])
+  const shareRow = useCallback((l: LyricLine) => setShareIndex(lines.indexOf(l)), [lines])
+
+  if (staged)
+    return (
+      <>
+        <LyricsStage lines={lines} active={active} mode={lyricStyle} />
+        <LyricsTranscript lines={lines} />
+      </>
+    )
 
   return (
     <>
@@ -200,15 +212,14 @@ function SyncedLyrics({ result, variant }: { result: LyricsResult; variant: 'min
               key={i}
               line={line}
               showRomanization={showRomanization}
-              ref={(el) => {
-                refs.current[i] = el
-              }}
-              dist={i - active}
+              index={i}
+              register={registerRow}
+              dist={windowedDist(i - active)}
               nextTime={lines[i + 1]?.timeMs}
               canSeek={!locked}
               onSeek={seekTo}
               onSave={save}
-              onShare={(l) => setShareIndex(lines.indexOf(l))}
+              onShare={shareRow}
             />
           ))}
         </div>
@@ -243,16 +254,24 @@ interface RowProps {
   onSeek(l: LyricLine): void
   onSave(l: LyricLine): void
   onShare(l: LyricLine): void
-  ref: React.Ref<HTMLDivElement>
+  index: number
+  register(i: number, el: HTMLDivElement | null): void
 }
 
-const LyricRow = memo(function LyricRow({ line, showRomanization, dist, nextTime, canSeek, onSeek, onSave, onShare, ref }: RowProps) {
+const LyricRow = memo(function LyricRow({ line, showRomanization, dist, nextTime, canSeek, onSeek, onSave, onShare, index, register }: RowProps) {
   const isActive = dist === 0
   const d = Math.min(Math.abs(dist), 6)
   const gap = line.text === ''
+  const dir = useMemo(() => textDirection(line.text), [line.text])
+  const rom = useMemo(() => {
+    if (!showRomanization || gap) return null
+    const r = romanize(line.text)
+    return r !== line.text ? r : null
+  }, [showRomanization, gap, line.text])
   return (
     <div
-      ref={ref}
+      ref={(el) => register(index, el)}
+      data-rtl={dir === 'rtl' || undefined}
       className={`lyric ${isActive ? 'is-active' : dist < 0 ? 'is-past' : 'is-next'} ${gap ? 'is-gap' : ''}`}
       data-dist={d}
       aria-current={isActive ? 'true' : undefined}
@@ -270,12 +289,13 @@ const LyricRow = memo(function LyricRow({ line, showRomanization, dist, nextTime
             className="lyric__text"
             tabIndex={-1}
             data-seekable={canSeek || undefined}
+            dir={dir}
             onClick={() => onSeek(line)}
           >
             {isActive && line.words && line.words.length > 1 ? <WordLine line={line} nextTime={nextTime} /> : line.text}
-            {showRomanization && romanize(line.text) !== line.text && (
-              <span style={{ display: 'block', fontSize: '0.72em', opacity: 0.78, fontWeight: 400, lineHeight: 1.35 }}>
-                {romanize(line.text)}
+            {rom !== null && (
+              <span dir="ltr" style={{ display: 'block', fontSize: '0.72em', opacity: 0.78, fontWeight: 400, lineHeight: 1.35 }}>
+                {rom}
               </span>
             )}
           </button>
@@ -297,6 +317,7 @@ function WordLine({ line, nextTime }: { line: LyricLine; nextTime: number | unde
   const spans = useRef<Array<HTMLSpanElement | null>>([])
   const offset = useLyricOffset()
   const end = line.endMs ?? nextTime ?? words[words.length - 1]!.timeMs + 1500
+  const last = useRef<string[]>([])
 
   useFrame(
     () => {
@@ -307,7 +328,10 @@ function WordLine({ line, nextTime }: { line: LyricLine; nextTime: number | unde
         const start = words[i]!.timeMs
         const stop = Math.min(words[i + 1]?.timeMs ?? end, end)
         const p = clamp((pos - start) / Math.max(1, stop - start), 0, 1)
-        el.style.setProperty('--p', p.toFixed(3))
+        const v = p.toFixed(3)
+        if (last.current[i] === v) continue // sung, still to come, or paused: nothing to write
+        last.current[i] = v
+        el.style.setProperty('--p', v)
       }
     },
     true,
@@ -359,6 +383,7 @@ function PlainLyrics({ result }: { result: LyricsResult }) {
               <span
                 key={j}
                 style={{ display: 'block' }}
+                dir={textDirection(l)}
                 className={ink ? `jp jp--${ink.ink}${ink.mark ? ` jp--${ink.mark}` : ''}${ink.tag ? ` jp--tag-${ink.tag}` : ''}` : undefined}
               >
                 {l}
@@ -413,11 +438,30 @@ function LyricsMessage({ icon, title, body, action, secondary, visual }: MsgProp
   )
 }
 
+/** The staged looks draw one phrase at a time; this gives screen readers the whole lyric as ordinary text (not live: a sung line every few seconds would drown them out). */
+function LyricsTranscript({ lines }: { lines: readonly LyricLine[] }) {
+  const text = useMemo(() => linesToText(lines), [lines])
+  return (
+    <div className="sr-only" role="region" aria-label="Lyrics as text" tabIndex={0}>
+      {text.split('\n').map((l, i) => (l === '' ? null : <p key={i}>{l}</p>))}
+    </div>
+  )
+}
 function LyricsFooter({ result }: { result: LyricsResult }) {
   const songOffset = useSongOffset()
   const togglePanel = useUi((s) => s.togglePanel)
   const wordByWord = useSettings((s) => s.settings.wordByWord)
+  const retry = useLyrics((x) => x.retry)
+  const toast = useUi((x) => x.toast)
   const synced = result.status === 'synced'
+  const copy = (): void => {
+    const text = synced ? linesToText(result.lines) : (result.plain ?? '')
+    if (!text) return
+    void navigator.clipboard
+      .writeText(text)
+      .then(() => toast('Lyrics copied'))
+      .catch(() => toast('Couldn’t copy the lyrics', 'error'))
+  }
   const m = result.matched
   const providerName = result.provider === 'lrclib' ? 'LRCLIB' : result.provider === 'demo' ? 'Demo' : result.provider === 'you' ? 'Your lyrics' : result.provider
   return (
@@ -436,13 +480,27 @@ function LyricsFooter({ result }: { result: LyricsResult }) {
             Wrong lyrics?
           </button>
         )}
+        {!synced && (
+          <button type="button" className="linkbtn" title="Search again for time-synced lyrics" onClick={retry}>
+            Look for synced
+          </button>
+        )}
+        <button type="button" className="linkbtn" title="Copy the lyrics as text" onClick={copy}>
+          Copy
+        </button>
       </span>
       {synced && (
         <span className="offset" title="Shift this song's lyrics earlier / later (remembered per song)">
           <button type="button" aria-label="Show lyrics later" onClick={() => nudgeSongOffset(-OFFSET_STEP_MS)}>
             −
           </button>
-          <output>{songOffset === 0 ? 'sync' : `${songOffset > 0 ? '+' : ''}${(songOffset / 1000).toFixed(2)}s`}</output>
+          <output
+            title={songOffset === 0 ? undefined : 'Click to reset to the song’s own timing'}
+            onClick={songOffset === 0 ? undefined : resetSongOffset}
+            style={songOffset === 0 ? undefined : { cursor: 'pointer' }}
+          >
+            {describeOffset(songOffset)}
+          </output>
           <button type="button" aria-label="Show lyrics earlier" onClick={() => nudgeSongOffset(OFFSET_STEP_MS)}>
             +
           </button>

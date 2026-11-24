@@ -43,6 +43,10 @@ export function LyricsFallback({ result }: { result: LyricsResult }) {
   const left = retryAt ? Math.max(0, Math.ceil((retryAt.at - now) / 1000)) : 0
   const gaveUp = kind !== 'none' && retryAt === null
   const open = (): void => useUi.getState().setPanel('lyrics')
+  const paste = (): void => {
+    useLyrics.getState().requestPaste()
+    open()
+  }
 
   return (
     <div className={`lfb lfb--${kind}`} role="status">
@@ -83,7 +87,7 @@ export function LyricsFallback({ result }: { result: LyricsResult }) {
         <button type="button" className="pill" onClick={open}>
           Pick a match
         </button>
-        <button type="button" className="pill" onClick={open}>
+        <button type="button" className="pill" onClick={paste}>
           Paste lyrics
         </button>
       </div>
