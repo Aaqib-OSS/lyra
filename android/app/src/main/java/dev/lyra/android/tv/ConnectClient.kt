@@ -129,12 +129,17 @@ class LanConnectTransport(
                 var nextPing = Long.MAX_VALUE
                 var pings = 0
                 var lastOffset = 0L
+                var lastHeard = clock()
                 while (!stopped) {
                     val now = clock()
                     val waitMs = if (phase == Phase.READY) maxOf(1L, nextPing - now) else maxOf(1L, preAuthDeadline - now)
                     val ev = q.poll(waitMs, TimeUnit.MILLISECONDS)
+                    if (ev != null) lastHeard = clock()
                     if (ev == null) {
                         if (phase != Phase.READY) return end("the host did not answer in time", false)
+                        // every ping is answered within a round trip: 25 s of silence means the link died without a close
+                        // (computer asleep, Wi-Fi gone). Reconnect now instead of showing a frozen song until TCP gives up.
+                        if (clock() - lastHeard > 25_000L) return end("the computer stopped answering", true)
                         w.send(msg("ping") { put("id", pings); put("c0", clock()) })
                         pings++
                         nextPing = clock() + pingDelayMs(pings)
