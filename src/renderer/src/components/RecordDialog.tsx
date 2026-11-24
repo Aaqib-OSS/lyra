@@ -54,16 +54,20 @@ export function RecordDialog({ onClose }: { onClose: () => void }): ReactElement
         ) : (
           <p className="studio__song">Play a song in Spotify first.</p>
         )}
+        <ol className="studio__steps" aria-label="How recording works">
+          <li>Android asks to allow sound and screen recording: say yes.</li>
+          <li>Lyra films its own screen (the lyrics and the song’s video) with the song’s sound, in real time.</li>
+          <li>The video is saved to Movies/Lyra and you can share it.</li>
+        </ol>
         <p className="studio__song">
-          Lyra films its own screen (lyrics and the song's video) together with the song's sound, then saves the video to Movies/Lyra and lets you share it. Android asks first for sound and screen recording.
-          Some phones do not hand Spotify's sound to other apps. Then Lyra listens through the microphone instead: keep the music on the phone speaker (not headphones), turn it up, and stay quiet. Do Not Disturb keeps notifications out of the picture.
+          Before you start: switch on Do Not Disturb (notifications would be filmed), turn the volume up and keep the phone awake. Some phones do not hand the song’s sound to other apps. Then Lyra listens through the microphone instead: keep the music on the phone speaker (not headphones) and stay quiet while it records.
         </p>
         {phones && (
           <p className="studio__song" style={{ color: '#ffb36b' }}>
             Headphones or a Bluetooth speaker are connected. If this phone does not hand over the song's sound, the microphone would hear nothing: unplug them or switch the sound to the phone speaker first.
           </p>
         )}
-        {error && <p className="studio__song" style={{ color: "#ff8a8a" }}>{error}</p>}
+        {error && <p className="studio__song" role="alert" style={{ color: "#ff8a8a" }}>{error}</p>}
         <div className="studio__group">
           <button type="button" className="pill" disabled={reportBusy} onClick={() => void copyCompatibilityReport()}>
             {reportBusy ? 'Preparing report…' : 'Copy compatibility report'}

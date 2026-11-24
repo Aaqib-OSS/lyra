@@ -230,3 +230,26 @@ Measured on this PC (30 s clip, 1080x1920, 60 fps, YouTube background at 1440p):
 **P1 (render in a worker) was dropped.** It only mattered while drawing had to meet a real-time deadline. In the Smooth method nothing has a deadline, so the worker would add complexity for no gain. The Instant method keeps the worker clock from P0.
 
 Leftovers: the Smooth method was tested with the PC-sound fallback and a pinned video in demo mode; the Spotify-only helper path reuses the same code as Instant but was not re-run end to end here. Disk use is about 0.8-1.5 MB per second of YouTube background (1440p JPEG at 30 pictures a second); the temporary file is deleted when the export ends, is cancelled or fails.
+
+---
+
+## Review of "My current look" and the second Studio pass (2026-11-24)
+
+**How "My current look" works.** The export opens a hidden, off-screen window (`startUi` in `src/main/studio.ts`) that runs the app itself with `?capture=1`. `CaptureApp` shows only the lyrics screen. Every painted picture is turned into a JPEG and either appended to the temporary pictures file (Smooth) or sent to the app window (Instant). The video is then drawn from those pictures at exact times. It was written without ever being run in a real Electron, so it was reviewed line by line. **Nothing below has been run in Electron on a real PC: first run needs a human check.**
+
+Problems found and fixed:
+
+1. **Zoom could leak into the app window.** Chromium keeps one zoom per page address, and the capture window loads the same file. `setZoomFactor` on it could have zoomed the real window to 150-200 % when an export started. Now the main process checks the app window's zoom after setting it, restores it if it moved, and falls back to a CSS zoom inside the capture page.
+2. **The hidden window could count as "hidden".** The app pauses its endless animations (`data-calm`) and video background when `document.visibilityState` is hidden. The capture page now always reports itself visible.
+3. **Empty first frames.** "Ready" was a fixed 800 ms after the song arrived. It now waits for the lyrics lookup (at most 6 s), the fonts and one layout pass after the zoom.
+4. **A crashed capture window** made the start wait the full time; it now fails at once with the reason. The wait is 20 s instead of 15 s for slow first starts.
+5. **Silent data loss.** If the temporary pictures file could not be written (disk full), the video came out with a frozen or black picture without any message. It now fails with "the pictures could not be saved (is the disk full?)", and the export refuses to start when the temp drive has less than 2 GB free.
+6. **IPC was open to any window**. The Studio channels did not use the sender guard of the other channels. They do now.
+7. **The renderer could delete or reveal any `.mp4` on the disk** (`studio:discard`, `studio:reveal`). Only files that the save dialog gave out in this session are accepted now (`src/main/studioPaths.ts`, tested).
+8. **Leftovers.** A half-written MP4 and the temporary pictures stayed behind when the app was quit or crashed during an export. Open files are removed on quit, and old `lyra-frames-*.bin` files are swept at start.
+
+Known limits (not changed): pictures are stamped when they are painted, so the lyrics can appear one frame (33 ms) late against the sound; the JPEG step runs on the main process (about 10 ms per picture at 1080x1920) and shares it with the sound helper; on a weak PC the capture window follows the Light look (`data-perf=low`), as the app window does.
+
+**Own audio file with the real look: not done, on purpose.** It would need the hidden window to run on a fake clock: the song position, the CSS animations and the canvas backdrop would all have to be stepped frame by frame, and a picture taken after each step. Chromium offers no safe way to do that for the app's CSS animations and video elements (the DevTools virtual-time policy is unreliable with off-screen windows), so a frame would show the animations at the wrong time and look like jitter, which is worse than the plain layout. It can be done when the lyrics screen is rebuilt on a single clock that every animation reads.
+
+**Studio dialog additions.** Platform presets (Instagram Reels, TikTok, YouTube Shorts, YouTube, Instagram feed) with a warning when the part is longer than the platform takes; "Test 5 seconds" (a quick export of the first 5 s to check look, sound and timing); a size and time estimate before starting; a time-left estimate while running; a free-space check before the video is written; lyrics saved as `.lrc` and `.srt` next to the video (times counted from the start of the video, the lyric offset applied); a failure screen that says in plain words what went wrong and offers "Copy details" (no song names or file paths). All the logic is in `src/renderer/src/lib/studio/exportPlan.ts` with tests.
