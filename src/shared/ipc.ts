@@ -98,6 +98,7 @@ export const CH = {
   studioEnd: 'studio:end',
   studioReveal: 'studio:reveal',
   studioSaveImage: 'studio:save-image',
+  studioSaveText: 'studio:save-text',
   studioFrameCaptureStart: 'studio:frames-start',
   studioFrameCaptureStop: 'studio:frames-stop',
   studioFrameRead: 'studio:frames-read',
@@ -332,7 +333,7 @@ export interface LyraApi {
   }
   studio: {
     /** Ask where to save the video. Null if the user cancelled. */
-    open(suggestedName: string): Promise<{ id: number; path: string } | null>
+    open(suggestedName: string): Promise<{ id: number; path: string; /** free bytes on that drive (null = unknown) */ freeBytes: number | null } | null>
     write(id: number, position: number, chunk: Uint8Array): Promise<void>
     close(id: number): Promise<void>
     discard(path: string): Promise<void>
@@ -354,6 +355,8 @@ export interface LyraApi {
     frameCaptureClear(): Promise<void>
     /** save a JPEG next to the video (same name, ' (cover).jpg'); resolves with its path, or null */
     saveImage(videoPath: string, jpeg: Uint8Array): Promise<string | null>
+    /** save lyrics next to the video (same name, .lrc or .srt); resolves with the path, or null */
+    saveText(videoPath: string, ext: 'lrc' | 'srt', text: string): Promise<string | null>
     /**
      * Play a YouTube video in a hidden window and stream its picture back as JPEG frames (onFrame), so it can be
      * used as a background in an exported video. Resolves ok:false with a reason when the video can not be played.

@@ -99,6 +99,7 @@ const api: LyraApi = {
     reveal: (path) => invoke(CH.studioReveal, path),
     setMic: (on) => invoke(CH.studioMic, on),
     saveImage: (videoPath, jpeg) => invoke(CH.studioSaveImage, videoPath, jpeg),
+    saveText: (videoPath, ext, text) => invoke(CH.studioSaveText, videoPath, ext, text),
     frameCaptureStart: () => invoke(CH.studioFrameCaptureStart),
     frameCaptureStop: () => invoke(CH.studioFrameCaptureStop),
     frameRead: (index) => invoke(CH.studioFrameRead, index),
