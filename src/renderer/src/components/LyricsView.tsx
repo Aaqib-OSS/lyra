@@ -303,10 +303,10 @@ const LyricRow = memo(function LyricRow({ line, showRomanization, dist, nextTime
               </span>
             )}
           </button>
-          <button type="button" className="lyric__save" aria-label={t('Save this line to your moments')} title={t('Save line')} onClick={() => onSave(line)}>
+          <button type="button" className="lyric__save" aria-label={t('Save this line to your moments')} tabIndex={dist === 0 ? 0 : -1} title={t('Save line')} onClick={() => onSave(line)}>
             <Icon name="bookmark" size={14} />
           </button>
-          <button type="button" className="lyric__save" aria-label={t('Share this line as a card')} title={t('Share as a card')} onClick={() => onShare(line)}>
+          <button type="button" className="lyric__save" aria-label={t('Share this line as a card')} tabIndex={dist === 0 ? 0 : -1} title={t('Share as a card')} onClick={() => onShare(line)}>
             <Icon name="share" size={14} />
           </button>
         </>
