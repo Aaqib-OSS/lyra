@@ -22,6 +22,7 @@ export function ProgressBar({ variant = 'scrub', showTimes = false, remaining = 
   const elapsed = useRef<HTMLSpanElement>(null)
   const right = useRef<HTMLSpanElement>(null)
   const trackEl = useRef<HTMLDivElement>(null)
+  const tip = useRef<HTMLSpanElement>(null)
   const dragging = useRef<number | null>(null)
   const [active, setActive] = useState(false)
   const dur = track?.durationMs ?? 0
@@ -32,6 +33,7 @@ export function ProgressBar({ variant = 'scrub', showTimes = false, remaining = 
       if (fill.current) fill.current.style.transform = `scaleX(${p})`
       if (thumb.current) thumb.current.style.left = `${p * 100}%`
       trackEl.current?.setAttribute('aria-valuenow', String(Math.round(pos / 1000)))
+      trackEl.current?.setAttribute('aria-valuetext', `${formatTime(pos)} of ${formatTime(dur)}`)
       if (elapsed.current) elapsed.current.textContent = formatTime(pos)
       if (right.current) right.current.textContent = remaining ? `-${formatTime(dur - pos)}` : formatTime(dur)
     },
@@ -79,21 +81,36 @@ export function ProgressBar({ variant = 'scrub', showTimes = false, remaining = 
         tabIndex={interactive ? 0 : -1}
         onKeyDown={(e) => {
           if (!interactive) return
-          const pos = usePlayer.getState().snapshot?.positionMs ?? 0
-          if (e.key === 'ArrowRight') seek(pos + 5000)
-          else if (e.key === 'ArrowLeft') seek(pos - 5000)
-          else return
+          const pos = getPosition()
+          const step = e.shiftKey ? 15000 : 5000
+          if (e.key === 'ArrowRight' || e.key === 'ArrowUp') seek(Math.min(dur, pos + step))
+          else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') seek(Math.max(0, pos - step))
+          else if (e.key === 'PageUp') seek(Math.min(dur, pos + 30000))
+          else if (e.key === 'PageDown') seek(Math.max(0, pos - 30000))
+          else if (e.key === 'Home') seek(0)
+          else if (e.key === 'End') seek(Math.max(0, dur - 1000))
+          else if (e.key === 'Escape' && dragging.current !== null) {
+            dragging.current = null // cancel a drag without seeking
+            setActive(false)
+            paint(getPosition())
+          } else return
           e.preventDefault()
           e.stopPropagation()
         }}
         onPointerDown={(e) => {
-          if (!interactive) return
+          if (!interactive || e.button !== 0) return
           e.currentTarget.setPointerCapture(e.pointerId)
           dragging.current = fromEvent(e)
           setActive(true)
           paint(dragging.current)
         }}
         onPointerMove={(e) => {
+          if (interactive && tip.current) {
+            // hover preview: where a click would land, shown as a time above the bar
+            const r = trackEl.current!.getBoundingClientRect()
+            tip.current.textContent = formatTime(fromEvent(e))
+            tip.current.style.left = `${Math.min(r.width - 18, Math.max(18, e.clientX - r.left))}px`
+          }
           if (dragging.current === null) return
           dragging.current = fromEvent(e)
           paint(dragging.current)
@@ -114,6 +131,7 @@ export function ProgressBar({ variant = 'scrub', showTimes = false, remaining = 
           <div ref={fill} className="progress__fill" />
         </div>
         {variant === 'scrub' && <div ref={thumb} className="progress__thumb" />}
+        {interactive && <span ref={tip} className="progress__tip" aria-hidden="true" />}
       </div>
       {showTimes && (
         <span ref={right} className="progress__time progress__time--right">

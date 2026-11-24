@@ -154,6 +154,11 @@ function useHotkeys(): void {
         return
       }
       if (editable) return
+      if (e.key === '?' && !e.repeat) {
+        e.preventDefault()
+        ui.togglePanel('keys')
+        return
+      }
       const onControl = !!t.closest('button, [role="slider"], input[type="range"]')
 
       switch (e.key) {

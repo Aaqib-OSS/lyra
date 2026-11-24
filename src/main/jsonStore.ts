@@ -24,6 +24,12 @@ export class JsonStore<T extends object> {
       }
     } catch (e) {
       log.warn(`could not read ${this.path}, using defaults`, e)
+      // keep the unreadable file next to the new one instead of silently overwriting it on the next save
+      try {
+        if (existsSync(this.path)) renameSync(this.path, `${this.path}.corrupt`)
+      } catch {
+        /* best effort */
+      }
     }
     return structuredClone(this.defaults)
   }

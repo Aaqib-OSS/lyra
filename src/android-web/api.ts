@@ -8,6 +8,7 @@ import { trackKey } from '@core/songKey'
 import { keyForId } from '@core/trackIndex'
 import { userChoices } from '@core/userChoices'
 import type { LyraApi, Unsubscribe } from '@shared/ipc'
+import { addMoment, normalizeMoments } from '@shared/moments'
 import { DEFAULT_SETTINGS, type ConnectionStatus, type LyricsResult, type ModeEvent, type PlaybackSnapshot, type QueueItem, type SavedMoment, type Settings, type ViewMode } from '@shared/types'
 import { installAndroidPlatform, LocalStore, preloadSecrets, setAppVersion } from './platform'
 import { nativeFetch, rpc } from './rpc'
@@ -339,11 +340,9 @@ export const androidApi: LyraApi &{ android: NonNullable<LyraApi['android']> } =
   cache: { clear: async () => clearAllCaches() },
   art: { get: artDataUrl },
   moments: {
-    list: async () => momentsStore.get().items,
+    list: async () => normalizeMoments(momentsStore.get().items),
     add: async (m) => {
-      const items = momentsStore.get().items
-      if (items.some((x) => x.trackId === m.trackId && x.text === m.text)) return items
-      const next = [{ ...m, id: crypto.randomUUID(), savedAt: Date.now() }, ...items].slice(0, 500)
+      const next = addMoment(normalizeMoments(momentsStore.get().items), m, crypto.randomUUID(), Date.now())
       momentsStore.set({ items: next })
       return next
     },
