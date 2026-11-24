@@ -177,6 +177,7 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
   )
 
   const finish = useCallback((): void => {
+    const reached = getPos()
     clockRef.current.pause()
     // the microphone is released right here; a recorded take (only when the user asked for it) is finalised first
     const m = mic.current
@@ -190,7 +191,9 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
     setNewBest(null)
     setShared(false)
     // lines that were not finished count with what was heard so far
-    const list = scoredRef.current ? [...done.current, ...scoreLines(kl, frames.current, scoredUpTo.current, kl.length, lostAt.current)] : []
+    // (finishing early does not turn the lines never reached into misses)
+    const upTo = kl.filter((l) => l.startMs <= reached).length
+    const list = scoredRef.current ? [...done.current, ...scoreLines(kl, frames.current, scoredUpTo.current, upTo, lostAt.current)] : []
     if (!list.length) {
       setSummary(null)
       return setPhase('done')

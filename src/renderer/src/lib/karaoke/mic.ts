@@ -101,8 +101,8 @@ export async function openMic(): Promise<Mic> {
     },
     watch(cb) {
       const id = window.setInterval(() => {
-        // a muted or ended track delivers silence forever: tell the screen instead of scoring it
-        if (track && (track.readyState === 'ended' || (track.muted && ctx.state === 'running'))) fireLost()
+        // an ended track (unplugged) delivers silence forever: tell the screen instead of scoring it
+        if (track && track.readyState === 'ended') fireLost()
         cb(read())
       }, 50)
       return () => window.clearInterval(id)
@@ -117,7 +117,8 @@ export async function openMic(): Promise<Mic> {
       }
       samples.sort((a, b) => a - b)
       room = samples[Math.floor(samples.length * 0.9)] ?? 0
-      gate = Math.max(0.012, room * 2.2)
+      // capped: singing during the calibration, or a loud room, must not push the gate above a normal voice
+      gate = Math.min(0.06, Math.max(0.012, room * 2.2))
       return gate
     },
     startRecording(maxBytes = 20 * 1024 * 1024) {
