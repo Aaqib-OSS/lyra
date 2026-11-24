@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findActiveLine, parseLrc, stripLrc } from './lrc'
+import { decodeLyricsBytes, findActiveLine, parseLrc, stripLrc } from './lrc'
 
 describe('parseLrc', () => {
   it('parses lines, multi stamps, offset and sorts', () => {
@@ -66,5 +66,20 @@ describe('parseImported', () => {
   })
   it('one timestamp is not enough to call it synced', () => {
     expect(parseImported('[00:01.00]only one').kind).toBe('plain')
+  })
+})
+
+describe('decodeLyricsBytes', () => {
+  it('reads UTF-8 with or without a BOM', () => {
+    expect(decodeLyricsBytes(new TextEncoder().encode('café'))).toBe('café')
+    expect(decodeLyricsBytes(new Uint8Array([0xef, 0xbb, 0xbf, 0x68, 0x69]))).toContain('hi')
+  })
+  it('reads UTF-16 LE and BE with a BOM', () => {
+    const le = new Uint8Array([0xff, 0xfe, 0x68, 0x00, 0x69, 0x00, 0x39, 0x09])
+    expect(decodeLyricsBytes(le)).toBe('hi\u0939')
+    expect(decodeLyricsBytes(new Uint8Array([0xfe, 0xff, 0x00, 0x68, 0x00, 0x69]))).toBe('hi')
+  })
+  it('falls back to Windows-1252 for old files', () => {
+    expect(decodeLyricsBytes(new Uint8Array([0x63, 0x61, 0x66, 0xe9]))).toBe('caf\u00e9')
   })
 })
