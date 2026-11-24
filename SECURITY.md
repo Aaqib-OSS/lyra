@@ -12,7 +12,7 @@ Include what you found, how to reproduce it, and the version. I will reply withi
 Only the latest release of the Windows app (`v*`) and the Android app (`android-v*`) gets fixes. The Windows app updates itself.
 
 ## What is in scope
-- The Windows and Android apps, the local TV-mode server, the room/Jam features, the website in `website/`.
+- The Windows and Android apps, Lyra Connect (the local-network host), the room/Jam features, the website in `website/`.
 - Supply chain: dependencies, GitHub Actions workflows, release signing.
 
 ## How the project protects itself
