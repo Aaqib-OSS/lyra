@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# a newer push to the same pull request replaces the older run; runs on main are never cancelled (the release gate reads them)
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   check:
     runs-on: windows-latest
@@ -17,6 +22,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      # version files agree, release notes card and fastlane changelog exist for the current version
+      - run: npm run release:check
       - run: npm run build
 
   # Renders every vibe on phone, tablet and desktop sizes in a real browser and clicks every setting.
@@ -30,6 +37,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui:quick
       - run: npm run test:settings
