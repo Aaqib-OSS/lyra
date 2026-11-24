@@ -99,6 +99,7 @@ export const CH = {
   studioReveal: 'studio:reveal',
   studioSaveImage: 'studio:save-image',
   studioSaveText: 'studio:save-text',
+  studioPlay: 'studio:play',
   studioFrameCaptureStart: 'studio:frames-start',
   studioFrameCaptureStop: 'studio:frames-stop',
   studioFrameRead: 'studio:frames-read',
@@ -333,13 +334,15 @@ export interface LyraApi {
   }
   studio: {
     /** Ask where to save the video. Null if the user cancelled. */
-    open(suggestedName: string): Promise<{ id: number; path: string; /** free bytes on that drive (null = unknown) */ freeBytes: number | null } | null>
+    open(suggestedName: string, test?: boolean): Promise<{ id: number; path: string; /** free bytes on that drive (null = unknown) */ freeBytes: number | null } | null>
     write(id: number, position: number, chunk: Uint8Array): Promise<void>
     close(id: number): Promise<void>
     discard(path: string): Promise<void>
     /** Export finished (or failed): sound capture is switched off again. */
     end(): Promise<void>
     reveal(path: string): Promise<void>
+    /** open a video made in this session in the default player */
+    play(path: string): Promise<void>
     /** the karaoke screen is open: allow the microphone for this window (audio only) */
     setMic(on: boolean): Promise<void>
     /**

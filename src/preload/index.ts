@@ -91,7 +91,8 @@ const api: LyraApi = {
     onState: (cb) => subscribe(EV.update, cb)
   },
   studio: {
-    open: (name) => invoke(CH.studioOpen, name),
+    open: (name, test) => invoke(CH.studioOpen, name, test),
+    play: (path) => invoke(CH.studioPlay, path),
     write: (id, position, chunk) => invoke(CH.studioWrite, id, position, chunk),
     close: (id) => invoke(CH.studioClose, id),
     discard: (path) => invoke(CH.studioDiscard, path),

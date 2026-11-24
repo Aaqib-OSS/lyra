@@ -217,6 +217,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
     try {
       if (source === 'live') {
         const opts: ExportOptions = {
+          test,
           look,
           motionStyle: bg === 'motion' ? motionStyle : undefined,
           filmGrain: bg === 'motion' && filmGrain,
@@ -243,6 +244,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
             artist: own.artist,
             lines: ownLines,
             coverUrl: own.coverUrl,
+            test,
             ratio,
             quality: eff.quality,
             fps: eff.fps,
@@ -574,9 +576,9 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
         {phase.name === 'done' && (
           <>
             <p className="studio__song">
-              <b>{phase.test ? 'Test clip saved.' : 'Saved.'}</b> {phase.path}
+              <b>{phase.test ? 'Test clip ready (a temporary file, not saved to your videos).' : 'Saved.'}</b> {phase.test ? '' : phase.path}
             </p>
-            {phase.test && <p className="hint">This is only the first 5 seconds. If the look, sound and timing are right, close this and press Export… for the whole part.</p>}
+            {phase.test && <p className="hint">This is only the first 5 seconds and it is deleted when you make another test or quit Lyra. If the look, sound and timing are right, press Export… for the whole part.</p>}
             {phase.lyricsFiles && phase.lyricsFiles.length > 0 && <p className="studio__song">Lyrics saved next to the video: {phase.lyricsFiles.map((p) => p.split(/[\\/]/).pop()).join(', ')}</p>}
             {phase.fps !== undefined && phase.askedFps !== undefined && phase.fps < phase.askedFps && (
               <p className="studio__song" style={{ color: '#ffb36b' }}>
@@ -610,6 +612,11 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
               >
                 Copy caption
               </button>
+              {phase.test && (
+                <button type="button" className="pill pill--primary" onClick={() => void window.lyra.studio.play(phase.path)}>
+                  Play
+                </button>
+              )}
               <button type="button" className="pill" onClick={() => void window.lyra.app.copy(phase.path).then((ok) => useUi.getState().toast(ok ? 'Path copied' : 'Couldn’t copy', ok ? 'info' : 'error'))}>
                 Copy path
               </button>

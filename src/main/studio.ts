@@ -6,7 +6,7 @@ import { existsSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { CH, EV } from '@shared/ipc'
 import { windows } from './window'
-import { isOwnOutput, outputSibling, sanitizeFileName } from './studioPaths'
+import { isOwnOutput, isTestOutput, outputSibling, sanitizeFileName, testFileName } from './studioPaths'
 
 /**
  * Lyric-video export (main side): picks the output file, appends the encoded MP4 as it is produced (a long video
@@ -18,6 +18,13 @@ const openPaths = new Map<number, string>()
 /** lower-case paths the save dialog gave out in this session: the only files the renderer may delete, reveal or write next to */
 const created = new Set<string>()
 let nextId = 1
+/** the temporary clip of the last "test 5 seconds" export */
+let testPath: string | null = null
+
+function dropTestClip(): void {
+  if (testPath) rmSync(testPath, { force: true })
+  testPath = null
+}
 let capturing = false
 let blocker: number | null = null
 let micOpen = false
@@ -373,6 +380,7 @@ export function registerStudioIpc(): void {
     stopAudio()
     stopStage()
     dropOpenFiles()
+    dropTestClip()
     const s = sink
     if (s) rmSync(s.path, { force: true })
   })
@@ -401,13 +409,27 @@ export function registerStudioIpc(): void {
     await stage.webContents.executeJavaScript(`(() => { const v = document.querySelector('video'); if (v && Math.abs(v.currentTime - ${sec}) > 0.7) v.currentTime = ${Math.max(0, sec)} })()`)
   })
   handle(CH.studioStageStop, () => stopStage())
-  handle(CH.studioOpen, async (suggested: string) => {
+  handle(CH.studioOpen, async (suggested: string, test?: boolean) => {
     const name = sanitizeFileName(suggested)
+    if (test === true) {
+      // a test clip: no dialog, a temporary file that the next test (or quitting) removes
+      dropTestClip()
+      const path = join(tmpdir(), testFileName(Date.now()))
+      const fh = await open(path, 'w')
+      const id = nextId++
+      files.set(id, fh)
+      openPaths.set(id, path)
+      created.add(path.toLowerCase())
+      testPath = path
+      setExporting(true)
+      const freeBytes = await statfs(tmpdir()).then((s) => Number(s.bavail) * Number(s.bsize)).catch(() => null)
+      return { id, path, freeBytes }
+    }
     const win = windows.window
     const opts = { title: 'Save lyric video', defaultPath: name, filters: [{ name: 'MP4 video', extensions: ['mp4'] }] }
     // development only: skip the dialog so the export can be tested without clicking
-    const test = !app.isPackaged ? process.env['LYRA_TEST_SAVE'] : undefined
-    const r = test ? { canceled: false, filePath: test } : win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts)
+    const devSave = !app.isPackaged ? process.env['LYRA_TEST_SAVE'] : undefined
+    const r = devSave ? { canceled: false, filePath: devSave } : win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts)
     if (r.canceled || !r.filePath) return null
     const fh = await open(r.filePath, 'w')
     const id = nextId++
@@ -438,19 +460,22 @@ export function registerStudioIpc(): void {
     void frameCaptureClear()
   })
   handle(CH.studioSaveImage, async (videoPath: string, jpeg: Uint8Array) => {
-    if (!isOwnOutput(created, videoPath) || !(jpeg instanceof Uint8Array) || jpeg.byteLength > 20 * 1024 * 1024) return null
+    if (!isOwnOutput(created, videoPath) || isTestOutput(tmpdir(), videoPath) || !(jpeg instanceof Uint8Array) || jpeg.byteLength > 20 * 1024 * 1024) return null
     const out = outputSibling(videoPath, ' (cover)', 'jpg')
     if (!out) return null
     await writeFile(out, jpeg)
     return out
   })
   handle(CH.studioSaveText, async (videoPath: string, ext: string, text: string) => {
-    if (!isOwnOutput(created, videoPath) || typeof text !== 'string' || text.length > 2_000_000) return null
+    if (!isOwnOutput(created, videoPath) || isTestOutput(tmpdir(), videoPath) || typeof text !== 'string' || text.length > 2_000_000) return null
     if (ext !== 'lrc' && ext !== 'srt') return null
     const out = outputSibling(videoPath, '', ext)
     if (!out) return null
     await writeFile(out, text, 'utf8')
     return out
+  })
+  handle(CH.studioPlay, async (path: string) => {
+    if (isOwnOutput(created, path)) await shell.openPath(path)
   })
   handle(CH.studioReveal, (path: string) => {
     if (isOwnOutput(created, path)) shell.showItemInFolder(path)

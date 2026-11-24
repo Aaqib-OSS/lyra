@@ -25,3 +25,17 @@ export function outputSibling(videoPath: string, suffix: string, ext: string): s
   if (!/^[a-z0-9]{1,5}$/i.test(ext)) return null
   return videoPath.replace(/\.mp4$/i, `${suffix}.${ext}`)
 }
+
+/** The one temporary file a "test 5 seconds" export writes to (no save dialog). */
+export const TEST_FILE_PATTERN = /^lyra-test-\d+\.mp4$/
+
+export const testFileName = (n: number): string => `lyra-test-${n}.mp4`
+
+/** Is this path a test clip in the given temp folder? (nothing else is ever treated as a test file) */
+export function isTestOutput(tempDir: string, path: unknown): path is string {
+  if (typeof path !== 'string') return false
+  const norm = (s: string): string => s.replace(/\\/g, '/').toLowerCase()
+  const dir = norm(tempDir).replace(/\/$/, '')
+  const p = norm(path)
+  return p.startsWith(dir + '/') && TEST_FILE_PATTERN.test(p.slice(dir.length + 1))
+}

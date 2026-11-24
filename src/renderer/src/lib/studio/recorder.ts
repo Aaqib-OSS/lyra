@@ -47,6 +47,8 @@ export interface ExportOptions {
   look: Look
   motionStyle?: MotionStyle
   filmGrain?: boolean
+  /** a quick test clip: written to a temporary file, no save dialog */
+  test?: boolean
   ratio: Ratio
   quality: Quality
   /** frames per second: 60 is smoother, 30 makes a smaller file (default 60) */
@@ -171,7 +173,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
   const endMs = Math.min(track.durationMs, Math.max(opts.endMs, startMs + 1000))
   const total = (endMs - startMs) / 1000
   const safeName = `${track.title} - ${track.artists[0] ?? ''}`.replace(/[^\p{L}\p{N} _-]+/gu, '').trim().slice(0, 80) || 'lyra-video'
-  const file = await window.lyra.studio.open(`${safeName} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`)
+  const file = await window.lyra.studio.open(`${safeName} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`, opts.test)
   if (!file) throw new Error('cancelled')
 
   useBgState.getState().setExporting(true)

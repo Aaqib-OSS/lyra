@@ -19,6 +19,8 @@ export interface FileExportOptions {
   artist: string
   lines: LyricLine[]
   coverUrl: string | null
+  /** a quick test clip: written to a temporary file, no save dialog */
+  test?: boolean
   ratio: Ratio
   quality: Quality
   fps?: Fps
@@ -79,7 +81,7 @@ export async function exportFromFile(opts: FileExportOptions, onProgress: (p: Pr
   const endMs = Math.min(pcm.duration * 1000, Math.max(opts.endMs, startMs + 1000))
   const total = (endMs - startMs) / 1000
   const safe = `${opts.title} - ${opts.artist}`.replace(/[^\p{L}\p{N} _-]+/gu, '').trim().slice(0, 80) || 'lyra-video'
-  const file = await window.lyra.studio.open(`${safe} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`)
+  const file = await window.lyra.studio.open(`${safe} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`, opts.test)
   if (!file) throw new Error('cancelled')
 
   let writerRef: ChunkWriter | null = null

@@ -48,7 +48,7 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
   const endMs = Math.min(track.durationMs, Math.max(opts.endMs, startMs + 1000))
   const planned = (endMs - startMs) / 1000
   const safeName = `${track.title} - ${track.artists[0] ?? ''}`.replace(/[^\p{L}\p{N} _-]+/gu, '').trim().slice(0, 80) || 'lyra-video'
-  const file = await window.lyra.studio.open(`${safeName} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`)
+  const file = await window.lyra.studio.open(`${safeName} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`, opts.test)
   if (!file) throw new Error('cancelled')
 
   useBgState.getState().setExporting(true)
