@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { UpdateState } from '@shared/types'
+import { useSettings } from '../store/settings'
 import { Spinner } from './StateScreens'
 
 /** "2 min ago", for the last successful check. */
@@ -14,6 +15,8 @@ function ago(thenMs: number, nowMs: number): string {
 /** "Updates" line in Settings → About: status plus the one action that makes sense right now, and the release notes once there is an update. */
 export function UpdateRow() {
   const [u, setU] = useState<UpdateState>({ state: 'idle' })
+  const channel = useSettings((s) => s.settings.updateChannel)
+  const setChannel = (c: 'stable' | 'beta') => useSettings.getState().set({ updateChannel: c })
 
   useEffect(() => {
     void window.lyra.update.get().then(setU)
@@ -58,6 +61,23 @@ export function UpdateRow() {
       {u.state === 'downloading' && (
         <div className="updaterow__bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={u.percent} aria-label="Update download">
           <i style={{ width: `${Math.min(100, Math.max(0, u.percent))}%` }} />
+        </div>
+      )}
+      {u.state !== 'disabled' && (
+        <div className="srow">
+          <div className="srow__label">
+            <span>Update channel</span>
+            <small>{channel === 'beta' ? 'Nightly test builds first. They can have bugs.' : 'Tested releases only.'}</small>
+          </div>
+          <div className="srow__ctl">
+            <div className="seg" role="radiogroup" aria-label="Update channel">
+              {(['stable', 'beta'] as const).map((c) => (
+                <button key={c} type="button" role="radio" aria-checked={channel === c} className={channel === c ? 'is-on' : ''} onClick={() => setChannel(c)}>
+                  {c === 'stable' ? 'Stable' : 'Beta'}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
       {notes && (

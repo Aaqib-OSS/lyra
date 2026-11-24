@@ -18,6 +18,23 @@ export function isTransient(msg: string): boolean {
   return /ENOTFOUND|ETIMEDOUT|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENETUNREACH|net::|network|socket hang up|EPERM|EBUSY|\b5\d\d\b/i.test(msg)
 }
 
+const NIGHTLY_TAG = /^nightly-\d{8}$/
+
+/**
+ * From GitHub's `releases` list (newest first), the newest published nightly: tag nightly-YYYYMMDD, marked pre-release,
+ * not a draft. Anything else (stable, Android, drafts, a stable release wrongly named nightly) is ignored.
+ */
+export function pickNightlyTag(releases: unknown): string | null {
+  if (!Array.isArray(releases)) return null
+  let best: string | null = null
+  for (const r of releases) {
+    const o = r as { tag_name?: unknown; prerelease?: unknown; draft?: unknown }
+    if (typeof o?.tag_name !== 'string' || !NIGHTLY_TAG.test(o.tag_name) || o.prerelease !== true || o.draft === true) continue
+    if (best === null || o.tag_name > best) best = o.tag_name // the date sorts as text
+  }
+  return best
+}
+
 /** Delay before the next try after N failures in a row: 5 min, 15 min, 1 h, then back to the normal cadence. */
 export function retryDelayMs(failures: number): number | null {
   const steps = [5 * MIN, 15 * MIN, 60 * MIN]

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { friendlyUpdateError, isTransient, releaseNotesToText, retryDelayMs } from './updateHelpers'
+import { friendlyUpdateError, isTransient, pickNightlyTag, releaseNotesToText, retryDelayMs } from './updateHelpers'
 
 describe('friendlyUpdateError', () => {
   it('explains the common failures in plain words', () => {
@@ -41,5 +41,17 @@ describe('releaseNotesToText', () => {
     expect(releaseNotesToText(undefined)).toBeUndefined()
     expect(releaseNotesToText('  <p></p> ')).toBeUndefined()
     expect(releaseNotesToText(null)).toBeUndefined()
+  })
+})
+
+describe("pickNightlyTag", () => {
+  const r = (tag_name: string, prerelease = true, draft = false) => ({ tag_name, prerelease, draft })
+  it("takes the newest published nightly pre-release and nothing else", () => {
+    expect(pickNightlyTag([r("android-v0.12.1", false), r("nightly-20261124"), r("nightly-20261125"), r("v0.27.1", false)])).toBe("nightly-20261125")
+  })
+  it("ignores drafts, stable releases named nightly, and junk", () => {
+    expect(pickNightlyTag([r("nightly-20261125", true, true), r("nightly-20261124", false)])).toBeNull()
+    expect(pickNightlyTag([r("nightly-latest")])).toBeNull()
+    expect(pickNightlyTag(null)).toBeNull()
   })
 })

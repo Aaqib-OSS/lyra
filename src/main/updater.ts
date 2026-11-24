@@ -5,12 +5,15 @@ import { accessSync, constants, mkdirSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { UpdateState } from '@shared/types'
 import { createLogger } from './logger'
-import { friendlyUpdateError, isTransient, releaseNotesToText, retryDelayMs } from './updateHelpers'
+import { settings } from './settings'
+import { friendlyUpdateError, isTransient, pickNightlyTag, releaseNotesToText, retryDelayMs } from './updateHelpers'
 
 const log = createLogger('updater')
 
 const FIRST_CHECK_MS = 25_000
 const EVERY_MS = 6 * 3600_000
+const OWNER = 'DhruvHarani1'
+const REPO = 'lyra'
 
 /**
  * Self-updates from GitHub releases. electron-updater downloads only the changed blocks (blockmap),
@@ -63,6 +66,7 @@ class Updater extends EventEmitter {
     autoUpdater.on('checking-for-update', () => this.set({ state: 'checking' }))
     autoUpdater.on('update-not-available', () => {
       this.failures = 0
+      if (this.retryTimer) clearTimeout(this.retryTimer)
       this.set({ state: 'none', checkedAt: Date.now() })
       this.pruneStaleDownloads()
     })
@@ -80,6 +84,13 @@ class Updater extends EventEmitter {
     )
     autoUpdater.on('error', (e) => this.fail(e?.message ?? String(e)))
 
+    // switching the channel in Settings checks right away
+    let channel = settings.get().updateChannel
+    settings.on('change', (s: { updateChannel: string }) => {
+      if (s.updateChannel === channel) return
+      channel = s.updateChannel as typeof channel
+      void this.check()
+    })
     setTimeout(() => void this.check(true), FIRST_CHECK_MS)
     this.timer = setInterval(() => void this.check(true), EVERY_MS)
   }
@@ -141,9 +152,41 @@ class Updater extends EventEmitter {
     }
     this.errorSeen = false
     try {
+      if (settings.get().updateChannel === 'beta' && (await this.checkNightly())) return
+      this.useFeed('stable')
       await autoUpdater.checkForUpdates()
     } catch (e) {
       if (!this.errorSeen) this.fail((e as Error).message ?? String(e))
+    }
+  }
+
+  private useFeed(kind: 'stable' | { nightly: string }): void {
+    if (kind === 'stable') autoUpdater.setFeedURL({ provider: 'github', owner: OWNER, repo: REPO, releaseType: 'release' })
+    else autoUpdater.setFeedURL({ provider: 'generic', url: `https://github.com/${OWNER}/${REPO}/releases/download/${kind.nightly}` }) // HTTPS only
+  }
+
+  /**
+   * Beta channel: the newest nightly pre-release (nightly-YYYYMMDD) if it is newer than this install. Returns true when an
+   * update was found (it downloads by itself). Any problem (no nightly yet, GitHub unreachable, broken nightly) falls back
+   * to the stable check, so a beta user is never stuck without updates. A stable release newer than the nightly wins because
+   * nightlies are versioned X.Y.Z-nightly.DATE, which sorts below X.Y.Z.
+   */
+  private async checkNightly(): Promise<boolean> {
+    try {
+      const r = await net.fetch(`https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=30`, {
+        headers: { accept: 'application/vnd.github+json' },
+        signal: AbortSignal.timeout(15_000)
+      })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      const tag = pickNightlyTag(await r.json())
+      if (!tag) return false
+      this.useFeed({ nightly: tag })
+      const res = await autoUpdater.checkForUpdates()
+      return res?.isUpdateAvailable === true
+    } catch (e) {
+      log.warn('nightly check failed, using the stable channel', (e as Error).message)
+      this.errorSeen = false
+      return false
     }
   }
 
