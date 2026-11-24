@@ -114,6 +114,17 @@ export function bumpVersionProperties(text, name) {
   return text.replace(/^versionName=.*$/m, `versionName=${name}`).replace(/^versionCode=.*$/m, `versionCode=${code}`)
 }
 
+/** F-Droid recipe: the (last) Builds entry and CurrentVersion / CurrentVersionCode follow the Android version. */
+export function bumpFdroid(text, name) {
+  const code = versionCodeFor(name)
+  return text
+    .replace(/^(\s*- versionName: ).*$/m, '$1' + name)
+    .replace(/^(\s*versionCode: ).*$/m, '$1' + code)
+    .replace(/^(\s*commit: ).*$/m, '$1android-v' + name)
+    .replace(/^CurrentVersion: .*$/m, 'CurrentVersion: ' + name)
+    .replace(/^CurrentVersionCode: .*$/m, 'CurrentVersionCode: ' + code)
+}
+
 export function readProperties(text) {
   const out = {}
   for (const line of text.split(/\r?\n/)) {
@@ -157,8 +168,17 @@ export function checkRelease(input) {
     if (!input.hasChangelog(code)) errors.push(`missing fastlane changelog fastlane/metadata/android/en-US/changelogs/${code}.txt`)
     else if (input.changelogLength?.(code) > 500) errors.push(`fastlane changelog ${code}.txt is over 500 characters (the store limit)`)
     if (input.fdroidText) {
-      const fd = /^CurrentVersion:\s*(\S+)/m.exec(input.fdroidText)
-      if (fd && fd[1] !== av) warnings.push(`fdroid/dev.lyra.android.yml is at ${fd[1]} (Android is ${av}); that file describes what was submitted to F-Droid, update it when you submit`)
+      const t = input.fdroidText
+      const code = String(versionCodeFor(av))
+      const got = {
+        CurrentVersion: /^CurrentVersion:\s*(\S+)/m.exec(t)?.[1],
+        CurrentVersionCode: /^CurrentVersionCode:\s*(\S+)/m.exec(t)?.[1],
+        'Builds versionName': /^\s*- versionName:\s*(\S+)/m.exec(t)?.[1],
+        'Builds versionCode': /^\s*versionCode:\s*(\S+)/m.exec(t)?.[1],
+        'Builds commit': /^\s*commit:\s*(\S+)/m.exec(t)?.[1]
+      }
+      const want = { 'CurrentVersion': av, 'CurrentVersionCode': code, 'Builds versionName': av, 'Builds versionCode': code, 'Builds commit': 'android-v' + av }
+      for (const k of Object.keys(want)) if (got[k] !== want[k]) errors.push('fdroid/dev.lyra.android.yml ' + k + ' is ' + got[k] + ', expected ' + want[k] + ' (node scripts/release.mjs prepare --android updates it)')
     }
   }
   return { errors, warnings }

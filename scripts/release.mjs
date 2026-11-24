@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
-  bumpPackageJson, bumpPackageLock, bumpVersionProperties, changelogFromSubjects, checkRelease, compareSemver, findNotesCard,
+  bumpFdroid, bumpPackageJson, bumpPackageLock, bumpVersionProperties, changelogFromSubjects, checkRelease, compareSemver, findNotesCard,
   cardMentionsAndroid, notesMarkdown, parseLatestYml, parseSemver, readProperties, verifyAndroidRelease, verifyWindowsRelease, versionCodeFor
 } from './lib/release.mjs'
 
@@ -141,7 +141,10 @@ async function main() {
     } else {
       writeFileSync(P.pkg, bumpPackageJson(read(P.pkg), next))
       writeFileSync(P.lock, bumpPackageLock(read(P.lock), next))
-      if (androidNext) writeFileSync(P.props, bumpVersionProperties(read(P.props), androidNext))
+      if (androidNext) {
+        writeFileSync(P.props, bumpVersionProperties(read(P.props), androidNext))
+        if (existsSync(P.fdroid)) writeFileSync(P.fdroid, bumpFdroid(read(P.fdroid), androidNext))
+      }
       console.log(`bumped package.json and package-lock.json to ${next}${androidNext ? `, version.properties to ${androidNext}` : ''}`)
     }
 
@@ -157,7 +160,7 @@ async function main() {
 Ready. Nothing was committed, pushed or published. Next, by hand:
 
   git checkout -b release/${next}
-  git add package.json package-lock.json${androidNext ? ' android/app/version.properties' : ''} website fastlane
+  git add package.json package-lock.json${androidNext ? ' android/app/version.properties fdroid' : ''} website fastlane
   git commit -m "chore(release): Windows ${next}${androidNext ? ` and Android ${androidNext}` : ''}"
   git push -u origin release/${next}
   gh pr create --fill --base main

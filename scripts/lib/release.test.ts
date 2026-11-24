@@ -79,6 +79,27 @@ describe('checkRelease', () => {
   })
 })
 
+describe('fdroid metadata', () => {
+  const yml = 'Builds:\n  - versionName: 0.10.1\n    versionCode: 10001\n    commit: android-v0.10.1\n    subdir: android/app\nCurrentVersion: 0.10.1\nCurrentVersionCode: 10001\n'
+  const input = (t: string) => ({
+    packageJson: JSON.stringify({ version: '0.27.1' }),
+    packageLock: JSON.stringify({ version: '0.27.1', packages: { '': { version: '0.27.1' } } }),
+    properties: 'versionName=0.12.1\nversionCode=12001\n',
+    whatsNewHtml: html,
+    hasChangelog: () => true,
+    fdroidText: t
+  })
+  it('is bumped in all five places and then passes the check', () => {
+    const bumped = r.bumpFdroid(yml, '0.12.1')
+    expect(bumped).toContain('commit: android-v0.12.1')
+    expect(bumped).toContain('CurrentVersionCode: 12001')
+    expect(r.checkRelease(input(bumped)).errors).toEqual([])
+  })
+  it('a stale file is an error', () => {
+    expect(r.checkRelease(input(yml)).errors.length).toBe(5)
+  })
+})
+
 describe('changelog', () => {
   it('groups conventional commits and skips release chores', () => {
     const out = r.changelogFromSubjects(['feat(studio): film the screen', 'fix: crash', 'chore(release): 0.27.0', 'random text'])

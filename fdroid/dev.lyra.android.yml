@@ -2,8 +2,8 @@
 # https://gitlab.com/fdroid/fdroiddata and open a merge request (see docs/FDROID.md). The F-Droid reviewers may
 # ask for changes to the build recipe.
 # Keep the Builds entry and CurrentVersion / CurrentVersionCode equal to android/app/version.properties of the release
-# you submit (versionCode = minor * 1000 + patch: 0.10.1 is 10001). After the first merge F-Droid adds new Builds by
-# itself from the android-v* tags (AutoUpdateMode / UpdateCheckMode below), so this file is only edited for the first submission.
+# you submit (versionCode = minor * 1000 + patch: 0.12.1 is 12001). After the first merge F-Droid adds new Builds by
+# itself from the android-v* tags (AutoUpdateMode / UpdateCheckMode below), so this file only has to be right for a submission; `node scripts/release.mjs prepare --android` keeps it in step.
 Categories:
   - Multimedia
 License: MIT
@@ -22,9 +22,9 @@ RepoType: git
 Repo: https://github.com/DhruvHarani1/lyra.git
 
 Builds:
-  - versionName: 0.10.1
-    versionCode: 10001
-    commit: android-v0.10.1
+  - versionName: 0.12.1
+    versionCode: 12001
+    commit: android-v0.12.1
     subdir: android/app
     sudo:
       - apt-get update
@@ -40,5 +40,5 @@ Builds:
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^android-v
 UpdateCheckData: android/app/version.properties|versionCode=(\d+)|.|versionName=(.+)
-CurrentVersion: 0.10.1
-CurrentVersionCode: 10001
+CurrentVersion: 0.12.1
+CurrentVersionCode: 12001
