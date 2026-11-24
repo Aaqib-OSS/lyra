@@ -8,6 +8,7 @@ import { useOriginalClock } from '@/lib/karaoke/original'
 import { loadMemory, markBad, rememberChoice, touchUsed } from '@/lib/karaoke/memory'
 import { openMic, type Mic } from '@/lib/karaoke/mic'
 import { scoreLine, summarize, type Frame, type KLine, type LineResult, type Summary } from '@/lib/karaoke/score'
+import { useDialog } from '@/hooks/useDialog'
 import { useLyrics } from '@/store/lyrics'
 import { usePlayer } from '@/store/player'
 import { Icon } from './Icon'
@@ -73,6 +74,8 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
   const clock: SingClock = source === 'original' ? original : player
   const clockRef = useRef<SingClock>(clock)
   clockRef.current = clock
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useDialog(dialogRef, onClose, { escape: false }) // its own key handler already closes on Esc
   const mic = useRef<Mic | null>(null)
   const frames = useRef<Frame[]>([])
   const done = useRef<LineResult[]>([])
@@ -335,6 +338,7 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
         return onClose()
       }
       if (phase === 'sing') {
+        if (k === ' ' && el?.tagName === 'BUTTON') return // Space presses the focused button
         if (k === ' ' || k === 'k' || k === 'K') (eat(), togglePause())
         else if (k === 'ArrowLeft') (eat(), nudge(e.shiftKey ? -500 : -200))
         else if (k === 'ArrowRight') (eat(), nudge(e.shiftKey ? 500 : 200))
@@ -367,7 +371,7 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
   const canStart = !!videoId && player.ready
 
   return (
-    <div className="k2" role="dialog" aria-label="Karaoke" data-nodrag data-phase={phase}>
+    <div ref={dialogRef} className="k2" role="dialog" aria-modal="true" aria-label="Karaoke" data-nodrag data-phase={phase}>
       <header className="k2-head">
         <b>Karaoke</b>
         <span>{track ? `${track.title} · ${track.artists[0] ?? ''}` : ''}</span>

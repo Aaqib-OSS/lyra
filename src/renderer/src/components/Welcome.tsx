@@ -1,4 +1,6 @@
+import { useRef } from 'react'
 import { motion } from 'framer-motion'
+import { useDialog } from '@/hooks/useDialog'
 import { GLOBAL_SHORTCUTS, effectiveAccel } from '@shared/shortcuts'
 import { useSettings } from '@/store/settings'
 import { requestMode } from '@/store/ui'
@@ -17,11 +19,15 @@ export function Welcome() {
     set({ onboarded: true })
     requestMode(defaultMode === 'mini' ? 'mini' : defaultMode)
   }
+  const dialog = useRef<HTMLDivElement>(null)
+  useDialog(dialog, done)
 
   return (
     <motion.div
       className="welcome"
+      ref={dialog}
       role="dialog"
+      aria-modal="true"
       aria-label="Welcome to Lyra"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}

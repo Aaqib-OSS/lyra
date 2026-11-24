@@ -13,6 +13,7 @@ import { usePlayer } from '@/store/player'
 import { useSettings } from '@/store/settings'
 import { useUi } from '@/store/ui'
 import { effectiveVibe } from '@/hooks/useVibe'
+import { useDialog } from '@/hooks/useDialog'
 import { StudioPreview } from './StudioPreview'
 
 const RATIOS: Array<{ v: Ratio; label: string; hint: string }> = [
@@ -83,6 +84,8 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
   const [preset, setPreset] = useState<Preset>('chorus')
   const [range, setRange] = useState<{ startMs: number; endMs: number }>({ startMs: 0, endMs: 30_000 })
   const abort = useRef<AbortController | null>(null)
+  const dialog = useRef<HTMLDivElement>(null)
+  useDialog(dialog, () => (phase.name === 'running' ? abort.current?.abort() : onClose()))
   const [previewStage, setPreviewStage] = useState<StageSource | null>(null)
   // which video plays behind the lyrics, and a way to swap it before recording
   const [pickOpen, setPickOpen] = useState(false)
@@ -271,7 +274,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
   const ready = source === 'live' || (own.audio && own.durationMs > 0)
 
   return (
-    <div className="sharecard" role="dialog" aria-label="Export a lyric video" data-nodrag>
+    <div ref={dialog} className="sharecard" role="dialog" aria-modal="true" aria-label="Export a lyric video" data-nodrag>
       <div className="sharecard__box studio">
         <header>
           <b>Export lyric video</b>
@@ -530,7 +533,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
             )}
             <div className="studio__group">
               <span>Caption (ready to paste)</span>
-              <textarea className="studio__caption" readOnly value={caption} rows={5} onFocus={(e) => e.currentTarget.select()} />
+              <textarea className="studio__caption" aria-label="Caption" readOnly value={caption} rows={5} onFocus={(e) => e.currentTarget.select()} />
             </div>
             <div className="sharecard__row sharecard__row--end">
               <button

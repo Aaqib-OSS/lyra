@@ -416,7 +416,7 @@ function BackgroundSection() {
           </button>
         ) : (
           <>
-            <input className="field" type="password" autoComplete="off" spellCheck={false} placeholder="API key" value={key} onChange={(e) => setKey(e.target.value)} style={{ width: 150 }} />
+            <input className="field" type="password" autoComplete="off" spellCheck={false} placeholder="API key" aria-label="API key" value={key} onChange={(e) => setKey(e.target.value)} style={{ width: 150 }} />
             <button
               type="button"
               className="pill"

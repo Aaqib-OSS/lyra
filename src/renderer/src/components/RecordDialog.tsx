@@ -1,9 +1,12 @@
-import { useEffect, useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { useDialog } from '@/hooks/useDialog'
 import { usePlayer } from '@/store/player'
 
 /** Android: record a lyric video of the song playing now (the phone films Lyra's screen and Spotify's sound). */
 export function RecordDialog({ onClose }: { onClose: () => void }): ReactElement {
   const track = usePlayer((s) => s.snapshot?.track ?? null)
+  const dialog = useRef<HTMLDivElement>(null)
+  useDialog(dialog, onClose)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [phones, setPhones] = useState(false)
@@ -39,7 +42,7 @@ export function RecordDialog({ onClose }: { onClose: () => void }): ReactElement
   }
 
   return (
-    <div className="sharecard" role="dialog" aria-label="Record a lyric video" data-nodrag>
+    <div ref={dialog} className="sharecard" role="dialog" aria-modal="true" aria-label="Record a lyric video" data-nodrag>
       <div className="sharecard__box studio">
         <header>
           <b>Record lyric video</b>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { LyricLine } from '@shared/types'
 import { cardDataUrl, cardTheme, drawCard } from '@/lib/shareCard'
+import { useDialog } from '@/hooks/useDialog'
 import { useEffectiveVibe } from '@/hooks/useVibe'
 import { usePlayer } from '@/store/player'
 import { useUi } from '@/store/ui'
@@ -10,6 +11,8 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
   const track = usePlayer((s) => s.snapshot?.track)
   const { vibe } = useEffectiveVibe()
   const canvas = useRef<HTMLCanvasElement>(null)
+  const dialog = useRef<HTMLDivElement>(null)
+  useDialog(dialog, onClose)
   const [from, setFrom] = useState(index)
   const [count, setCount] = useState(1)
   const [look, setLook] = useState<'classic' | 'doodle'>('doodle')
@@ -63,7 +66,7 @@ export function ShareCard({ lines, index, onClose }: { lines: LyricLine[]; index
   }
 
   return (
-    <div className="sharecard" role="dialog" aria-label="Share a lyric card" data-nodrag>
+    <div ref={dialog} className="sharecard" role="dialog" aria-modal="true" aria-label="Share a lyric card" data-nodrag>
       <div className="sharecard__box">
         <header>
           <b>Share a lyric card</b>
