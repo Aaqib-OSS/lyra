@@ -25,7 +25,12 @@
     "test:ui:states": "node scripts/ui-test/run.mjs --states",
     "test:settings": "node scripts/ui-test/settings.mjs",
     "test:video": "node scripts/ui-test/video-sync.mjs",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:site": "node scripts/check-site.mjs",
+    "check": "npm run typecheck && npm test && npm run check:docs && npm run check:site",
+    "test:coverage": "vitest run --coverage",
+    "test:electron": "node scripts/ui-test/electron-smoke.mjs",
+    "build:harness": "vite build -c scripts/harness/vite.config.ts"
   },
   "build": {
     "appId": "dev.lyra.companion",

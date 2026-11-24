@@ -13,6 +13,7 @@ release-test/
 release_old_*/
 brag-output/
 ui-test-out/
+coverage/
 
 # agent worktrees and browser-tool scratch (generated, never commit)
 .claude/worktrees/
