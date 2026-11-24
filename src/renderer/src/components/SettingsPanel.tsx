@@ -811,7 +811,22 @@ export function SettingsPanel() {
             )
           })}
         </div>
-        {s.vibeMode !== 'fixed' && <p className="hint">{s.vibePool.length === 0 ? 'Using every vibe.' : `Using ${s.vibePool.length} vibe${s.vibePool.length === 1 ? '' : 's'}.`} Tap a card to add or remove it.</p>}
+        {s.vibeMode === 'smart' && (
+          <p className="hint">
+            Smart reads each song (its words, pace, release year and cover colours) and picks the best match from the vibes ticked below; the same song always gets the same pick. Press V on a song to choose another, and Lyra remembers it for that song.
+          </p>
+        )}
+        {s.vibeMode === 'cycle' && <p className="hint">Every song moves on to the next ticked vibe. A vibe you pick with V stays with that song.</p>}
+        {s.vibeMode !== 'fixed' && (
+          <p className="hint">
+            {s.vibePool.length === 0 ? 'Using every vibe.' : `Using ${s.vibePool.length} vibe${s.vibePool.length === 1 ? '' : 's'}.`} Tap a card to add or remove it.{' '}
+            {s.vibePool.length > 0 && (
+              <button type="button" className="linkbtn" onClick={() => set({ vibePool: [] })}>
+                Use every vibe
+              </button>
+            )}
+          </p>
+        )}
       </section>
       )}
       {show('look') && (
