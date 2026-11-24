@@ -12,12 +12,18 @@ interface UiStore {
   mode: ViewMode
   panel: Panel
   distractionFree: boolean
+  /** the keyboard shortcuts sheet (`?`) */
+  help: boolean
+  /** an action chosen in the widget's menu that needs the roomy player: it runs once that player is on screen */
+  pending: 'karaoke' | 'studio' | null
   toasts: Toast[]
   /** the vibe chosen for the current song by cycle / smart mode (never saved) */
   vibeNow: Vibe | null
   vibeWhy: string
   setVibeNow(v: Vibe | null, why?: string): void
   setMode(mode: ViewMode): void
+  setHelp(on: boolean): void
+  setPending(p: UiStore['pending']): void
   setPanel(p: Panel): void
   togglePanel(p: Exclude<Panel, 'none'>): void
   toggleDistractionFree(): void
@@ -31,6 +37,8 @@ export const useUi = create<UiStore>((set, get) => ({
   mode: 'compact',
   panel: 'none',
   distractionFree: false,
+  help: false,
+  pending: null,
   toasts: [],
   vibeNow: null,
   vibeWhy: '',
@@ -38,6 +46,8 @@ export const useUi = create<UiStore>((set, get) => ({
   setMode(mode) {
     set({ mode, panel: mode === 'compact' || mode === 'minimal' ? 'none' : get().panel })
   },
+  setHelp: (help) => set({ help }),
+  setPending: (pending) => set({ pending }),
   setPanel: (panel) => set({ panel }),
   togglePanel: (p) => set({ panel: get().panel === p ? 'none' : p }),
   toggleDistractionFree: () => set({ distractionFree: !get().distractionFree }),

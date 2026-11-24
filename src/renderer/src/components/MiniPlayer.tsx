@@ -54,38 +54,78 @@ function useWideScreen(): boolean {
   return wide
 }
 
-/** A labelled menu for the secondary actions, so the header is not a row of nine tiny icons. */
-export function OverflowMenu({ items }: { items: Array<{ icon: IconName; label: string; run(): void }> }) {
+/** A labelled menu for the secondary actions, so the header is not a row of nine tiny icons. Keyboard: Enter / arrows open it, arrows move, Esc closes and returns focus. */
+export function OverflowMenu({ items, size = 16 }: { items: Array<{ icon: IconName; label: string; run(): void }>; size?: number }) {
   const [open, setOpen] = useState(false)
   const box = useRef<HTMLDivElement>(null)
+  const close = (refocus: boolean): void => {
+    setOpen(false)
+    if (refocus) box.current?.querySelector<HTMLButtonElement>('.ibtn')?.focus()
+  }
   useEffect(() => {
     if (!open) return
     const away = (e: PointerEvent): void => {
       if (!box.current?.contains(e.target as Node)) setOpen(false)
     }
+    // capture + stopImmediatePropagation: Esc closes the menu only, not also the mode behind it (see useHotkeys)
     const esc = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key !== 'Escape') return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      close(true)
     }
     window.addEventListener('pointerdown', away)
-    window.addEventListener('keydown', esc)
+    window.addEventListener('keydown', esc, true)
+    // first item gets focus so the menu is usable without the mouse
+    const t = setTimeout(() => box.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus(), 30)
     return () => {
+      clearTimeout(t)
       window.removeEventListener('pointerdown', away)
-      window.removeEventListener('keydown', esc)
+      window.removeEventListener('keydown', esc, true)
     }
   }, [open])
+  const onMenuKey = (e: React.KeyboardEvent): void => {
+    const all = Array.from(box.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? [])
+    const at = all.indexOf(document.activeElement as HTMLButtonElement)
+    const go = (n: number): void => {
+      e.preventDefault()
+      all[(n + all.length) % all.length]?.focus()
+    }
+    if (e.key === 'ArrowDown') go(at + 1)
+    else if (e.key === 'ArrowUp') go(at - 1)
+    else if (e.key === 'Home') go(0)
+    else if (e.key === 'End') go(all.length - 1)
+    else if (e.key === 'Tab') setOpen(false)
+  }
   return (
     <div className="menu" ref={box}>
-      <IconButton icon="more" label="More" active={open} size={16} onClick={() => setOpen((o) => !o)} />
+      <button
+        type="button"
+        className={`ibtn ${open ? 'is-active' : ''}`}
+        aria-label="More"
+        title="More"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' && !open) {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
+      >
+        <Icon name="more" size={size} />
+      </button>
       <AnimatePresence>
         {open && (
-          <motion.div className="menu__pop" role="menu" initial={{ opacity: 0, y: -6, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
+          <motion.div className="menu__pop" role="menu" aria-label="More" onKeyDown={onMenuKey} initial={{ opacity: 0, y: -6, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.16 }}>
             {items.map((it) => (
               <button
                 key={it.label}
                 type="button"
                 role="menuitem"
                 onClick={() => {
-                  setOpen(false)
+                  close(false)
                   it.run()
                 }}
               >

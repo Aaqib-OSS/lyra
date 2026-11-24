@@ -13,8 +13,19 @@ export function ResizeGrip() {
       className="grip"
       data-nodrag
       role="separator"
-      aria-label="Resize"
-      title="Drag to resize"
+      aria-orientation="horizontal"
+      aria-label="Resize window. Use the arrow keys."
+      title="Drag to resize (or focus and use the arrow keys)"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        const step = e.shiftKey ? 40 : 10
+        const d: Record<string, [number, number]> = { ArrowRight: [step, 0], ArrowLeft: [-step, 0], ArrowDown: [0, step], ArrowUp: [0, -step] }
+        const delta = d[e.key]
+        if (!delta) return
+        e.preventDefault()
+        e.stopPropagation() // arrows seek / change volume elsewhere; here they resize
+        window.lyra.window.resizeBy(delta[0], delta[1])
+      }}
       onPointerDown={(e) => {
         if (e.button !== 0) return
         e.stopPropagation()

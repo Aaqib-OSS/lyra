@@ -15,12 +15,15 @@ import { FullscreenPlayer } from '@/components/FullscreenPlayer'
 import { MiniPlayer } from '@/components/MiniPlayer'
 import { ResizeGrip } from '@/components/ResizeGrip'
 import { SidePanel } from '@/components/SidePanel'
+import { ShortcutsHelp, openShortcuts } from '@/components/ShortcutsHelp'
 import { Toasts } from '@/components/Toasts'
 import { Welcome } from '@/components/Welcome'
 import { useArtwork, usePalette } from '@/hooks/useArtwork'
 import { useReducedMotion } from '@/hooks/useMotion'
 import { NEUTRAL_PALETTE } from '@/lib/palette'
 import { fillWindow, isAnimating, runTransition, shell } from '@/lib/shell'
+import { useLyricPreview } from '@/hooks/usePlayerView'
+import type { ViewMode } from '@shared/types'
 import { useLyrics } from '@/store/lyrics'
 import { OFFSET_STEP_MS, nudgeSongOffset } from '@/store/offsets'
 import { getFullscreenShortcutAction } from '@shared/shortcuts'
@@ -56,6 +59,7 @@ function useBoot(): boolean {
             if (to.x === 0 && to.y === 0) requestAnimationFrame(fillWindow)
           })
         }),
+        api.app.onNotice?.((n) => useUi.getState().toast(n.message, n.kind)) ?? (() => undefined),
         api.app.onCommand((c) => {
           const p = usePlayer.getState()
           if (c === 'toggle-play') p.toggle()
@@ -130,6 +134,30 @@ function useLyricDrop(): boolean {
   return over
 }
 
+/** `M` walks through the window sizes, smallest to largest, then starts over. */
+const WINDOW_SIZES: ViewMode[] = ['minimal', 'compact', 'mini', 'full']
+
+/**
+ * While the widget is hidden in the tray, tell main which line is being sung (tray tooltip). Mounted only then,
+ * so a visible window pays nothing for it.
+ */
+function TrayLine(): null {
+  const p = useLyricPreview()
+  const text = p.kind === 'line' ? p.text : ''
+  useEffect(() => window.lyra.window.nowLine(text), [text])
+  return null
+}
+
+function useHidden(): boolean {
+  const [hidden, setHidden] = useState(document.hidden)
+  useEffect(() => {
+    const on = (): void => setHidden(document.hidden)
+    document.addEventListener('visibilitychange', on)
+    return () => document.removeEventListener('visibilitychange', on)
+  }, [])
+  return hidden
+}
+
 function useHotkeys(): void {
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -154,6 +182,11 @@ function useHotkeys(): void {
         return
       }
       if (editable) return
+      if (e.key === '?') {
+        e.preventDefault()
+        openShortcuts()
+        return
+      }
       const onControl = !!t.closest('button, [role="slider"], input[type="range"]')
 
       switch (e.key) {
@@ -181,6 +214,10 @@ function useHotkeys(): void {
         case 'f':
         case 'F':
           requestMode(ui.mode === 'full' ? 'mini' : 'full')
+          break
+        case 'm':
+        case 'M':
+          if (!e.repeat) requestMode(WINDOW_SIZES[(WINDOW_SIZES.indexOf(ui.mode) + 1) % WINDOW_SIZES.length]!)
           break
         case 'd':
         case 'D':
@@ -219,6 +256,8 @@ export default function App() {
   useStartGate()
   useHotkeys()
   const dropping = useLyricDrop()
+  const hidden = useHidden()
+  const help = useUi((s) => s.help)
 
   // "Fade when idle": main decides from the cursor position; we just apply it.
   useEffect(() => window.lyra.window.onFade(setFaded), [])
@@ -253,6 +292,7 @@ export default function App() {
         data-faded={faded || undefined}
         style={{ ['--alpha' as string]: mode === 'full' ? 1 : settings.opacity }}
       >
+        {hidden && <TrayLine />}
         <motion.div className="shell" style={{ x: shell.x, y: shell.y, width: shell.width, height: shell.height }}>
           <Backdrop rich={mode === 'full'} animated={mode === 'full' || mode === 'mini'} />
           <VibeFx />
@@ -276,6 +316,7 @@ export default function App() {
           </AnimatePresence>
           {(mode === 'mini' || mode === 'full') && <SidePanel />}
           {!onboarded && (mode === 'mini' || mode === 'full') && <Welcome />}
+          {help && (mode === 'mini' || mode === 'full') && <ShortcutsHelp />}
           <Toasts />
           <CarOffer />
           {dropping && <div className="dropzone">Drop the lyrics file here</div>}
