@@ -54,6 +54,10 @@ Lyra remembers answers so repeat plays are instant and cost no quota. All of it 
 
 If you installed the APK from GitHub (not from Google Play, F-Droid or IzzyOnDroid, where the store updates it), Lyra can check for a new version: it reads the public list of releases from `api.github.com`, at most every 12 hours and on Wi-Fi by default, and downloads the APK from `github.com`. Before installing it checks the file's **SHA-256** against the release's checksum and that it is **signed with the same certificate** as the installed app, then hands it to Android's installer, which asks you to confirm. Nothing about you or your music is sent. Store builds do not run it.
 
+## Logs and the diagnostics report (local only)
+
+Lyra writes a small log of its own warnings and errors to `%APPDATA%\Lyra\logs` (at most about 4 MB in four rotated files). Tokens, keys, e-mail addresses, your Windows user name and local network addresses are removed before anything is written. Nothing is uploaded, ever, and there is no crash reporting or analytics. **Settings → About → Copy diagnostics** puts a report (app and OS versions, graphics card, your settings without secrets, the biggest items in the Lyra folder, recent warnings and the last log lines) on your clipboard so you can read it and paste it into a GitHub issue yourself. **Open log folder** shows the files. If Lyra crashed twice while starting it starts in a safe mode (no Connect, no update check, software rendering); that is stored as a small marker file in the Lyra folder.
+
 ## What never leaves your device
 
 Your settings, favorites, saved moments, per-song choices, pinned and imported lyrics, your own background files, the caches above, the Connect device list and tokens, notification contents (Lyra never reads them), your YouTube key (encrypted, never shown to the interface) and any Spotify tokens. There is no analytics, crash reporting or advertising SDK. Not verified here: the network traffic of the YouTube player iframe itself, which is Google's code and may set its own cookies.

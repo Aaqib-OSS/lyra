@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Troubleshooting guide
+    url: https://github.com/DhruvHarani1/lyra/blob/main/docs/troubleshooting.md
+    about: Common problems (no lyrics, Spotify login, firewall, SmartScreen) and their fixes.

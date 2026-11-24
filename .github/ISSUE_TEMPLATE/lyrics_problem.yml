@@ -1,0 +1,24 @@
+name: Wrong or missing lyrics
+description: A song shows no lyrics, the wrong lyrics, or out-of-time lyrics
+labels: [lyrics]
+body:
+  - type: input
+    id: song
+    attributes:
+      label: Song and artist
+      description: As shown in Lyra
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong?
+      options: [No lyrics found, Wrong song, Out of time, Wrong language or romanization, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics report
+      description: Settings -> About -> Copy diagnostics, then paste here (no tokens or user name are included).
+      render: text
