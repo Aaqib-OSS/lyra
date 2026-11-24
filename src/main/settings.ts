@@ -15,12 +15,14 @@ export function sanitize(s: Settings): Settings {
   const known = Object.fromEntries(Object.entries(s && typeof s === 'object' ? s : {}).filter(([k]) => k in d)) as Settings
   // Every plain on/off, number and text value must be the same kind as its default ("false" or 5 for a switch,
   // NaN for a slider, a 5 MB string for an id are all replaced by the default); ranges are clamped below.
-  for (const k of Object.keys(known) as Array<keyof Settings>) {
-    const dv = d[k]
-    const v = known[k]
-    if ((typeof dv === 'boolean' || typeof dv === 'number' || typeof dv === 'string') && typeof v !== typeof dv) (known as Record<string, unknown>)[k] = dv
-    else if (typeof v === 'number' && !Number.isFinite(v)) (known as Record<string, unknown>)[k] = dv
-    else if (typeof v === 'string' && v.length > 300) (known as Record<string, unknown>)[k] = dv
+  const loose = known as unknown as Record<string, unknown>
+  const defaults = d as unknown as Record<string, unknown>
+  for (const k of Object.keys(loose)) {
+    const dv = defaults[k]
+    const v = loose[k]
+    if ((typeof dv === 'boolean' || typeof dv === 'number' || typeof dv === 'string') && typeof v !== typeof dv) loose[k] = dv
+    else if (typeof v === 'number' && !Number.isFinite(v)) loose[k] = dv
+    else if (typeof v === 'string' && v.length > 300) loose[k] = dv
   }
   s = known
   return {

@@ -15,6 +15,9 @@ import { VIBES } from '@shared/vibes'
 import { useUi } from '@/store/ui'
 import { CarModeRow } from '@/components/CarMode'
 import { setLanguage, useTranslation, type Language } from '@/i18n'
+import { changedFromDefault } from '@shared/settingsIo'
+import { BackupSection, ChangedList } from './SettingsExtras'
+import { SETTINGS_OPEN_EVENT, type SettingsTarget } from '@/settingsLink'
 
 /** Copy text and tell the user it worked (or didn't). */
 async function copyWithToast(text: string, what: string): Promise<void> {
@@ -652,9 +655,16 @@ export function SettingsPanel() {
         { id: 'share', label: t('Connect') },
         { id: 'about', label: t('About') }
       ]
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(() => {
+    const pending = sessionStorage.getItem('lyra.settingsQuery') // a deep link may pre-fill the search
+    sessionStorage.removeItem('lyra.settingsQuery')
+    return pending ?? ''
+  })
+  const [changedView, setChangedView] = useState(false)
+  const [noMatch, setNoMatch] = useState(false)
+  const changedCount = changedFromDefault(s).length
   const searching = !android && q.trim().length > 0
-  const show = (id: string): boolean => searching || tab === id
+  const show = (id: string): boolean => !changedView && (searching || tab === id)
   const panelRef = useRef<HTMLDivElement>(null)
   const [tab, setTabState] = useState<string>(() => {
     const saved = sessionStorage.getItem('lyra.settingsTab')
@@ -662,8 +672,23 @@ export function SettingsPanel() {
   })
   const setTab = (id: string): void => {
     setTabState(id)
+    setChangedView(false)
     sessionStorage.setItem('lyra.settingsTab', id)
   }
+  // deep links: another screen can open Settings at a section (see settingsLink.ts)
+  useEffect(() => {
+    const onOpen = (e: Event): void => {
+      const { tab: id, query } = (e as CustomEvent<SettingsTarget>).detail ?? {}
+      if (id && tabs.some((x) => x.id === id)) setTab(id)
+      if (query !== undefined) {
+        setQ(query)
+        sessionStorage.removeItem('lyra.settingsQuery')
+      }
+    }
+    window.addEventListener(SETTINGS_OPEN_EVENT, onOpen)
+    return () => window.removeEventListener(SETTINGS_OPEN_EVENT, onOpen)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [android])
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number): void => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return
     e.preventDefault()
@@ -712,12 +737,15 @@ export function SettingsPanel() {
         sec.hidden = !!needle && !any && !titleHit
         if (needle) sec.querySelectorAll<HTMLDetailsElement>('details.more').forEach((d) => d.querySelector('.srow:not([hidden])') && (d.open = true))
       })
+      setNoMatch(!!needle && !Array.from(root.querySelectorAll<HTMLElement>('section')).some((sec) => !sec.hidden))
     }
     apply()
+    // rows can appear later (a section loads); only watch while someone is searching, so a normal page costs nothing
+    if (!needle) return
     const mo = new MutationObserver(apply)
     mo.observe(root, { childList: true, subtree: true })
     return () => mo.disconnect()
-  }, [q, tab])
+  }, [q, tab, changedView])
 
   const tabRail = useRef<HTMLElement>(null)
   // keep the chosen tab in view in the sideways-scrolling row
@@ -727,8 +755,8 @@ export function SettingsPanel() {
 
   return (
     <div className="settings" data-nodrag>
-      {!android && (
-        <div className="ssearch" role="search">
+      <div className="ssearch" role="search">
+        {!android && (
           <input
             type="search"
             value={q}
@@ -738,9 +766,21 @@ export function SettingsPanel() {
             aria-label={t('Search settings')}
             spellCheck={false}
           />
-        </div>
-      )}
-      <nav className="stabs" role="tablist" hidden={searching} aria-label={t('Settings sections')} ref={tabRail}>
+        )}
+        <button
+          type="button"
+          className={`pill ssearch__changed ${changedView ? 'is-on' : ''}`}
+          aria-pressed={changedView}
+          title="Show only the settings you changed"
+          onClick={() => {
+            setChangedView(!changedView)
+            setQ('')
+          }}
+        >
+          Changed{changedCount ? ` (${changedCount})` : ''}
+        </button>
+      </div>
+      <nav className="stabs" role="tablist" hidden={searching || changedView} aria-label={t('Settings sections')} ref={tabRail}>
         {tabs.map((t, index) => (
           <button
             key={t.id}
@@ -760,6 +800,11 @@ export function SettingsPanel() {
       </nav>
 
       <div id="settings-panel" ref={panelRef} role="tabpanel" aria-labelledby={`settings-tab-${tab}`} tabIndex={0}>
+      {changedView && <ChangedList onShow={(id) => setTab(tabs.some((x) => x.id === id) ? id : tabs[0]!.id)} />}
+      {/* announced to screen readers: the page stays quiet when a search finds nothing otherwise */}
+      <p className="hint" role="status" aria-live="polite" hidden={!noMatch}>
+        {noMatch ? `No settings match “${q.trim()}”. Try another word, or clear the search.` : ''}
+      </p>
       {android && show('phone') && (
         <>
           <PhoneSection />
@@ -770,7 +815,7 @@ export function SettingsPanel() {
       {show('look') && (
       <section>
         <h4>Vibes</h4>
-        <p className="hint">A vibe changes the whole look: colours, type, background effects and how the lyrics appear. Press V anywhere to switch.</p>
+        <p className="hint">A vibe changes the whole look: colours, type, background effects and how the lyrics appear. Press V anywhere to switch. The one you pick here is the default for every song; a vibe you choose while a song plays is remembered for that song only.</p>
         <Row label="Vibe changes" hint={s.vibeMode === 'fixed' ? 'Stay on the one you pick' : s.vibeMode === 'cycle' ? 'A new vibe from your picks on every song' : vibeWhy ? `Now: ${vibeWhy}` : 'Lyra picks what suits each song'}>
           <Segmented
             label="Vibe mode"
@@ -879,7 +924,7 @@ export function SettingsPanel() {
           <Toggle label="Highlight each word" checked={s.wordByWord} onChange={up('wordByWord')} />
         </Row>
         <More label="Advanced">
-        <Row label="Default sync offset" hint="Nudge every song earlier or later. Fine-tune one song under its lyrics">
+        <Row label="Default sync offset" hint="For every song. A change you make while a song plays is saved for that song only and adds to this">
           <Slider label="Sync offset" value={s.lyricOffsetMs} min={-3000} max={3000} step={50} onChange={up('lyricOffsetMs')} format={(v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)}s`} />
         </Row>
         <p className="hint">Lyrics services: if one is down Lyra uses the next, keeps your saved copies, and tries again by itself.</p>
@@ -1034,6 +1079,8 @@ export function SettingsPanel() {
           Quit Lyra
         </button>
       </div>
+
+      <BackupSection />
 
       <section className="about">
         <h4>About</h4>
