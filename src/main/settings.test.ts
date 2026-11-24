@@ -67,4 +67,11 @@ describe('settings sanitize', () => {
   it('survives a settings file that is not an object at all', () => {
     expect(() => sanitize(null as unknown as Settings)).not.toThrow()
   })
+
+  it('drops a saved window position that is junk, keeps a real one', () => {
+    expect(sanitize(withSettings({ position: { x: 1e12, y: 5 } })).position).toBeNull()
+    expect(sanitize(withSettings({ position: { x: 'a', y: 5 } })).position).toBeNull()
+    expect(sanitize(withSettings({ position: { x: -1500.4, y: 20 } })).position).toEqual({ x: -1500, y: 20 })
+    expect(sanitize(withSettings({ startInTray: 'yes' })).startInTray).toBe(true)
+  })
 })

@@ -28,6 +28,9 @@ const api: LyraApi = {
     resizeStart: () => ipcRenderer.send(CH.windowResizeStart),
     resizeMove: () => ipcRenderer.send(CH.windowResizeMove),
     resizeEnd: () => ipcRenderer.send(CH.windowResizeEnd),
+    resizeBy: (dw, dh) => ipcRenderer.send(CH.windowResizeBy, dw, dh),
+    nowLine: (text) => ipcRenderer.send(CH.windowNowLine, text),
+    lock: (on) => ipcRenderer.send(CH.windowSetLock, !!on),
     hide: () => ipcRenderer.send(CH.windowHide),
     minimize: () => ipcRenderer.send(CH.windowMinimize),
     quit: () => ipcRenderer.send(CH.windowQuit)
@@ -132,7 +135,8 @@ const api: LyraApi = {
     copyImage: (dataUrl) => invoke(CH.appCopyImage, dataUrl),
     shareImage: (dataUrl, name) => invoke(CH.appShareImage, dataUrl, name),
     failedShortcuts: () => invoke(CH.appShortcutStatus),
-    onCommand: (cb) => subscribe(EV.command, cb)
+    onCommand: (cb) => subscribe(EV.command, cb),
+    onNotice: (cb) => subscribe(EV.notice, cb)
   }
 }
 

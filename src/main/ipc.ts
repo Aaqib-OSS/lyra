@@ -45,6 +45,7 @@ const send = (channel: string, payload: unknown): void => {
 function onSnapshot(s: PlaybackSnapshot): void {
   send(EV.playback, s)
   connectService.onSnapshot(s)
+  windows.setNowPlaying(s.track ? `${s.isPlaying ? '' : '(paused) '}${s.track.title} - ${s.track.artists.join(', ')}` : '')
   const id = s.track?.id ?? null
   if (id && id !== lastTrackId && s.isPlaying && settings.get().trackNotifications && Notification.isSupported()) {
     new Notification({ title: s.track!.title, body: s.track!.artists.join(', '), silent: true }).show()
@@ -91,6 +92,13 @@ function on(channel: string, fn: () => void): void {
   })
 }
 
+/** Like `on`, for the few one-way messages that carry a value; the sender check is the same (only the app window). */
+function onWith(channel: string, fn: (...args: unknown[]) => void): void {
+  ipcMain.on(channel, (e, ...args) => {
+    if (e.sender === windows.window?.webContents) fn(...args)
+  })
+}
+
 export function registerIpc(): void {
   registerStudioIpc()
   connectService.runCommand = (cmd) => active.command(cmd)
@@ -129,6 +137,9 @@ export function registerIpc(): void {
   on(CH.windowResizeStart, () => windows.resizeStart())
   on(CH.windowResizeMove, () => windows.resizeMove())
   on(CH.windowResizeEnd, () => windows.resizeEnd())
+  onWith(CH.windowResizeBy, (dw, dh) => windows.resizeBy(Number(dw), Number(dh)))
+  onWith(CH.windowSetLock, (on) => windows.setLocked(on === true))
+  onWith(CH.windowNowLine, (text) => windows.setNowLine(typeof text === 'string' ? text : ''))
   on(CH.windowSettle, () => windows.settle())
   on(CH.windowHide, () => windows.hide())
   on(CH.windowMinimize, () => windows.minimize())

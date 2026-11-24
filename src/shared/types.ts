@@ -269,6 +269,8 @@ export interface Settings {
   autoHide: boolean
   hideOnScreenShare: boolean
   launchAtStartup: boolean
+  /** When Lyra starts with Windows, stay in the tray instead of opening the widget. */
+  startInTray: boolean
   globalShortcuts: boolean
   /** User overrides for global shortcuts: id -> Electron accelerator. */
   shortcuts: Record<string, string>
@@ -346,6 +348,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoHide: false,
   hideOnScreenShare: false,
   launchAtStartup: false,
+  startInTray: false,
   globalShortcuts: true,
   shortcuts: {},
   onboarded: false,
