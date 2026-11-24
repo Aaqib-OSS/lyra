@@ -140,6 +140,7 @@ const api: LyraApi = {
     info: () => invoke(CH.appInfo),
     diagnostics: () => invoke(CH.appDiagnostics),
     openLogs: () => invoke(CH.appOpenLogs),
+    resetGraphics: () => invoke(CH.appResetGraphics),
     copy: (text) => invoke(CH.appCopy, text),
     copyImage: (dataUrl) => invoke(CH.appCopyImage, dataUrl),
     shareImage: (dataUrl, name) => invoke(CH.appShareImage, dataUrl, name),

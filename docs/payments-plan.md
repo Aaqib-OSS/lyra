@@ -39,7 +39,7 @@ Goal: a paid monthly plan (about 50 per month, currency to decide) that funds th
 
 ## 2. In the apps
 
-- New `src/core/license/` (shared by Windows and the Android WebView):
+- A new licence module under `src/core` (planned, not written; shared by Windows and the Android WebView):
   - `entitlement.ts`: verify signature, expiry, device binding, grace period. Pure, fully unit tested.
   - `store`: keeps the key and token. Windows uses Electron `safeStorage` (same pattern as Connect tokens); Android uses Keystore-backed storage.
   - `useProFeature(name)` hook and a small `ProGate` component: shows the feature if entitled, otherwise an upgrade card.
@@ -61,7 +61,7 @@ Goal: a paid monthly plan (about 50 per month, currency to decide) that funds th
 ## 4. Build order (each step shippable and reviewed by you)
 
 1. **Decide + register** (you): answers to section 0, create the provider account, product and price. I can draft the policy pages.
-2. **License core** (me): `src/core/license`, signing keys script, unit tests. No UI yet.
+2. **License core** (me): the new licence module, signing keys script, unit tests. No UI yet.
 3. **License API** (me): serverless endpoints, DB schema, webhook handler with signature check, test mode against the provider sandbox.
 4. **App wiring** (me): Settings → Pro, `ProGate`, gate the chosen features on Windows, then Android (GitHub APK build only).
 5. **Website** (me): pricing page, success page that shows the key, link to the portal, updated privacy and terms.

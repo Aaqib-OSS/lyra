@@ -64,16 +64,16 @@ jobs:
           echo "::error::The ANDROID_KEYSTORE_BASE64 secret (and its password / alias secrets) is missing, so the APK would be debug-signed and the in-app updater would refuse every later update. Add the secrets (docs/DISTRIBUTION.md) and run again."
           exit 1
 
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v4
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
         with:
           packages: 'platforms;android-36 build-tools;36.0.0'
 
@@ -99,12 +99,18 @@ jobs:
       - name: Decode the signing key (only when the secrets exist)
         if: env.HAS_KEY == 'true'
         shell: bash
+        # secrets go in through env: (never pasted into the script text, so they cannot be expanded into the shell code)
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KS_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/lyra-release.jks"
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/lyra-release.jks"
           echo "LYRA_KEYSTORE=$RUNNER_TEMP/lyra-release.jks" >> "$GITHUB_ENV"
-          echo "LYRA_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
-          echo "LYRA_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
-          echo "LYRA_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "LYRA_KEYSTORE_PASSWORD=$KS_PASS" >> "$GITHUB_ENV"
+          echo "LYRA_KEY_ALIAS=$KS_ALIAS" >> "$GITHUB_ENV"
+          echo "LYRA_KEY_PASSWORD=$KS_KEY_PASS" >> "$GITHUB_ENV"
 
       # the Kotlin unit tests (updater, TV / Connect client, Car, AOD, audio) had never run in CI
       - name: Android unit tests and lint
@@ -126,7 +132,7 @@ jobs:
         shell: bash
         run: sha256sum "Lyra-Android-${{ steps.v.outputs.version }}.apk" > "Lyra-Android-${{ steps.v.outputs.version }}.apk.sha256"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: Lyra-Android-${{ steps.v.outputs.version }}
           path: |

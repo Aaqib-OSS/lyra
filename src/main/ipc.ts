@@ -14,6 +14,7 @@ import { registerStudioIpc } from './studio'
 import QRCode from 'qrcode'
 import { createLogger } from './logger'
 import { buildDiagnostics, openLogFolder } from './diagnostics'
+import { clearGpuFallback } from './crashGuard'
 import { moments } from './moments'
 import { background } from './background/service'
 import { youtube } from '@core/background/youtube'
@@ -214,6 +215,7 @@ export function registerIpc(): void {
 
   handle(CH.appDiagnostics, (): Promise<string> => buildDiagnostics(`Source: ${active?.kind ?? 'none'} · status: ${JSON.stringify(active?.getStatus() ?? {})}`))
   handle(CH.appOpenLogs, () => openLogFolder())
+  handle(CH.appResetGraphics, () => clearGpuFallback())
   handle(CH.appShortcutStatus, () => failedShortcuts())
   const pngFrom = (dataUrl: unknown): Buffer | null => {
     if (typeof dataUrl !== 'string' || dataUrl.length > 25_000_000) return null

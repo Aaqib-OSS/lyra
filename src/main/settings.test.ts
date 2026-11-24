@@ -95,6 +95,6 @@ describe('settings sanitize', () => {
     expect(sanitize(withSettings({ position: { x: 1e12, y: 5 } })).position).toBeNull()
     expect(sanitize(withSettings({ position: { x: 'a', y: 5 } })).position).toBeNull()
     expect(sanitize(withSettings({ position: { x: -1500.4, y: 20 } })).position).toEqual({ x: -1500, y: 20 })
-    expect(sanitize(withSettings({ startInTray: 'yes' })).startInTray).toBe(true)
+    expect(sanitize(withSettings({ startInTray: 'yes' })).startInTray).toBe(DEFAULT_SETTINGS.startInTray) // a value of the wrong kind goes back to the default
   })
 })

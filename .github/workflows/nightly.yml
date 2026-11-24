@@ -42,7 +42,7 @@ jobs:
       android: ${{ steps.d.outputs.android }}
       publish: ${{ steps.d.outputs.publish }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: main
       - id: d
@@ -94,11 +94,11 @@ jobs:
       HAS_AZURE_SIGN: ${{ secrets.AZURE_SIGN_ACCOUNT != '' }}
       HAS_PFX: ${{ secrets.WIN_CSC_LINK != '' }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.decide.outputs.sha }}
           fetch-depth: 0
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
@@ -136,7 +136,7 @@ jobs:
           $bad = Get-ChildItem release/Lyra-Setup-*.exe | Where-Object { (Get-AuthenticodeSignature $_.FullName).Status -ne 'Valid' }
           if ($bad) { Write-Error "Not validly signed: $($bad.Name)"; exit 1 }
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: Lyra-Windows-nightly-${{ needs.decide.outputs.sha }}
           path: |
@@ -198,18 +198,18 @@ jobs:
       TAG: nightly-${{ needs.decide.outputs.date }}
       DATE: ${{ needs.decide.outputs.date }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.decide.outputs.sha }}
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v4
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
         with:
           packages: 'platforms;android-36 build-tools;36.0.0'
       - run: npm ci

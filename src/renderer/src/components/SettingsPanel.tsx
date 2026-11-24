@@ -1144,6 +1144,16 @@ export function SettingsPanel() {
             Open log folder
           </button>
         )}
+        {!window.lyra.android && (
+          <button
+            type="button"
+            className="pill"
+            title="If Lyra switched to software graphics after a graphics crash, try the graphics card again from the next start"
+            onClick={() => void window.lyra.app.resetGraphics().then((ok) => useUi.getState().toast(ok ? 'Done. Lyra will try the graphics card again the next time it starts' : 'Couldn’t reset that. Delete gpu-fallback.json in the log folder’s parent folder instead', ok ? undefined : 'error'))}
+          >
+            Reset graphics
+          </button>
+        )}
         <ResetButton />
         <button type="button" className="pill" onClick={() => window.lyra.window.quit()}>
           Quit Lyra

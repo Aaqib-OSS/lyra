@@ -1,5 +1,5 @@
 import { app, type BrowserWindow } from 'electron'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { canAutoReload, crashNotice, decideSafeMode, nextCrashState, type StartupMarker } from '../core/reliability'
 import { createLogger } from './logger'
@@ -35,6 +35,15 @@ function writeJson(name: string, value: unknown): void {
 
 export const isSafeMode = (): boolean => safe
 export const usingSoftwareRendering = (): boolean => gpuFallback
+/** Forget a remembered graphics crash: hardware rendering is tried again at the next start. */
+export function clearGpuFallback(): boolean {
+  try {
+    rmSync(join(app.getPath('userData'), 'gpu-fallback.json'), { force: true })
+    return true
+  } catch {
+    return false
+  }
+}
 export const startupState = (): StartupMarker => ({ ...startup })
 
 /**
