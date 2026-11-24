@@ -201,14 +201,15 @@ export function registerIpc(): void {
   handle(CH.momentsRemove, (id: string) => moments.remove(id))
 
   handle(CH.appDiagnostics, (): string => {
-    const { spotifyClientId: _id, position, ...safe } = settings.get()
+    // no account id, no window place, and no per-song picks (song ids are listening history): only how many
+    const { spotifyClientId: _id, position, songVibes, ...safe } = settings.get()
     void _id
     return [
       `Lyra ${app.getVersion()} (${app.isPackaged ? 'installed' : 'dev'})`,
       `Electron ${process.versions.electron} · Chrome ${process.versions.chrome} · Node ${process.versions.node}`,
       `Windows ${process.getSystemVersion()} · ${process.arch}`,
       `Source: ${active?.kind ?? 'none'} · status: ${JSON.stringify(active?.getStatus() ?? {})}`,
-      `Settings: ${JSON.stringify({ ...safe, position: position ? 'set' : null })}`,
+      `Settings: ${JSON.stringify({ ...safe, position: position ? 'set' : null, songVibes: Object.keys(songVibes).length })}`,
       '--- recent log ---',
       readLogTail(80)
     ].join('\n')

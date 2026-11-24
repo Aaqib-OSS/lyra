@@ -67,5 +67,27 @@
 .ssearch input::placeholder { color: var(--fg-3); }
 .ssearch input:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
 
+/* search row: the box plus the "Changed" filter */
+.ssearch { display: flex; gap: 8px; align-items: center; }
+.ssearch input { flex: 1; min-width: 0; }
+.ssearch__changed { flex: none; white-space: nowrap; }
+.ssearch__changed.is-on { border-color: var(--accent); color: var(--accent); }
+
+/* "Changed from the defaults" list and the import box */
+.settings .changed { list-style: none; margin: 0; padding: 0; }
+.settings .importbox { display: flex; flex-direction: column; gap: 8px; padding: 6px 0 10px; align-items: flex-start; }
+.settings .importbox textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: var(--st-w) solid var(--line-2);
+  border-radius: min(calc(var(--st-r) * 0.6), 14px);
+  background: var(--glass);
+  color: var(--fg);
+  font: 12px/1.4 ui-monospace, monospace;
+  resize: vertical;
+}
+.settings .importbox textarea:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+
 /* the Advanced fold: quiet until opened */
 .settings .more > summary { color: var(--fg-3); font-size: 12px; letter-spacing: 0.04em; }

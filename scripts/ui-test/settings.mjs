@@ -6,11 +6,12 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const BASE = 'http://localhost:5199'
+const PORT = process.env.LYRA_HARNESS_PORT || '5199'
+const BASE = `http://localhost:${PORT}`
 const up = async () => { try { return (await fetch(BASE)).ok } catch { return false } }
 let server
 if (!(await up())) {
-  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', '5199', '--strictPort'], { cwd: root, stdio: 'ignore', shell: process.platform === 'win32' })
+  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', PORT, '--strictPort'], { cwd: root, stdio: 'ignore', shell: process.platform === 'win32' })
   for (let i = 0; i < 80 && !(await up()); i++) await new Promise((r) => setTimeout(r, 500))
 }
 
@@ -102,6 +103,27 @@ const more = async (p) => { for (let i = 0; i < 12 && (await p.locator('details.
     await sw.click(); await p.waitForTimeout(120)
     check(`Player: "${l}" switch flips and is saved`, (await sw.getAttribute('aria-checked')) !== was)
   }
+  await p.close()
+}
+
+// ---------- Changed filter, search, import ----------
+{
+  const p = await open('mode=mini&s=' + encodeURIComponent(JSON.stringify({ performance: 'smooth' })))
+  const changed = p.locator('.ssearch__changed')
+  check('Settings: "Changed" button counts what differs from the defaults', /\(\d+\)/.test(await changed.innerText()))
+  await changed.click(); await p.waitForTimeout(200)
+  check('Settings: Changed view lists Effects (performance) with a Reset', (await p.locator('.changed li', { hasText: 'Effects' }).count()) === 1)
+  await p.locator('[aria-label="Reset Effects to its default"]').click(); await p.waitForTimeout(250)
+  check('Settings: per-setting Reset puts it back and removes it from the list', (await p.locator('.changed li', { hasText: 'Effects' }).count()) === 0)
+  await changed.click(); await p.waitForTimeout(150)
+  await p.locator('input[type="search"]').fill('zzzzqqq'); await p.waitForTimeout(250)
+  check('Settings: a search with no match says so', (await p.locator('[role="status"]', { hasText: 'No settings match' }).count()) === 1)
+  await p.locator('input[type="search"]').fill('')
+  await tab(p, 'About')
+  await p.locator('.pill', { hasText: /^Import$/ }).click()
+  await p.locator('[aria-label="Settings text to import"]').fill('{nope')
+  await p.locator('.importbox .pill', { hasText: 'Apply' }).click()
+  check('Settings: importing junk shows an error and changes nothing', (await p.locator('.importbox [role="alert"]').count()) === 1)
   await p.close()
 }
 
