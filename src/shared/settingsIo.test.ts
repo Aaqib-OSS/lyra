@@ -39,6 +39,7 @@ describe('changed from default', () => {
     const out = changedFromDefault(make({ opacity: 0.5, volumeFade: true }))
     expect(out.map((c) => c.key).sort()).toEqual(['opacity', 'volumeFade'])
     expect(out.find((c) => c.key === 'volumeFade')?.value).toBe('On')
+    expect(out.find((c) => c.key === 'opacity')?.value).toBe('50%')
   })
 
   it('only labels real settings', () => {

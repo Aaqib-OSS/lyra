@@ -98,8 +98,13 @@ export interface ChangedSetting {
   value: string
 }
 
-const show = (v: unknown): string => {
+const PERCENT: ReadonlyArray<keyof Settings> = ['opacity', 'backgroundDim', 'ambientBrightness']
+
+const show = (k: keyof Settings, v: unknown): string => {
   if (typeof v === 'boolean') return v ? 'On' : 'Off'
+  if (typeof v === 'number' && PERCENT.includes(k)) return `${Math.round(v * 100)}%`
+  if (k === 'lyricOffsetMs' && typeof v === 'number') return `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)}s`
+  if (typeof v === 'string' && v) return v.charAt(0).toUpperCase() + v.slice(1)
   if (Array.isArray(v)) return `${v.length} chosen`
   if (v && typeof v === 'object') return `${Object.keys(v).length} set`
   return String(v)
@@ -109,7 +114,7 @@ const show = (v: unknown): string => {
 export function changedFromDefault(s: Settings): ChangedSetting[] {
   const out: ChangedSetting[] = []
   for (const k of Object.keys(SETTING_LABELS) as Array<keyof Settings>) {
-    if (!same(s[k], DEFAULT_SETTINGS[k])) out.push({ key: k, ...SETTING_LABELS[k]!, value: show(s[k]) })
+    if (!same(s[k], DEFAULT_SETTINGS[k])) out.push({ key: k, ...SETTING_LABELS[k]!, value: show(k, s[k]) })
   }
   return out
 }
