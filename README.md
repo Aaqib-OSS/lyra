@@ -25,7 +25,7 @@ Word-by-word synced lyrics over the music video of what you play. For Windows an
 ## Why Lyra
 
 - **Every word, on time.** Words fill in as they are sung, including Hindi, Punjabi and other scripts.
-- **Over the music video.** The official video (or your own clip) plays softly behind the lyrics, and the whole UI takes on the cover's colours.
+- **Over a music video.** Your own clip, a free Apple music-video preview, or (with a free YouTube API key) the official video plays softly behind the lyrics, and the whole UI takes on the cover's colours. Without any of them you get living artwork.
 - **A floating widget on Windows, a screen saver on Android.** Fullscreen lyrics, a lock-screen card, and an ambient mode with a clock for the desk.
 - **Export a lyric video.** One button makes a finished MP4 of the chorus or the whole song, from what is playing or from your own audio file (faster than real time) (Reels 9:16, 4:5, square or 16:9 up to 1440p) with the music, word-by-word lyrics and a small Lyra badge. The official YouTube video can play behind the lyrics. Windows.
 - **Share a lyric card.** Tap the share icon on any line to make a story-sized image with the song, the cover colours and your lines.
@@ -51,6 +51,15 @@ Word-by-word synced lyrics over the music video of what you play. For Windows an
 | **Android 8+** | Download `Lyra-Android-x.y.z.apk` from the [Android releases](https://github.com/DhruvHarani1/lyra/releases?q=android) and open it. Grant *Notification access* so Lyra can see what is playing. F-Droid / IzzyOnDroid listings are being prepared. |
 
 Lyra reads the **Spotify desktop app** on Windows (through Windows media controls) and any media app on Android. Lyrics come from the free [LRCLIB](https://lrclib.net) database.
+
+## FAQ
+
+- **Is it free? Do I need an account?** Free, MIT licensed, no account, no ads, no analytics.
+- **Windows says "Windows protected your PC".** That is SmartScreen: Lyra is not code-signed yet. Choose *More info → Run anyway*. Every release is built from source by a GitHub Actions workflow.
+- **Android says the app is blocked.** Play Protect can block APKs installed from a browser. See the note on the [website](https://lyra-website-rho.vercel.app/#download), or install with Obtainium or `adb install`.
+- **Which players work?** The Spotify desktop app on Windows, any media app on Android.
+- **Where do I get help?** Open a [GitHub issue](https://github.com/DhruvHarani1/lyra/issues). For security problems see [SECURITY.md](SECURITY.md).
+- **More docs?** [docs/README.md](docs/README.md) lists every design note; [CONTEXT.md](CONTEXT.md) is the first thing to read as a maintainer.
 
 ## Help it grow
 
@@ -102,7 +111,7 @@ Spotify's own looping "Canvas" videos have no public API, so Lyra offers three l
 Auto order: your per-song file → your global file → a free 30 s Apple music-video preview when one exists → YouTube (only if you added a key) → living artwork. Videos pause while the window is hidden or reduce-motion is on.
 
 ## Android
-Lyra also runs on Android (8.0+). It is the same UI and the same shared core (`src/core`), inside a small Kotlin shell (`android/`). Current: Android 0.10.1. Details: `docs/android-*.md`, `docs/DISTRIBUTION.md`.
+Lyra also runs on Android (8.0+). It is the same UI and the same shared core (`src/core`), inside a small Kotlin shell (`android/`). The newest Android version is on the [releases page](https://github.com/DhruvHarani1/lyra/releases?q=android). Details: `docs/android-*.md`, `docs/DISTRIBUTION.md`.
 
 ## Notes & limits
 - Windows can't blur the desktop behind a transparent window, so "glass" = translucent panel + blurred artwork layer, not true acrylic.

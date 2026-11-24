@@ -7,7 +7,7 @@ Goal: the best-looking, smoothest Android experience Lyra can have: phone and ta
 ### It is a native shell around a WebView, not Capacitor
 
 * `android/` is a plain Gradle project (Kotlin, `minSdk 26`, `targetSdk/compileSdk 36`, AGP 8.13.2, Gradle 8.14.6, JDK 17). Dependencies are only `androidx.core`, `androidx.webkit` and `androidx.activity`. No Compose, no AppCompat, no Capacitor.
-* The UI is the same React app as the desktop one (`src/renderer`), built by `npm run build:android-ui` (`vite.android.config.ts`, entry `src/renderer/android.html`) into `android/app/src/main/assets/ui/`, and loaded by `WebSetup.load` from `https://appassets.androidplatform.net/assets/ui/android.html` through `WebViewAssetLoader`. Only that origin may load as a page (`Rpc.isLyraPage`).
+* The UI is the same React app as the desktop one (`src/renderer`), built by `npm run build:android-ui` (`vite.android.config.ts`, entry `src/renderer/android.html`) into android/app/src/main/assets/ui/ (generated, not committed), and loaded by `WebSetup.load` from `https://appassets.androidplatform.net/assets/ui/android.html` through `WebViewAssetLoader`. Only that origin may load as a page (`Rpc.isLyraPage`).
 * `src/android-web/` is the web side of the bridge: `entry.ts` (sets `data-platform="android"` on `<html>`), `platform.ts`/`api.ts` (implements the same `window.api` surface the Electron preload gives the renderer), `rpc.ts` (the call channel), `lyricNotifier.ts` (pushes synced lines to native), `ambient.tsx`, `record.tsx`.
 * `Rpc.kt` is the native side: one `when (method)` table (about 40 methods: `snapshot`, `status`, `queue`, `command`, `setLyrics`, `widgetVibe`, `lyricsNotification`, `overlaySet`, `toggleAmbient`, `keepRunning`, `secretLoad/Save`, `pickMedia`, `recordVideo`, ...). It serves both the app screen and the floating overlay, which is why it works without an Activity.
 
@@ -160,7 +160,7 @@ Work items behind the targets: a Baseline Profile (startup + the lyrics scroll p
 
 ## 7. Verification on this machine
 
-The Android SDK exists at `C:\Users\TEST\AppData\Local\Android\Sdk` (platforms `android-36`, `android-36.1`; build-tools 35 to 37; system images and emulator installed). `android/local.properties` is git-ignored and is not present in a fresh worktree: set `ANDROID_HOME` when building, e.g. `ANDROID_HOME=C:/Users/TEST/AppData/Local/Android/Sdk ./gradlew.bat assembleDebug lintDebug testDebugUnitTest` from `android/`. `assembleDebug` and `testDebugUnitTest` pass; `lintDebug` fails only on the 16 pre-existing errors listed in gap 9 (a full lint run takes about 5 minutes). Nothing was run on a device or emulator. The first build needs network (Gradle plugins and the Android Gradle Plugin are not cached for `--offline`).
+The Android SDK exists at `C:\Users\TEST\AppData\Local\Android\Sdk` (platforms `android-36`, `android-36.1`; build-tools 35 to 37; system images and emulator installed). android/local.properties (not committed) is git-ignored and is not present in a fresh worktree: set `ANDROID_HOME` when building, e.g. `ANDROID_HOME=C:/Users/TEST/AppData/Local/Android/Sdk ./gradlew.bat assembleDebug lintDebug testDebugUnitTest` from `android/`. `assembleDebug` and `testDebugUnitTest` pass; `lintDebug` fails only on the 16 pre-existing errors listed in gap 9 (a full lint run takes about 5 minutes). Nothing was run on a device or emulator. The first build needs network (Gradle plugins and the Android Gradle Plugin are not cached for `--offline`).
 
 ## 8. Phased task list (prioritised)
 
