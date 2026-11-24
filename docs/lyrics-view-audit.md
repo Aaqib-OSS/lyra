@@ -40,3 +40,10 @@ Scope: `LyricsView`, `LyricsStage`, `LyricsFallback`, `LyricsMatchPanel`, `store
 - **"Report wrong lyrics".** Would need a network call or an issue link; "Wrong lyrics?" (pick another match, paste your own)
   is the in-app fix. Left to the owner.
 - **Looks.** No look CSS was redesigned; only `lyrics.css` (the classic list) got the RTL / forced-colors rules.
+
+## Implemented (this branch)
+
+Findings 1-10 above, all done. Pure logic in `src/renderer/src/lib/lyricsView.ts` (tests: `lyricsView.test.ts`).
+Verified in the harness (`scripts/harness`, new `?lang=ar` sample): Arabic lines right-aligned with the fill running from the
+right, long unbroken word wraps, plain-text footer, "no lyrics" screen on a phone, `]` shifting the readout.
+Not verified: a real screen reader, Windows forced-colors, tap-to-seek on a real touch device, the Electron window while hidden/covered.
