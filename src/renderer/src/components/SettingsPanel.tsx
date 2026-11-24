@@ -896,6 +896,7 @@ export function SettingsPanel() {
           <select value={language} onChange={(e) => setLanguage(e.target.value as Language)} aria-label={t('Language')}>
             <option value="en">English</option>
             <option value="hi">हिन्दी</option>
+            <option value="gu">ગુજરાતી</option>
           </select>
         </Row>
         <h4>{t('Music source')}</h4>

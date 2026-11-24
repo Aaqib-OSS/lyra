@@ -37,6 +37,8 @@ for (const file of walk(src)) {
     const k = unescape(m[2])
     if (!used.has(k)) used.set(k, `${rel}:${lineOf(m.index)}`)
   }
+  // IconButton translates its label prop itself
+  for (const m of text.matchAll(/<IconButton\b[^>]*?\blabel="([^"]+)"/g)) if (!used.has(m[1])) used.set(m[1], `${rel}:${lineOf(m.index)}`)
   for (const m of text.matchAll(/\btp\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1\s*,\s*(['"])((?:\\.|(?!\3)[^\\])*)\3/g)) {
     for (const k of [unescape(m[2]), unescape(m[4])]) if (!used.has(k)) used.set(k, `${rel}:${lineOf(m.index)}`)
   }

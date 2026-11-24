@@ -25,7 +25,9 @@
     "test:ui:states": "node scripts/ui-test/run.mjs --states",
     "test:settings": "node scripts/ui-test/settings.mjs",
     "test:video": "node scripts/ui-test/video-sync.mjs",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "check:a11y": "node scripts/check-a11y.mjs"
   },
   "build": {
     "appId": "dev.lyra.companion",

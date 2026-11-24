@@ -1,10 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { useTranslation } from '@/i18n'
 import { useUi } from '@/store/ui'
 import { Icon } from './Icon'
 
 export function Toasts() {
   const toasts = useUi((s) => s.toasts)
   const dismiss = useUi((s) => s.dismissToast)
+  const { t: tr } = useTranslation()
   return (
     <div className="toasts" role="status" aria-live="polite">
       <AnimatePresence initial={false}>
@@ -18,10 +20,12 @@ export function Toasts() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.97 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            role={t.kind === 'error' ? 'alert' : undefined}
+            aria-label={tr('Dismiss') + ': ' + tr(t.message)}
             onClick={() => dismiss(t.id)}
           >
             {t.kind === 'error' && <Icon name="alert" size={14} />}
-            <span>{t.message}</span>
+            <span>{tr(t.message)}</span>
           </motion.button>
         ))}
       </AnimatePresence>

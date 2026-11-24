@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useDialog } from '@/hooks/useDialog'
+import { useTranslation } from '@/i18n'
 import { GLOBAL_SHORTCUTS, effectiveAccel } from '@shared/shortcuts'
 import { useSettings } from '@/store/settings'
 import { requestMode } from '@/store/ui'
@@ -10,6 +11,7 @@ const pretty = (accel: string): string => accel.replace('Control', 'Ctrl').repla
 
 /** First-run card: what Lyra needs and the handful of things worth knowing. */
 export function Welcome() {
+  const { t } = useTranslation()
   const set = useSettings((s) => s.set)
   const defaultMode = useSettings((s) => s.settings.defaultMode)
   const overrides = useSettings((s) => s.settings.shortcuts)
@@ -28,7 +30,7 @@ export function Welcome() {
       ref={dialog}
       role="dialog"
       aria-modal="true"
-      aria-label="Welcome to Lyra"
+      aria-label={t('Welcome to Lyra')}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
@@ -37,39 +39,39 @@ export function Welcome() {
       <div className="welcome__mark" aria-hidden="true">
         <Icon name="note" size={22} />
       </div>
-      <h2>Welcome to Lyra</h2>
-      <p className="welcome__lead">Beautiful, synced lyrics for the Spotify desktop app — no account or login.</p>
+      <h2>{t('Welcome to Lyra')}</h2>
+      <p className="welcome__lead">{t('Beautiful, synced lyrics for the Spotify desktop app — no account or login.')}</p>
       <ol className="welcome__steps">
         <li>
-          <b>Open the Spotify desktop app</b> and play a song. Lyra picks it up automatically.
+          <b>{t('Open the Spotify desktop app')}</b> {t('and play a song. Lyra picks it up automatically.')}
         </li>
         <li>
-          <b>Click the widget</b> to expand it; press <kbd>F</kbd> for fullscreen lyrics.
+          <b>{t('Click the widget')}</b> {t('to expand it; press')} <kbd>F</kbd> {t('for fullscreen lyrics.')}
         </li>
         <li>
-          Drag it anywhere, resize from the corner, minimize or hide to the tray.
+          {t('Drag it anywhere, resize from the corner, minimize or hide to the tray.')}
         </li>
       </ol>
       <dl className="welcome__keys">
         <div>
-          <dt>Show / hide</dt>
+          <dt>{t('Show / hide')}</dt>
           <dd>{pick('toggle-visible')}</dd>
         </div>
         <div>
-          <dt>Fullscreen</dt>
+          <dt>{t('Fullscreen')}</dt>
           <dd>{pick('toggle-fullscreen')}</dd>
         </div>
         <div>
-          <dt>Play / pause</dt>
+          <dt>{t('Play / pause')}</dt>
           <dd>{pick('toggle-play')}</dd>
         </div>
       </dl>
       <div className="welcome__actions">
         <button type="button" className="primary" onClick={done}>
-          Get started
+          {t('Get started')}
         </button>
         <button type="button" className="textbtn" onClick={() => void window.lyra.player.openInSpotify(null)}>
-          Open Spotify
+          {t('Open Spotify')}
         </button>
       </div>
     </motion.div>
