@@ -33,7 +33,7 @@ object WebSetup {
         web.webViewClient = object : WebViewClientCompat() {
             override fun shouldInterceptRequest(v: WebView, request: WebResourceRequest): WebResourceResponse? {
                 val path = request.url.path ?: ""
-                if (Rpc.isLyraPage(request.url) && path.startsWith("/preview/")) return previewProxy(path.removePrefix("/preview/"), request)
+                if (Rpc.isLyraPage(request.url) && path.startsWith("/preview/")) return previewProxy(ctx, path.removePrefix("/preview/"), request)
                 if (Rpc.isLyraPage(request.url) && path.startsWith("/bg/")) return MediaFiles.serve(ctx, path.removePrefix("/bg/"), request)
                 return assets.shouldInterceptRequest(request.url)
             }
@@ -49,9 +49,10 @@ object WebSetup {
 
     /**
      * Streams an Apple preview clip through Lyra's own origin so the page can read its frames (brightness, black
-     * bars). Only Apple's preview hosts are allowed, nothing is stored, and HTTP Range works for seeking.
+     * bars). Only Apple's preview hosts are allowed. Clips go through ClipCache (disk cache, progressive, resumable); this
+     * direct stream is only the last resort when a clip cannot be saved. HTTP Range works for seeking.
      */
-    private fun previewProxy(encoded: String, request: WebResourceRequest): WebResourceResponse? {
+    private fun previewProxy(ctx: Context, encoded: String, request: WebResourceRequest): WebResourceResponse? {
         return try {
             val target = String(Base64.decode(encoded, Base64.URL_SAFE or Base64.NO_WRAP))
             if (!Regex("^https://[a-z0-9-]+\\.itunes\\.apple\\.com/", RegexOption.IGNORE_CASE).containsMatchIn(target)) {

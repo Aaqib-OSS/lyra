@@ -218,6 +218,17 @@ describe('ClipStore', () => {
     expect(await s.serve(u, 'bytes=0-')).toBeNull()
   })
 
+  it('reports what is saved and clears it', async () => {
+    const s = mk()
+    expect(s.info()).toEqual({ files: 0, bytes: 0 })
+    await readAll((await s.serve(`${base}/a.m4v`, 'bytes=0-'))!)
+    await waitUntil(() => !!s.localFile(`${base}/a.m4v`))
+    expect(s.info()).toEqual({ files: 1, bytes: SIZE })
+    s.clear()
+    expect(s.info()).toEqual({ files: 0, bytes: 0 })
+    expect(s.localFile(`${base}/a.m4v`)).toBeNull()
+  })
+
   it('tidy removes old unfinished downloads and keeps the folder within its limits', () => {
     const s = mk()
     const old = join(dir, 'dead.mp4.part')

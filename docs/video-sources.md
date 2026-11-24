@@ -41,5 +41,10 @@ second, parallel stream. `src/main/background/clipStore.ts` replaces that:
   errors, and also when no frame has appeared after 30 s, before it gives up on the picture for that song.
 
 Tests: `clipStore.test.ts` runs the store against a local fake CDN (slow trickle, dropped connections, 429, ignored Range,
-404, size limit, concurrent players). Not covered by tests: the Electron protocol handler itself and Android (its
-`/preview/` proxy in `WebSetup.kt` streams straight from Apple, has no disk cache and no resume; the renderer retry applies).
+404, size limit, concurrent players). Not covered by tests: the Electron protocol handler itself and Android.
+
+Android: `ClipCache.kt` does the same job for the `/preview/` proxy in `WebSetup.kt` (growing `.part` file served while it
+downloads, resume with Range, Retry-After, 64 MB per clip, 60 files / 300 MB in `cacheDir`, redirects off, Apple hosts only).
+`clipUrl` in `android-web/api.ts` starts saving a clip as soon as it is chosen; warming is skipped under Data Saver on a
+metered network. It compiles (`gradlew :app:compileDebugKotlin --offline`) but has not run on a device. Settings has a
+"Saved video clips" row (size, Clear) on both platforms (`clipCacheInfo` / `clipCacheClear`).

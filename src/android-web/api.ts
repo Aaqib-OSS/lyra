@@ -185,7 +185,11 @@ const resolveBackground = createBackgroundResolver({
   settings: () => settingsStore.get(),
   songs: () => songsStore.get().songs,
   mediaSpec: (m, scope) => ({ kind: 'media', url: `${location.origin}/bg/${m.file}`, media: m.kind, name: m.name, scope }),
-  clipUrl: (url) => `${location.origin}/preview/${b64url(url)}`,
+  // the phone saves the clip as soon as it is chosen (before the video asks for it), so it starts at once and replays are free
+  clipUrl: (url) => {
+    void rpc('clipWarm', url).catch(() => undefined)
+    return `${location.origin}/preview/${b64url(url)}`
+  },
   crop: (videoId) => thumbCrop(videoId, decodeThumb)
 })
 
@@ -394,6 +398,10 @@ export const androidApi: LyraApi &{ android: NonNullable<LyraApi['android']> } =
         }
         if (old) dropIfUnused(old.file)
       }
+    },
+    clipCacheInfo: () => rpc<{ files: number; bytes: number }>('clipCacheInfo'),
+    clipCacheClear: async () => {
+      await rpc('clipCacheClear')
     },
     hasYoutubeKey: async () => youtube.hasKey(),
     setYoutubeKey: (k) => youtube.setKey(k),

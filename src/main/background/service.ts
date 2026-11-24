@@ -55,6 +55,13 @@ class BackgroundService {
     if (HOST_RE.test(target)) this.clips.ensure(target)
   }
 
+  clipCacheInfo(): { files: number; bytes: number } {
+    return this.clips.info()
+  }
+  clipCacheClear(): void {
+    this.clips.clear()
+  }
+
   private store: JsonStore<{ songs: Record<string, SongBg> }> | null = null
 
   private get dir(): string {
