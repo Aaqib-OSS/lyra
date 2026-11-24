@@ -35,6 +35,12 @@ function loadDotEnv(): void {
 
 registerBackgroundScheme()
 
+// Windows: Chromium marks a window "hidden" once another app covers it, which pauses the video and lyric timers.
+// Music is playing and the widget is meant to sit beside other apps, so a covered window stays "visible".
+// (A minimized or tray-hidden window is still hidden for real.) Must be set before the app is ready.
+app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion')
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows')
+
 function installCsp(): void {
   const dev = !app.isPackaged
   const media = `${BG_SCHEME}:`

@@ -243,6 +243,8 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
     const id = window.setInterval(() => {
       const v = els[frontRef.current]!.current
       const snap = usePlayer.getState().snapshot
+      // the browser may pause a video on its own (window covered, power saving): the song plays, so the picture must too
+      if (v && runRef.current && v.paused && !v.ended && document.visibilityState === 'visible') void v.play().catch(() => undefined)
       if (!v || !runRef.current || !snap?.track || snap.isAdOrUnknown || !locked(v)) {
         dc.reset()
         if (v && v.playbackRate !== 1) v.playbackRate = 1
@@ -437,6 +439,8 @@ function YoutubeLayer({ spec, run, onFail }: { spec: Extract<BackgroundSpec, { k
         if (d.info.playerState === 1 || d.info.playerState === 2 || d.info.playerState === 5) window.clearTimeout(timer.current)
         // YouTube re-shows its transport overlay when playback resumes after a pause (not after buffering or a seek).
         if (!phone && d.info.playerState === 1 && previousState === 2) holdMask(1800)
+        // the player paused itself (page was hidden or covered for a moment) while the song plays: start it again
+        if (d.info.playerState === 2 && runRef.current && document.visibilityState === 'visible') cmd('playVideo')
       }
       if (typeof d?.info?.duration === 'number' && d.info.duration > 0) vInfo.current.dur = d.info.duration
       if (typeof d?.info?.playbackRate === 'number') vInfo.current.rate = d.info.playbackRate

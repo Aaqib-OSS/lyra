@@ -44,6 +44,7 @@ const send = (channel: string, payload: unknown): void => {
 
 function onSnapshot(s: PlaybackSnapshot): void {
   send(EV.playback, s)
+  windows.setPlaying(s.isPlaying)
   connectService.onSnapshot(s)
   const id = s.track?.id ?? null
   if (id && id !== lastTrackId && s.isPlaying && settings.get().trackNotifications && Notification.isSupported()) {
