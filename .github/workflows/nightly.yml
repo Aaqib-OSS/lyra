@@ -1,0 +1,249 @@
+name: Nightly
+
+# A nightly PRE-RELEASE for people on the beta update channel (Settings, Updates). It is never marked "latest", so the
+# stable updater (which reads the latest release) never sees it, and the Android in-app updater skips it (the tag
+# "nightly-YYYYMMDD" is not a version). It builds only when main has new commits since the last nightly AND CI is green
+# for that exact commit. Nightlies older than 14 days are deleted after each publish.
+#
+# Scheduled runs publish. A manual run ("Run workflow") builds and uploads an artifact only, unless `publish` is ticked.
+on:
+  schedule:
+    - cron: '17 2 * * *' # 02:17 UTC every day
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the nightly pre-release (leave off to only build and keep the installer as an artifact).'
+        type: boolean
+        default: false
+      rebuild:
+        description: 'Build even if main has no new commits since the last nightly.'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: read # the gate reads the CI runs of the commit
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  decide:
+    if: github.repository == 'DhruvHarani1/lyra'
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    outputs:
+      build: ${{ steps.d.outputs.build }}
+      sha: ${{ steps.d.outputs.sha }}
+      date: ${{ steps.d.outputs.date }}
+      version: ${{ steps.d.outputs.version }}
+      android: ${{ steps.d.outputs.android }}
+      publish: ${{ steps.d.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - id: d
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REBUILD: ${{ inputs.rebuild }}
+          PUBLISH_INPUT: ${{ inputs.publish }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          date=$(date -u +%Y%m%d)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "date=$date" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "$PUBLISH_INPUT" = "true" ]; then echo "publish=true" >> "$GITHUB_OUTPUT"; else echo "publish=false" >> "$GITHUB_OUTPUT"; fi
+          echo "android=$HAS_KEY" >> "$GITHUB_OUTPUT"
+
+          # 1. new commits since the last nightly?
+          last=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName,isPrerelease --jq '[.[] | select(.isPrerelease and (.tagName | test("^nightly-[0-9]{8}$")))][0].tagName // empty')
+          if [ -n "$last" ] && [ "$REBUILD" != "true" ]; then
+            lastsha=$(gh release view "$last" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish)
+            if [ "$lastsha" = "$sha" ]; then
+              echo "::notice::No new commits on main since $last ($sha). Nothing to build."
+              echo "build=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          # 2. CI must be green for this exact commit (same rule as the stable release workflows, no override here)
+          state=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$sha" --limit 20 --json status,conclusion --jq '.[0] // empty | "\(.status) \(.conclusion)"')
+          if [ "$state" != "completed success" ]; then
+            echo "::notice::CI is '${state:-missing}' for $sha, not 'completed success'. No nightly tonight."
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 3. version: the next patch after the package.json version, so it sorts above the installed stable and below the next stable
+          base=$(node -p "const [a,b,c]=require('./package.json').version.split('-')[0].split('.').map(Number); a+'.'+b+'.'+(c+1)")
+          echo "version=$base-nightly.$date" >> "$GITHUB_OUTPUT"
+          echo "build=true" >> "$GITHUB_OUTPUT"
+
+  windows:
+    needs: decide
+    if: needs.decide.outputs.build == 'true'
+    runs-on: windows-latest
+    env:
+      VERSION: ${{ needs.decide.outputs.version }}
+      TAG: nightly-${{ needs.decide.outputs.date }}
+      # optional signing, same secrets and rules as release.yml (absent = unsigned)
+      HAS_AZURE_SIGN: ${{ secrets.AZURE_SIGN_ACCOUNT != '' }}
+      HAS_PFX: ${{ secrets.WIN_CSC_LINK != '' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.decide.outputs.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      # only in this runner's checkout: the installer is named and versioned Lyra-Setup-<nightly version>.exe
+      - name: Set the nightly version
+        shell: bash
+        run: npm pkg set version="$VERSION"
+
+      - name: Enable Azure Trusted Signing
+        if: env.HAS_AZURE_SIGN == 'true'
+        shell: bash
+        run: |
+          echo "AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}" >> "$GITHUB_ENV"
+          echo "AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> "$GITHUB_ENV"
+          echo "AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}" >> "$GITHUB_ENV"
+          echo "SIGN_ARGS=-c.win.azureSignOptions.publisherName=${{ secrets.AZURE_PUBLISHER_NAME }} -c.win.azureSignOptions.endpoint=${{ secrets.AZURE_SIGN_ENDPOINT }} -c.win.azureSignOptions.codeSigningAccountName=${{ secrets.AZURE_SIGN_ACCOUNT }} -c.win.azureSignOptions.certificateProfileName=${{ secrets.AZURE_SIGN_PROFILE }}" >> "$GITHUB_ENV"
+      - name: Enable certificate signing
+        if: env.HAS_PFX == 'true' && env.HAS_AZURE_SIGN != 'true'
+        shell: bash
+        run: |
+          echo "CSC_LINK=${{ secrets.WIN_CSC_LINK }}" >> "$GITHUB_ENV"
+          echo "CSC_KEY_PASSWORD=${{ secrets.WIN_CSC_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+
+      - name: Build installer
+        shell: bash
+        run: npm run dist -- $SIGN_ARGS
+
+      - name: Verify the installer signature
+        if: env.HAS_AZURE_SIGN == 'true' || env.HAS_PFX == 'true'
+        shell: pwsh
+        run: |
+          $bad = Get-ChildItem release/Lyra-Setup-*.exe | Where-Object { (Get-AuthenticodeSignature $_.FullName).Status -ne 'Valid' }
+          if ($bad) { Write-Error "Not validly signed: $($bad.Name)"; exit 1 }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Lyra-Windows-nightly-${{ needs.decide.outputs.sha }}
+          path: |
+            release/Lyra-Setup-*.exe
+            release/latest.yml
+          retention-days: 7
+
+      - name: Publish the pre-release
+        if: needs.decide.outputs.publish == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.decide.outputs.sha }}
+        run: |
+          # notes = the commits since the previous nightly (or the last 30)
+          prev=$(gh release list --limit 100 --json tagName,isPrerelease --jq '[.[] | select(.isPrerelease and (.tagName | test("^nightly-[0-9]{8}$")) and .tagName != env.TAG)][0].tagName // empty')
+          prevsha=""
+          [ -n "$prev" ] && prevsha=$(gh release view "$prev" --json targetCommitish --jq .targetCommitish)
+          {
+            echo "Nightly test build $VERSION of commit ${SHA:0:7}. For the beta update channel only; it can have bugs. The stable release is unaffected."
+            echo
+            if [ -n "$prevsha" ] && git cat-file -e "$prevsha" 2>/dev/null; then git log --pretty='- %s' "$prevsha..$SHA"; else git log --pretty='- %s' -n 30 "$SHA"; fi
+          } > "$RUNNER_TEMP/notes.md"
+          # a manual re-run on the same day replaces that day's nightly (only ever a nightly-YYYYMMDD tag)
+          if gh release view "$TAG" >/dev/null 2>&1; then gh release delete "$TAG" --cleanup-tag --yes; fi
+          gh release create "$TAG" \
+            release/Lyra-Setup-*.exe release/Lyra-Setup-*.exe.blockmap release/latest.yml \
+            --target "$SHA" --title "Lyra nightly $VERSION" --notes-file "$RUNNER_TEMP/notes.md" \
+            --prerelease --latest=false
+
+      - name: Verify the published nightly
+        if: needs.decide.outputs.publish == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release.mjs verify "$VERSION" --tag "$TAG" --deep
+
+      # keep two weeks of nightlies
+      - name: Delete nightlies older than 14 days
+        if: needs.decide.outputs.publish == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cutoff=$(date -u -d '14 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          gh release list --limit 100 --json tagName,isPrerelease,createdAt \
+            --jq ".[] | select(.isPrerelease and (.tagName | test(\"^nightly-[0-9]{8}\$\")) and .createdAt < \"$cutoff\") | .tagName" |
+          while read -r old; do
+            [ -n "$old" ] && echo "deleting $old" && gh release delete "$old" --cleanup-tag --yes
+          done
+
+  # Optional: an APK for sideloading, only when the Android signing key secret exists (a debug-signed APK would not
+  # update over a real install). The in-app Android updater ignores nightlies; this is for testers who install by hand.
+  android:
+    needs: [decide, windows]
+    if: needs.decide.outputs.build == 'true' && needs.decide.outputs.android == 'true' && needs.decide.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    env:
+      TAG: nightly-${{ needs.decide.outputs.date }}
+      DATE: ${{ needs.decide.outputs.date }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.decide.outputs.sha }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0'
+      - run: npm ci
+      - run: npm run build:android-ui
+      - name: Nightly version (next patch, so it installs over the current stable)
+        id: v
+        shell: bash
+        run: |
+          name=$(grep '^versionName=' android/app/version.properties | cut -d= -f2)
+          IFS=. read -r a b c <<< "${name%%-*}"
+          next="$a.$b.$((c + 1))"
+          code=$((a * 1000000 + b * 1000 + c + 1))
+          sed -i "s/^versionName=.*/versionName=$next-nightly.$DATE/; s/^versionCode=.*/versionCode=$code/" android/app/version.properties
+          echo "version=$next-nightly.$DATE" >> "$GITHUB_OUTPUT"
+      - name: Decode the signing key
+        shell: bash
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/lyra-release.jks"
+          echo "LYRA_KEYSTORE=$RUNNER_TEMP/lyra-release.jks" >> "$GITHUB_ENV"
+          echo "LYRA_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "LYRA_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "LYRA_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+      - name: Build the APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --console=plain
+      - name: Attach the APK and its checksum to the nightly
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.v.outputs.version }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk "Lyra-Android-$V.apk"
+          sha256sum "Lyra-Android-$V.apk" > "Lyra-Android-$V.apk.sha256"
+          gh release upload "$TAG" "Lyra-Android-$V.apk" "Lyra-Android-$V.apk.sha256" --clobber
+          node scripts/release.mjs verify --android-only --android "$V" --android-tag "$TAG"

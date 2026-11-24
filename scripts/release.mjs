@@ -4,7 +4,7 @@
 //   node scripts/release.mjs check [--tag v0.28.0] [--android-tag android-v0.13.0]
 //   node scripts/release.mjs notes [windows|android]          (Markdown release body from website/whats-new.html)
 //   node scripts/release.mjs changelog [--from <tag>]         (draft notes from commit subjects)
-//   node scripts/release.mjs verify <windows-version> [--android <v>] [--deep]   (after the workflows ran)
+//   node scripts/release.mjs verify <windows-version> [--android <v>] [--deep] [--tag <tag>] [--android-tag <tag>] [--android-only]   (after the workflows ran)
 //
 // See docs/DISTRIBUTION.md ("Releasing").
 import { execFileSync, spawnSync } from 'node:child_process'
@@ -210,7 +210,7 @@ Then verify what was published:
     const problems = []
 
     if (!flag('android-only')) {
-      const rel = await withRetry(() => getJson(`https://api.github.com/repos/${repo}/releases/tags/v${version}`))
+      const rel = await withRetry(() => getJson(`https://api.github.com/repos/${repo}/releases/tags/${opt('tag') ?? `v${version}`}`))
       const ly = rel.assets.find((a) => a.name === 'latest.yml')
       const latest = ly ? parseLatestYml((await getBuffer(ly.browser_download_url)).toString('utf8')) : null
       problems.push(...verifyWindowsRelease(rel, latest, version).map((m) => `Windows: ${m}`))
@@ -228,7 +228,7 @@ Then verify what was published:
     }
 
     if (androidV) {
-      const arel = await withRetry(() => getJson(`https://api.github.com/repos/${repo}/releases/tags/android-v${androidV}`))
+      const arel = await withRetry(() => getJson(`https://api.github.com/repos/${repo}/releases/tags/${opt('android-tag') ?? `android-v${androidV}`}`))
       const sha = arel.assets.find((a) => a.name === `Lyra-Android-${androidV}.apk.sha256`)
       const text = sha ? (await getBuffer(sha.browser_download_url)).toString('utf8') : null
       problems.push(...verifyAndroidRelease(arel, androidV, text).map((m) => `Android: ${m}`))

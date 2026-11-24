@@ -79,3 +79,7 @@ Only possible for a file-based certificate (older OV certs or a CA that exports 
 
 No real release was made, so the updater state changes, the new workflow steps (signing, verify, notes body) and the Android path were not exercised end to end.
 The workflow YAML was parsed locally; the script logic is unit-tested; the signing wiring has never run.
+
+## Update: owner decisions (2026-11-24)
+
+Signing stays off (wiring kept, nothing more). Added: Windows stable/beta channel, nightly pre-release workflow, F-Droid metadata kept in step by `scripts/release.mjs` (see `docs/DISTRIBUTION.md`).

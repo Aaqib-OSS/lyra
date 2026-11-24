@@ -48,7 +48,15 @@ running one or a failed one stops the publish with an error that says so. This a
 
 Bad release: nothing in electron-updater rolls back. Mark the release as pre-release on GitHub (the updater only serves "latest"), or ship a higher fixed version.
 Sitemap: `website/sitemap.xml` lists the three pages and has no per-release entries, so it does not need regenerating.
-Ideas not built: a nightly prerelease (add a `schedule` trigger that builds `X.Y.Z-nightly.<date>` and publishes with `--prerelease`, plus a "Windows channel" setting like Android's); a scheduled job that runs `verify` on the latest release.
+F-Droid metadata (`fdroid/dev.lyra.android.yml`): `prepare --android` rewrites its Builds entry and CurrentVersion / CurrentVersionCode, and `check` (also in CI) fails when they differ from `version.properties`.
+
+## Nightly pre-release and the beta channel
+
+`.github/workflows/nightly.yml` runs daily (02:17 UTC) and by hand. It builds only when main has commits newer than the last nightly **and** CI is green for that exact commit (no override), then publishes a GitHub **pre-release** `nightly-YYYYMMDD` (installer, blockmap, `latest.yml`; versioned `X.Y.(Z+1)-nightly.YYYYMMDD`, never "latest"), runs `verify --deep`, and deletes nightlies older than 14 days. With the Android signing secret present it also attaches a signed APK (+ `.sha256`) for sideloading; the Android in-app updater ignores nightlies. A manual run without `publish` only builds an artifact.
+
+Windows Settings, Updates has a **Stable / Beta** channel (setting `updateChannel`, default stable). Beta asks GitHub for the newest `nightly-*` pre-release and installs it if newer; if there is none, GitHub is unreachable or the nightly is broken it uses the stable check, so a stable release newer than the nightly is still offered. Stable users never see nightlies because they read the "latest" release. Switching back to Stable keeps the installed nightly until the next stable release is newer (electron-updater does not downgrade).
+
+Ideas not built: a scheduled job that runs `verify` on the latest stable release.
 
 ## Code signing (Windows)
 
