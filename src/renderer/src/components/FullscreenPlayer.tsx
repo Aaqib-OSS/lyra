@@ -72,6 +72,13 @@ export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
             {caps.queue && <IconButton icon="queue" label="Queue" active={panel === 'queue'} onClick={() => togglePanel('queue')} />}
             <IconButton icon="bookmark" label="Saved lyric moments" active={panel === 'moments'} onClick={() => togglePanel('moments')} />
             <IconButton icon="settings" label="Settings" active={panel === 'settings'} onClick={() => togglePanel('settings')} />
+            <OverflowMenu
+              items={[
+                { icon: 'mic' as const, label: 'Karaoke', run: () => setKaraoke(true) },
+                { icon: 'film' as const, label: 'Export lyric video', run: () => setStudio(true) },
+                { icon: 'vibe' as const, label: 'Next vibe', run: () => cycleVibe(1) }
+              ]}
+            />
             <IconButton icon="exitFullscreen" label="Exit fullscreen (Esc)" onClick={() => requestMode('mini')} />
           </div>
         )}
