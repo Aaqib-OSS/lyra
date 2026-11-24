@@ -95,14 +95,21 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
     void window.lyra.studio.setMic(true)
     if (usePlayer.getState().snapshot?.isPlaying) void usePlayer.getState().command({ type: 'pause' })
     // YouTube's player is the slow part of a start: open the connection while the user is still choosing
-    const links = ['https://www.youtube-nocookie.com', 'https://i.ytimg.com'].map((href) => {
-      const l = document.createElement('link')
-      l.rel = 'preconnect'
-      l.href = href
-      document.head.appendChild(l)
-      return l
+    // (only when the user added a YouTube key: without one nothing may contact Google, see PRIVACY.md)
+    const links: HTMLLinkElement[] = []
+    let gone = false
+    void window.lyra.background.hasYoutubeKey().then((has) => {
+      if (!has || gone) return
+      for (const href of ['https://www.youtube-nocookie.com', 'https://i.ytimg.com']) {
+        const l = document.createElement('link')
+        l.rel = 'preconnect'
+        l.href = href
+        document.head.appendChild(l)
+        links.push(l)
+      }
     })
     return () => {
+      gone = true
       void window.lyra.studio.setMic(false)
       mic.current?.stop()
       links.forEach((l) => l.remove())

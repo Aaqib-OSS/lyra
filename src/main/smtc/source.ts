@@ -89,7 +89,8 @@ export class SmtcSource extends PlaybackSource {
       mkdirSync(dir, { recursive: true })
       const file = join(dir, 'smtc.ps1')
       writeFileSync(file, '﻿' + smtcScript(withVolume), 'utf8')
-      proc = spawn('powershell.exe', ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file], {
+      // absolute path: a bare name is searched in the working directory first on Windows
+      proc = spawn(join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'), ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file], {
         windowsHide: true
       })
     }
