@@ -1,4 +1,4 @@
-import { createServer, type IncomingMessage, type Server } from 'node:http'
+import { createServer, request as httpRequest, type IncomingMessage, type Server } from 'node:http'
 import type { Duplex } from 'node:stream'
 import { EventEmitter } from 'node:events'
 import {
@@ -51,6 +51,12 @@ export interface HubDeps {
   /** the app icon for the installable viewer (PNG bytes and edge length), or null */
   icon?: () => { png: Buffer; size: number } | null
   lanIp: () => string | null
+  /** name of the network card the address belongs to ("Wi-Fi"), for the panel */
+  lanName?: () => string | null
+  /** auto-stop: ms without a connected device before the host turns itself off (0 or absent: never) */
+  idleStopMs?: () => number
+  /** how often the LAN address is re-read to notice a network change (default: the heartbeat) */
+  watchMs?: number
   /** preferred port; if taken the OS picks another */
   port?: number
   hostName: () => string
@@ -71,7 +77,10 @@ interface Session {
   device?: Device
   gate?: CommandGate
   lastHeard: number
+  peer: string
   messages: number
+  pingTokens: number
+  pingAt: number
   cmdTokens: number
   cmdAt: number
 }
@@ -82,7 +91,25 @@ export interface HubStatus {
   port: number
   url: string | null
   party: boolean
+  /** the network card the address belongs to */
+  network: string | null
+  /** the host is switched on but has no address to serve on (offline, or between networks) */
+  waiting: boolean
 }
+
+/** What "Check this setup" reports. */
+export interface SelfTest {
+  ok: boolean
+  /** what was proven, in plain words (or why not) */
+  message: string
+  ms: number | null
+  ip: string | null
+  port: number
+  mdns: boolean
+}
+
+const MAX_SOCKETS_PER_PEER = 8
+const peerOf = (addr: string): string => addr.replace(/^::ffff:/, '')
 
 export class ConnectHub extends EventEmitter {
   private server: Server | null = null
@@ -91,6 +118,11 @@ export class ConnectHub extends EventEmitter {
   private port = 0
   private ip: string | null = null
   private party = false
+  /** start() was called and not stop(): the watcher runs even while there is no address yet */
+  private wanted = false
+  private watchTimer: NodeJS.Timeout | null = null
+  private rebinding = false
+  private idleSince = 0
   readonly state = new SyncState()
 
   constructor(private readonly d: HubDeps) {
@@ -106,35 +138,69 @@ export class ConnectHub extends EventEmitter {
   }
 
   status(): HubStatus {
-    return { running: this.running, ip: this.ip, port: this.port, url: this.running && this.ip ? `http://${this.ip}:${this.port}/` : null, party: this.party }
+    return {
+      running: this.running,
+      ip: this.ip,
+      port: this.port,
+      url: this.running && this.ip ? `http://${this.ip}:${this.port}/` : null,
+      party: this.party,
+      network: this.running ? (this.d.lanName?.() ?? null) : null,
+      waiting: this.wanted && !this.running
+    }
   }
 
   // ---- lifecycle -----------------------------------------------------------------------------------------------
 
-  /** Start listening on the LAN address. Resolves false when there is no network to serve on. */
-  start(): Promise<boolean> {
-    if (this.server) return Promise.resolve(true)
+  /**
+   * Start listening on the LAN address. Resolves false when there is no network to serve on right now; the host then keeps
+   * watching and starts serving by itself when a network appears (a laptop that boots offline, a dock being plugged in).
+   */
+  async start(): Promise<boolean> {
+    this.wanted = true
+    this.idleSince = this.now()
+    if (!this.watchTimer) {
+      this.watchTimer = setInterval(() => void this.watch(), this.d.watchMs ?? HEARTBEAT_MS)
+      this.watchTimer.unref()
+    }
+    if (this.server) return true
     const ip = this.d.lanIp()
-    if (!ip) return Promise.resolve(false)
+    if (!ip) {
+      this.emit('change')
+      return false
+    }
+    return this.listen(ip)
+  }
+
+  private listen(ip: string): Promise<boolean> {
     return new Promise((resolve) => {
       const srv = createServer((req, res) => this.http(req, res))
+      // slow-loris: a request line and headers must arrive quickly, and nothing here needs a long-lived plain request
+      srv.headersTimeout = 10_000
+      srv.requestTimeout = 15_000
+      srv.keepAliveTimeout = 5_000
+      srv.maxHeadersCount = 50
       srv.on('upgrade', (req, socket) => this.upgrade(req, socket))
+      srv.on('clientError', (_e, socket) => socket.destroy())
       let triedRandom = false
       srv.on('error', (e: NodeJS.ErrnoException) => {
-        if (!triedRandom && e.code === 'EADDRINUSE') {
+        if (!triedRandom && e.code === 'EADDRINUSE' && !this.server) {
           triedRandom = true
+          this.d.log?.warn('connect: port in use, letting the OS pick another')
           srv.listen(0, ip)
           return
         }
         this.d.log?.warn('connect: could not listen', e.message)
-        this.server = null
-        resolve(false)
+        if (!this.server) {
+          this.emit('change')
+          resolve(false)
+        }
       })
       srv.listen(this.d.port ?? DEFAULT_PORT, ip, () => {
         this.server = srv
         this.ip = ip
         this.port = (srv.address() as { port: number }).port
         this.sweepTimer = setInterval(() => this.sweep(), HEARTBEAT_MS)
+        this.idleSince = this.now()
         this.d.log?.info('connect: listening on', `${ip}:${this.port}`)
         this.d.advertiser?.start({ instance: `Lyra on ${this.d.hostName()}`.slice(0, 40), host: `lyra-${this.d.randomHex(3)}`, ip, port: this.port, txt: { v: '1', name: this.d.hostName() } })
         this.emit('change')
@@ -143,18 +209,82 @@ export class ConnectHub extends EventEmitter {
     })
   }
 
-  stop(): void {
+  /** Close the listener and every session, keep the watcher and the paired devices. */
+  private unlisten(why: string): void {
     this.d.advertiser?.stop()
     if (this.sweepTimer) clearInterval(this.sweepTimer)
     this.sweepTimer = null
-    for (const s of [...this.sessions]) this.drop(s, 'The host turned Devices off.')
+    for (const s of [...this.sessions]) this.drop(s, why)
     this.server?.close()
+    this.server?.closeAllConnections()
     this.server = null
     this.port = 0
     this.ip = null
     this.party = false
+    // a code on screen belongs to the old address: it would pair nothing and could mislead
     this.d.pairing.cancelCodes()
+  }
+
+  stop(): void {
+    this.wanted = false
+    if (this.watchTimer) clearInterval(this.watchTimer)
+    this.watchTimer = null
+    this.unlisten('The host turned Devices off.')
     this.emit('change')
+  }
+
+  /**
+   * Notice a network change (Wi-Fi roam, VPN, cable swap, a laptop taken to a cafe): the address in the QR and in mDNS
+   * must always be one this PC really has. Codes are dropped (see unlisten) and the 'network' event tells the panel.
+   */
+  private async watch(): Promise<void> {
+    if (!this.wanted || this.rebinding) return
+    const ip = this.d.lanIp()
+    if (ip === this.ip) return
+    this.rebinding = true
+    try {
+      const had = this.running
+      this.d.log?.info('connect: network changed', `${this.ip ?? 'none'} -> ${ip ?? 'none'}`)
+      this.unlisten('The network changed. Reconnecting.')
+      if (ip && this.wanted) await this.listen(ip)
+      this.emit('network', { from: had, ip })
+      this.emit('change')
+    } finally {
+      this.rebinding = false
+    }
+  }
+
+  /**
+   * "Check this setup": opens a real WebSocket to this host's own LAN address and times it. That proves the server, the
+   * address, the Host / Origin rules and the protocol handshake. It cannot prove the firewall lets OTHER computers in
+   * (a connection from this PC to itself is not filtered), so the message says so.
+   */
+  selfTest(): Promise<SelfTest> {
+    const ip = this.ip
+    const port = this.port
+    const mdns = !!this.d.advertiser
+    const fail = (message: string): SelfTest => ({ ok: false, message, ms: null, ip, port, mdns })
+    if (!this.running || !ip) return Promise.resolve(fail('Connect is not listening. Turn it on first, and make sure this PC is on Wi-Fi or Ethernet.'))
+    return new Promise((resolve) => {
+      const t0 = Date.now()
+      let done = false
+      const end = (r: SelfTest): void => {
+        if (done) return
+        done = true
+        clearTimeout(timer)
+        req.destroy()
+        resolve(r)
+      }
+      const req = httpRequest({ host: ip, port, path: '/ws', headers: { Connection: 'Upgrade', Upgrade: 'websocket', 'Sec-WebSocket-Version': '13', 'Sec-WebSocket-Key': 'dGhlIGxvZ2luIGNoZWNrIQ==', Origin: `http://${ip}:${port}` } })
+      const timer = setTimeout(() => end(fail("No answer from this PC's own network address within 4 seconds.")), 4000)
+      req.on('upgrade', (res, socket) => {
+        socket.destroy()
+        end({ ok: res.statusCode === 101, message: "Lyra answers on this PC's network address. If a phone still cannot open the link, Windows Firewall is blocking other devices: see the help below.", ms: Date.now() - t0, ip, port, mdns })
+      })
+      req.on('response', (res) => end(fail(`The host answered with status ${res.statusCode ?? '?'} instead of accepting the connection.`)))
+      req.on('error', (e) => end(fail(`Could not reach ${ip}:${port}: ${e.message}`)))
+      req.end()
+    })
   }
 
   // ---- host-side API -------------------------------------------------------------------------------------------
@@ -216,6 +346,25 @@ export class ConnectHub extends EventEmitter {
     // a role is fixed for a session: reconnect so the device re-learns it (and a downgrade can't linger)
     this.kick(id, 'Role changed. Reconnecting.')
     this.emit('change')
+  }
+
+  rename(id: string, name: string): void {
+    this.d.pairing.rename(id, name)
+    this.emit('change')
+    this.broadcastDevices()
+  }
+
+  /** Forget every paired device (and live code) and disconnect them all. */
+  revokeAll(): number {
+    const ids = this.d.pairing.revokeAll()
+    for (const id of ids) this.kick(id, 'This device was removed.')
+    this.emit('change')
+    return ids.length
+  }
+
+  /** Connected (authenticated) sessions right now: devices people are using, overlay links included. */
+  onlineCount(): number {
+    return [...this.sessions].filter((s) => s.stage === 'ready').length
   }
 
   /** Devices for the UI. */
@@ -345,14 +494,18 @@ export class ConnectHub extends EventEmitter {
       socket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n')
       return
     }
-    if (this.sessions.size >= 40) {
+    const peer = peerOf(addr)
+    let mine = 0
+    for (const o of this.sessions) if (o.peer === peer) mine++
+    // one address cannot fill the table: a stranger on the Wi-Fi must not be able to lock the real devices out
+    if (this.sessions.size >= 40 || mine >= MAX_SOCKETS_PER_PEER) {
       socket.end('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n')
       return
     }
     const conn = acceptUpgrade(req, socket, MAX_CLIENT_BYTES)
     if (!conn) return
     const t = this.now()
-    const s: Session = { conn, stage: 'new', lastHeard: t, messages: 0, cmdTokens: 10, cmdAt: t }
+    const s: Session = { conn, stage: 'new', lastHeard: t, peer, messages: 0, pingTokens: 20, pingAt: t, cmdTokens: 10, cmdAt: t }
     this.sessions.add(s)
     // a connection that does not finish pairing / auth quickly is dropped
     const timer = setTimeout(() => s.stage !== 'ready' && this.drop(s), 10_000)
@@ -377,6 +530,7 @@ export class ConnectHub extends EventEmitter {
     const had = this.sessions.delete(s)
     if (why) s.conn.send(encode({ t: 'bye', why }))
     s.conn.close()
+    if (had && this.sessions.size === 0) this.idleSince = this.now()
     if (had && s.device && s.stage === 'ready' && !quiet) {
       this.emit('change')
       this.broadcastDevices()
@@ -393,6 +547,16 @@ export class ConnectHub extends EventEmitter {
     // expired party guests / codes
     this.d.pairing.list()
     for (const s of [...this.sessions]) if (s.device && !this.d.pairing.get(s.device.id)) this.drop(s, 'This device was removed.')
+    // auto-stop: nobody connected for the chosen time. Overlay sources count as connected (OBS keeps its socket open).
+    const idleMs = this.d.idleStopMs?.() ?? 0
+    if (idleMs > 0) {
+      if (this.onlineCount() > 0) this.idleSince = t
+      else if (t - this.idleSince >= idleMs) {
+        this.d.log?.info('connect: idle, turning off')
+        this.stop()
+        this.emit('idle-stop')
+      }
+    }
   }
 
   private onMessage(s: Session, text: string): void {
@@ -403,6 +567,11 @@ export class ConnectHub extends EventEmitter {
     if (!p.ok) return this.fail(s, p.code, p.why, p.code === 'version')
     const m = p.msg
     if (m.t === 'ping') {
+      // 10 per second sustained (the client's own burst at start is about 6 in one second), so a device cannot make the host spin
+      s.pingTokens = Math.min(20, s.pingTokens + ((t - s.pingAt) / 1000) * 10)
+      s.pingAt = t
+      if (s.pingTokens < 1) return
+      s.pingTokens -= 1
       // answered in every stage so a client can measure the clock while it is still pairing
       s.conn.send(encode({ t: 'pong', id: m.id, c0: m.c0, s1: t, s2: this.now() }))
       return
@@ -411,7 +580,7 @@ export class ConnectHub extends EventEmitter {
 
     if (s.stage === 'new') {
       if (m.t === 'pair') {
-        const r = this.d.pairing.redeem(m.code, m.name)
+        const r = this.d.pairing.redeem(m.code, m.name, s.peer)
         if (!r.ok) return this.fail(s, r.code, r.msg)
         const sn = this.d.randomHex(16)
         s.conn.send(encode({ t: 'paired', deviceId: r.device.id, token: r.device.token, role: r.device.role, sn }))

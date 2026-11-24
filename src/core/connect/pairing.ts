@@ -4,7 +4,7 @@ import { hmacSha256Hex, safeEqual } from './hmac'
 /**
  * Pairing and device registry (pure logic, injectable clock and randomness, no I/O).
  *
- * - A pairing code is short (8 characters, ~40 bits), lives 2 minutes, works once, and is killed after 5 wrong tries.
+ * - A pairing code is short (8 characters, ~40 bits), lives 2 minutes, works once, and is killed after 8 wrong tries; one peer address is locked out after 4.
  *   "Party" codes may be used by many guests, give the viewer role only, and their devices expire with the party.
  * - Redeeming a code mints a per-device token (256 bits). The token is shown to the device once and is never sent
  *   again: every later connection proves it holds the token with an HMAC over fresh nonces.
@@ -14,9 +14,14 @@ export const CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ' // Crockford bas
 export const CODE_LENGTH = 8
 export const CODE_TTL_MS = 120_000
 export const PARTY_TTL_MS = 4 * 60 * 60 * 1000
-export const MAX_CODE_FAILURES = 5
+/** wrong tries a live code survives (all peers together); a single peer is locked out long before it can reach this */
+export const MAX_CODE_FAILURES = 8
 export const MAX_DEVICES = 12
-export const MAX_FAILURES_PER_MINUTE = 10
+/** backstop across all peers */
+export const MAX_FAILURES_PER_MINUTE = 20
+/** one peer address: this many wrong codes locks THAT address out for PEER_LOCK_MS (others can still pair) */
+export const MAX_PEER_FAILURES = 4
+export const PEER_LOCK_MS = 5 * 60_000
 
 export interface Device {
   id: string
@@ -64,6 +69,7 @@ export class Pairing {
   private devices = new Map<string, Device>()
   private codes: PairingCode[] = []
   private failureTimes: number[] = []
+  private peerFailures = new Map<string, { n: number; until: number; last: number }>()
 
   constructor(
     private readonly deps: PairingDeps,
@@ -109,15 +115,18 @@ export class Pairing {
     this.codes = []
   }
 
-  redeem(input: string, name: string): Redeem {
+  redeem(input: string, name: string, peer?: string): Redeem {
     const now = this.deps.now()
     this.sweep()
+    const pf = peer ? this.peerFailures.get(peer) : undefined
+    if (pf && pf.until > now) return { ok: false, code: 'rate', msg: 'Too many wrong codes from this device. Try again in a few minutes.' }
     this.failureTimes = this.failureTimes.filter((t) => now - t < 60_000)
     if (this.failureTimes.length >= MAX_FAILURES_PER_MINUTE) return { ok: false, code: 'rate', msg: 'Too many wrong codes. Wait a minute.' }
     const typed = normalizeCode(input)
     const hit = this.codes.find((c) => typed.length === c.code.length && safeEqual(typed, c.code))
     if (!hit) {
       this.failureTimes.push(now)
+      if (peer) this.notePeerFailure(peer, now)
       // a guess at any code counts against every live non-party code: 5 wrong tries and they are gone
       for (const c of this.codes) if (!c.party) c.failures++
       this.codes = this.codes.filter((c) => c.failures < MAX_CODE_FAILURES)
@@ -138,6 +147,19 @@ export class Pairing {
     this.devices.set(device.id, device)
     this.changed()
     return { ok: true, device }
+  }
+
+  private notePeerFailure(peer: string, now: number): void {
+    // forget peers that went quiet so the map cannot grow without bound
+    if (this.peerFailures.size > 200) for (const [k, v] of this.peerFailures) if (now - v.last > PEER_LOCK_MS) this.peerFailures.delete(k)
+    const e = this.peerFailures.get(peer) ?? { n: 0, until: 0, last: now }
+    e.n = now - e.last > PEER_LOCK_MS ? 1 : e.n + 1
+    e.last = now
+    if (e.n >= MAX_PEER_FAILURES) {
+      e.until = now + PEER_LOCK_MS
+      e.n = 0
+    }
+    this.peerFailures.set(peer, e)
   }
 
   // ---- registry ------------------------------------------------------------------------------------------------

@@ -741,3 +741,127 @@ describe('devices list follows every kind of drop', () => {
     await devicesWhere(ctl.c, offlineOf(v.paired.deviceId))
   })
 })
+
+// ---- operations: network changes, idle stop, abuse limits, self test ---------------------------------------------
+
+describe('connect hub operations', () => {
+  function netHub(extra: { idle?: number } = {}) {
+    let ip: string | null = '127.0.0.1'
+    const commands: CommandBody[] = []
+    const pairing = new Pairing({ now: Date.now, randomHex: (n) => randomBytes(n).toString('hex'), randomBytes: (n) => new Uint8Array(randomBytes(n)) })
+    const hub = new ConnectHub({
+      pairing,
+      viewerHtml: 'v',
+      lanIp: () => ip,
+      lanName: () => 'Wi-Fi',
+      port: 0,
+      watchMs: 25,
+      ...(extra.idle ? { idleStopMs: () => extra.idle! } : {}),
+      hostName: () => 'TestPC',
+      vibes: ['none'],
+      onCommand: (c) => commands.push(c),
+      randomHex: (n) => randomBytes(n).toString('hex')
+    })
+    return { hub, pairing, setIp: (v: string | null) => (ip = v) }
+  }
+  const until = async (f: () => boolean, ms = 3000): Promise<void> => {
+    const end = Date.now() + ms
+    while (!f() && Date.now() < end) await new Promise((r) => setTimeout(r, 15))
+    expect(f()).toBe(true)
+  }
+
+  it('rebinds when the network changes: drops sessions and codes, then serves on the new address', async () => {
+    const { hub, setIp } = netHub()
+    live.push(hub)
+    await hub.start()
+    expect(hub.status().network).toBe('Wi-Fi')
+    const { c } = await pair(hub, 'viewer')
+    hub.newCode('viewer')
+    setIp('127.0.0.2') // another network card / another network
+    await until(() => hub.status().ip === '127.0.0.2' && hub.running)
+    await c.waitClosed()
+    expect(c.closed).toBe(true)
+    expect(hub.codes()).toHaveLength(0) // a code for the old address is gone
+    expect(hub.status().url).toContain('127.0.0.2')
+    setIp(null) // unplugged
+    await until(() => !hub.running)
+    expect(hub.status().waiting).toBe(true)
+    setIp('127.0.0.1')
+    await until(() => hub.running && hub.status().ip === '127.0.0.1')
+    expect(hub.status().waiting).toBe(false)
+  })
+
+  it('starts by itself when the PC gets a network after Connect was switched on offline', async () => {
+    const { hub, setIp } = netHub()
+    live.push(hub)
+    setIp(null)
+    expect(await hub.start()).toBe(false)
+    expect(hub.status().waiting).toBe(true)
+    setIp('127.0.0.1')
+    await until(() => hub.running)
+  })
+
+  it('turns itself off after the idle time with nobody connected', async () => {
+    const { hub } = netHub({ idle: 1 })
+    live.push(hub)
+    let stopped = false
+    hub.on('idle-stop', () => (stopped = true))
+    await hub.start()
+    // the sweep runs every heartbeat (5 s): wait for it rather than faking time
+    await until(() => stopped, 8000)
+    expect(hub.running).toBe(false)
+  }, 12_000)
+
+  it('caps open sockets per peer address', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    for (let i = 0; i < 8; i++) live.push(await TestClient.open(hub.status().port))
+    const extra = await TestClient.open(hub.status().port).catch(() => null)
+    // the ninth is refused: either the handshake fails or the socket is closed at once
+    expect(extra === null || extra.closed).toBe(true)
+  })
+
+  it('locks out one peer after a few wrong codes, with the right code too', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const code = hub.newCode('viewer').code
+    for (let i = 0; i < 4; i++) {
+      const c = await TestClient.open(hub.status().port)
+      live.push(c)
+      c.send({ t: 'pair', code: 'ZZZZZZZZ', name: 'n', cn: 'a'.repeat(32) })
+      await c.until('err')
+    }
+    const c = await TestClient.open(hub.status().port)
+    live.push(c)
+    c.send({ t: 'pair', code, name: 'n', cn: 'a'.repeat(32) })
+    expect((await c.until('err')).code).toBe('rate')
+  })
+
+  it('renames and removes all devices', async () => {
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const a = await pair(hub, 'viewer')
+    await pair(hub, 'controller')
+    hub.rename(a.paired.deviceId, 'Living room')
+    expect(hub.devices().find((d) => d.id === a.paired.deviceId)?.name).toBe('Living room')
+    expect(hub.revokeAll()).toBe(2)
+    await a.c.waitClosed()
+    expect(a.c.closed).toBe(true)
+    expect(hub.devices()).toHaveLength(0)
+  })
+
+  it('check this setup: answers over the real address and says when it is off', async () => {
+    const off = makeHub({ lanIp: null })
+    expect((await off.hub.selfTest()).ok).toBe(false)
+    const { hub } = makeHub()
+    live.push(hub)
+    await hub.start()
+    const r = await hub.selfTest()
+    expect(r.ok).toBe(true)
+    expect(r.ms).toBeGreaterThanOrEqual(0)
+    expect(r.port).toBe(hub.status().port)
+  })
+})
