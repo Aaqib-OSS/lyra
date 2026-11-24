@@ -15,7 +15,13 @@ export interface CardInput {
   style?: 'classic' | 'doodle'
   /** the card's own look (colours, paper, handwriting): each vibe has one, see cardTheme */
   theme?: CardTheme
+  /** story (9:16, default), portrait (4:5) or square (1:1) */
+  format?: CardFormat
 }
+
+export type CardFormat = 'story' | 'portrait' | 'square'
+/** Output sizes: width is always 1080; the card scales into the height. */
+export const FORMAT_H: Record<CardFormat, number> = { story: 1920, portrait: 1350, square: 1080 }
 
 
 /** How a doodle card looks for one vibe: the paper, the pen and the type. */
@@ -144,13 +150,14 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 }
 
 export async function drawCard(canvas: HTMLCanvasElement, c: CardInput): Promise<boolean> {
+  const CARD_H = FORMAT_H[c.format ?? 'story']
   canvas.width = CARD_W
   canvas.height = CARD_H
   const ctx = canvas.getContext('2d')!
   const family = getComputedStyle(document.body).fontFamily || 'Inter, system-ui, sans-serif'
   const art = await loadImage(c.artworkUrl)
   if (c.theme?.load) await document.fonts.load(c.theme.load).catch(() => undefined)
-  if (c.style === 'doodle') return drawDoodle(ctx, c, art, family)
+  if (c.style === 'doodle') return drawDoodle(ctx, c, art, family, CARD_H)
 
   // background: the song's colours, then a blurred cover, then a dark veil so the type stays readable
   const g = ctx.createLinearGradient(0, 0, CARD_W, CARD_H)
@@ -178,7 +185,7 @@ export async function drawCard(canvas: HTMLCanvasElement, c: CardInput): Promise
   const maxW = CARD_W - margin * 2
   let size = 112
   let wrapped: string[] = []
-  const maxBlock = 900
+  const maxBlock = Math.min(900, CARD_H - 560)
   for (; size >= 52; size -= 4) {
     ctx.font = `800 ${size}px ${family}`
     wrapped = c.lines.flatMap((l) => wrap(ctx, l, maxW))
@@ -299,7 +306,7 @@ function scribbleCircle(ctx: CanvasRenderingContext2D, cx: number, cy: number, r
   stroke(ctx, pts, color, 7)
 }
 
-function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageElement | null, family: string): boolean {
+function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageElement | null, family: string, CARD_H: number): boolean {
   const th = c.theme ?? DARK
   const rnd = seeded(c.lines.join('|'))
   const linesFont = th.font ?? family
@@ -315,7 +322,10 @@ function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageE
   ctx.globalAlpha = 1
 
   // the card
-  const cx = 56, cy = 330, cw = CARD_W - 112, ch = 1230
+  // the story card sits 330 from the top; the shorter formats trade that headroom for room to breathe
+  const cy = CARD_H >= 1920 ? 330 : CARD_H >= 1350 ? 90 : 40
+  const cx = 56, cw = CARD_W - 112
+  const ch = CARD_H >= 1920 ? 1230 : CARD_H - cy - 130
   if (th.shadow) {
     ctx.fillStyle = th.shadow
     roundRect(ctx, cx + 22, cy + 22, cw, ch, th.radius)
@@ -385,7 +395,7 @@ function drawDoodle(ctx: CanvasRenderingContext2D, c: CardInput, art: HTMLImageE
   for (; size >= minSize; size -= 4) {
     ctx.font = `800 ${size}px ${linesFont}`
     rows = c.lines.flatMap((l) => wrap(ctx, l, maxW))
-    if (rows.length * size * 1.42 <= 640) break
+    if (rows.length * size * 1.42 <= ch - 590) break
   }
   size = Math.max(size, minSize)
   const lh = size * 1.42

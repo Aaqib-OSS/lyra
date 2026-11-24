@@ -23,3 +23,12 @@ describe('share card themes', () => {
     expect(t.bg).toBe('#050505')
   })
 })
+
+describe('share card formats', () => {
+  it('keeps story 9:16, portrait 4:5 and square 1:1 at 1080 wide', async () => {
+    const { FORMAT_H, CARD_W } = await import('./shareCard')
+    expect(FORMAT_H.story / CARD_W).toBeCloseTo(16 / 9, 2)
+    expect(FORMAT_H.portrait / CARD_W).toBeCloseTo(5 / 4, 2)
+    expect(FORMAT_H.square).toBe(CARD_W)
+  })
+})

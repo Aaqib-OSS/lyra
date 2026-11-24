@@ -23,6 +23,8 @@ export function Welcome() {
       className="welcome"
       role="dialog"
       aria-label="Welcome to Lyra"
+      aria-modal="true"
+      onKeyDown={(e) => e.key === 'Escape' && done()}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
@@ -35,13 +37,13 @@ export function Welcome() {
       <p className="welcome__lead">Beautiful, synced lyrics for the Spotify desktop app — no account or login.</p>
       <ol className="welcome__steps">
         <li>
-          <b>Open the Spotify desktop app</b> and play a song. Lyra picks it up automatically.
+          <b>Play a song in the Spotify desktop app.</b> Lyra follows it on its own, nothing to link.
         </li>
         <li>
-          <b>Click the widget</b> to expand it; press <kbd>F</kbd> for fullscreen lyrics.
+          <b>Make it yours:</b> press <kbd>F</kbd> for fullscreen lyrics and <kbd>V</kbd> to flip through the looks.
         </li>
         <li>
-          Drag it anywhere, resize from the corner, minimize or hide to the tray.
+          <b>Keep what you love:</b> tap the bookmark on a line to save it, or share it as a card. Press <kbd>?</kbd> any time for every shortcut.
         </li>
       </ol>
       <dl className="welcome__keys">
@@ -59,7 +61,7 @@ export function Welcome() {
         </div>
       </dl>
       <div className="welcome__actions">
-        <button type="button" className="primary" onClick={done}>
+        <button type="button" className="primary" autoFocus onClick={done}>
           Get started
         </button>
         <button type="button" className="textbtn" onClick={() => void window.lyra.player.openInSpotify(null)}>

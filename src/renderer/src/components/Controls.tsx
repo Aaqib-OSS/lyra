@@ -104,7 +104,8 @@ export function VolumeControl({ wide = false }: { wide?: boolean }) {
   const remote = device?.volumePercent ?? 0
   const [local, setLocal] = useState<number | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
-  const prev = useRef(50)
+  // the level to come back to on unmute: remembered across restarts, never 0
+  const prev = useRef(Number(localStorage.getItem('lyra.volume.before-mute')) || 50)
   useEffect(() => () => clearTimeout(timer.current), [])
 
   const value = local ?? remote
@@ -123,6 +124,14 @@ export function VolumeControl({ wide = false }: { wide?: boolean }) {
     <div
       className={`volume ${wide ? 'volume--wide' : ''}`}
       data-nodrag
+      // scroll over the volume to change it: 5 % a notch, kept inside 0..100
+      onWheel={(e) => {
+        if (!supported) return
+        const next = Math.min(100, Math.max(0, value + (e.deltaY < 0 ? 5 : -5)))
+        if (next === value) return
+        setLocal(next)
+        commit(next)
+      }}
       title={supported ? undefined : device ? `${device.name} doesn’t support volume control from here` : 'No active device'}
     >
       <button
@@ -131,7 +140,14 @@ export function VolumeControl({ wide = false }: { wide?: boolean }) {
         aria-label={value === 0 ? 'Unmute' : 'Mute'}
         disabled={!supported}
         onClick={() => {
-          if (value > 0) prev.current = value
+          if (value > 0) {
+            prev.current = value
+            try {
+              localStorage.setItem('lyra.volume.before-mute', String(value))
+            } catch {
+              /* storage can be unavailable */
+            }
+          }
           const v = value > 0 ? 0 : prev.current || 50
           setLocal(v)
           commit(v)
@@ -147,6 +163,7 @@ export function VolumeControl({ wide = false }: { wide?: boolean }) {
         value={value}
         disabled={!supported}
         aria-label="Volume"
+        aria-valuetext={`${value}%`}
         style={{ ['--fill' as string]: `${value}%` }}
         onChange={(e) => {
           const v = Number(e.target.value)

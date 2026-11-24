@@ -102,7 +102,8 @@ export const usePlayer = create<PlayerStore>((set, get) => ({
     set({ liked: !liked })
     const res = await window.lyra.player.setLiked(id, !liked)
     if (!res.ok) {
-      set({ liked })
+      // only roll back if we are still on the same song; otherwise we'd paint the old answer onto the next one
+      if (get().snapshot?.track?.id === id) set({ liked })
       useUi.getState().toast(res.error ?? 'Couldn’t update your library.', 'error')
     }
   },

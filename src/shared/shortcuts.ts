@@ -18,7 +18,8 @@ export const LOCAL_SHORTCUTS = [
   { keys: 'Esc', label: 'Exit fullscreen / collapse' },
   { keys: 'D', label: 'Distraction-free (fullscreen)' },
   { keys: '[ / ]', label: 'Lyrics later / earlier' },
-  { keys: 'V / Shift + V', label: 'Next / previous vibe' }
+  { keys: 'V / Shift + V', label: 'Next / previous vibe' },
+  { keys: '?', label: 'This list of shortcuts' }
 ] as const
 
 export type FullscreenShortcutAction =

@@ -1,19 +1,25 @@
 import { randomUUID } from 'node:crypto'
 import type { SavedMoment } from '@shared/types'
+import { addMoment, normalizeMoments } from '@shared/moments'
 import { JsonStore } from './jsonStore'
 
 /** The user's personal collection of memorable lines. Stored locally only. */
 let store: JsonStore<{ items: SavedMoment[] }> | null = null
-const ensure = (): JsonStore<{ items: SavedMoment[] }> => (store ??= new JsonStore('moments.json', { items: [] }))
+const ensure = (): JsonStore<{ items: SavedMoment[] }> => {
+  if (!store) {
+    store = new JsonStore('moments.json', { items: [] as SavedMoment[] })
+    // anything read from disk is validated: a hand-edited or damaged file can never reach the UI as-is
+    store.set({ items: normalizeMoments(store.get().items) })
+  }
+  return store
+}
 
 export const moments = {
   list: (): SavedMoment[] => ensure().get().items,
   add(m: Omit<SavedMoment, 'id' | 'savedAt'>): SavedMoment[] {
     const items = ensure().get().items
-    const dup = items.find((x) => x.trackId === m.trackId && x.text === m.text)
-    if (dup) return items
-    const next = [{ ...m, id: randomUUID(), savedAt: Date.now() }, ...items].slice(0, 500)
-    ensure().set({ items: next })
+    const next = addMoment(items, m, randomUUID(), Date.now())
+    if (next !== items) ensure().set({ items: next })
     return next
   },
   remove(id: string): SavedMoment[] {
