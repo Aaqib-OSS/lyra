@@ -48,7 +48,7 @@ function largestEntries(dir: string): string {
 
 /** What this run knows about the app's own state, with every secret and personal value left out. */
 export async function buildDiagnostics(sourceLine: string): Promise<string> {
-  const { spotifyClientId, position, youtubeKey, ...safe } = settings.get() as unknown as Record<string, unknown>
+  const { spotifyClientId, position, youtubeKey, songVibes, ...safe } = settings.get() as unknown as Record<string, unknown>
   const userData = app.getPath('userData')
   let gpu = 'unknown'
   try {
@@ -66,7 +66,7 @@ export async function buildDiagnostics(sourceLine: string): Promise<string> {
     `GPU ${gpu} · software rendering: ${usingSoftwareRendering() ? 'yes' : 'no'}`,
     `Safe mode: ${isSafeMode() ? 'yes' : 'no'} · unfinished starts before this one: ${startupState().crashes}`,
     sourceLine,
-    `Settings (secrets left out): ${JSON.stringify({ ...safe, spotifyClientId: spotifyClientId ? 'set' : null, youtubeKey: youtubeKey ? 'set' : null, position: position ? 'set' : null })}`,
+    `Settings (secrets left out): ${JSON.stringify({ ...safe, spotifyClientId: spotifyClientId ? 'set' : null, youtubeKey: youtubeKey ? 'set' : null, position: position ? 'set' : null, songVibes: songVibes && typeof songVibes === 'object' ? Object.keys(songVibes).length : 0 })}`,
     `Biggest items in the data folder: ${caches}`,
     `--- recent warnings and errors (this run) ---`,
     problems.length ? problems.join('\n') : '(none)',
