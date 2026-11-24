@@ -12,6 +12,7 @@ import { connectService } from './connect/service'
 import { registerStudioIpc } from './studio'
 import QRCode from 'qrcode'
 import { createLogger, readLogTail } from './logger'
+import { redact } from './redact'
 import { moments } from './moments'
 import { background } from './background/service'
 import { youtube } from '@core/background/youtube'
@@ -209,7 +210,11 @@ export function registerIpc(): void {
       `Settings: ${JSON.stringify({ ...safe, position: position ? 'set' : null })}`,
       '--- recent log ---',
       readLogTail(80)
-    ].join('\n')
+    ]
+      .join('\n')
+      .split('\n')
+      .map(redact) // no account name in a path, no key or token, even from an older log line
+      .join('\n')
   })
   handle(CH.appShortcutStatus, () => failedShortcuts())
   const pngFrom = (dataUrl: unknown): Buffer | null => {

@@ -22,6 +22,7 @@ const log = createLogger('main')
 
 /** Minimal .env loader for development (packaged builds use settings.json instead). */
 function loadDotEnv(): void {
+  if (app.isPackaged) return // an installed Lyra never reads a .env that happens to sit next to it
   for (const dir of [process.cwd(), app.getAppPath()]) {
     const file = join(dir, '.env')
     if (!existsSync(file)) continue

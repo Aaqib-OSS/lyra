@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import { appendFileSync, mkdirSync, readFileSync, statSync, renameSync } from 'node:fs'
 import { join } from 'node:path'
+import { redact } from './redact'
 
 type Level = 'debug' | 'info' | 'warn' | 'error'
 const MAX_BYTES = 1_000_000
@@ -22,14 +23,6 @@ function logFile(): string | null {
     file = null
   }
   return file
-}
-
-/** Strip anything that looks like a bearer/refresh token or auth code before logging. */
-function redact(text: string): string {
-  return text
-    .replace(/(Bearer\s+)[A-Za-z0-9._~+/-]+=*/gi, '$1[redacted]')
-    .replace(/((?:access|refresh)_token["':=\s]+)[A-Za-z0-9._~+/-]+/gi, '$1[redacted]')
-    .replace(/([?&](?:code|state|code_verifier)=)[^&\s]+/gi, '$1[redacted]')
 }
 
 function write(level: Level, scope: string, args: unknown[]): void {
