@@ -1,0 +1,1 @@
+The Apple preview clip starts at once: it plays while it downloads instead of after. A dropped connection resumes instead of starting over, and the video asks again before it gives up.
