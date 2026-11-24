@@ -5,6 +5,7 @@ import '@fontsource-variable/fraunces/standard-italic.css'
 import '@fontsource/vt323'
 import '@fontsource/caveat'
 import '@fontsource/press-start-2p'
+import { isCalm } from '@core/calm'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
@@ -153,9 +154,11 @@ const applyLook = (): void => {
 
 /** "Calm": nothing is playing or the window is hidden, so every endless animation pauses. */
 const syncCalm = (): void => {
+  // (isCalm: see @core/calm)
   const playing = usePlayer.getState().snapshot?.isPlaying ?? false
   // a running export draws its own pictures: the app's endless CSS animations behind the dialog only steal frame time
-  const calm = !playing || document.visibilityState === 'hidden' || useBgState.getState().exporting
+  // (hidden = minimized or in the tray; a window merely covered by another app is not hidden and stays alive)
+  const calm = isCalm({ playing, hidden: document.visibilityState === 'hidden', exporting: useBgState.getState().exporting })
   if (calm) document.documentElement.dataset.calm = ''
   else delete document.documentElement.dataset.calm
 }

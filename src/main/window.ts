@@ -5,6 +5,7 @@ import { EventEmitter } from 'node:events'
 import { EV } from '@shared/ipc'
 import type { ModeEvent, Rect, Settings, ViewMode } from '@shared/types'
 import { createLogger } from './logger'
+import { allowThrottling } from '@core/calm'
 import { settings } from './settings'
 import { appIcon } from './tray'
 
@@ -133,6 +134,10 @@ class WindowManager extends EventEmitter {
     win.on('moved', () => this.onMoved())
     win.on('hide', () => this.armUnload())
     win.on('show', () => clearTimeout(this.unloadTimer))
+    win.on('show', () => this.syncThrottle())
+    win.on('hide', () => this.syncThrottle())
+    win.on('minimize', () => this.syncThrottle())
+    win.on('restore', () => this.syncThrottle())
     // The X buttons in the UI quit explicitly; a system "close" (Alt+F4, taskbar) just hides to the tray.
     win.on('close', (e) => {
       if (this.quitting) return
@@ -160,6 +165,24 @@ class WindowManager extends EventEmitter {
 
   private loadApp(win: BrowserWindow): Promise<void> {
     return process.env['ELECTRON_RENDERER_URL'] ? win.loadURL(process.env['ELECTRON_RENDERER_URL']) : win.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+
+  // ---- throttling: music playing in a window that is on screen (even under another app) must keep the video and lyrics running ----
+
+  private playing = false
+
+  /** Told by the playback layer whenever the song starts or stops. */
+  setPlaying(playing: boolean): void {
+    if (playing === this.playing) return
+    this.playing = playing
+    this.syncThrottle()
+  }
+
+  private syncThrottle(): void {
+    const w = this.window
+    if (!w || w.isDestroyed()) return
+    const throttle = allowThrottling({ playing: this.playing, visible: w.isVisible(), minimized: w.isMinimized() })
+    w.webContents.setBackgroundThrottling(throttle)
   }
 
   // ---- memory: while the widget sits hidden in the tray, drop the page (video, blur layers, caches) and bring it back on demand ----
