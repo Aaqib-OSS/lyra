@@ -6,13 +6,15 @@ import { counterpart, orderItems, pickFirst, pickNext, type Memory } from '@core
 import { parseVideoId, useKaraokePlayer, type SingClock } from '@/lib/karaoke/player'
 import { useOriginalClock } from '@/lib/karaoke/original'
 import { loadMemory, markBad, rememberChoice, touchUsed } from '@/lib/karaoke/memory'
-import { openMic, type Mic } from '@/lib/karaoke/mic'
-import { scoreLine, summarize, type Frame, type KLine, type LineResult, type Summary } from '@/lib/karaoke/score'
+import { classifyMicError, MIC_PROBLEM_TEXT, openMic, type Mic, type MicProblem } from '@/lib/karaoke/mic'
+import { REACTION_MS, scoreLines, summarize, type Frame, type KLine, type LineResult, type Summary } from '@/lib/karaoke/score'
+import { forgetKaraokeData, loadOffset, loadRecords, saveOffset, saveTake } from '@/lib/karaoke/storage'
 import { useLyrics } from '@/store/lyrics'
 import { usePlayer } from '@/store/player'
 import { Icon } from './Icon'
 import { KaraokeStage } from './KaraokeStage'
 import '@/styles/karaoke2.css'
+import '@/styles/karaoke3.css'
 
 /**
  * Karaoke: a karaoke / instrumental version of the song plays (YouTube), Lyra shows the lyrics word by word with a
@@ -24,15 +26,9 @@ type Phase = 'pick' | 'calm' | 'count' | 'sing' | 'done'
 type Source = 'karaoke' | 'original'
 
 const fmt = (s: number): string => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
-const offsetKey = 'lyra.karaoke.offsets'
-const bestKey = 'lyra.karaoke.best'
-const read = <T,>(k: string): Record<string, T> => {
-  try {
-    return JSON.parse(localStorage.getItem(k) ?? '{}') as Record<string, T>
-  } catch {
-    return {}
-  }
-}
+/** voice recording needs a file download, which the Android WebView shell does not offer */
+const canSaveTake = (): boolean => typeof MediaRecorder !== 'undefined' && !/Android/i.test(navigator.userAgent)
+const MIC_TEST_MS = 30000
 const NO_MEMORY: Memory = { bad: new Set(), chosen: null }
 const SLOW_LOAD_MS = 15000
 
@@ -67,6 +63,20 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
   const [scored, setScored] = useState(true)
   const [slow, setSlow] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  const [micTest, setMicTest] = useState<'idle' | 'on' | MicProblem>('idle')
+  const [micName, setMicName] = useState('')
+  const [recordTake, setRecordTake] = useState(false)
+  const [takeUrl, setTakeUrl] = useState<string | null>(null)
+  const [newBest, setNewBest] = useState<number | null>(null)
+  const [micLost, setMicLost] = useState(false)
+  const [shared, setShared] = useState(false)
+  const [records, setRecords] = useState(() => loadRecords())
+  const testMeter = useRef<HTMLElement | null>(null)
+  const stopTest = useRef<() => void>(() => {})
+  const lostAt = useRef(Infinity)
+  const scoredUpTo = useRef(0)
+  const takeUrlRef = useRef<string | null>(null)
+  takeUrlRef.current = takeUrl
 
   const player = useKaraokePlayer(source === 'karaoke' ? videoId : null, startAt)
   const original = useOriginalClock(track, source === 'original')
@@ -104,7 +114,9 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
     })
     return () => {
       void window.lyra.studio.setMic(false)
+      stopTest.current()
       mic.current?.stop()
+      if (takeUrlRef.current) URL.revokeObjectURL(takeUrlRef.current)
       links.forEach((l) => l.remove())
     }
   }, [])
@@ -112,7 +124,7 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
   // the stored timing nudge and the karaoke versions of this song (a pre-fetch may have cached them: then it is instant)
   useEffect(() => {
     if (!track) return
-    setOffsetMs(read<number>(offsetKey)[track.id] ?? 0)
+    setOffsetMs(loadOffset(track.id))
     setVideos(null)
     setSearchError(null)
     void window.lyra.background.karaokeVideos(track).then((r) => {
@@ -157,9 +169,7 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
     (ms: number): void => {
       setOffsetMs((cur) => {
         const next = Math.max(-15000, Math.min(15000, cur + ms))
-        const all = read<number>(offsetKey)
-        all[trackId] = next
-        localStorage.setItem(offsetKey, JSON.stringify(all))
+        saveOffset(trackId, next)
         return next
       })
     },
@@ -167,23 +177,35 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
   )
 
   const finish = useCallback((): void => {
+    const reached = getPos()
     clockRef.current.pause()
-    mic.current?.stop()
+    // the microphone is released right here; a recorded take (only when the user asked for it) is finalised first
+    const m = mic.current
     mic.current = null
-    if (!scoredRef.current) {
+    if (m) {
+      void m.stopRecording().then((blob) => {
+        m.stop()
+        if (blob) setTakeUrl(URL.createObjectURL(blob))
+      })
+    }
+    setNewBest(null)
+    setShared(false)
+    // lines that were not finished count with what was heard so far
+    // (finishing early does not turn the lines never reached into misses)
+    const upTo = kl.filter((l) => l.startMs <= reached).length
+    const list = scoredRef.current ? [...done.current, ...scoreLines(kl, frames.current, scoredUpTo.current, upTo, lostAt.current)] : []
+    if (!list.length) {
       setSummary(null)
       return setPhase('done')
     }
-    // lines that were not finished count with what was heard so far
-    const list = [...done.current]
-    for (let i = list.length; i < kl.length; i++) list.push(scoreLine(i, kl[i]!, frames.current))
-    const s = summarize(list)
+    const s = summarize(list, frames.current)
     setSummary(s)
     setPhase('done')
-    const best = read<number>(bestKey)
-    if (s.total > (best[trackId] ?? 0)) {
-      best[trackId] = s.total
-      localStorage.setItem(bestKey, JSON.stringify(best))
+    // a take where nothing was heard is not a score worth keeping
+    if (!s.silent) {
+      const r = saveTake(trackId, s.total, s.stars)
+      setNewBest(r.newBest && r.previousBest > 0 ? r.previousBest : null)
+      setRecords(r.records)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kl, trackId])
@@ -199,24 +221,40 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
     if (src === 'karaoke' && videoId && track) rememberChoice(track.title, artist, videoId)
     frames.current = []
     done.current = []
+    scoredUpTo.current = 0
+    lostAt.current = Infinity
+    setMicLost(false)
+    if (takeUrl) URL.revokeObjectURL(takeUrl)
+    setTakeUrl(null)
     setHud({ points: 0, last: null, streak: 0 })
     setSummary(null)
     setLeak(false)
     // the microphone is optional: without it the lyrics still run, just without a score
     let micOk = true
+    let problem: MicProblem | null = null
+    stopTest.current()
     try {
       mic.current?.stop()
       mic.current = await openMic()
-    } catch {
+    } catch (e) {
       micOk = false
+      problem = classifyMicError(e)
       mic.current = null
     }
     setScored(micOk)
     scoredRef.current = micOk
     if (micOk) {
+      const m = mic.current!
+      setMicName(m.label)
+      m.onLost(() => {
+        lostAt.current = getPos()
+        setMicLost(true)
+        setNotice('The microphone was disconnected. The lyrics carry on; lines from here are not scored.')
+      })
       setPhase('calm')
-      await mic.current!.calibrate(1400)
-    } else setNotice('No microphone, so no score. The lyrics still follow along.')
+      await m.calibrate(1400)
+      if (recordTake && !m.startRecording()) setNotice('Recording the voice is not available here. Singing is still scored.')
+    } else setNotice(`${MIC_PROBLEM_TEXT[problem ?? 'other']} The lyrics still follow along, without a score.`)
     // a first line that comes right away has no room for the on-stage count-in: count here instead
     if ((kl[0]?.startMs ?? 0) < MIN_INTRO_MS) {
       setPhase('count')
@@ -238,7 +276,6 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
   // while singing: the microphone and the scoring (no animation here: the stage moves itself)
   useEffect(() => {
     if (phase !== 'sing') return
-    let finishedLines = 0
     let loudRun = 0
     const m = mic.current
     const stopWatch = m
@@ -255,10 +292,11 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
     const id = window.setInterval(() => {
       const t = getPos()
       // score the lines that are over
-      while (scoredRef.current && finishedLines < kl.length && t > kl[finishedLines]!.endMs + 200) {
-        const r = scoreLine(finishedLines, kl[finishedLines]!, frames.current)
+      while (scoredRef.current && scoredUpTo.current < kl.length && t > kl[scoredUpTo.current]!.endMs + 200 + REACTION_MS) {
+        const [r] = scoreLines(kl, frames.current, scoredUpTo.current, scoredUpTo.current + 1, lostAt.current)
+        scoredUpTo.current++
+        if (!r) continue
         done.current.push(r)
-        finishedLines++
         const s = summarize(done.current)
         setHud({ points: s.total, last: r, streak: s.bestStreak })
       }
@@ -273,6 +311,38 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
+
+  /** a user-started microphone check: live meter for a few seconds, nothing is stored; start() or leaving stops it */
+  const testMic = async (): Promise<void> => {
+    if (micTest === 'on') return stopTest.current()
+    setMicTest('idle')
+    let m: Mic
+    try {
+      m = await openMic()
+    } catch (e) {
+      return setMicTest(classifyMicError(e))
+    }
+    setMicName(m.label)
+    setMicTest('on')
+    const stopWatch = m.watch(() => {
+      if (testMeter.current) testMeter.current.style.transform = `scaleX(${m.level().toFixed(2)})`
+    })
+    m.onLost(() => stopTest.current())
+    const timer = window.setTimeout(() => stopTest.current(), MIC_TEST_MS)
+    stopTest.current = () => {
+      stopWatch()
+      window.clearTimeout(timer)
+      m.stop()
+      stopTest.current = () => {}
+      setMicTest('idle')
+    }
+  }
+
+  const shareResult = (): void => {
+    if (!summary || !track) return
+    const text = `I sang ${track.title} by ${artist} on Lyra karaoke: ${'★'.repeat(summary.stars)}${'☆'.repeat(5 - summary.stars)} ${summary.total} points`
+    void navigator.clipboard?.writeText(text).then(() => setShared(true), () => setNotice('Could not copy the result.'))
+  }
 
   const pickVideo = useCallback((id: string): void => {
     setVideoId(id)
@@ -363,7 +433,8 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
     togglePause()
   }
 
-  const best = read<number>(bestKey)[trackId]
+  const rec = records[trackId]
+  const best = rec?.best
   const canStart = !!videoId && player.ready
 
   return (
@@ -430,7 +501,40 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
                   Use
                 </button>
               </div>
-              <p className="k2-hint">Wear headphones: the microphone must hear you, not the music. Stay quiet for a moment when it starts, it listens to the room first.</p>
+              <h4>Microphone</h4>
+              <div className="k2-mic">
+                <button type="button" className="pill" onClick={() => void testMic()} aria-pressed={micTest === 'on'}>
+                  {micTest === 'on' ? 'Stop the test' : 'Test my microphone'}
+                </button>
+                <span className="k2-meter k2-meter--wide" role="meter" aria-label="Microphone level" aria-valuemin={0} aria-valuemax={1}>
+                  <i ref={testMeter} />
+                </span>
+              </div>
+              {micTest === 'on' && <p className="k2-hint" role="status">Listening{micName ? ` to ${micName}` : ''}. Say something: the bar should move. Wear headphones when you sing, so the microphone hears you and not the music.</p>}
+              {micTest !== 'on' && micTest !== 'idle' && <p className="k2-hint k2-hint--warn" role="alert">{MIC_PROBLEM_TEXT[micTest]}</p>}
+              {micTest === 'idle' && <p className="k2-hint">Wear headphones: the microphone must hear you, not the music. Stay quiet for a moment when it starts, it listens to the room first.</p>}
+              {canSaveTake() && (
+                <label className="k2-check">
+                  <input type="checkbox" checked={recordTake} onChange={(e) => setRecordTake(e.target.checked)} />
+                  <span>Keep a recording of my voice for this take (nothing is saved unless you press Save at the end)</span>
+                </label>
+              )}
+              <p className="k2-privacy">
+                <Icon name="mic" size={12} /> The microphone is used only on this screen, while you sing. Nothing is uploaded; scores stay on this device.{' '}
+                <button
+                  type="button"
+                  className="k2-link"
+                  onClick={() => {
+                    forgetKaraokeData()
+                    setRecords({})
+                    setMem(track ? loadMemory(track.title, artist) : NO_MEMORY)
+                    setOffsetMs(0)
+                    setNotice('Karaoke scores, timing and remembered versions were removed from this device.')
+                  }}
+                >
+                  Forget my karaoke data
+                </button>
+              </p>
               <div className="k2-nudge">
                 <span>Lyrics timing</span>
                 <button type="button" className="pill" onClick={() => nudge(-500)}>−0.5 s</button>
@@ -454,7 +558,7 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
                   {videoId && <button type="button" className="pill" onClick={rejectCurrent}>Not a good version</button>}
                 </div>
               )}
-              {best ? <p className="k2-hint">Your best: {best} points</p> : null}
+              {best ? <p className="k2-hint">Your best: {best} points{rec && rec.stars ? ` · ${'★'.repeat(rec.stars)}` : ''} · sung {rec?.plays ?? 1}×</p> : null}
               <p className="k2-keys">Enter start · ↑ ↓ version · Esc close</p>
             </>
           )}
@@ -469,7 +573,9 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
           <div className="k2-hud">
             {scored ? <span>{hud.points} pts</span> : <span>Not scored</span>}
             {scored && hud.last && <b className={`grade grade--${hud.last.grade}`} key={hud.last.index}>{hud.last.grade === 'perfect' ? 'Perfect!' : hud.last.grade === 'great' ? 'Great' : hud.last.grade === 'ok' ? 'OK' : 'Miss'}</b>}
-            {scored && <span className="k2-meter"><i ref={meter} /></span>}
+            {scored && !micLost && <span className="k2-live" title={micName || 'Microphone'}><i aria-hidden /> Mic on, not recorded{recordTake ? ' as a file unless you save' : ''}</span>}
+            {micLost && <span className="k2-live k2-live--off">Mic lost</span>}
+            {scored && <span className="k2-meter" role="meter" aria-label="Microphone level" aria-valuemin={0} aria-valuemax={1}><i ref={meter} /></span>}
           </div>
           {leak && <p className="k2-hint k2-hint--warn">The microphone is hearing the music. Headphones will make the score fair.</p>}
           {notice && !leak && <p className="k2-hint k2-hint--warn">{notice}</p>}
@@ -504,10 +610,27 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
                 ))}
               </div>
               <h2>{summary.total} points</h2>
+              {newBest !== null && <b className="k2-badge">New best! Your old best was {newBest}.</b>}
+              {summary.silent && <p className="k2-hint k2-hint--warn" role="alert">The microphone heard almost nothing, so this score was not saved. Check the test on the setup screen and that the right microphone is selected.</p>}
               <p className="k2-hint">
                 You sang {Math.round(summary.sungShare * 100)}% of the lines · best streak {summary.bestStreak}
-                {best === summary.total ? ' · new best!' : ''}
               </p>
+              <div className="k2-facts">
+                <span>Timing <b>{Math.round(summary.timing * 100)}%</b></span>
+                <span>Steadiness <b>{summary.steadiness ? `${Math.round(summary.steadiness * 100)}%` : 'n/a'}</b></span>
+                <span>{summary.grades.perfect} perfect · {summary.grades.great} great · {summary.grades.ok} ok · {summary.grades.miss} missed</span>
+              </div>
+              {rec && rec.recent.length > 1 && (
+                <div className="k2-history" aria-label={`Your last ${rec.recent.length} takes of this song`}>
+                  {rec.recent.map((v, i) => (
+                    <i key={i} className={i === rec.recent.length - 1 ? 'is-now' : ''} style={{ height: `${Math.max(6, Math.round(v / 100))}%` }} title={`${v} points`} />
+                  ))}
+                </div>
+              )}
+              <p className="k2-fine">
+                The score is honest but simple: it measures when you sing against the lyric timing and how steady your held notes are. It does not compare with the song's melody.
+              </p>
+              {micLost && <p className="k2-hint k2-hint--warn">The microphone was disconnected during the song, so only the lines before that were scored.</p>}
               <div className="k2-review">
                 {summary.lines.map((r) => (
                   <div key={r.index} className={`review review--${r.grade}`}>
@@ -522,6 +645,12 @@ export function KaraokeScreen({ onClose }: { onClose: () => void }): ReactElemen
           )}
           <div className="k2-actions">
             <button type="button" className="pill pill--primary" onClick={again}>Sing again</button>
+            {summary && !summary.silent && <button type="button" className="pill" onClick={shareResult}>{shared ? 'Copied' : 'Copy result'}</button>}
+            {takeUrl && track && (
+              <a className="pill" href={takeUrl} download={`Lyra karaoke - ${track.title}.webm`.replace(/[\\/:*?"<>|]/g, '')}>
+                Save my voice
+              </a>
+            )}
             <button type="button" className="pill" onClick={onClose}>Close</button>
           </div>
         </div>
