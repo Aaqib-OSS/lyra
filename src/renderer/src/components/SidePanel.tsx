@@ -7,7 +7,7 @@ import { Artwork } from './Artwork'
 import { IconButton } from './Controls'
 import { Icon } from './Icon'
 import { LyricsMatchPanel } from './LyricsMatchPanel'
-import { SettingsPanel } from './SettingsPanel'
+import { SettingsPanel } from './lazy'
 
 const TITLES: Record<Exclude<Panel, 'none'>, string> = { queue: 'Queue', moments: 'Moments', settings: 'Settings', lyrics: 'Lyrics match' }
 

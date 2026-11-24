@@ -18,6 +18,8 @@ export default defineConfig({
     root: resolve(__dirname, 'src/renderer'),
     resolve: { alias: { '@shared': shared, '@core': core, '@': resolve(__dirname, 'src/renderer/src') } },
     plugins: [react()],
-    build: { rollupOptions: { input: resolve(__dirname, 'src/renderer/index.html') } }
+    // electron-vite ships the renderer unminified by default (a 2 MB script to parse on every launch); minify the JS.
+    // CSS stays as written (cssMinify off): the looks are hand-tuned and a CSS minifier may rewrite values.
+    build: { minify: 'oxc', cssMinify: false, rollupOptions: { input: resolve(__dirname, 'src/renderer/index.html') } }
   }
 })
