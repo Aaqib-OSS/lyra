@@ -6,6 +6,7 @@ import { usePlayer } from '@/store/player'
 import { ShortcutEditor } from './ShortcutEditor'
 import { UpdateRow } from './UpdateRow'
 import { AndroidUpdateRow } from './AndroidUpdateRow'
+import { AndroidCheck } from './AndroidCheck'
 import { useSettings } from '@/store/settings'
 import { roomLink, useRoom } from '@/store/room'
 import { useJam } from '@/store/jam'
@@ -619,6 +620,9 @@ function PhoneSection() {
           Open
         </button>
       </Row>
+      <More label={'Why isn’t it working?'}>
+        <AndroidCheck />
+      </More>
     </section>
   )
 }

@@ -467,6 +467,8 @@ export const androidApi: LyraApi &{ android: NonNullable<LyraApi['android']> } =
     toggleAmbient: async () => void (await rpc('toggleAmbient')),
     audioRoute: () => rpc<{ headphones: boolean }>('audioRoute'),
     compatibilityReport: () => rpc<string>('compatibilityReport'),
+    selfCheck: async () => JSON.parse(await rpc<string>('selfCheck')),
+    selfCheckFix: (id) => rpc<boolean>('selfCheckFix', id),
     recordVideo: (fromStart) => rpc<{ ok: boolean; error?: string }>('recordVideo', fromStart),
     addAmbientTile: () => rpc<boolean>('addAmbientTile'),
     appUpdate: {

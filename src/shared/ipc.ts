@@ -192,6 +192,26 @@ export interface AppInfo {
 export type Unsubscribe = () => void
 
 /** Surface exposed on `window.lyra` by the preload script. */
+/** One row of the Android "Why isn't it working?" check. fix is an id for selfCheckFix, or null. */
+export interface AndroidSelfCheckItem {
+  id: string
+  level: 'ok' | 'warn' | 'bad' | 'info'
+  title: string
+  detail: string
+  fix: string | null
+  fixLabel: string | null
+}
+
+export interface AndroidSelfCheck {
+  checks: AndroidSelfCheckItem[]
+  /** how many checks are warnings or errors */
+  problems: number
+  /** steps for this phone maker's battery manager, or null */
+  oem: { name: string; steps: string[] } | null
+  /** plain text to copy for a bug report (no personal data) */
+  report: string
+}
+
 export interface LyraApi {
   settings: {
     get(): Promise<Settings>
@@ -315,6 +335,10 @@ export interface LyraApi {
     recordVideo(fromStart: boolean): Promise<{ ok: boolean; error?: string }>
     /** are headphones / a Bluetooth speaker connected? (the microphone cannot hear those) */
     audioRoute(): Promise<{ headphones: boolean }>
+    /** "Why isn't it working?": what Lyra depends on (permissions, listener, battery rules) with one-tap fixes */
+    selfCheck(): Promise<AndroidSelfCheck>
+    /** open the Android screen for a check's fix id; false if there is none */
+    selfCheckFix(id: string): Promise<boolean>
     /** Copy an Android device compatibility report with no personal data. */
     compatibilityReport(): Promise<string>
     /** ask Android to add the "Lyra ambient" tile to Quick Settings (Android 13+) */

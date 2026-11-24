@@ -36,6 +36,7 @@ phone. Status column: **fixed** = changed in this pass, **open** = left for the 
 | 23 | Android Auto | `car/*` reviewed: lyrics are kept off the session unless the user opts in. No change. | ok |
 | 24 | F-Droid | `fdroid/dev.lyra.android.yml` builds with `lyraNoUpdater`, but the merged manifest still declares `REQUEST_INSTALL_PACKAGES` and `UPDATE_PACKAGES_WITHOUT_USER_ACTION`, which F-Droid reviewers normally flag. Fixing it means a build-type manifest overlay, which touches the updater. | open (owner decision) |
 | 25 | Shortcut | `shortcuts.xml` hard-codes `targetPackage="dev.lyra.android"`, so the debug build (`.debug` suffix) has a broken shortcut. Release is fine. | open (debug only) |
+| 26 | Overlay | The floating widget is sized once from the screen width at creation; after a rotation it keeps the old width (it is clamped to the screen when dragged). | open |
 
 ## New permission
 

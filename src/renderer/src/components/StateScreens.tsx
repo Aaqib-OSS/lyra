@@ -5,6 +5,7 @@ import { useSettings } from '@/store/settings'
 import { useUi } from '@/store/ui'
 import { Icon } from './Icon'
 import { Artwork } from './Artwork'
+import { AndroidCheck } from './AndroidCheck'
 
 const REDIRECT_URI = 'http://127.0.0.1:53682/callback'
 
@@ -23,6 +24,7 @@ export function LoadingScreen() {
 
 /** Android: one permission lets Lyra see what any music app is playing. No account, no Spotify login. */
 function AndroidSetup() {
+  const [help, setHelp] = useState(false)
   return (
     <div className="screen screen--center">
       <div className="screen__icon">
@@ -30,13 +32,26 @@ function AndroidSetup() {
       </div>
       <h2 className="screen__title">Let Lyra see what’s playing</h2>
       <p className="screen__sub">
-        Turn on <strong>Lyra</strong> under “Notification access”. Lyra only reads the now-playing card of your music app (title, artist, position). It never reads your notifications.
+        Android only tells an app what music is playing if you give it <strong>Notification access</strong>. Turn on <strong>Lyra</strong> in the list that opens.
       </p>
+      <ul className="screen__sub" style={{ textAlign: 'left', margin: '0 0 8px', paddingLeft: 20, lineHeight: 1.5 }}>
+        <li>Lyra reads only the now-playing card of your music app: title, artist and where you are in the song.</li>
+        <li>It never reads your messages or other notifications, and nothing about what you play leaves your phone except the song name used to find lyrics.</li>
+        <li>You can switch it off again any time in the same list.</li>
+      </ul>
       <div className="screen__actions">
-        <button type="button" className="pill pill--primary" onClick={() => void window.lyra.android?.openAccessSettings()}>
-          Open settings
+        <button type="button" className="pill pill--primary" style={{ minHeight: 48 }} onClick={() => void window.lyra.android?.openAccessSettings()}>
+          Open notification access
+        </button>
+        <button type="button" className="pill" style={{ minHeight: 48 }} onClick={() => setHelp((v) => !v)} aria-expanded={help}>
+          {help ? 'Hide help' : 'It won’t let me switch it on'}
         </button>
       </div>
+      {help && (
+        <div style={{ maxWidth: 420, width: '100%', marginTop: 12 }}>
+          <AndroidCheck />
+        </div>
+      )}
     </div>
   )
 }
