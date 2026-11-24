@@ -9,7 +9,7 @@ const r = await page.evaluate(() => {
   const by = {}
   for (const a of document.getAnimations()) {
     const t = a.effect?.target
-    const key = `${a.animationName ?? a.constructor.name} on ${t?.tagName?.toLowerCase()}.${String(t?.className ?? '').toString().slice(0, 40)} [${a.playState}]`
+    const props = [...new Set((a.effect?.getKeyframes?.() ?? []).flatMap((k) => Object.keys(k)).filter((k) => !['offset','easing','composite','computedOffset'].includes(k)))].join(','); const key = `${a.animationName ?? a.constructor.name} (${props}) on ${t?.tagName?.toLowerCase()}.${String(t?.className ?? '').toString().slice(0, 40)} [${a.playState}]`
     by[key] = (by[key] ?? 0) + 1
   }
   const root = document.documentElement.dataset
