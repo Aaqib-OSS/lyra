@@ -69,15 +69,20 @@ interface FrameSink {
   tail: number
   queue: Promise<void>
   reader: FileHandle | null
+  /** a write failed (disk full): the pictures are incomplete */
+  failed: boolean
 }
 let sink: FrameSink | null = null
 
 async function frameCaptureStart(): Promise<boolean> {
   await frameCaptureClear()
   try {
+    // a long song's pictures take a few GB in the temp folder: refuse early instead of failing at the end
+    const free = await statfs(tmpdir()).then((s) => Number(s.bavail) * Number(s.bsize)).catch(() => Infinity)
+    if (free < 2 * 1024 ** 3) return false
     const path = join(tmpdir(), `lyra-frames-${Date.now()}.bin`)
     const fh = await open(path, 'w')
-    sink = { path, fh, t0: Date.now(), times: [], offsets: [], lengths: [], tail: 0, queue: Promise.resolve(), reader: null }
+    sink = { path, fh, t0: Date.now(), times: [], offsets: [], lengths: [], tail: 0, queue: Promise.resolve(), reader: null, failed: false }
     return true
   } catch {
     return false
@@ -91,7 +96,7 @@ async function frameCaptureStop(): Promise<number[] | null> {
   await s.fh.close().catch(() => undefined)
   s.reader = await open(s.path, 'r').catch(() => null)
   s.t0 = -1 // no more pictures are appended
-  return s.times.length ? s.times : null
+  return s.times.length && !s.failed ? s.times : null
 }
 
 async function frameCaptureClear(): Promise<void> {
@@ -120,7 +125,9 @@ function handOver(image: Electron.NativeImage, height: number): void {
     s.times.push(Date.now() - s.t0)
     s.offsets.push(at)
     s.lengths.push(jpeg.byteLength)
-    s.queue = s.queue.then(() => s.fh.write(jpeg, 0, jpeg.byteLength, at).then(() => undefined))
+    s.queue = s.queue.then(() => s.fh.write(jpeg, 0, jpeg.byteLength, at).then(() => undefined)).catch(() => {
+      s.failed = true
+    })
     return
   }
   target.webContents.send(EV.studioFrame, jpeg)

@@ -9,6 +9,7 @@ import { useOffsets } from '@/store/offsets'
 import { useSettings } from '@/store/settings'
 import logoUrl from '@/assets/logo.png'
 import { createScene } from './scene'
+import { enoughSpace, estimateBytes, formatBytes } from './exportPlan'
 import { StageSource } from './stage'
 
 export type Ratio = '9:16' | '4:5' | '1:1' | '16:9'
@@ -121,6 +122,12 @@ export function openWriter(fileId: number): ChunkWriter {
   return new ChunkWriter((position, data) => window.lyra.studio.write(fileId, position, data))
 }
 
+/** Stops an export before it starts when the drive the video goes to has no room for it (a half-written file is useless). */
+export function assertRoom(file: { freeBytes: number | null }, quality: Quality, fps: Fps, seconds: number): void {
+  const need = estimateBytes(bitrateFor(quality, fps), seconds)
+  if (!enoughSpace(file.freeBytes, need)) throw new Error(`Not enough free space on that drive: the video needs about ${formatBytes(need)} and ${formatBytes(file.freeBytes ?? 0)} is free.`)
+}
+
 /** Gives back what a video or picture element holds (the decoder, the decoded frames) as soon as the export is over. */
 export function releaseMedia(m: HTMLVideoElement | HTMLImageElement | null): void {
   if (!m) return
@@ -181,6 +188,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
   let mediaRef: HTMLVideoElement | HTMLImageElement | null = null
   let canvasRef: HTMLCanvasElement | null = null
   try {
+    assertRoom(file, opts.quality, FPS, total)
     // pictures and video first, so the first frame already has them
     const art = await loadImage(track.artworkUrl)
     const logo = await loadImage(logoUrl)

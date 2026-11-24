@@ -5,7 +5,7 @@ import logoUrl from '@/assets/logo.png'
 import { useBgState } from '@/store/bgState'
 import { loudnessGainFromEnergies, loudnessGainOf } from './loudness'
 import { isKeyFrame, maxQueueFor, throttleProgress, waitForRoom, type ChunkWriter } from './encodePolicy'
-import { closeEncoder, openWriter, releaseMedia, pickEncoder, softCeiling, bitrateFor, codecFor, dimensions, loadImage, loadVideo, lookInputs, type Fps, type Look, type Quality, type Ratio, type Progress } from './recorder'
+import { assertRoom, closeEncoder, openWriter, releaseMedia, pickEncoder, softCeiling, bitrateFor, codecFor, dimensions, loadImage, loadVideo, lookInputs, type Fps, type Look, type Quality, type Ratio, type Progress } from './recorder'
 import { createScene } from './scene'
 
 /**
@@ -94,6 +94,7 @@ export async function exportFromFile(opts: FileExportOptions, onProgress: (p: Pr
   signal.addEventListener('abort', onAbort)
   useBgState.getState().setExporting(true)
   try {
+    assertRoom(file, opts.quality, FPS, total)
     const art = await loadImage(opts.coverUrl)
     const logo = await loadImage(logoUrl)
     let media: HTMLVideoElement | HTMLImageElement | null = null

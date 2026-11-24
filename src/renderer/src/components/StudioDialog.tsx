@@ -4,8 +4,9 @@ import { parseLrc } from '@shared/lrc'
 import { estimateWords } from '@shared/wordTiming'
 import { decodeAudio, exportFromFile } from '@/lib/studio/fileExport'
 import { exportSmooth } from '@/lib/studio/twoPhase'
-import { dimensions, exportVideo, type ExportOptions, type Fps, type FontChoice, type Highlight, type LayoutStyle, type Look, type Quality, type Ratio, type TextPosition, type MotionStyle } from '@/lib/studio/recorder'
+import { bitrateFor, dimensions, exportVideo, offsetNow, type ExportOptions, type Fps, type FontChoice, type Highlight, type LayoutStyle, type Look, type Quality, type Ratio, type TextPosition, type MotionStyle } from '@/lib/studio/recorder'
 import { autoChorus } from '@/lib/studio/sections'
+import { PLATFORM_PRESETS, buildDiagnostics, clock, estimateBytes, estimateDuration, formatBytes, friendlyError, overLimit, platformOf, remainingSeconds, toLrc, toSrt } from '@/lib/studio/exportPlan'
 import { PRESETS, clampToCapability, presetOf, recommendPreset, type DeviceCaps, type SpeedPreset } from '@/lib/studio/encodePolicy'
 import { StageSource } from '@/lib/studio/stage'
 import { useLyrics } from '@/store/lyrics'
@@ -27,7 +28,7 @@ const QUALITIES: Array<{ v: Quality; label: string }> = [
   { v: '1440p', label: 'Ultra · 1440p' }
 ]
 
-type Phase = { name: 'setup' } | { name: 'running'; stage: string; seconds: number; total: number } | { name: 'done'; path: string; droppedPct?: number; fps?: number; sourceQuality?: string; askedFps?: number; coverPath?: string | null } | { name: 'error'; message: string }
+type Phase = { name: 'setup' } | { name: 'running'; stage: string; seconds: number; total: number } | { name: 'done'; path: string; droppedPct?: number; fps?: number; sourceQuality?: string; askedFps?: number; coverPath?: string | null; test?: boolean; lyricsFiles?: string[] } | { name: 'error'; message: string }
 type Preset = 'chorus' | 'whole' | 'first30' | 'custom'
 type Source = 'live' | 'file'
 
@@ -83,6 +84,11 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
   const [preset, setPreset] = useState<Preset>('chorus')
   const [range, setRange] = useState<{ startMs: number; endMs: number }>({ startMs: 0, endMs: 30_000 })
   const abort = useRef<AbortController | null>(null)
+  /** when the current step started and which step it is, for the time-left estimate */
+  const stepClock = useRef({ stage: '', at: 0 })
+  /** the settings of the last run, for the failure details */
+  const lastRun = useRef<Record<string, unknown>>({})
+  const [saveLyrics, setSaveLyrics] = useState(() => localStorage.getItem('lyra.studio.lyricsFiles') === 'on')
   const [previewStage, setPreviewStage] = useState<StageSource | null>(null)
   // which video plays behind the lyrics, and a way to swap it before recording
   const [pickOpen, setPickOpen] = useState(false)
@@ -177,7 +183,10 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
   const { w, h } = dimensions(ratio, eff.quality)
   const partMs = Math.max(0, range.endMs - range.startMs)
   const autoUsable = source === 'live' && (spec?.kind === 'preview' || spec?.kind === 'media' || spec?.kind === 'youtube')
-  const approxMb = Math.round(((eff.quality === '720p' ? 5 : eff.quality === '1080p' ? 9 : 16) * (eff.fps === 60 ? 1.4 : 1) * (partMs / 1000 + 3)) / 8)
+  const approxBytes = estimateBytes(bitrateFor(eff.quality, eff.fps), partMs / 1000)
+  const platform = platformOf(ratio, quality, fps)
+  const limit = overLimit(PLATFORM_PRESETS.find((p) => p.id === platform), partMs / 1000)
+  const eta = estimateDuration(partMs / 1000, source === 'file' ? 'file' : method)
   const media: { url: string; kind: 'video' | 'image' } | null =
     bg === 'file' && file
       ? { url: file.url, kind: file.kind }
@@ -187,12 +196,24 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
           ? { url: spec.url, kind: 'video' }
           : null
 
-  const start = async (): Promise<void> => {
+  /** `test`: only the first 5 seconds of the part, to check the look, the sound and the sync before a long export */
+  const start = async (test = false): Promise<void> => {
     const ctl = new AbortController()
     abort.current = ctl
-    setPhase({ name: 'running', stage: 'Getting ready…', seconds: 0, total: partMs / 1000 })
-    const onProgress = (p: { stage: string; seconds: number; total: number }): void =>
+    const part = test ? { startMs: range.startMs, endMs: Math.min(range.endMs, range.startMs + 5000) } : range
+    stepClock.current = { stage: 'preparing', at: Date.now() }
+    setPhase({ name: 'running', stage: 'Getting ready…', seconds: 0, total: (part.endMs - part.startMs) / 1000 })
+    const onProgress = (p: { stage: string; seconds: number; total: number }): void => {
+      if (p.stage !== stepClock.current.stage) stepClock.current = { stage: p.stage, at: Date.now() }
       setPhase({ name: 'running', stage: p.stage === 'recording' ? (source === 'live' ? (method === 'smooth' ? 'Recording the song' : 'Recording') : 'Making the video') : p.stage === 'rendering' ? 'Rendering the video' : p.stage === 'finishing' ? 'Finishing the file…' : 'Getting ready…', seconds: p.seconds, total: p.total })
+    }
+    // the lyrics of the part as .lrc / .srt next to the video (for an editor, or to upload as subtitles)
+    const writeLyrics = async (path: string): Promise<string[]> => {
+      if (!saveLyrics || !lines.length) return []
+      const off = source === 'live' ? -offsetNow() : 0
+      const made = await Promise.all([window.lyra.studio.saveText(path, 'lrc', toLrc(lines, part.startMs, part.endMs, off)), window.lyra.studio.saveText(path, 'srt', toSrt(lines, part.startMs, part.endMs, off))]).catch(() => [] as Array<string | null>)
+      return made.filter((x): x is string => !!x)
+    }
     try {
       if (source === 'live') {
         const opts: ExportOptions = {
@@ -202,8 +223,8 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
           ratio,
           quality: eff.quality,
           fps: eff.fps,
-          startMs: range.startMs,
-          endMs: range.endMs,
+          startMs: part.startMs,
+          endMs: part.endMs,
           showSong,
           mediaUrl: myLook ? null : bg === 'file' ? (file?.url ?? null) : bg === 'auto' && spec?.kind === 'media' ? spec.url : null,
           mediaKind: myLook ? null : bg === 'file' ? (file?.kind ?? null) : bg === 'auto' && spec?.kind === 'media' ? spec.media : null,
@@ -213,7 +234,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
         }
         const r = await (method === 'smooth' ? exportSmooth(opts, onProgress, ctl.signal) : exportVideo(opts, onProgress, ctl.signal))
         if (r.droppedPct >= 8) localStorage.setItem('lyra.studio.slowPc', '1')
-        setPhase({ name: 'done', path: r.path, droppedPct: r.droppedPct, fps: r.fps, sourceQuality: r.sourceQuality, askedFps: eff.fps, coverPath: r.coverPath })
+        setPhase({ name: 'done', path: r.path, droppedPct: r.droppedPct, fps: r.fps, sourceQuality: r.sourceQuality, askedFps: eff.fps, coverPath: r.coverPath, test, lyricsFiles: await writeLyrics(r.path) })
       } else {
         const r = await exportFromFile(
           {
@@ -229,19 +250,20 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
             motionStyle: bg === 'motion' ? motionStyle : undefined,
             filmGrain: bg === 'motion' && filmGrain,
             showSong,
-            startMs: range.startMs,
-            endMs: range.endMs,
+            startMs: part.startMs,
+            endMs: part.endMs,
             mediaUrl: bg === 'file' ? (file?.url ?? null) : null,
             mediaKind: bg === 'file' ? (file?.kind ?? null) : null
           },
           onProgress,
           ctl.signal
         )
-        setPhase({ name: 'done', path: r.path })
+        setPhase({ name: 'done', path: r.path, test, lyricsFiles: await writeLyrics(r.path) })
       }
     } catch (e) {
       const m = (e as Error).message
       setPhase(m === 'cancelled' ? { name: 'setup' } : { name: 'error', message: m })
+      lastRun.current = { ratio, quality: eff.quality, fps: eff.fps, method: source === 'live' ? method : 'file', source, look: myLook ? 'my current look' : 'simple layout', bg: myLook ? 'n/a' : bg, partSeconds: Math.round((part.endMs - part.startMs) / 1000), test }
     }
   }
 
@@ -342,6 +364,28 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                 </div>}
 
                 <div className="studio__group">
+                  <span>Made for</span>
+                  <div className="studio__choices studio__platforms">
+                    {PLATFORM_PRESETS.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        className={platform === p.id ? 'is-on' : ''}
+                        title={p.hint}
+                        onClick={() => {
+                          setRatio(p.ratio)
+                          setQuality(p.quality)
+                          setFps(p.fps)
+                        }}
+                      >
+                        <b>{p.label}</b>
+                        <small>{p.hint}</small>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="studio__group">
                   <span>Part of the song</span>
                   {seg<Preset>('Part of the song', preset, [{ v: 'chorus', label: 'Chorus' }, { v: 'first30', label: 'First 30 s' }, { v: 'whole', label: 'Whole song' }, { v: 'custom', label: 'Custom' }], setPreset)}
                   <div className="studio__range">
@@ -357,6 +401,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                   <small>
                     {fmt(partMs / 1000)} long{preset === 'chorus' && lines.length === 0 ? ' · no synced lyrics yet, using the first 30 s' : ''}
                   </small>
+                  {limit > 0 && <small style={{ color: '#ffb36b' }}>{PLATFORM_PRESETS.find((p) => p.id === platform)?.label} takes up to {clock(limit)}: this part is longer, so it may be cut or refused.</small>}
                 </div>
 
                 <div className="studio__group">
@@ -396,7 +441,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                   <span>Smoothness</span>
                   {seg<string>('Smoothness', String(fps), [{ v: '60', label: '60 fps · smooth' }, { v: '30', label: '30 fps · smaller file' }], (v) => setFps(v === '30' ? 30 : 60))}
                   <small>
-                    {w}×{h} · {eff.fps} fps · about {approxMb} MB
+                    {w}×{h} · {eff.fps} fps · about {formatBytes(approxBytes)} · takes {eta.text}
                   </small>
                 </div>
 
@@ -471,6 +516,20 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                   <input type="checkbox" checked={showSong} onChange={(e) => setShowSong(e.target.checked)} /> Show the song’s cover and title
                 </label>}
 
+                {lines.length > 0 && (
+                  <label className="studio__check">
+                    <input
+                      type="checkbox"
+                      checked={saveLyrics}
+                      onChange={(e) => {
+                        setSaveLyrics(e.target.checked)
+                        localStorage.setItem('lyra.studio.lyricsFiles', e.target.checked ? 'on' : 'off')
+                      }}
+                    />{' '}
+                    Also save the lyrics as .lrc and .srt files next to the video (for editors and subtitles)
+                  </label>
+                )}
+
                 <p className="hint">
                   {source === 'live'
                     ? `Lyra jumps to the start of the part and records it in real time, so ${fmt(partMs / 1000)} of video takes ${fmt(partMs / 1000)}. Keep Lyra open, don’t play other sounds, and leave the volume up.`
@@ -478,7 +537,10 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                   A small “Made with Lyra ♥” badge sits at the bottom, and a short “Download Lyra” card closes the video.
                 </p>
                 <div className="sharecard__row sharecard__row--end">
-                  <button type="button" className="pill pill--primary" onClick={() => void start()} disabled={bg === 'file' && !file}>
+                  <button type="button" className="pill" title="Makes only the first 5 seconds, to check the look, the sound and the timing" onClick={() => void start(true)} disabled={!myLook && bg === 'file' && !file}>
+                    Test 5 seconds
+                  </button>
+                  <button type="button" className="pill pill--primary" onClick={() => void start()} disabled={!myLook && bg === 'file' && !file}>
                     Export…
                   </button>
                 </div>
@@ -493,9 +555,13 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
               {phase.stage}
               {phase.stage !== 'Getting ready…' && phase.stage !== 'Finishing the file…' ? ` · ${fmt(phase.seconds)} / ${fmt(phase.total)}` : ''}
             </p>
-            <div className="studio__bar">
+            <div className="studio__bar" role="progressbar" aria-label="Export progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={phase.total ? Math.round(Math.min(1, phase.seconds / phase.total) * 100) : 0}>
               <b style={{ transform: `scaleX(${phase.total ? Math.min(1, phase.seconds / phase.total) : 0})` }} />
             </div>
+            {(() => {
+              const left = remainingSeconds((Date.now() - stepClock.current.at) / 1000, phase.total ? phase.seconds / phase.total : 0)
+              return left !== null ? <small aria-live="off">About {clock(left)} left in this step</small> : null
+            })()}
             <p className="hint">{source === 'live' && phase.stage !== 'Rendering the video' ? 'Keep Lyra open and the song playing out loud. You can use other programs.' : 'You can keep using your PC. Lyra just needs to stay open.'}</p>
             <div className="sharecard__row sharecard__row--end">
               <button type="button" className="pill" onClick={() => abort.current?.abort()}>
@@ -508,8 +574,10 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
         {phase.name === 'done' && (
           <>
             <p className="studio__song">
-              <b>Saved.</b> {phase.path}
+              <b>{phase.test ? 'Test clip saved.' : 'Saved.'}</b> {phase.path}
             </p>
+            {phase.test && <p className="hint">This is only the first 5 seconds. If the look, sound and timing are right, close this and press Export… for the whole part.</p>}
+            {phase.lyricsFiles && phase.lyricsFiles.length > 0 && <p className="studio__song">Lyrics saved next to the video: {phase.lyricsFiles.map((p) => p.split(/[\\/]/).pop()).join(', ')}</p>}
             {phase.fps !== undefined && phase.askedFps !== undefined && phase.fps < phase.askedFps && (
               <p className="studio__song" style={{ color: '#ffb36b' }}>
                 Recorded at {phase.fps} fps: this PC could not draw 60 frames a second smoothly, so Lyra chose a steady {phase.fps} instead.
@@ -542,6 +610,9 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
               >
                 Copy caption
               </button>
+              <button type="button" className="pill" onClick={() => void window.lyra.app.copy(phase.path).then((ok) => useUi.getState().toast(ok ? 'Path copied' : 'Couldn’t copy', ok ? 'info' : 'error'))}>
+                Copy path
+              </button>
               <button type="button" className="pill" onClick={() => void window.lyra.studio.reveal(phase.path)}>
                 Show in folder
               </button>
@@ -554,12 +625,26 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
 
         {phase.name === 'error' && (
           <>
-            <p className="hint">Couldn’t finish: {phase.message}</p>
-            <div className="sharecard__row sharecard__row--end">
-              <button type="button" className="pill" onClick={() => setPhase({ name: 'setup' })}>
-                Back
-              </button>
-            </div>
+            {(() => {
+              const fe = friendlyError(phase.message)
+              const details = buildDiagnostics({ error: phase.message, options: lastRun.current, platform: navigator.platform, cores: caps.cores, memoryGb: caps.memoryGb })
+              return (
+                <>
+                  <p className="studio__song" role="alert">
+                    <b>{fe.title}.</b> {fe.advice}
+                  </p>
+                  <textarea className="studio__caption" readOnly value={details} rows={6} onFocus={(e) => e.currentTarget.select()} aria-label="Details of the problem" />
+                  <div className="sharecard__row sharecard__row--end">
+                    <button type="button" className="pill" onClick={() => void window.lyra.app.copy(details).then((ok) => useUi.getState().toast(ok ? 'Details copied' : 'Couldn’t copy', ok ? 'info' : 'error'))}>
+                      Copy details
+                    </button>
+                    <button type="button" className="pill pill--primary" onClick={() => setPhase({ name: 'setup' })}>
+                      Back
+                    </button>
+                  </div>
+                </>
+              )
+            })()}
           </>
         )}
       </div>
