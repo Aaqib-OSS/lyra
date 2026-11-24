@@ -314,12 +314,6 @@
   font-variant-numeric: tabular-nums;
   color: var(--fg);
 }
-.settings__about {
-  margin-top: 10px;
-  font-size: 11px;
-  color: var(--fg-3);
-  text-align: center;
-}
 
 /* ---------- lyrics match picker ---------- */
 

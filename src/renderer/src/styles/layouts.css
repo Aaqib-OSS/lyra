@@ -54,25 +54,20 @@
 :root:not([data-platform='android']) .full.full.is-cinema[data-arch='scene'] .full__side { background: rgba(8, 8, 12, 0.6); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 
 /* blocks: the hotbar and the XP bar sit on the right of the ground, clear of the inventory panel */
-[data-vibe='blocks'] .vibefx__hotbar { left: auto; right: 5vw; transform: none; }
-[data-vibe='blocks'] .vibefx__xp { left: auto; right: 5vw; transform: none; }
+
 
 /* ==========================================================================
    Props that belong to the full screen only (scoreboard, radio, hotbar, cassette ...).
    In the small windows they would sit on top of the header and the lyrics, so they step aside there.
    ========================================================================== */
-:root[data-mode='mini'] :is(.vibefx__hud, .vibefx__radio, .vibefx__stars-hud, .vibefx__score-bug, .vibefx__hotbar, .vibefx__xp, .vibefx__tape),
+:root[data-mode='mini'] :is(.vibefx__radio, .vibefx__stars-hud),
 :root[data-mode='compact'] .vibefx,
 :root[data-mode='minimal'] .vibefx { display: none; }
 :root[data-mode='mini'] .vibefx__sunset-sun { top: 78%; width: 70vw; }
 :root[data-mode='mini'] .vibefx__palm { height: 40%; }
-:root[data-mode='mini'] [data-vibe] .vibefx__flood { display: none; }
 
 /* phone: the same props move below the title strip; the ones that would hide the dock disappear */
-:root[data-platform='android'] :is(.vibefx__hotbar, .vibefx__xp, .vibefx__tape, .vibefx__stars-hud) { display: none; }
-:root[data-platform='android'] .vibefx__ground { height: 7%; }
-:root[data-platform='android'] .vibefx__hud { top: calc(env(safe-area-inset-top, 0px) + 82px); font-size: 9px; }
+:root[data-platform='android'] :is(.vibefx__stars-hud)  { display: none; }
 :root[data-platform='android'] .vibefx__radio { top: calc(env(safe-area-inset-top, 0px) + 82px); right: 14px; transform: scale(0.85); transform-origin: right top; }
-:root[data-platform='android'] .vibefx__score-bug { top: calc(env(safe-area-inset-top, 0px) + 82px); transform: translateX(-50%) scale(0.78); transform-origin: center top; }
 :root[data-platform='android'] .vibefx__sunset-sun { top: 52%; width: 70vw; }
 :root[data-platform='android'] .vibefx__palm { height: 42%; }

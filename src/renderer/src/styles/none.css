@@ -36,7 +36,9 @@
   clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, var(--sc-wl) var(--sc-wt), calc(var(--sc-wl) + var(--sc-ww)) var(--sc-wt), calc(var(--sc-wl) + var(--sc-ww)) calc(var(--sc-wt) + var(--sc-wh)), var(--sc-wl) calc(var(--sc-wt) + var(--sc-wh)), var(--sc-wl) var(--sc-wt));
 }
 .nonefx__floor { position: absolute; left: 0; right: 0; bottom: 0; height: 7vh; background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55)); }
-.nonefx__frame, .nonefx__lamp, .nonefx__bar, .nonefx__plaque-shadow { display: none; }
+.nonefx__frame,
+.nonefx__lamp,
+.nonefx__bar { display: none; }
 :root[data-vibe='none']:is([data-mode='full'], [data-mode='mini']):not([data-platform='android']) :is(.nonefx__frame, .nonefx__lamp, .nonefx__bar) { display: block; }
 /* the print: black frame, cream mat */
 .nonefx__frame {
