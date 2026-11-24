@@ -23,6 +23,16 @@ export function LyricsMatchPanel() {
   const [draft, setDraft] = useState('')
   const [saving, setSaving] = useState(false)
   const draftRef = useRef<HTMLTextAreaElement>(null)
+  const pasteRequested = useLyrics((s) => s.pasteRequested)
+  const hasBox = !!track && !(state.phase === 'ready' && state.result.imported)
+
+  // "Paste lyrics" on the empty-lyrics screen opens this panel straight on the paste box
+  useEffect(() => {
+    if (!pasteRequested || !hasBox) return
+    draftRef.current?.focus()
+    draftRef.current?.scrollIntoView({ block: 'nearest' })
+    useLyrics.getState().requestPaste(false)
+  }, [pasteRequested, hasBox])
 
   useEffect(() => {
     if (!track) return

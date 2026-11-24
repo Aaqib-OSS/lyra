@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { usePlayer } from './player'
 import { useSettings } from './settings'
+import { useUi } from './ui'
+import { useLyrics } from './lyrics'
+import { clampOffset, describeOffset, nudgeMessage } from '@/lib/lyricsView'
 
 const KEY = 'lyra.lyricOffsets'
 const MAX_ENTRIES = 500
@@ -25,7 +28,7 @@ interface OffsetStore {
 export const useOffsets = create<OffsetStore>((set, get) => ({
   map: load(),
   set(trackId, ms, remember = true) {
-    const clamped = Math.max(-10_000, Math.min(10_000, ms))
+    const clamped = clampOffset(ms)
     const next = { ...get().map }
     if (clamped === 0) delete next[trackId]
     else next[trackId] = clamped
@@ -59,9 +62,24 @@ export function useLyricOffset(): number {
 export function nudgeSongOffset(delta: number): void {
   const id = usePlayer.getState().snapshot?.track?.id
   if (!id) return
+  const ls = useLyrics.getState().state
+  if (ls.phase !== 'ready' || ls.result.status !== 'synced') {
+    useUi.getState().toast('Only timed lyrics can be shifted')
+    return
+  }
   const store = useOffsets.getState()
-  const ms = (store.map[id] ?? 0) + delta
-  store.set(id, ms) // also syncs into the user-choices store
+  const before = store.map[id] ?? 0
+  store.set(id, before + delta) // also syncs into the user-choices store (clamped there)
+  const after = useOffsets.getState().map[id] ?? 0
+  // one live toast at a time: repeated presses update it instead of stacking
+  useUi.setState((u) => ({ toasts: u.toasts.filter((t) => !t.message.startsWith('Lyrics ')) }))
+  useUi.getState().toast(after === before ? `Lyrics can't move further (${describeOffset(after)})` : nudgeMessage(after - before, after))
+}
+
+/** Back to the song's own timing (the footer readout resets on click). */
+export function resetSongOffset(): void {
+  const id = usePlayer.getState().snapshot?.track?.id
+  if (id) useOffsets.getState().set(id, 0)
 }
 
 // when a song starts and we hold no nudge for it locally, restore the remembered one

@@ -9,6 +9,9 @@ interface LyricsStore {
   state: LyricsState
   /** when the next automatic retry happens (null = none planned): the UI shows a countdown */
   retryAt: { attempt: number; at: number } | null
+  /** set by "Paste lyrics": the match panel focuses its paste box once it is open, then clears this */
+  pasteRequested: boolean
+  requestPaste(open?: boolean): void
   init(): void
   retry(): void
   /** Replace the current result (e.g. after the user picks another match). */
@@ -69,6 +72,8 @@ async function load(track: Track, force: boolean, set: (s: LyricsState) => void,
 export const useLyrics = create<LyricsStore>((set, get) => ({
   state: { phase: 'idle' },
   retryAt: null,
+  pasteRequested: false,
+  requestPaste: (open = true) => set({ pasteRequested: open }),
 
   init() {
     const setState = (state: LyricsState): void => set({ state })

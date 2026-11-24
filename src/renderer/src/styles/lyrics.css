@@ -67,7 +67,7 @@
   line-height: 1.18;
   letter-spacing: -0.025em;
   color: var(--fg);
-  text-align: left;
+  text-align: start;
   text-wrap: pretty;
   overflow-wrap: anywhere;
   cursor: default;
@@ -142,7 +142,7 @@
   display: inline;
   padding-block: 0.08em;
   background: linear-gradient(
-    90deg,
+    var(--fill-dir, 90deg),
     var(--fg) 0,
     var(--fg) calc(var(--p) * 114% - 14%),
     var(--word-dim) calc(var(--p) * 114%)
@@ -385,7 +385,8 @@
 .lyrics__source {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
+  flex-wrap: wrap;
   min-width: 0;
 }
 .linkbtn {
@@ -413,4 +414,47 @@
 }
 .root:not([data-theme='light']) .lyric.is-active .word {
   --fg: #fff;
+}
+
+/* ---------- right-to-left lines (Arabic, Hebrew): align and fill from the right ---------- */
+
+.lyric[data-rtl] {
+  transform-origin: right center;
+}
+.lyric[data-rtl] .lyric__text {
+  flex: 1;
+  --fill-dir: 270deg;
+}
+
+/* ---------- screen-reader-only text (the whole lyric for the staged looks) ---------- */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Windows high contrast: the fill relies on transparent text, so use real colours ---------- */
+
+@media (forced-colors: active) {
+  .word {
+    background: none;
+    color: inherit;
+    filter: none;
+    forced-color-adjust: auto;
+  }
+  .lyric {
+    opacity: 0.7;
+  }
+  .lyric.is-active {
+    opacity: 1;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
 }
