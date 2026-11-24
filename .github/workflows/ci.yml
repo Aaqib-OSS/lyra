@@ -1,22 +1,29 @@
 name: CI
 
+# CI is the gate: the full suites run here, not on every developer machine (docs/testing.md).
+# The release workflow (android.yml) refuses to publish a commit whose latest "CI" run did not succeed, so every job that
+# is not marked continue-on-error below is required.
+
 on:
   push:
     branches: [main]
   pull_request:
 
-# CI only reads the code: a compromised dependency or a hostile pull request gets a read-only token
+# least privilege: CI only reads the repository (artifacts and caches need no token scope)
 permissions:
   contents: read
 
-# a newer push to the same pull request replaces the older run; runs on main are never cancelled (the release gate reads them)
+# a newer push to the same pull request supersedes the running CI. Runs on main are never cancelled: the release gate
+# looks at the CI run of the exact commit it is about to publish.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # typecheck, unit tests, docs and website checks, and the production build (Windows: the app's first platform)
   check:
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -28,12 +35,16 @@ jobs:
       - run: npm test
       # version files agree, release notes card and fastlane changelog exist for the current version
       - run: npm run release:check
+      - run: npm run check:docs
+      - run: npm run check:site
       - run: npm run build
 
-  # Renders every vibe on phone, tablet and desktop sizes in a real browser and clicks every setting.
-  # Fails on clipped text, controls outside the window, colliding lyrics, poor contrast, dead switches.
-  ui:
+  # Vitest line coverage: informational only (no thresholds yet). Needs @vitest/coverage-v8, which is installed here and
+  # not kept in package.json until the owner decides to enforce numbers (docs/testing.md).
+  coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -41,20 +52,200 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Install the coverage provider (same version as vitest)
+        run: npm install --no-save "@vitest/coverage-v8@$(node -p "require('vitest/package.json').version")"
+      - run: npm run test:coverage
+      - name: Coverage summary
+        if: always()
+        run: node scripts/ui-test/summary.mjs coverage >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage
+          path: coverage
+          retention-days: 7
+
+  # The browser harness (the real renderer with a fake player) is built ONCE and every UI shard serves that build with
+  # `vite preview`, instead of each shard transforming the whole app again on a dev server.
+  harness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx vite build -c scripts/harness/vite.config.ts
+      - uses: actions/upload-artifact@v7
+        with:
+          name: harness-dist
+          path: scripts/harness/dist
+          retention-days: 1
+
+  # Renders every look on phone, tablet and desktop sizes in a real browser and clicks every setting.
+  # Fails on clipped text, controls outside the window, colliding lyrics, poor contrast, dead switches.
+  # The matrix splits the screens round-robin so every shard gets the same mix; shards run in parallel.
+  # A screen that fails is re-run once in a fresh page (flaky policy, docs/testing.md): failing twice fails the job.
+  ui:
+    needs: harness
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: quick-1of2, cmd: 'node scripts/ui-test/run.mjs --quick --shard=1/2 --out=ui-test-out/quick-1of2', dist: '1' }
+          - { name: quick-2of2, cmd: 'node scripts/ui-test/run.mjs --quick --shard=2/2 --out=ui-test-out/quick-2of2', dist: '1' }
+          - { name: states-1of4, cmd: 'node scripts/ui-test/run.mjs --states --shard=1/4 --out=ui-test-out/states-1of4', dist: '1' }
+          - { name: states-2of4, cmd: 'node scripts/ui-test/run.mjs --states --shard=2/4 --out=ui-test-out/states-2of4', dist: '1' }
+          - { name: states-3of4, cmd: 'node scripts/ui-test/run.mjs --states --shard=3/4 --out=ui-test-out/states-3of4', dist: '1' }
+          - { name: states-4of4, cmd: 'node scripts/ui-test/run.mjs --states --shard=4/4 --out=ui-test-out/states-4of4', dist: '1' }
+          - { name: settings, cmd: 'node scripts/ui-test/settings.mjs', dist: '1' }
+          # the video check makes its own test clip into scripts/harness/public, which a prebuilt harness would not serve
+          - { name: video, cmd: 'node scripts/ui-test/video-sync.mjs', dist: '0', ffmpeg: true }
+    name: ui (${{ matrix.name }})
+    env:
+      UI_HARNESS_DIST: ${{ matrix.dist }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        if: matrix.dist == '1'
+        with:
+          name: harness-dist
+          path: scripts/harness/dist
+
+      # the browser is cached per Playwright version; the system libraries are not part of that cache
+      - name: Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
+        id: browsers
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:ui:quick
-      - run: npm run test:settings
-      - run: npm run test:ui:states
-      - name: Install ffmpeg (makes the test clip for the video pause/resume check)
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-      - run: npm run test:video
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - if: steps.browsers.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # Fonts decide text widths, and clipping / contrast checks depend on them. The web fonts are bundled with the app;
+      # these are the system fonts that the look stylesheets name as fallbacks (Liberation = metric twin of Courier New / Arial,
+      # DejaVu = the monospace fallback, Noto = Devanagari / Gurmukhi lyrics and emoji). Pinned so the runner image cannot drift.
+      - name: Fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-liberation fonts-dejavu-core fonts-noto-core fonts-noto-color-emoji
+          fc-cache -f
+      - name: ffmpeg (makes the test clip for the video pause/resume check)
+        if: matrix.ffmpeg
+        run: sudo apt-get install -y -qq ffmpeg
+
+      - name: Run
+        run: ${{ matrix.cmd }}
+      - name: Flaky and failing screens
+        if: always()
+        run: node scripts/ui-test/summary.mjs ui >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: ui-test-failures
+          name: ui-test-failures-${{ matrix.name }}
           path: ui-test-out
           retention-days: 7
+      # flaky screens passed on retry, so the job is green; keep their screenshots for a look anyway
+      - uses: actions/upload-artifact@v7
+        if: success()
+        with:
+          name: ui-test-flaky-${{ matrix.name }}
+          path: ui-test-out/**/FLAKY_*.png
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # The real app, built, launched with Playwright's Electron support under a virtual display (demo mode, mode switches,
+  # Settings, Studio dialog, clean exit). Not a required check yet: it has only run on Windows so far. Remove
+  # continue-on-error once it has been green on CI for a while (docs/testing.md).
+  electron:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    env:
+      ELECTRON_SMOKE_REQUIRED: '1'
+      ELECTRON_NO_SANDBOX: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci # downloads the Electron binary (postinstall)
+      - run: npx playwright install-deps chromium # shared GTK / NSS / audio libraries Electron needs too
+      - run: sudo apt-get install -y -qq xvfb
+      - run: npm run build
+      - run: xvfb-run -a --server-args="-screen 0 1920x1200x24" node scripts/ui-test/electron-smoke.mjs
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: electron-smoke-failures
+          path: ui-test-out/electron
+          retention-days: 7
+
+  # Kotlin unit tests and lint of the Android app. They used to run only inside the release workflow (tag or manual run),
+  # so a broken test was found at release time.
+  android-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platforms;android-36 build-tools;36.0.0'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/**', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+      - run: npm ci
+      - run: npm run build:android-ui
+      - name: Android unit tests and lint
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest lintDebug --no-daemon --console=plain
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: android-unit-reports
+          path: |
+            android/app/build/reports
+            android/app/build/test-results
+          retention-days: 7
+
+  # Every pull request must fill in its template (what changed, how it was tested). Skipped for bots.
+  pr-template:
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: node scripts/check-pr.mjs
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}

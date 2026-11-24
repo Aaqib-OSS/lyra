@@ -5,13 +5,14 @@
 //
 // Pass: after pause the video is frozen within 300 ms, after resume it is moving within 300 ms.
 import { chromium } from 'playwright'
-import { spawn, spawnSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { BROWSER_ARGS, ensureHarness, portFor } from './lib.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const PORT = 5198
+const PORT = portFor(5198)
 const BASE = `http://localhost:${PORT}`
 const LIMIT_MS = 300
 const clip = join(root, 'scripts/harness/public/synctest.mp4')
@@ -24,21 +25,9 @@ if (!existsSync(clip)) {
   }
 }
 
-const up = () => fetch(BASE).then((r) => r.ok).catch(() => false)
-let server
-if (!(await up())) {
-  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore', detached: process.platform !== 'win32', shell: process.platform === 'win32' })
-  for (let i = 0; i < 80 && !(await up()); i++) await new Promise((r) => setTimeout(r, 500))
-}
-const stop = () => {
-  try {
-    if (server) process.kill(process.platform === 'win32' ? server.pid : -server.pid)
-  } catch {
-    /* already gone */
-  }
-}
+const stop = await ensureHarness(PORT)
 
-const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] })
+const browser = await chromium.launch({ args: BROWSER_ARGS })
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } })
 await page.goto(`${BASE}/?mode=full&t=2000&video=synctest&s=${encodeURIComponent(JSON.stringify({ performance: 'smooth' }))}`)
 

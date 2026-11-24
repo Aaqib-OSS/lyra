@@ -29,7 +29,12 @@
     "check:i18n": "node scripts/check-i18n.mjs",
     "check:a11y": "node scripts/check-a11y.mjs",
     "release": "node scripts/release.mjs",
-    "release:check": "node scripts/release.mjs check"
+    "release:check": "node scripts/release.mjs check",
+    "check:site": "node scripts/check-site.mjs",
+    "check": "npm run typecheck && npm test && npm run check:docs && npm run check:site",
+    "test:coverage": "vitest run --coverage",
+    "test:electron": "node scripts/ui-test/electron-smoke.mjs",
+    "build:harness": "vite build -c scripts/harness/vite.config.ts"
   },
   "build": {
     "appId": "dev.lyra.companion",

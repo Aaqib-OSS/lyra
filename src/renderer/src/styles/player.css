@@ -103,6 +103,9 @@
   justify-content: space-between;
   padding: 0 28px;
   transition: opacity 0.5s var(--ease);
+  /* the scene layout makes .full__body position:absolute over the whole window, which would swallow clicks on the header controls */
+  position: relative;
+  z-index: 3;
 }
 .full__device {
   font-size: 11px;

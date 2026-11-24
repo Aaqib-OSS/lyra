@@ -3,12 +3,24 @@ on:
   push: { branches: [main] }
   pull_request: { branches: [main] }
   schedule: [{ cron: '23 3 * * 1' }]
+
+# least privilege: the workflow default is read-only; only the analysis job may upload results
 permissions:
   contents: read
-  security-events: write
+
+# a newer push to the same pull request supersedes the running scan (main and the weekly scan always finish)
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     steps:
       - uses: actions/checkout@v7
       - uses: github/codeql-action/init@v4

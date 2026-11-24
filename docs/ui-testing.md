@@ -1,5 +1,7 @@
 # UI tests
 
+Every test command, the CI layout, the flaky-test policy and the Electron smoke test are in `docs/testing.md`; this page covers the browser checks in detail.
+
 Everything runs in a real Chromium through the browser harness (`scripts/harness`): the real stylesheets and components with demo data and a mocked `window.lyra`. No Electron or device is needed.
 
 | Command | What it checks |
@@ -22,7 +24,7 @@ The harness has switches for edge cases: `?vs=` (video: searching, nokey, none, 
 ## What the checkers do not do (read before trusting a green run)
 * **`scene-check.mjs` only measures layout**: controls outside the card, lyrics leaving their region, card / lyrics / video window sitting on top of each other. It does not measure contrast or whether text clips inside its own box, and it cannot tell you the look is good. Open the screenshots and run `run.mjs` for the same look.
 * **`test:ui:quick` / `run.mjs` find the lyric text through two selector lists** (`stageSel` and `nowSel` in `scripts/ui-test/run.mjs`). A new lyric stage that is not listed fails with a false "no lyric text". Add its selectors when you add a stage.
-* **CI is Linux, the owner's PC is Windows.** Fonts rasterise differently, so contrast and clip measures can differ and occasionally flake on CI while passing locally (or the reverse). Re-run once, look at the uploaded `ui-test-failures` artifact, keep a margin on contrast and do not tune a threshold to one machine.
+* **CI is Linux, the owner's PC is Windows.** The causes and what is pinned (fonts, glyph rendering, waits) are in `docs/testing.md`. If a screen still differs: look at the `ui-test-failures-*` artifact, keep a margin on contrast and do not tune a threshold to one machine. A screen that fails once and passes on the retry is reported as FLAKY: treat it as a missing wait.
 * `video-sync.mjs` checks the HTML video only; the YouTube iframe latency is unmeasured.
 * None of this runs on real Windows or Android hardware.
 

@@ -22,6 +22,9 @@ function walk(dir, out = []) {
 const files = [...TOP.map((f) => join(root, f)).filter(existsSync), ...walk(join(root, 'docs'))]
 const problems = []
 const placeholder = /[<>*{}$|]|\.\.\.|…|\bx\.y\.z\b|<.*>/
+// build output and local files that a doc may name: they exist on a developer machine, never in a clean CI checkout
+const GENERATED = ['android/app/src/main/assets/ui', 'android/local.properties', 'out', 'ui-test-out', 'coverage', 'scripts/harness/dist']
+const isGenerated = (p) => GENERATED.some((g) => p === g || p.startsWith(g + '/'))
 
 for (const file of files) {
   const rel = relative(root, file).replace(/\\/g, '/')
@@ -42,7 +45,7 @@ for (const file of files) {
       if (!PATH_ROOTS.some((r) => p.startsWith(r))) continue
       if (placeholder.test(p) || p.includes('?') || p.includes('=')) continue
       p = p.replace(/:\d+(-\d+)?$/, '').replace(/#.*/, '')
-      if (!existsSync(join(root, p))) problems.push(`${rel}:${i + 1}: missing path ${m[1]}`)
+      if (!isGenerated(p) && !existsSync(join(root, p))) problems.push(`${rel}:${i + 1}: missing path ${m[1]}`)
     }
   })
 }
