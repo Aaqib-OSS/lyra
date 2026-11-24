@@ -60,19 +60,37 @@ export function useActiveLine(lines: readonly LyricLine[], enabled = true): numb
   return idx
 }
 
-/** Runs `cb(positionMs)` on every animation frame while `active`. */
+/**
+ * Runs `cb(positionMs)` on every animation frame while `active`. Callbacks are pure functions of the position, so while the
+ * song clock stands still (paused, no track, a stalled seek) the callback is skipped and the loop sleeps in 120 ms steps
+ * instead of waking the compositor 60 times a second; it runs again on the first frame the clock moves.
+ */
 export function useFrame(cb: (positionMs: number) => void, active: boolean, deps: unknown[] = []): void {
   const ref = useRef(cb)
   ref.current = cb
   useEffect(() => {
     if (!active) return
     let raf = 0
+    let nap = 0
+    let last = Number.NaN
     const loop = (): void => {
-      ref.current(getPosition())
+      const pos = getPosition()
+      if (pos === last) {
+        nap = window.setTimeout(() => {
+          raf = requestAnimationFrame(loop)
+        }, 120)
+        return
+      }
+      last = pos
+      ref.current(pos)
       raf = requestAnimationFrame(loop)
     }
+    // the first call runs even when the clock is still (last is NaN), so new deps paint their resting state
     raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(nap)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, ...deps])
 }

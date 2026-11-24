@@ -18,3 +18,5 @@ ui-test-out/
 .claude/worktrees/
 .claude/settings.local.json
 .playwright-mcp/
+
+perf-out/
