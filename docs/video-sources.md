@@ -25,7 +25,7 @@ Apple's clips are HD (1920 px wide, about 20 MB for 30 s), MP4 with the index at
 answers HTTP Range requests (measured: first bytes after about 0.4 s, the whole file in 16 to 26 s on a 10 Mbit/s line;
 other renditions are not available, and splitting the download over several connections did not help).
 
-Before 0.27 the clip was saved completely and only then handed to the player, so on a normal connection nothing played for
+Until this change the clip was saved completely and only then handed to the player, so on a normal connection nothing played for
 the first 18 to 26 seconds, a dropped connection lost everything, and a request that waited longer than 25 s fell back to a
 second, parallel stream. `src/main/background/clipStore.ts` replaces that:
 
