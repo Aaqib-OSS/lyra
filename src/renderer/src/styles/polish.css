@@ -424,6 +424,43 @@ select option {
 :root[data-calm] .bub__dots i {
   animation-play-state: paused !important;
 }
+/* The global switches below are the safety net under every look's own calm / motion-off / Light rules: they reach what the per-look
+   rules miss (pseudo-elements of fx layers, the card's own sway / float, the cover's scan line, the status bars, the rest dots).
+   `scripts/ui-test/looks-check.mjs` lists, per look, any endless animation that still runs in calm, Reduce motion or Light. */
+:root[data-calm] .vibefx::before,
+:root[data-calm] .vibefx::after,
+:root[data-calm] .vibefx *::before,
+:root[data-calm] .vibefx *::after,
+:root[data-calm] .full__side,
+:root[data-calm] .full__side::before,
+:root[data-calm] .full__side::after,
+:root[data-calm] .backdrop__field::before,
+:root[data-calm] .backdrop__field::after,
+:root[data-calm] .artwork::after,
+:root[data-calm] .artwork__img,
+:root[data-calm] .lyric__dots i,
+:root[data-calm] .vstat__bars i,
+:root[data-calm] .vstat__dot,
+:root[data-calm] .code__caret {
+  animation-play-state: paused !important;
+}
+:root[data-motion='off'] .vibefx::before,
+:root[data-motion='off'] .vibefx::after,
+:root[data-motion='off'] .vibefx *::before,
+:root[data-motion='off'] .vibefx *::after,
+:root[data-motion='off'] .full__side::before,
+:root[data-motion='off'] .full__side::after,
+:root[data-motion='off'] .backdrop__field::before,
+:root[data-motion='off'] .backdrop__field::after,
+:root[data-motion='off'] .artwork::after,
+:root[data-motion='off'] .artwork__img,
+:root[data-motion='off'] .lyric__dots i,
+:root[data-motion='off'] .stage__rest i,
+:root[data-motion='off'] .vstat__bars i,
+:root[data-motion='off'] .vstat__dot,
+:root[data-motion='off'] .code__caret {
+  animation: none !important;
+}
 
 /* LIGHT: for weak devices and battery saving: no live blur behind panels, no endless motion, flat shadows */
 :root[data-perf='low'] *,
@@ -438,7 +475,25 @@ select option {
 :root[data-perf='low'] .backdrop--alive .backdrop__img,
 :root[data-perf='low']::after,
 :root[data-perf='low'] .playbtn::after,
-:root[data-perf='low'] .full__titles::before {
+:root[data-perf='low'] .full__titles::before,
+:root[data-perf='low'] .vibefx::before,
+:root[data-perf='low'] .vibefx::after,
+:root[data-perf='low'] .vibefx *::before,
+:root[data-perf='low'] .vibefx *::after,
+:root[data-perf='low'] .full__side,
+:root[data-perf='low'] .full__side::before,
+:root[data-perf='low'] .full__side::after,
+:root[data-perf='low'] .backdrop__field::before,
+:root[data-perf='low'] .backdrop__field::after,
+:root[data-perf='low'] .artwork::after,
+:root[data-perf='low'] .artwork__img,
+:root[data-perf='low'] .artwork__doodle,
+:root[data-perf='low'] .artwork__deco,
+:root[data-perf='low'] .lyric__dots i,
+:root[data-perf='low'] .stage__rest i,
+:root[data-perf='low'] .vstat__bars i,
+:root[data-perf='low'] .vstat__dot,
+:root[data-perf='low'] .code__caret {
   animation: none !important;
 }
 :root[data-perf='low'] .mini::after,
