@@ -7,7 +7,7 @@ How we work: one item at a time. I write a plan for the item, you read and appro
 
 | # | Area | Where | Known gaps / ideas |
 |---|---|---|---|
-| 1 | **Lyrics engine**: find, match, rank, cache, word timing, romanization | `src/core/lyrics`, `src/main/lyrics` | One main source (LRCLIB). Wrong-song matches, per-song offset memory, plain-text fallback quality, more sources, cache size and expiry, Hindi/Punjabi romanization quality |
+| 1 | **Lyrics engine**: find, match, rank, cache, word timing, romanization | `src/core/lyrics` | One main source (LRCLIB). Wrong-song matches, per-song offset memory, plain-text fallback quality, more sources, cache size and expiry, Hindi/Punjabi romanization quality |
 | 2 | **Playback sources**: Spotify API, Windows media session, Linux MPRIS, demo | `src/main/spotify`, `smtc`, `mpris`, `source.ts` | Token refresh and offline handling, ads detection, position accuracy and drift, other players (YouTube Music, Apple Music, VLC) |
 | 3 | **Video and background service**: Apple clip, YouTube, own files | `src/main/background`, `src/core/background` | Android has no clip cache or resume (only the player retry). YouTube picking accuracy, long intro offset per video, failed-video memory, disk cache limits |
 | 4 | **Recording and lyric-video export (Studio)** | `src/renderer/src/lib/studio`, `studio.ts` | New "current look" capture never run in real Electron. 30 fps capture cap, software rendering cost, file-source songs still use the simple layout, progress and failure messages, Android recorder issues (#19, #28, #30, #33) |
