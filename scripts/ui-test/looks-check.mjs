@@ -67,8 +67,23 @@ for (const v of vibes) {
   const fail = (what, list) => { if (list.length) problems.push(`${v.id}: ${what}: ${[...new Set(list)].slice(0, 6).join(', ')}${new Set(list).size > 6 ? ' ...' : ''}`) }
   const { page, errors } = await load(ctx, v, {})
   fail('page error', errors)
+  // the app re-writes data-calm (player updates) and data-motion / data-perf (settings) itself: an observer keeps what the test set
+  await page.evaluate(() => {
+    const html = document.documentElement
+    window.__want = {}
+    const apply = () => {
+      for (const [k, v] of Object.entries(window.__want)) {
+        if (v === null) { if (k in html.dataset) delete html.dataset[k] } else if (html.dataset[k] !== v) html.dataset[k] = v
+      }
+    }
+    new MutationObserver(apply).observe(html, { attributes: true })
+  })
   const flip = async (attr, on, value = '') => {
-    await page.evaluate(([a, o, val]) => { if (o) document.documentElement.dataset[a] = val; else delete document.documentElement.dataset[a] }, [attr, on, value])
+    await page.evaluate(([a, o, val]) => {
+      window.__want[a] = o ? val : null
+      if (o) document.documentElement.dataset[a] = val
+      else delete document.documentElement.dataset[a]
+    }, [attr, on, value])
     await frame(page)
   }
   await flip('calm', true)
@@ -97,6 +112,7 @@ for (const v of vibes) {
   const errs = []
   fp.on('pageerror', (e) => errs.push(e.message.slice(0, 120)))
   await fp.goto(`${BASE}/?mode=full&vs=none&paused=1&t=43500&s=${encodeURIComponent(JSON.stringify({ vibe: v.id, lyricStyle: v.style, vibeMode: 'fixed' }))}`)
+  await fp.waitForFunction(() => [...document.querySelectorAll('[class*="lyric"], [class*="stage"]')].some((e) => (e.textContent ?? '').trim().length > 3), null, { timeout: 8000 }).catch(() => {})
   await fp.waitForTimeout(900)
   const seen = await fp.evaluate(() => {
     const el = [...document.querySelectorAll('[class*="lyric"], [class*="sign"], [class*="stage"], [class*="lfb"], [class*="plain"], [class*="bk-"], [class*="bub"]')].find((e) => (e.textContent ?? '').trim().length > 3)

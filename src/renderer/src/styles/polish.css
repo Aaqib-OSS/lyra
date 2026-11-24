@@ -440,7 +440,8 @@ select option {
 :root[data-calm] .lyric__dots i,
 :root[data-calm] .vstat__bars i,
 :root[data-calm] .vstat__dot,
-:root[data-calm] .code__caret {
+:root[data-calm] .code__caret,
+:root[data-calm] .termlog__text::after {
   animation-play-state: paused !important;
 }
 :root[data-motion='off'] .vibefx::before,
@@ -457,7 +458,10 @@ select option {
 :root[data-motion='off'] .stage__rest i,
 :root[data-motion='off'] .vstat__bars i,
 :root[data-motion='off'] .vstat__dot,
-:root[data-motion='off'] .code__caret {
+:root[data-motion='off'] .code__caret,
+:root[data-motion='off'] .backdrop--alive .backdrop__img,
+:root[data-motion='off'] .backdrop__blob,
+:root[data-motion='off'] .termlog__text::after {
   animation: none !important;
 }
 
@@ -492,7 +496,8 @@ select option {
 :root[data-perf='low'] .stage__rest i,
 :root[data-perf='low'] .vstat__bars i,
 :root[data-perf='low'] .vstat__dot,
-:root[data-perf='low'] .code__caret {
+:root[data-perf='low'] .code__caret,
+:root[data-perf='low'] .termlog__text::after {
   animation: none !important;
 }
 :root[data-perf='low'] .mini::after,
