@@ -85,7 +85,11 @@ const api: any = {
       { id: 'public-domain', name: 'Public-domain library', state: 'ok', lastError: '', retryInSec: 0, lastOkAt: 0 }
     ], candidates: async () => ({ items: [] }), choose: async () => demoLyrics(track.id), clearPin: async () => demoLyrics(track.id) },
   art: { get: async (u: string) => u },
-  moments: { list: async () => [], add: async () => [], remove: async () => [] },
+  // ?mom=N seeds N saved moments; add/remove really change the list, so search and undo can be tried
+  moments: (() => {
+    let items = Array.from({ length: Number(q.get('mom') ?? 0) }, (_, i) => ({ id: `m${i}`, trackId: 't', title: i % 2 ? 'Glass Hours' : 'Paper Moons', artist: 'Meridian Hall', artworkUrl: null, text: `Carry me through the turning tide ${i + 1}`, timeMs: i * 1000, savedAt: i }))
+    return { list: async () => items, add: async (m: never) => (items = [{ ...(m as object), id: `n${Date.now()}`, savedAt: Date.now() } as (typeof items)[number], ...items]), remove: async (id: string) => (items = items.filter((x) => x.id !== id)) }
+  })(),
   background: {
     // ?vs= simulates every video outcome: searching | nokey | none | error | live | preview
     resolve: () => {

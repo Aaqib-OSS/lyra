@@ -55,3 +55,4 @@
   padding: 1px 6px; border-radius: 5px; border: 1px solid var(--line-2);
   background: var(--glass); font: inherit; font-size: 11px; white-space: normal;
 }
+.keys h4 { margin: 12px 0 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-2); }
