@@ -149,6 +149,7 @@ class AmbientActivity : ComponentActivity() {
         OverlayService.appForeground(true)
         rpc?.pushState()
         driver?.start()
+        if (auto) setBrightness(level, true) // the light sensor was released in onPause
         if (native) {
             val sm = sensors ?: (getSystemService(SENSOR_SERVICE) as android.hardware.SensorManager).also { sensors = it }
             sm.getDefaultSensor(android.hardware.Sensor.TYPE_PROXIMITY)?.let { sm.registerListener(proximityListener, it, android.hardware.SensorManager.SENSOR_DELAY_NORMAL) }
@@ -158,6 +159,7 @@ class AmbientActivity : ComponentActivity() {
     override fun onPause() {
         driver?.stop()
         sensors?.unregisterListener(proximityListener)
+        sensors?.unregisterListener(lightListener) // screen off or another app on top: no reason to keep the light sensor running
         OverlayService.appForeground(false)
         super.onPause()
     }

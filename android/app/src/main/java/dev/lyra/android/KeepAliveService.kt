@@ -24,7 +24,7 @@ class KeepAliveService : Service() {
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "Lyra is running", NotificationManager.IMPORTANCE_MIN))
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val n: Notification = NotificationCompat.Builder(this, CHANNEL)
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(R.drawable.ic_stat_lyra)
             .setContentTitle("Lyra is running")
             .setContentText("Keeping your lyrics ready. Turn off in Lyra settings.")
             .setContentIntent(open)
@@ -38,7 +38,13 @@ class KeepAliveService : Service() {
     companion object {
         private const val CHANNEL = "keep-alive"
 
+        private fun prefs(ctx: Context) = ctx.getSharedPreferences("keep-alive", Context.MODE_PRIVATE)
+
+        /** What the user chose, remembered natively so it can be brought back after a reboot or an update. */
+        fun enabled(ctx: Context): Boolean = prefs(ctx).getBoolean("enabled", false)
+
         fun set(ctx: Context, on: Boolean) {
+            prefs(ctx).edit().putBoolean("enabled", on).apply()
             val i = Intent(ctx, KeepAliveService::class.java)
             if (on) ctx.startForegroundService(i) else ctx.stopService(i)
         }

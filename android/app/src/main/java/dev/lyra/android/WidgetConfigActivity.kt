@@ -86,7 +86,8 @@ class WidgetConfigActivity : Activity() {
                 cornerRadius = px(14).toFloat()
                 setStroke(px(2), pal?.accent ?: Color.argb(90, 255, 255, 255))
             }
-            layoutParams = LinearLayout.LayoutParams(px(84), px(52))
+            layoutParams = LinearLayout.LayoutParams(px(84), ViewGroup.LayoutParams.WRAP_CONTENT)
+            minHeight = px(52) // grows with the font size instead of clipping
         }
         val names = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -105,6 +106,7 @@ class WidgetConfigActivity : Activity() {
         }
         val mark = TextView(this).apply {
             text = if (selected) "✓" else ""
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO // the row itself says "selected"
             textSize = 20f
             setTextColor(Color.WHITE)
         }
@@ -121,7 +123,10 @@ class WidgetConfigActivity : Activity() {
             addView(names, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             addView(mark)
             isClickable = true
-            contentDescription = name
+            contentDescription = if (note.isBlank()) name else "$name. $note"
+            isSelected = selected
+            if (android.os.Build.VERSION.SDK_INT >= 30) stateDescription = if (selected) "Selected" else "Not selected"
+            minimumHeight = px(56)
             setOnClickListener { choose(key) }
         }
     }

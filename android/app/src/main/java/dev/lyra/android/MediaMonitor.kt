@@ -108,6 +108,31 @@ object MediaMonitor {
         }, 120)
     }
 
+    private val fallback = PositionFallback()
+
+    /** True while the current position is counted by Lyra (the player publishes none), see [positionOf]. */
+    @Volatile var positionEstimated = false
+        private set
+
+    /** The player's own position when it publishes one, else an estimate from play time (see [PositionFallback]). */
+    private fun positionOf(c: MediaController, id: String, durationMs: Long): Long {
+        val st = c.playbackState
+        val nowE = SystemClock.elapsedRealtime()
+        val state = st?.state ?: PlaybackState.STATE_NONE
+        val p = PlaybackMath.estimate(st?.position ?: PlaybackMath.POSITION_UNKNOWN, st?.lastPositionUpdateTime ?: 0L, st?.playbackSpeed ?: 1f, state, nowE, durationMs)
+        if (p != PlaybackMath.POSITION_UNKNOWN) {
+            positionEstimated = false
+            return p
+        }
+        positionEstimated = true
+        val e = fallback.position(id, state == PlaybackState.STATE_PLAYING || state == PlaybackState.STATE_BUFFERING, nowE)
+        return if (durationMs > 0) e.coerceAtMost(durationMs) else e
+    }
+
+    /** For the self-check: how many other music apps have a media session, and whether the current one publishes a position. */
+    fun sessionCount(): Int = controllers.size
+    fun positionReported(): Boolean? = pick()?.let { (it.playbackState?.position ?: PlaybackMath.POSITION_UNKNOWN) >= 0 }
+
     /** The session to show: something that is playing wins, then Spotify, then whatever is first. */
     private fun pick(): MediaController? =
         controllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
@@ -137,11 +162,11 @@ object MediaMonitor {
         val mediaId = md.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) ?: ""
         val state = c.playbackState
         val playing = state?.state == PlaybackState.STATE_PLAYING || state?.state == PlaybackState.STATE_BUFFERING
-        var pos = state?.position ?: 0L
-        if (state != null && playing && state.lastPositionUpdateTime > 0) pos += ((SystemClock.elapsedRealtime() - state.lastPositionUpdateTime) * state.playbackSpeed).toLong()
-        val ad = artist.startsWith("Advertisement", true) || title.equals("Advertisement", true) || mediaId.contains(":ad:") || album.equals("Advertisement", true)
+        val id = trackId(c.packageName, mediaId, title, artist, album)
+        val pos = positionOf(c, id, md.getLong(MediaMetadata.METADATA_KEY_DURATION))
+        val ad = PlaybackMath.isAd(title, artist, album, mediaId)
         val art: Bitmap? = md.getBitmap(MediaMetadata.METADATA_KEY_ART) ?: md.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: md.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
-        return Now(trackId(c.packageName, mediaId, title, artist, album), title, artist, pos.coerceAtLeast(0), playing, art, ad, md.getLong(MediaMetadata.METADATA_KEY_DURATION))
+        return Now(id, title, artist, pos.coerceAtLeast(0), playing, art, ad, md.getLong(MediaMetadata.METADATA_KEY_DURATION))
     }
 
     fun snapshotJson(ctx: Context): String {
@@ -155,14 +180,12 @@ object MediaMonitor {
 
         val state = c.playbackState
         val playing = state?.state == PlaybackState.STATE_PLAYING || state?.state == PlaybackState.STATE_BUFFERING
-        var pos = state?.position ?: 0L
-        if (state != null && playing && state.lastPositionUpdateTime > 0) {
-            pos += ((SystemClock.elapsedRealtime() - state.lastPositionUpdateTime) * state.playbackSpeed).toLong()
-        }
-        if (duration > 0) pos = pos.coerceIn(0, duration)
+        val tid = trackId(c.packageName, mediaId, title, artist, album)
+        val pos = positionOf(c, tid, duration)
+        val estimated = positionEstimated
 
         // Spotify marks ads with "Advertisement" as the artist ("Advertisement • 1 of 2") or an ad media id
-        val isAd = artist.startsWith("Advertisement", true) || title.equals("Advertisement", true) || mediaId.contains(":ad:") || album.equals("Advertisement", true)
+        val isAd = PlaybackMath.isAd(title, artist, album, mediaId)
         if (isAd) {
             return JSONObject().apply {
                 put("track", JSONObject.NULL)
@@ -177,7 +200,7 @@ object MediaMonitor {
         }
 
         val track = JSONObject()
-        track.put("id", trackId(c.packageName, mediaId, title, artist, album))
+        track.put("id", tid)
         track.put("uri", mediaId.ifEmpty { "android:${c.packageName}" })
         track.put("title", title)
         track.put("artists", JSONArray().apply { if (artist.isNotEmpty()) put(artist) })
@@ -205,6 +228,7 @@ object MediaMonitor {
         o.put("repeat", "off")
         o.put("isAdOrUnknown", title.equals("Advertisement", true) || mediaId.contains(":ad:"))
         o.put("packageName", c.packageName)
+        if (estimated) o.put("positionEstimated", true) // the player publishes no position: counted from when the song started
         return o.toString()
     }
 

@@ -99,6 +99,7 @@ class LyricsNotificationService : Service() {
         if (!(getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive) scheduleOffTick() // resumed while the screen is off
     }
     private var started = false
+    @Volatile private var destroyed = false
     private var session: MediaSession? = null
     private var lastNotificationSig = ""
     private var lastMetaSig = ""
@@ -108,7 +109,8 @@ class LyricsNotificationService : Service() {
     private val tick = object : Runnable {
         override fun run() {
             refresh()
-            if ((getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive) main.postDelayed(this, 500)
+            // 0.5 s while a song plays (a line can change any moment); 2 s when nothing plays (saves wake-ups)
+            if ((getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive) main.postDelayed(this, if (MediaMonitor.now()?.playing == true) 500 else 2000)
             else scheduleOffTick()
         }
     }
@@ -213,6 +215,7 @@ class LyricsNotificationService : Service() {
 
     fun refresh(force: Boolean = false) {
         main.post {
+            if (destroyed) return@post // a refresh queued before onDestroy must not rebuild the media session we released
             val now = MediaMonitor.now()
             val s = ensureSession()
             if (now == null || now.isAd) {
@@ -289,7 +292,8 @@ class LyricsNotificationService : Service() {
     private fun tint(bmp: Bitmap?): Int {
         if (bmp == null) return Color.rgb(40, 40, 48)
         val s = Bitmap.createScaledBitmap(bmp, 1, 1, true).getPixel(0, 0)
-        return Color.rgb((Color.red(s) * 0.55).toInt(), (Color.green(s) * 0.55).toInt(), (Color.blue(s) * 0.55).toInt())
+        val (r, g, b) = NotificationTint.darken(Color.red(s), Color.green(s), Color.blue(s)) // always 4.5:1 against the white text
+        return Color.rgb(r, g, b)
     }
 
     /** What the lock screen shows when lyrics must stay private: title, artist and cover, never a lyric line. */
@@ -338,6 +342,7 @@ class LyricsNotificationService : Service() {
     }
 
     override fun onDestroy() {
+        destroyed = true
         main.removeCallbacks(tick)
         try { unregisterReceiver(screenReceiver) } catch (_: Exception) { }
         MediaMonitor.removeListener(listener)
