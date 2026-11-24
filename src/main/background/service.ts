@@ -1,11 +1,12 @@
 import { BrowserWindow, app, dialog, net, protocol } from 'electron'
 import { nativeImage } from 'electron'
 import { createHash } from 'node:crypto'
-import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, createReadStream, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { extname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import type { BackgroundMedia, BackgroundResolution, BackgroundSpec, Track, YoutubeVideo } from '@shared/types'
 import { JsonStore } from '../jsonStore'
+import { ClipStore } from './clipStore'
 import { createLogger } from '../logger'
 import { settings } from '../settings'
 import { thumbCrop } from '@core/background/bars'
@@ -29,82 +30,29 @@ export function registerBackgroundScheme(): void {
 }
 
 const CLIP_MAX_FILES = 80
-/** Apple's HD preview clips are about 20 MB (1920w, 30 s); the old 8 MB cap threw every one of them away after downloading it. */
+/** Apple's HD preview clips are about 20 MB (1920w, 30 s). */
 const CLIP_MAX_BYTES = 64 * 1024 * 1024
 /** The whole clip folder stays under this (oldest clips go first). */
 const CLIP_CACHE_BYTES = 500 * 1024 * 1024
-/** How long a request for a clip waits for it to finish saving before it falls back to streaming it straight from Apple. */
-const CLIP_WAIT_MS = 25_000
 
 class BackgroundService {
-  /** Apple preview clips already (being) saved on disk: playing from a local file never stutters and loops for free */
-  private readonly clipJobs = new Map<string, Promise<string | null>>()
-  private get clipDir(): string {
-    const d = join(app.getPath('userData'), 'clipcache')
-    mkdirSync(d, { recursive: true })
-    return d
+  /**
+   * Apple preview clips: ONE download per clip, played while it downloads and kept on disk for the next time (see clipStore.ts).
+   * Playing from the first bytes (instead of waiting for all ~20 MB) is what makes the clip start at once.
+   */
+  private clipsStore: ClipStore | null = null
+  private get clips(): ClipStore {
+    return (this.clipsStore ??= new ClipStore({
+      dir: join(app.getPath('userData'), 'clipcache'),
+      fetch: (u, i) => net.fetch(u, i),
+      log: { warn: (m, d) => log.warn(m, d), info: (m, d) => log.info(m, d) },
+      maxBytes: CLIP_MAX_BYTES,
+      onSaved: () => this.clipsStore?.tidy(CLIP_MAX_FILES, CLIP_CACHE_BYTES)
+    }))
   }
-  private clipFile(target: string): string {
-    return join(this.clipDir, `${createHash('sha256').update(target).digest('hex').slice(0, 24)}.mp4`)
-  }
-  /** Save a clip once (shared by everyone who asks while it downloads); resolves to the local file, or null when it failed. */
-  warmClip(target: string): Promise<string | null> {
-    if (!HOST_RE.test(target)) return Promise.resolve(null)
-    const file = this.clipFile(target)
-    if (existsSync(file)) return Promise.resolve(file)
-    let job = this.clipJobs.get(file)
-    if (!job) {
-      job = (async () => {
-        try {
-          let res = await net.fetch(target, { signal: AbortSignal.timeout(90_000) })
-          if (res.status === 429 || res.status === 503) {
-            // Apple's CDN rate-limits (it answers with Retry-After): wait that long once and ask again
-            const wait = Math.min(10, Math.max(1, Number(res.headers.get('retry-after')) || 3))
-            await new Promise((r) => setTimeout(r, wait * 1000))
-            res = await net.fetch(target, { signal: AbortSignal.timeout(90_000) })
-          }
-          if (!res.ok) {
-            log.warn('clip download refused', String(res.status))
-            return null
-          }
-          const buf = Buffer.from(await res.arrayBuffer())
-          if (buf.length < 10_000 || buf.length > CLIP_MAX_BYTES) {
-            log.warn('clip not saved (size)', String(buf.length))
-            return null
-          }
-          const tmp = `${file}.part`
-          writeFileSync(tmp, buf)
-          renameSync(tmp, file)
-          this.pruneClips()
-          return file
-        } catch (e) {
-          log.warn('clip download failed', (e as Error).message)
-          return null
-        } finally {
-          this.clipJobs.delete(file)
-        }
-      })()
-      this.clipJobs.set(file, job)
-    }
-    return job
-  }
-  private pruneClips(): void {
-    try {
-      const files = readdirSync(this.clipDir)
-        .filter((f) => f.endsWith('.mp4'))
-        .map((f) => {
-          const st = statSync(join(this.clipDir, f))
-          return { f, t: st.mtimeMs, size: st.size }
-        })
-        .sort((a, b) => b.t - a.t)
-      let total = 0
-      files.forEach((x, i) => {
-        total += x.size
-        if (i >= CLIP_MAX_FILES || total > CLIP_CACHE_BYTES) rmSync(join(this.clipDir, x.f), { force: true })
-      })
-    } catch {
-      /* cache housekeeping is best effort */
-    }
+  /** Start saving a clip now; everyone who asks for it while it downloads shares that one download. */
+  warmClip(target: string): void {
+    if (HOST_RE.test(target)) this.clips.ensure(target)
   }
 
   private store: JsonStore<{ songs: Record<string, SongBg> }> | null = null
@@ -132,6 +80,7 @@ class BackgroundService {
    * Both answer with CORS headers so the renderer may read frames (brightness / letterbox detection).
    */
   registerProtocol(): void {
+    this.clips.tidy(CLIP_MAX_FILES, CLIP_CACHE_BYTES) // unfinished downloads of an earlier run, and the size limit
     const cors = (res: Response): Response => {
       const h = new Headers()
       for (const k of ['content-type', 'content-length', 'content-range', 'accept-ranges']) {
@@ -158,15 +107,19 @@ class BackgroundService {
         if (u.hostname === 'preview') {
           const target = Buffer.from(name, 'base64url').toString('utf8')
           if (!HOST_RE.test(target)) return new Response('forbidden', { status: 403 })
-          // from disk when the clip is saved (or about to be). An HD clip is ~20 MB: wait for the one download that is already running
-          // (a second parallel stream of the same file doubled the traffic and made slow connections worse); stream only if it failed
-          const local = existsSync(this.clipFile(target)) ? this.clipFile(target) : await Promise.race([this.warmClip(target), new Promise<null>((r) => setTimeout(() => r(null), CLIP_WAIT_MS))])
+          // 1) the clip is saved: play it from disk
+          const local = this.clips.localFile(target)
           if (local) return cors(await net.fetch(pathToFileURL(local).toString(), { headers: range(req) }))
+          // 2) it is downloading (or starts now): play it from the first bytes while the rest arrives
+          const live = await this.clips.serve(target, req.headers.get('range'), req.signal)
+          if (live) return cors(live)
+          // 3) saving it did not work (refused, too big): stream it straight from Apple so the player still gets its picture
           return cors(await net.fetch(target, { headers: range(req) }))
         }
         return new Response('not found', { status: 404 })
-      } catch {
-        return new Response('bad request', { status: 400 })
+      } catch (e) {
+        log.warn('media request failed', (e as Error).message)
+        return new Response('upstream failed', { status: 502 })
       }
     })
   }
@@ -196,7 +149,7 @@ class BackgroundService {
       if (sp?.kind !== 'preview') continue
       try {
         const t = Buffer.from(new URL(sp.url).pathname.replace(/^\//, ''), 'base64url').toString('utf8')
-        void this.warmClip(t)
+        this.warmClip(t)
       } catch {
         /* not a clip url */
       }

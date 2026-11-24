@@ -180,6 +180,10 @@ function VideoFill({ fillRef, video, active, ar, crop }: { fillRef: MutableRefOb
   return <canvas ref={fillRef} className="backdrop__fill" data-fit={active ? 'contain' : undefined} width={64} height={h} />
 }
 
+/** how often a clip is asked for again after an error, and how long it may take to show its first frame (a slow download) */
+const CLIP_RETRIES = 3
+const CLIP_START_MS = 30_000
+
 function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boolean; crop: Crop; videoRef: MutableRefObject<HTMLVideoElement | null>; onFail: () => void }) {
   const refA = useRef<HTMLVideoElement>(null)
   const refB = useRef<HTMLVideoElement>(null)
@@ -189,6 +193,28 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
   const swapping = useRef(false)
   const [shown, setShown] = useState(false) // fade in only once frames really play: no black box while the clip loads
   useEffect(() => setShown(false), [url])
+  // A clip that errors or never starts (a dropped connection, a slow CDN) is asked for again a few times, with a short wait,
+  // before the picture is given up on: one bad moment must not mean "no video for this song".
+  const [attempt, setAttempt] = useState(0)
+  const retryTimer = useRef<number | undefined>(undefined)
+  useEffect(() => {
+    setAttempt(0)
+    return () => window.clearTimeout(retryTimer.current)
+  }, [url])
+  const failOrRetry = (): void => {
+    if (attempt >= CLIP_RETRIES) return onFail()
+    window.clearTimeout(retryTimer.current)
+    retryTimer.current = window.setTimeout(() => setAttempt((a) => a + 1), 900 * (attempt + 1))
+  }
+  const srcUrl = attempt ? `${url}${url.includes('?') ? '&' : '?'}r=${attempt}` : url
+  const failRef = useRef(failOrRetry)
+  failRef.current = failOrRetry
+  // ...and one that is playing-state but shows no frame after a long time counts as a failure too
+  useEffect(() => {
+    if (!run || shown) return
+    const t = window.setTimeout(() => failRef.current(), CLIP_START_MS)
+    return () => window.clearTimeout(t)
+  }, [run, shown, srcUrl])
   const runRef = useRef(run)
   runRef.current = run
   const fillRef = useRef<HTMLCanvasElement | null>(null)
@@ -262,13 +288,13 @@ function LoopVideo({ url, run, crop, videoRef, onFail }: { url: string; run: boo
   const view = `inset(${crop.t * 100}% ${crop.r * 100}% ${crop.b * 100}% ${crop.l * 100}%)`
   const common = {
     className: 'backdrop__media',
-    src: url,
+    src: srcUrl,
     muted: true,
     playsInline: true,
     preload: 'auto' as const,
     crossOrigin: 'anonymous' as const,
     disablePictureInPicture: true,
-    onError: onFail
+    onError: failOrRetry
   }
   return (
     <>

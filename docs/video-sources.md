@@ -18,3 +18,28 @@ nothing is done while buffering or paused. Ad breaks pause the video (`isAdOrUnk
 
 Known limits: a music video with a long intro has a constant offset from the audio (no per-video offset yet); YouTube
 may still honour a user's account-level "always show captions" in a few cases despite the parameters.
+
+## How the Apple preview clip reaches the player (Windows)
+
+Apple's clips are HD (1920 px wide, about 20 MB for 30 s), MP4 with the index at the front ("fast start"), and the CDN
+answers HTTP Range requests (measured: first bytes after about 0.4 s, the whole file in 16 to 26 s on a 10 Mbit/s line;
+other renditions are not available, and splitting the download over several connections did not help).
+
+Before 0.27 the clip was saved completely and only then handed to the player, so on a normal connection nothing played for
+the first 18 to 26 seconds, a dropped connection lost everything, and a request that waited longer than 25 s fell back to a
+second, parallel stream. `src/main/background/clipStore.ts` replaces that:
+
+- ONE download per clip into a growing `.part` file. The `lyra-media://preview/...` handler answers the player's Range
+  requests from that file while it is still growing (bytes that are there now are sent now, the rest as they arrive), so
+  playback starts after the first few hundred KB. The loop crossfade's two video elements share the same download.
+- A dropped or stalled connection (no bytes for 12 s) resumes with `Range: bytes=<received>-` up to 4 times with backoff;
+  a server that ignores Range makes it start over; 429/503 honour `Retry-After`; 404/403/too big are not retried.
+- When complete the file is renamed into place and later plays and loops come straight from disk. The clip folder is
+  capped (80 files, 500 MB) and unfinished `.part` files of an earlier run are removed at start.
+- If saving is refused the handler still streams straight from Apple, and if that fails it answers 502.
+- The renderer (`Backdrop.tsx`, `LoopVideo`) asks for a clip again (3 times, growing wait, `?r=n` on the URL) when the video
+  errors, and also when no frame has appeared after 30 s, before it gives up on the picture for that song.
+
+Tests: `clipStore.test.ts` runs the store against a local fake CDN (slow trickle, dropped connections, 429, ignored Range,
+404, size limit, concurrent players). Not covered by tests: the Electron protocol handler itself and Android (its
+`/preview/` proxy in `WebSetup.kt` streams straight from Apple, has no disk cache and no resume; the renderer retry applies).
