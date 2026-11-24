@@ -23,6 +23,7 @@
     "test:ui": "node scripts/ui-test/run.mjs",
     "test:ui:quick": "node scripts/ui-test/run.mjs --quick",
     "test:ui:states": "node scripts/ui-test/run.mjs --states",
+    "test:looks": "node scripts/ui-test/looks-check.mjs",
     "test:settings": "node scripts/ui-test/settings.mjs",
     "test:video": "node scripts/ui-test/video-sync.mjs",
     "check:docs": "node scripts/check-docs.mjs"

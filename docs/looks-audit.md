@@ -72,3 +72,13 @@ Endless animations still running although the user asked for stillness:
   in Fixed mode the choice is global by design.
 - Switching a look mid-song: attributes are set together in `applyLook` (`main.tsx`); `EdgeFx` resets to neutral on a look or song change.
   No leftover state found in code review. Not exercised with a long soak test.
+
+## Result after the fixes
+
+`node scripts/ui-test/looks-check.mjs` (also `npm run test:looks`, optional `--vibe=a,b`): all 34 looks pass calm, Reduce motion, Light (no
+endless animation, no backdrop-filter), rim off (no stale EdgeFx variables) and forced colors (lyrics render). Before: 100+ findings across
+the three runs (every look failed Reduce motion or Light because of the rest dots and the cover doodle). Screenshot diffs (normal state,
+full and mini) on 13 looks: no change above 0.2 % except a clock-dependent status pill that differs between any two runs.
+
+Not done / left for the owner: consolidating the ~1030 `!important` (needs the full visual matrix), a favourites list in the picker, a
+second `@keyframes art-drift` in `base.css` (the later one wins; the earlier one is dead but removing it was not verified visually).
