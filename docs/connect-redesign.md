@@ -37,7 +37,7 @@ control, no real clock sync, no reconnect logic in the page, polling-style state
 | TV mode server on `0.0.0.0`, `?k=` shared key | Lyra Connect host, bound to ONE private LAN address, per-device tokens | Open server and shared URL secret were the main exposure. |
 | `?k=` in every URL, `/lyrics` `/art` HTTP endpoints | One WebSocket, nothing but the static viewer page is served unauthenticated; code in URL fragment | No secrets in URLs, referrers or logs; no data endpoint to scrape. |
 | SSE one-way | WebSocket, versioned JSON, heartbeat, reconnect with backoff | Two-way (control), lower overhead, battery friendly (only changes are sent). |
-| Static key | One-time 8-char code (2 min, single use, 5 tries) then a per-device token proven by HMAC challenge | Revocable, short-lived pairing; token never re-sent. |
+| Static key | One-time 8-char code (2 min, single use, 8 tries; a peer is locked out after 4) then a per-device token proven by HMAC challenge | Revocable, short-lived pairing; token never re-sent. |
 | No device list | Devices panel: list, online state, Viewer/Controller role, one-click Disconnect | Visibility and control. |
 | (nothing) | Party mode: shared viewer-only code, guests expire when party ends | Group screens without handing out control. |
 | Wall-clock `now` | NTP-style ping, lowest-rtt filter | Tight sync. |
@@ -132,6 +132,14 @@ NOT provided, plainly:
 - An overlay link is a bearer secret in a URL (fragment). It ends up in OBS's saved scene files, and in a browser's history or
   bookmarks if opened there; anyone who copies it can watch what plays (read-only) until it is removed. Not encrypted either.
   Revoking the overlay device drops its live socket immediately (tested) and the link can never authenticate again.
+
+Hardening from the review in `docs/connect-audit.md`: per-peer pairing lockout and socket cap (a stranger on the Wi-Fi can
+no longer burn the live code or fill the connection table), ping rate limit, tight HTTP header and request timeouts,
+network-change re-bind (QR, URL and mDNS always name an address the PC really has; unredeemed codes are dropped), optional
+auto-off after hours without any device, a "Check this setup" self test, and a client-side dead-link watchdog. Public Wi-Fi
+is mitigated, not solved: without TLS the traffic is readable there, so the panel and PRIVACY.md say to use it on trusted
+networks. IPv6-only networks are not supported (the host binds a private IPv4 address); with several adapters it picks the
+real card over virtual ones and the panel shows which.
 
 ## 5. Limits and what is verified
 

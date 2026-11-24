@@ -38,7 +38,15 @@ Next times:   C: hello {deviceId, name, cn}
 - `proof = HMAC-SHA256(token, "lyra1|auth|" + cn + "|" + sn)` as lowercase hex. The token is never sent again.
 - `sessionKey = HMAC-SHA256(token, "lyra1|sess|" + cn + "|" + sn)`; used to sign commands.
 - Code: 8 characters of Crockford base32 (`0-9 A-Z` without I L O U), case-insensitive, shown as `ABCD-EFGH`. Valid 2
-  minutes, single use, destroyed after 5 wrong guesses, 10 wrong guesses a minute across all codes is a lock-out.
+  minutes, single use, destroyed after 8 wrong guesses (all peers together). One peer address that sends 4 wrong
+  codes is locked out for 5 minutes (`err rate`, even with the right code) without affecting other addresses; 20 wrong
+  guesses a minute across everyone is a global backstop. A client must not re-send a code that was refused.
+- Sockets: at most 8 open sockets per peer address (40 in all); after that the upgrade is answered 503. After `ready`,
+  `ping` is limited to 10 a second (extra pings are ignored). A client that hears nothing from the host for 25 s should
+  treat the link as dead and reconnect (the web viewer and the Android client do).
+- Network changes: the host re-reads its LAN address every 5 s. When it changes it closes all sockets (`bye`), drops
+  unredeemed codes, re-binds and re-advertises mDNS on the new address; devices reconnect by proof. With no address it
+  waits and starts by itself when one appears.
 - Party code: reusable (up to 4 hours), always gives role `viewer`; its guests disappear when the party ends.
 - Pre-auth: 10 s to finish, 30 messages max, then dropped. `ping` works at any stage.
 - `ready {role, name, host, vibes[], party}` is followed by the state snapshot (section 4) and a `devices` list.
