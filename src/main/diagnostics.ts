@@ -2,6 +2,7 @@ import { app, shell } from 'electron'
 import { readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { scrubText } from '../core/reliability'
+import { redact } from './redact'
 import { isSafeMode, startupState, usingSoftwareRendering } from './crashGuard'
 import { logDirectory, readLogTail, recentProblems } from './logger'
 import { settings } from './settings'
@@ -73,7 +74,7 @@ export async function buildDiagnostics(sourceLine: string): Promise<string> {
     '--- recent log ---',
     readLogTail(120)
   ].join('\n')
-  return scrubText(report, app.getPath('home'))
+  return redact(scrubText(report, app.getPath('home')))
 }
 
 export function openLogFolder(): Promise<string> {

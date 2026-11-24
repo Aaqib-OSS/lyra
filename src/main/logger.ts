@@ -2,6 +2,7 @@ import { app } from 'electron'
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { rotationMoves, scrubText, shouldRotate } from '../core/reliability'
+import { redact as redactSecrets } from './redact'
 
 type Level = 'debug' | 'info' | 'warn' | 'error'
 const MAX_BYTES = 1_000_000
@@ -54,7 +55,7 @@ export function logDirectory(): string {
 
 /** Strip anything personal (tokens, keys, e-mails, the OS user name, LAN addresses) before logging. */
 function redact(text: string): string {
-  return scrubText(text, safeHome())
+  return redactSecrets(scrubText(text, safeHome())) // the app's scrubber plus the extra key / link-secret patterns
 }
 
 function safeHome(): string | undefined {

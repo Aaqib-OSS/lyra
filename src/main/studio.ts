@@ -186,7 +186,7 @@ async function startUi(o: { width: number; height: number; fps: number; vibe: st
     if (stage === win) stage = null
   })
   try {
-    const dev = process.env['ELECTRON_RENDERER_URL']
+    const dev = app.isPackaged ? undefined : process.env['ELECTRON_RENDERER_URL']
     const vibe = /^[a-z0-9-]{2,30}$/.test(String(o.vibe)) ? String(o.vibe) : ''
     if (dev) await win.loadURL(`${dev}${dev.includes('?') ? '&' : '?'}capture=1&vibe=${vibe}`)
     else await win.loadFile(join(__dirname, '../renderer/index.html'), { query: { capture: '1', vibe } })
@@ -309,7 +309,7 @@ function spotifyRootPid(): Promise<number | null> {
   return new Promise((resolve) => {
     // Spotify runs many processes; the one without a --type flag is the parent, and capturing it includes its children
     const ps = "(Get-CimInstance Win32_Process -Filter \"Name='Spotify.exe'\" | Where-Object { $_.CommandLine -notmatch '--type=' } | Select-Object -First 1).ProcessId"
-    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps], { windowsHide: true, timeout: 8000 }, (err, out) => {
+    execFile(join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'), ['-NoProfile', '-NonInteractive', '-Command', ps], { windowsHide: true, timeout: 8000 }, (err, out) => {
       const n = Number(String(out).trim())
       resolve(!err && Number.isFinite(n) && n > 0 ? n : null)
     })
