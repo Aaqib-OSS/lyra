@@ -208,7 +208,7 @@ h3 { font-size: 20px; letter-spacing: -.03em; margin-bottom: 8px; font-weight: 7
 .split { display: grid; grid-template-columns: 1.1fr 1fr; gap: 50px; align-items: center; }
 .split__art { display: grid; place-items: center; min-height: 560px; position: relative; }
 .split__art .stack { position: relative; width: min(420px, 100%); aspect-ratio: 390 / 844; }
-.split__art .stack img { position: absolute; border-radius: 34px; border: 6px solid #15141c; box-shadow: 0 60px 120px -30px #000, 0 0 90px -20px color-mix(in srgb, var(--acc) 60%, transparent); }
+.split__art .stack img { position: absolute; height: auto; max-width: none; border-radius: 34px; border: 6px solid #15141c; box-shadow: 0 60px 120px -30px #000, 0 0 90px -20px color-mix(in srgb, var(--acc) 60%, transparent); }
 .split__art .stack img:nth-child(1) { width: 66%; left: 0; top: 4%; rotate: -5deg; }
 .split__art .stack img:nth-child(2) { width: 66%; right: 0; top: 0; rotate: 5deg; z-index: 2; }
 .ticks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; color: var(--fg2); }
