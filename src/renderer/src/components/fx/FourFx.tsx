@@ -6,6 +6,7 @@ export function LensFx() {
   const [tc, setTc] = useState('00:00:00')
   useEffect(() => {
     const f = (): void => {
+      if (document.hidden) return
       const s = Math.max(0, Math.floor(getPosition() / 1000))
       setTc(`00:${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`)
     }

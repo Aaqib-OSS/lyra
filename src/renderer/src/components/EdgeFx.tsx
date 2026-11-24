@@ -50,7 +50,15 @@ export function EdgeFx() {
     let n = 0
     const tick = (force = false): void => {
       const d = html.dataset
-      if (!edgeNeeded(d)) return
+      if (!edgeNeeded(d)) {
+        // nobody reads the variables any more (rim light switched off, or a look without an fx layer): take them off <html>, so a
+        // stale value never lingers and the next switch-on starts from the registered 0
+        if (written.size) {
+          for (const k of ALL_VARS) root.removeProperty(k)
+          written.clear()
+        }
+        return
+      }
       if (!force && n++ % edgeStride(d) !== 0) return
       const { lines: ls, offset: off } = ref.current
       const pos = getPosition() + off
