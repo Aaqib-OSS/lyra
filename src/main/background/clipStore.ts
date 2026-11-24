@@ -289,6 +289,29 @@ export class ClipStore {
     return new Response(stream, { status: partial ? 206 : 200, headers })
   }
 
+  /** Saved clips: how many and how many bytes (shown in Settings). */
+  info(): { files: number; bytes: number } {
+    try {
+      const done = readdirSync(this.o.dir).filter((f) => f.endsWith('.mp4'))
+      return { files: done.length, bytes: done.reduce((n, f) => n + statSync(join(this.o.dir, f)).size, 0) }
+    } catch {
+      return { files: 0, bytes: 0 }
+    }
+  }
+
+  /** Delete every saved clip (downloads that are running right now are left alone). */
+  clear(): void {
+    try {
+      for (const f of readdirSync(this.o.dir)) {
+        const p = join(this.o.dir, f)
+        if ([...this.entries.values()].some((e) => !e.done && !e.error && e.part === p)) continue
+        rmSync(p, { force: true })
+      }
+    } catch {
+      /* best effort */
+    }
+  }
+
   /** Delete leftovers of downloads that never finished (a crash or a force quit), and keep the folder inside its limits. */
   tidy(maxFiles: number, maxBytes: number): void {
     try {

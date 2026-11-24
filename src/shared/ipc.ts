@@ -117,6 +117,8 @@ export const CH = {
   bgResolve: 'bg:resolve',
   bgPick: 'bg:pick',
   bgClear: 'bg:clear',
+  bgCacheInfo: 'bg:cacheInfo',
+  bgCacheClear: 'bg:cacheClear',
   bgKeyHas: 'bg:key-has',
   bgKeySet: 'bg:key-set',
   bgKeyClear: 'bg:key-clear',
@@ -272,6 +274,9 @@ export interface LyraApi {
     /** Open a file picker; scope 'song' attaches to that track, 'global' is the default for all songs. */
     pick(scope: 'song' | 'global', trackId?: string): Promise<{ ok: boolean; error?: string }>
     clear(scope: 'song' | 'global', trackId?: string): Promise<void>
+    /** Apple preview clips saved on this device (count and bytes), and a way to delete them all. */
+    clipCacheInfo(): Promise<{ files: number; bytes: number }>
+    clipCacheClear(): Promise<void>
     hasYoutubeKey(): Promise<boolean>
     setYoutubeKey(key: string): Promise<{ ok: boolean; error?: string }>
     clearYoutubeKey(): Promise<void>

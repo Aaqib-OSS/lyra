@@ -326,6 +326,45 @@ function ResetButton() {
   )
 }
 
+
+/** The short Apple clips saved on this device: how much room they take, and a way to free it. */
+function ClipCacheRow() {
+  const [info, setInfo] = useState<{ files: number; bytes: number } | null>(null)
+  const [busy, setBusy] = useState(false)
+  const load = (): void => {
+    void Promise.resolve()
+      .then(() => window.lyra.background.clipCacheInfo())
+      .then(setInfo, () => setInfo(null))
+  }
+  useEffect(load, [])
+  const mb = info ? Math.round(info.bytes / 1048576) : 0
+  return (
+    <Row
+      label="Saved video clips"
+      info="Lyra keeps the 30 s Apple clips it plays so repeat plays start at once and cost no data. Old clips are removed automatically when the folder gets big. Clearing is safe: clips download again when needed."
+      hint={info ? (info.files === 0 ? 'Nothing saved yet' : `${info.files} clip${info.files === 1 ? '' : 's'} · ${mb} MB`) : 'Checking…'}
+    >
+      <button
+        type="button"
+        className="pill"
+        disabled={busy || !info || info.files === 0}
+        onClick={() => {
+          setBusy(true)
+          void window.lyra.background
+            .clipCacheClear()
+            .catch(() => undefined)
+            .finally(() => {
+              setBusy(false)
+              load()
+            })
+        }}
+      >
+        Clear
+      </button>
+    </Row>
+  )
+}
+
 function BackgroundSection() {
   const s = useSettings((x) => x.settings)
   const set = useSettings((x) => x.set)
@@ -398,6 +437,7 @@ function BackgroundSection() {
           Remove
         </button>
       </Row>
+      <ClipCacheRow />
       <Row label="YouTube key" info="Optional. A free YouTube Data API v3 key (Google Cloud Console) lets Lyra find the official music video and play it muted. The key is encrypted on this PC. Without it, Lyra uses Apple clips or animated art." hint={hasKey ? 'Saved (encrypted). Full videos play muted' : 'Optional: paste a free YouTube Data API v3 key for full videos'}>
         {hasKey ? (
           <button

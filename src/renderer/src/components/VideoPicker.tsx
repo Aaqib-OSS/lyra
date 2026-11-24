@@ -18,9 +18,12 @@ export function VideoPicker() {
   const toast = useUi((s) => s.toast)
   const { t } = useTranslation()
 
+  const current = useRef<string | undefined>(undefined)
+  current.current = track?.id
   useEffect(() => {
     setOpen(false)
     setItems(null)
+    setError(null)
   }, [track?.id])
 
   useEffect(() => {
@@ -34,19 +37,24 @@ export function VideoPicker() {
 
   if (!track) return null
 
+  const load = (): void => {
+    setError(null)
+    setItems(null)
+    const asked = track.id
+    // the song may change while the search runs: its answer must not show up under the next song
+    void window.lyra.background
+      .youtubeCandidates(track)
+      .then((r) => {
+        if (current.current !== asked) return
+        setItems(r.items)
+        if (r.error) setError(r.error)
+      })
+      .catch(() => current.current === asked && setError('Couldn’t load other videos.'))
+  }
   const toggle = (): void => {
     const next = !open
     setOpen(next)
-    if (next && !items) {
-      setError(null)
-      void window.lyra.background
-        .youtubeCandidates(track)
-        .then((r) => {
-          setItems(r.items)
-          if (r.error) setError(r.error)
-        })
-        .catch(() => setError('Couldn’t load other videos.'))
-    }
+    if (next && !items) load()
   }
   const choose = (id: string | null): void => {
     void window.lyra.background.youtubeChoose(track.id, id).then(() => {
@@ -65,13 +73,29 @@ export function VideoPicker() {
   }
 
   return (
-    <div className="vpick" ref={box}>
+    <div
+      className="vpick"
+      ref={box}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && open) {
+          e.stopPropagation()
+          setOpen(false)
+        }
+      }}
+    >
       <IconButton icon="refresh" label="Wrong video? Pick another" active={open} onClick={toggle} />
       {open && (
         <div className="vpick__pop" role="menu">
           <strong>Pick the right video</strong>
-          {!items && !error && <small>Loading…</small>}
-          {error && <small>{error}</small>}
+          {!items && !error && <small role="status">Loading…</small>}
+          {error && (
+            <small role="alert">
+              {error}{' '}
+              <button type="button" className="vpick__auto" onClick={load}>
+                Try again
+              </button>
+            </small>
+          )}
           {items?.length === 0 && !error && <small>No other embeddable videos found.</small>}
           {items?.map((v) => {
             const why = videoWhy(v.why)

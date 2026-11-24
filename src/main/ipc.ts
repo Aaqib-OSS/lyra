@@ -244,6 +244,8 @@ export function registerIpc(): void {
   })
   handle(CH.bgResolve, (t: Track) => background.resolve(t))
   handle(CH.bgPick, (scope: 'song' | 'global', trackId?: string) => background.pick(scope === 'song' ? 'song' : 'global', trackId))
+  handle(CH.bgCacheInfo, () => background.clipCacheInfo())
+  handle(CH.bgCacheClear, () => background.clipCacheClear())
   handle(CH.bgClear, (scope: 'song' | 'global', trackId?: string) => background.clear(scope === 'song' ? 'song' : 'global', trackId))
   handle(CH.bgKeyHas, () => youtube.hasKey())
   handle(CH.bgKeySet, (key: string) => youtube.setKey(String(key)))
