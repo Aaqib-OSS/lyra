@@ -73,6 +73,36 @@ for (const page of ['index.html', 'vibes.html']) {
 const list = (read('index.html').match(/<!--looks:start-->([\s\S]*?)<!--looks:end-->/) || [])[1] || ''
 if ((list.match(/<li>/g) || []).length !== N) fail(`index.html no-JS list has ${(list.match(/<li>/g) || []).length} looks, the data has ${N} (run: node scripts/make-site-shots.mjs --lists-only)`)
 
+// ---- HTML rules: meta tags, alt text, landmarks, in-page links, external links, sitemap, headers ----
+const pages = all.filter((x) => x.endsWith('.html')).map(rel)
+for (const page of pages) {
+  const h = read(page)
+  const noindex = /<meta name="robots" content="noindex"/.test(h)
+  const needs = ['<title>', '<meta name="description"', '<meta name="viewport"', '<html lang=']
+  if (!noindex || page === 'room.html') needs.push('<meta property="og:title"', '<meta property="og:image"', '<meta name="twitter:card"')
+  if (!noindex) needs.push('<link rel="canonical"')
+  for (const n of needs) if (!h.includes(n)) fail(`${page}: missing ${n}`)
+  if (!/<main[\s>]/.test(h)) fail(`${page}: no <main> landmark`)
+  for (const m of h.matchAll(/<img\b[^>]*>/g)) {
+    if (!/\salt=/.test(m[0])) fail(`${page}: <img> without alt: ${m[0].slice(0, 90)}`)
+    if (!/\swidth=/.test(m[0]) || !/\sheight=/.test(m[0])) fail(`${page}: <img> without width/height (layout shift): ${m[0].slice(0, 90)}`)
+  }
+  const ids = new Set([...h.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]))
+  for (const m of h.matchAll(/\shref="#([^"]+)"/g)) if (!ids.has(m[1])) fail(`${page}: href="#${m[1]}" has no matching id`)
+  for (const m of h.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)) if (!/rel="[^"]*noopener/.test(m[0])) fail(`${page}: target=_blank without noopener: ${m[0].slice(0, 90)}`)
+  if (/<script\b(?![^>]*\b(?:src|type)=)[^>]*>/.test(h) && page !== 'room.html') fail(`${page}: inline script (the CSP only allows it on room.html)`)
+}
+const sitemap = read('sitemap.xml')
+for (const p of pages.filter((x) => !/^(404|room)\./.test(x))) {
+  const url = p === 'index.html' ? '/' : `/${p.replace('.html', '')}`
+  if (!sitemap.includes(`https://lyra-website-rho.vercel.app${url}</loc>`)) fail(`sitemap.xml: ${url} is missing`)
+}
+if (!/<lastmod>/.test(sitemap)) fail('sitemap.xml: no lastmod')
+const vj = JSON.parse(read('vercel.json'))
+const hdr = vj.headers.flatMap((h) => h.headers.map((x) => x.key))
+for (const k of ['X-Content-Type-Options', 'Referrer-Policy', 'Content-Security-Policy', 'Cache-Control']) if (!hdr.includes(k)) fail(`vercel.json: no ${k} header`)
+if (!/application\/ld\+json/.test(read('index.html'))) fail('index.html: no structured data (JSON-LD)')
+
 // ---- weight ----
 const kb = (n) => `${(n / 1024).toFixed(0)} KB`
 const total = all.reduce((n, f) => n + statSync(f).size, 0)

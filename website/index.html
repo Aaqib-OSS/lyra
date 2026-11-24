@@ -28,6 +28,7 @@
   <link rel="preload" href="assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/unbounded-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" as="image" href="assets/shots/neon-full-800.webp" imagesrcset="assets/shots/neon-full-800.webp 800w, assets/shots/neon-full.webp 1600w" imagesizes="(max-width: 980px) 100vw, 900px" fetchpriority="high" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"Lyra","applicationCategory":"MultimediaApplication","operatingSystem":"Windows 10, Windows 11, Android 8","description":"Word-by-word synced lyrics over the music video of whatever you play, in 34 designed looks. Free and open source.","url":"https://lyra-website-rho.vercel.app/","image":"https://lyra-website-rho.vercel.app/assets/shots/og.jpg","license":"https://opensource.org/licenses/MIT","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"codeRepository":"https://github.com/DhruvHarani1/lyra"},{"@type":"WebSite","name":"Lyra","url":"https://lyra-website-rho.vercel.app/"}]}</script>
   <link rel="stylesheet" href="site.css" />
   <link rel="stylesheet" href="demo.css" />
 </head>
@@ -187,6 +188,10 @@
         <article class="bc reveal"><span class="k">Smooth start</span><h3>Ready before the song</h3><p>While one song plays, Lyra quietly prepares the next one: lyrics, video and the Apple preview clip.</p></article>
         <article class="bc reveal"><span class="k">Resilient</span><h3>Fails gracefully</h3><p>Automatic retries, a memory of videos that failed before, stale lyrics shown while a service is down.</p></article>
         <article class="bc reveal"><span class="k">Smart pick</span><h3>Chooses the look</h3><p>Night, city, tears, trophies: Lyra reads the words and the cover and picks a look that fits. Or cycle with <kbd>V</kbd>.</p></article>
+        <article class="bc reveal"><span class="k">Export · Windows</span><h3>A lyric video, in your look</h3><p>One button makes an MP4 of the chorus or the whole song. It films the real lyrics screen in the look you are using, in Reels, square or 16:9 sizes.</p></article>
+        <article class="bc reveal"><span class="k">Karaoke · Windows</span><h3>Sing along</h3><p>A karaoke screen with a count-in and word-by-word fill. Lyra looks for a karaoke version of the song to play behind it.</p></article>
+        <article class="bc reveal"><span class="k">Connect · Windows</span><h3>On every screen you own</h3><p>Lyra Connect is off until you turn it on. Pair a phone, a tablet or a browser on your Wi-Fi with a QR code, and it shows the same song, lyrics and look in time.</p></article>
+        <article class="bc reveal"><span class="k">Android TV · early</span><h3>A screen for the big TV</h3><p>An Android TV version with D-pad control. It is new and has not yet been run on a real TV, so treat it as a preview.</p></article>
         <article class="bc bc--w reveal"><span class="k">Private</span><h3>No account. No tracking.</h3><p>Lyra only reads the now-playing card. Your own lyrics, videos and choices stay on your device.</p></article>
         <article class="bc bc--w reveal"><span class="k">Open</span><h3>Everything is open source</h3><p>MIT licensed, with automated tests that render every look on every screen size before each release.</p></article>
       </div>
@@ -316,6 +321,24 @@
         </article>
       </div>
     </section>
+
+    <!-- FAQ, PRIVACY, SUPPORT -->
+    <section class="sx" id="faq">
+      <div class="sx__head">
+        <p class="mono reveal">11 · Questions</p>
+        <h2 class="reveal">Good to <em>know.</em></h2>
+      </div>
+      <div class="faq reveal">
+        <details><summary>Is Lyra really free? Do I need an account?</summary><p>Yes, and no. Lyra is free and MIT licensed. There is no account, no ads and no analytics.</p></details>
+        <details><summary>Which music apps does it work with?</summary><p>On Windows it reads the Spotify desktop app (through Windows media controls, or the optional Spotify API). On Android it works with any player that shows a media card. There is also a built-in demo song.</p></details>
+        <details><summary>Windows says “Windows protected your PC”. Is it safe?</summary><p>That is SmartScreen, which warns about apps that are not code-signed yet. Choose <b>More info</b>, then <b>Run anyway</b>. The code is open on GitHub and every release is built there by an automated workflow.</p></details>
+        <details><summary>Android says the app is blocked. What now?</summary><p>See the note in the Android card above: allow installs from your browser, and if Play Protect blocks it, switch the scan off for the install and back on afterwards. Obtainium and <code>adb install</code> also work.</p></details>
+        <details><summary>Where do the lyrics and videos come from?</summary><p>Lyrics come from the free LRCLIB database, and synced lyrics are preferred over plain ones. You can also paste or import your own. For the background Lyra uses your own clip, a free 30-second Apple music-video preview when one exists, or the official YouTube video if you paste a free YouTube API key into the Windows app. Without any of those you get living artwork.</p></details>
+        <details><summary>What does Lyra send over the internet?</summary><p>Song title, artist and duration go to LRCLIB (and to a few other lookup services listed in the privacy notes) to find lyrics, a release year and a preview clip. Nothing from your library is uploaded, and Lyra never stores the contents of your notifications. Lyra Connect and exports stay on your own network and device. The full table is in the <a href="https://github.com/DhruvHarani1/lyra/blob/main/PRIVACY.md" target="_blank" rel="noopener">privacy notes</a>.</p></details>
+        <details><summary>Is the Android TV version ready?</summary><p>It is an early preview. It exists and passes its tests, but it has not been run on a real TV yet.</p></details>
+        <details><summary>I found a bug or want a feature.</summary><p>Open an <a href="https://github.com/DhruvHarani1/lyra/issues" target="_blank" rel="noopener">issue on GitHub</a>. For a security problem, use the private report form described in the <a href="https://github.com/DhruvHarani1/lyra/blob/main/SECURITY.md" target="_blank" rel="noopener">security policy</a>.</p></details>
+      </div>
+    </section>
   </main>
 
   <footer class="ft">
@@ -323,7 +346,7 @@
       <div><p class="ft__big">Lyra.</p><p class="lead ft__lead">Lyrics that move with the music. Free and open source.</p></div>
       <div><h4>Explore</h4><a href="#looks"><span data-looks>34</span> looks</a><a href="vibes">Gallery</a><a href="whats-new">What’s new</a><a href="#demo">Live demo</a></div>
       <div><h4>Get it</h4><a href="#download">Windows</a><a href="#download">Android</a><a href="#vega">Vega</a></div>
-      <div><h4>Project</h4><a href="https://github.com/DhruvHarani1/lyra" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/DhruvHarani1/lyra/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a><a href="https://github.com/DhruvHarani1/lyra/issues" target="_blank" rel="noopener">Report a bug</a></div>
+      <div><h4>Project</h4><a href="https://github.com/DhruvHarani1/lyra" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/DhruvHarani1/lyra/blob/main/PRIVACY.md" target="_blank" rel="noopener">Privacy</a><a href="https://github.com/DhruvHarani1/lyra/issues" target="_blank" rel="noopener">Report a bug</a><a href="#faq">Questions</a></div>
     </div>
     <div class="ft__fine"><span>© Lyra and Vega · MIT licence</span><span>Lyra is not affiliated with Spotify. Song names in this demo are made up. Lyrics come from LRCLIB.</span></div>
   </footer>
