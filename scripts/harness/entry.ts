@@ -69,7 +69,24 @@ const noop = async () => undefined
 const api: any = {
   settings: { get: async () => settings, set: async (p: Partial<Settings>) => (settings = { ...settings, ...p }), reset: async () => settings, onChange: sub },
   window: { setMode: noop, getMode: async () => (q.get('mode') ?? (tv ? 'full' : 'mini')), onMode: sub, onFade: sub, settle() {}, resizeStart() {}, resizeMove() {}, resizeEnd() {}, dragStart() {}, dragMove() {}, dragEnd() {}, hide() {}, minimize() {}, quit() {} },
-  connect: { status: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }), setEnabled: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }), newCode: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }), party: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }), revoke: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }), setRole: async () => ({ enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }), publishView: noop, onChange: sub },
+  // ?connect=on shows Settings > Devices as if the host were running with a few devices; ?connect=wait shows the offline state
+  connect: (() => {
+    const q = new URLSearchParams(location.search).get('connect')
+    const off = { enabled: false, running: false, noNetwork: false, url: null, party: false, devices: [], codes: [] }
+    const on = {
+      enabled: true, running: true, noNetwork: false, url: 'http://192.168.1.20:47813/', party: false, port: 47813, network: 'Wi-Fi', waiting: false, online: 2, idleStopHours: 4,
+      devices: [
+        { id: 'a', name: 'Phone 3f2a', role: 'controller', online: true, guest: false, lastSeen: Date.now() },
+        { id: 'b', name: 'Living room TV', role: 'viewer', online: true, guest: false, lastSeen: Date.now() },
+        { id: 'c', name: 'Tablet 91bc', role: 'viewer', online: false, guest: false, lastSeen: Date.now() - 3 * 3600_000 },
+        { id: 'd', name: 'OBS overlay', role: 'overlay', online: false, guest: false, lastSeen: Date.now() - 86400_000 }
+      ],
+      codes: [{ display: 'K7QM-2XD9', expiresAt: Date.now() + 100_000, party: false, url: 'http://192.168.1.20:47813/#p=K7QM2XD9', qr: null }]
+    }
+    const st = q === 'on' ? on : q === 'wait' ? { ...off, enabled: true, waiting: true, noNetwork: true } : off
+    const same = async () => st
+    return { status: same, setEnabled: same, newCode: same, party: same, revoke: same, setRole: same, rename: same, revokeAll: same, setIdleStop: same, addOverlay: same, overlayLink: async () => null, test: async () => ({ ok: true, message: "Lyra answers on this PC's network address.", ms: 4, ip: '192.168.1.20', port: 47813, mdns: true }), publishView: noop, onChange: sub }
+  })(),
   cache: { clear: async () => ({ cleared: 0 }) },
   choices: { get: async () => null, setOffset: async () => undefined, clear: async () => undefined },
   spotify: { connect: noop, disconnect: noop, startDemo: noop, useLocal: noop, getStatus: async () => ({ state: 'demo' }), getSnapshot: async () => snap(), onStatus: sub, onPlayback: (cb: (s: PlaybackSnapshot) => void) => { playbackListeners.push(cb); return () => {} } },

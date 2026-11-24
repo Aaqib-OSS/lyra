@@ -47,6 +47,10 @@ header{display:flex;gap:14px;align-items:center;min-height:64px}
 #pair button{margin-top:16px;font-size:1.1rem;padding:12px 28px;border-radius:99px;border:0;background:var(--accent);color:#111;font-weight:700}
 #pair p{opacity:.7;margin:10px 0;max-width:34ch}
 #fs{position:fixed;right:14px;bottom:14px;z-index:4;width:44px;height:44px;border-radius:50%;border:1px solid #fff3;background:#0f0f12a6;color:inherit;font-size:20px;line-height:1;cursor:pointer;transition:opacity .4s}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#pair .small{font-size:.8rem;opacity:.5}
+#pair button:focus-visible,#pair input:focus-visible,#fs:focus-visible,#ctl button:focus-visible,#ctl select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){#lines,.l,#bg,#vid,#fs{transition:none!important}}
 body.calm #fs,body.calm #chip{opacity:0;pointer-events:none}
 body.calm{cursor:none}
 body.tv #fs{display:none}
@@ -61,7 +65,7 @@ var $=function(i){return document.getElementById(i)};
 var KEY='lyra.connect.device';
 var ws=null,attempt=0,retryTimer=0,pingTimer=0,pingsSent=0,role='viewer',sessionKey='',cmdN=0,pendingPair=null;
 var samples=[];var play=null,now=null,choices={},lyrics=null,view=null,vibes=[];
-var curLine=-1,lastSeek=0,ytReady=false,videoId=null,videoState='';
+var lastRx=0,curLine=-1,lastSeek=0,ytReady=false,videoId=null,videoState='';
 
 function save(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}}
@@ -91,33 +95,38 @@ function connect(){
   try{ws=new WebSocket('ws://'+location.host+'/ws')}catch(e){return retry()}
   var mine=ws;
   mine.onopen=function(){
-    attempt=0;pingsSent=0;samples=[];
+    pingsSent=0;samples=[];lastRx=Date.now();
     if(code)send({t:'pair',code:code,name:deviceName(),cn:cn});
     else send({t:'hello',deviceId:cred.id,name:cred.name||deviceName(),cn:cn});
     schedulePing();
   };
-  mine.onmessage=function(ev){var m;try{m=JSON.parse(ev.data)}catch(e){return}
+  mine.onmessage=function(ev){lastRx=Date.now();var m;try{m=JSON.parse(ev.data)}catch(e){return}
     if(m.t==='challenge'){send({t:'auth',proof:lyraHmac(cred.token,'lyra1|auth|'+cn+'|'+m.sn)});sessionKey=lyraHmac(cred.token,'lyra1|sess|'+cn+'|'+m.sn);cmdN=0}
     else if(m.t==='paired'){pendingPair=null;cred={id:m.deviceId,token:m.token,name:deviceName()};save(cred);sessionKey=lyraHmac(m.token,'lyra1|sess|'+cn+'|'+m.sn);cmdN=0;role=m.role}
-    else if(m.t==='ready'){role=m.role;vibes=m.vibes||[];chip(m.party?'Party · '+m.name:m.name,true);buildControls();hidePair()}
+    else if(m.t==='ready'){attempt=0;offlineHint(false);role=m.role;vibes=m.vibes||[];chip(m.party?'Party · '+m.name:m.name,true);buildControls();hidePair()}
     else if(m.t==='pong'){addSample(m.c0,m.s1,m.s2,Date.now())}
     else if(m.t==='now'){now=m.now;choices=m.choices||{};lyrics=null;curLine=-1;renderNow();renderLyrics()}
     else if(m.t==='play'){play=m.play;syncVideo(true);tick()}
     else if(m.t==='view'){view=m.view;renderView()}
     else if(m.t==='lyrics'){if(now&&m.id===now.id){lyrics=m;curLine=-1;renderLyrics()}}
     else if(m.t==='art'){if(now&&m.id===now.id)$('art').style.backgroundImage=$('bg').style.backgroundImage=m.src?'url('+m.src+')':''}
-    else if(m.t==='err'){if(m.code==='bad-proof'||m.code==='unknown-device'){forget();cred=null}if(m.code==='bad-code'||m.code==='expired'||m.code==='rate'||m.code==='full'){showPair(m.msg)}else if(m.code==='bad-proof'){showPair('This device was removed. Scan the code again.')}}
+    else if(m.t==='err'){if(m.code==='bad-proof'||m.code==='unknown-device'){forget();cred=null}if(m.code==='bad-code'||m.code==='expired'||m.code==='rate'||m.code==='full'){pendingPair=null;showPair(m.msg)}else if(m.code==='bad-proof'){showPair('This device was removed. Scan the code again.')}}
     else if(m.t==='bye'){if(m.why&&/removed/.test(m.why)){forget();showPair(m.why)}else chip(m.why||'Disconnected',false)}
   };
   mine.onclose=function(){if(mine!==ws)return;sessionKey='';retry()};
   mine.onerror=function(){};
 }
-function retry(){clearTimeout(pingTimer);if(!load()&&!pendingPair)return;chip('Reconnecting…',false);retryTimer=setTimeout(function(){attempt++;connect()},backoff())}
+function retry(){clearTimeout(pingTimer);if(!load()&&!pendingPair)return;chip('Reconnecting…',false);if(attempt>=2)offlineHint(true);retryTimer=setTimeout(function(){attempt++;connect()},backoff())}
+// a silent connection (host asleep, Wi-Fi gone) never closes by itself for minutes: no message for 25 s means it is dead
+function dead(){var w=ws;ws=null;sessionKey='';if(w)try{w.close()}catch(e){}retry()}
+setInterval(function(){if(ws&&ws.readyState===1&&Date.now()-lastRx>25000)dead()},5000);
+function offlineHint(on){var e=$('empty');if(on){e.style.display='grid';e.textContent='Cannot reach Lyra on your PC. Check that Lyra is open there, that Connect is on, and that this device is on the same Wi-Fi. Trying again…'}else if(e.dataset.hint){e.dataset.hint='';renderLyrics()}if(on)e.dataset.hint='1'}
 
 // ---- pairing screen ----
 function showPair(msg){$('pair').className='on';$('pmsg').textContent=msg||''}
 function hidePair(){$('pair').className=''}
-$('pgo').onclick=function(){var v=$('pcode').value.trim();if(!v)return;pendingPair=v;if(ws)try{ws.close()}catch(e){}connect()};
+$('pgo').onclick=function(){var v=$('pcode').value.trim();if(!v)return;pendingPair=v;attempt=0;if(ws)try{ws.close()}catch(e){}connect()};
+$('pcode').addEventListener('keydown',function(e){if(e.key==='Enter')$('pgo').onclick()});
 
 // ---- rendering ----
 function renderNow(){
@@ -229,11 +238,11 @@ export const VIEWER_HTML = `<!doctype html>
 <body>
 <div id="bg"></div><iframe id="vid" title="Background video" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe><div id="shade"></div>
 <main>
-<header><div id="art"></div><div id="meta"><div id="title">Lyra</div><div id="artist"></div></div><div id="chip">Connecting…</div></header>
+<header><div id="art"></div><div id="meta"><div id="title">Lyra</div><div id="artist"></div></div><div id="chip" role="status" aria-live="polite">Connecting…</div></header>
 <div id="lyrics"><div id="lines"></div><div id="empty"></div></div>
 <div id="ctl"></div>
 </main>
 <button id="fs" type="button" title="Full screen (F)" aria-label="Full screen">&#9974;</button>
-<div id="pair"><div><h2>Connect to Lyra</h2><p>Scan the QR code in Lyra on your PC, or type the code shown in Settings, Devices.</p><input id="pcode" maxlength="9" autocomplete="off" autocapitalize="characters" placeholder="ABCD-EFGH"><br><button id="pgo">Connect</button><p id="pmsg"></p></div></div>
+<div id="pair"><div><h2>Connect to Lyra</h2><p>Scan the QR code in Lyra on your PC, or type the code shown in Settings, Devices.</p><label for="pcode" class="sr">Pairing code</label><input id="pcode" maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="ABCD-EFGH"><br><button id="pgo" type="button">Connect</button><p id="pmsg" role="alert"></p><p class="small">Only pair on a network you trust. Lyra on your PC shows the code for two minutes.</p></div></div>
 <script>${HMAC_JS}\n${JS}</script>
 </body></html>`

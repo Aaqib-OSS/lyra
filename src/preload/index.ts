@@ -127,6 +127,10 @@ const api: LyraApi = {
     publishView: (v) => void invoke(CH.connectView, v),
     addOverlay: () => invoke(CH.connectOverlayAdd),
     overlayLink: (id) => invoke(CH.connectOverlayLink, id),
+    rename: (id, name) => invoke(CH.connectRename, id, name),
+    revokeAll: () => invoke(CH.connectRevokeAll),
+    test: () => invoke(CH.connectTest),
+    setIdleStop: (hours) => invoke(CH.connectIdle, hours),
     onChange: (cb) => subscribe(EV.connectChange, cb)
   },
   app: {

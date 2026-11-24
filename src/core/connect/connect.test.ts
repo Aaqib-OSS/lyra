@@ -2,7 +2,7 @@ import { createHmac, randomBytes } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import { hmacSha256Hex } from './hmac'
 import { ClockOffset, backoffMs, followDecision, followPositionMs, pingDelayMs, sampleFrom } from './clockSync'
-import { CODE_ALPHABET, CODE_LENGTH, CODE_TTL_MS, CommandGate, MAX_CODE_FAILURES, MAX_DEVICES, Pairing, normalizeCode, signCommand, type Device } from './pairing'
+import { CODE_ALPHABET, CODE_LENGTH, CODE_TTL_MS, CommandGate, MAX_CODE_FAILURES, MAX_DEVICES, MAX_PEER_FAILURES, PEER_LOCK_MS, Pairing, normalizeCode, signCommand, type Device } from './pairing'
 import { encode, parseClient, parseCommand, parseHost, MAX_CLIENT_BYTES } from './protocol'
 import { ANCHOR_REFRESH_MS, SyncState } from './syncState'
 
@@ -145,11 +145,27 @@ describe('pairing', () => {
   it('rate-limits guessing across codes', () => {
     const { p } = makePairing()
     let last: unknown
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 22; i++) {
       p.createCode() // a fresh code each time so only the global limiter can stop us
       last = p.redeem('ZZZZZZZZ', 'x')
     }
     expect(last).toMatchObject({ code: 'rate' })
+  })
+  it('locks out one peer address after a few misses without hurting another', () => {
+    const { p, tick } = makePairing()
+    const c = p.createCode()
+    for (let i = 0; i < MAX_PEER_FAILURES; i++) expect(p.redeem('ZZZZZZZZ', 'x', '192.168.1.50')).toMatchObject({ code: expect.stringMatching(/bad-code|rate/) })
+    // the locked peer is refused even with the right code, and the code was not burned by it
+    expect(p.redeem(c.code, 'x', '192.168.1.50')).toMatchObject({ ok: false, code: 'rate' })
+    expect(p.redeem(c.code, 'Phone', '192.168.1.60')).toMatchObject({ ok: true })
+    tick(PEER_LOCK_MS + 1)
+    expect(p.redeem(p.createCode().code, 'Back', '192.168.1.50')).toMatchObject({ ok: true })
+  })
+  it('one peer cannot burn the live code', () => {
+    const { p } = makePairing()
+    const c = p.createCode()
+    for (let i = 0; i < 30; i++) p.redeem('ZZZZZZZZ', 'x', '192.168.1.50')
+    expect(p.redeem(c.code, 'Phone', '192.168.1.60')).toMatchObject({ ok: true })
   })
   it('only one one-time code is live at a time', () => {
     const { p } = makePairing()

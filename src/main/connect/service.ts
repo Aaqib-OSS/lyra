@@ -18,7 +18,7 @@ import { MdnsAdvertiser } from './mdns'
 import { pickLanAddress } from './net'
 import { VIEWER_HTML } from './viewerHtml'
 import { OVERLAY_HTML } from './overlayPage'
-import { appIcon } from '../tray'
+import { appIcon, setTrayConnectLabel } from '../tray'
 
 const log = createLogger('connect')
 
@@ -51,6 +51,8 @@ class ConnectService {
         return img.isEmpty() ? null : { png: img.toPNG(), size: img.getSize().width || 512 }
       },
       lanIp: () => pickLanAddress(networkInterfaces())?.ip ?? null,
+      lanName: () => pickLanAddress(networkInterfaces())?.name ?? null,
+      idleStopMs: () => (settings.get().connectIdleStopHours || 0) * 3_600_000,
       hostName: () => hostname().slice(0, 30),
       vibes: [...ALL_VIBES],
       onCommand: (c) => this.onCommand(c),
@@ -58,6 +60,14 @@ class ConnectService {
       log,
       randomHex: (n) => randomBytes(n).toString('hex')
     })
+    // the tray shows who is connected: a glance tells the owner whether anything is attached to this PC
+    const label = (): void => {
+      const h = this.hubInstance
+      if (!h) return setTrayConnectLabel(null)
+      const n = h.onlineCount()
+      setTrayConnectLabel(h.running ? (n === 0 ? 'Connect: on, no devices' : n === 1 ? 'Connect: 1 device connected' : `Connect: ${n} devices connected`) : null)
+    }
+    this.hubInstance.on('change', label)
     return this.hubInstance
   }
 

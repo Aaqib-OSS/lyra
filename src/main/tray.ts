@@ -48,6 +48,15 @@ function send(cmd: AppCommand): void {
   windows.sendCommand(cmd)
 }
 
+/** Lyra Connect's one-line status for the tray menu (null: hide the line). Set by the Connect service. */
+let connectLabel: string | null = null
+let rebuildTray: (() => void) | null = null
+export function setTrayConnectLabel(label: string | null): void {
+  if (label === connectLabel) return
+  connectLabel = label
+  rebuildTray?.()
+}
+
 export function createTray(): Tray {
   tray = new Tray(appIcon().resize({ width: 32, height: 32 }))
   tray.setToolTip('Lyra')
@@ -69,12 +78,14 @@ export function createTray(): Tray {
           click: (i) => settings.update({ alwaysOnTop: i.checked })
         },
         { label: 'Settings…', click: () => { windows.show(); if (windows.getMode() !== 'mini') windows.setMode('mini'); send('open-settings') } },
+        ...(connectLabel ? [{ label: connectLabel, enabled: false } as const] : []),
         { type: 'separator' },
         { label: 'Quit Lyra', click: () => app.quit() }
       ])
     )
   }
   rebuild()
+  rebuildTray = rebuild
   settings.on('change', rebuild)
   tray.on('click', () => windows.toggleVisible())
   return tray
