@@ -1,27 +1,22 @@
 // Clicks the real controls in Settings and checks that each one actually changes the app (so no setting is a dead switch).
 //   npm run test:settings
 import { chromium } from 'playwright'
-import { spawn } from 'node:child_process'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { BROWSER_ARGS, CONTEXT_OPTIONS, ensureHarness, fontsReady, portFor } from './lib.mjs'
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const BASE = 'http://localhost:5199'
-const up = async () => { try { return (await fetch(BASE)).ok } catch { return false } }
-let server
-if (!(await up())) {
-  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', '5199', '--strictPort'], { cwd: root, stdio: 'ignore', shell: process.platform === 'win32' })
-  for (let i = 0; i < 80 && !(await up()); i++) await new Promise((r) => setTimeout(r, 500))
-}
+const PORT = portFor(5199)
+const BASE = `http://localhost:${PORT}`
+const stopServer = await ensureHarness(PORT)
 
-const browser = await chromium.launch()
+const browser = await chromium.launch({ args: BROWSER_ARGS })
+
 const results = []
 const check = (name, ok, detail = '') => results.push({ name, ok, detail })
 
 async function open(query, viewport = { width: 440, height: 900 }) {
-  const page = await browser.newPage({ viewport })
+  const page = await browser.newPage({ ...CONTEXT_OPTIONS, viewport })
   page.on('pageerror', (e) => check('no page errors', false, e.message.slice(0, 120)))
   await page.goto(`${BASE}/?paused=1&t=43500&panel=settings&${query}`)
+  await fontsReady(page)
   await page.waitForTimeout(1200)
   return page
 }
@@ -122,7 +117,7 @@ const more = async (p) => { for (let i = 0; i < 12 && (await p.locator('details.
 }
 
 await browser.close()
-server?.kill()
+stopServer()
 const bad = results.filter((r) => !r.ok)
 for (const r of results) console.log(`${r.ok ? '  ✓' : '  ✗'} ${r.name}${r.ok || !r.detail ? '' : `  (${r.detail})`}`)
 console.log(`\n${results.length - bad.length}/${results.length} settings checks passed`)

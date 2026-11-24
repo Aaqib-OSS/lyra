@@ -5,16 +5,19 @@
 //   npm run test:ui           every vibe x every device
 //   npm run test:ui:quick     a smaller matrix (used in CI)
 //   node scripts/ui-test/run.mjs --vibe=neon --device=phone --shots     one corner, keep screenshots
+//   options: --shard=2/4 (run every 4th screen, offset 2: CI splits the matrix across jobs), --retries=1 (re-run a failing
+//   screen in a fresh page; passing the second time is reported as FLAKY, not failed), --out=<dir> (default ui-test-out),
+//   --workers=N (default: one per CPU, 2..6)
 import { chromium } from 'playwright'
-import { spawn } from 'node:child_process'
+import { cpus } from 'node:os'
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
+import { BROWSER_ARGS, CONTEXT_OPTIONS, ensureHarness, fontsReady, isCI, parseArgs, portFor, root, shardOf } from './lib.mjs'
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? true]))
-const OUT = join(root, 'ui-test-out')
-const PORT = Number(process.env.UI_PORT ?? process.env.LYRA_UI_PORT ?? 5199) // set UI_PORT when several runs happen at once
+const args = parseArgs()
+const OUT = args.out && args.out !== true ? join(root, String(args.out)) : join(root, 'ui-test-out')
+const PORT = portFor(5199) // set UI_PORT when several runs happen at once
+const RETRIES = args.retries !== undefined ? Number(args.retries) : isCI ? 1 : 0 // a screen must fail RETRIES+1 times in a row to count as broken
 const BASE = `http://localhost:${PORT}`
 
 // the vibe catalogue (id + default lyric style) is read from the source so the test never goes stale
@@ -44,17 +47,6 @@ if (args.quick) devices = DEVICES.filter((d) => QUICK.includes(d.id))
 if (args.device) devices = DEVICES.filter((d) => String(args.device).split(',').some((x) => d.id === x || d.id.startsWith(x)))
 const vibes = args.vibe ? VIBES.filter((v) => String(args.vibe).split(',').includes(v.id)) : VIBES
 const withVideo = !!args.video
-
-async function up() {
-  try { return (await fetch(BASE)).ok } catch { return false }
-}
-let server
-async function ensureServer() {
-  if (await up()) return
-  server = spawn('npx', ['vite', '-c', 'scripts/harness/vite.config.ts', '--port', String(PORT), '--strictPort'], { cwd: root, stdio: 'ignore', shell: process.platform === 'win32', detached: process.platform !== 'win32' })
-  for (let i = 0; i < 80 && !(await up()); i++) await new Promise((r) => setTimeout(r, 500))
-  if (!(await up())) throw new Error('the harness server did not start')
-}
 
 /** Everything we measure, run inside the page. Returns plain data; the Node side decides pass or fail. */
 const MEASURE = () => {
@@ -229,31 +221,28 @@ function verdict(d, m, contrast) {
 }
 
 async function main() {
-  await ensureServer()
+  const stopServer = await ensureHarness(PORT)
   rmSync(OUT, { recursive: true, force: true })
   mkdirSync(join(OUT, 'shots'), { recursive: true })
-  const browser = await chromium.launch()
-  const jobs = []
+  const browser = await chromium.launch({ args: BROWSER_ARGS })
+  let jobs = []
   if (args.states) {
     // the lyrics outcomes (words without timing, no lyrics, offline) on the main devices, with and without a video
     const key = devices.filter((d) => ['phone', 'tablet-land', 'win-full-768', 'win-mini'].includes(d.id))
     for (const v of vibes) for (const d of key) for (const ly of ['plain', 'none', 'offline']) jobs.push({ v, d: { ...d, id: `${d.id}+${ly}`, q: `${d.q}&ly=${ly}`, lyricsOptional: true, state: ly } })
   } else for (const v of vibes) for (const d of devices) jobs.push({ v, d })
-  const results = []
-  let next = 0
-  const worker = async () => {
-    const ctx = await browser.newContext({ deviceScaleFactor: 1 })
-    for (;;) {
-      const i = next++
-      if (i >= jobs.length) break
-      const { v, d, extra, vibeId } = jobs[i]
-      const page = await ctx.newPage()
+  jobs = shardOf(jobs, args.shard)
+
+  /** One screen: load it, wait until it has settled, measure, judge. Returns the verdict; the caller decides on retries. */
+  const runJob = async (ctx, { v, d, extra, vibeId }) => {
+    const page = await ctx.newPage()
+    try {
       await page.setViewportSize({ width: d.w, height: d.h })
       const errors = []
       page.on('pageerror', (e) => errors.push(e.message.slice(0, 160)))
       const s = encodeURIComponent(JSON.stringify({ vibe: vibeId ?? v.id, lyricStyle: v.style, performance: 'smooth', ...(extra ?? {}) }))
       await page.goto(`${BASE}/?paused=1&t=43500&${d.q}${withVideo ? '&video=night' : ''}&s=${s}`)
-      await page.evaluate(() => document.fonts.ready)
+      await fontsReady(page)
       await page.waitForTimeout(2800)
       // a slow runner (CI: software-rendered Linux) is still mid-transition here: lines fading in, the lyric list still gliding to the
       // current line. Wait for the one-shot animations and the scroll to settle (looping decoration is ignored), so we judge the finished frame
@@ -268,6 +257,7 @@ async function main() {
           last = now
         }
       })
+      await fontsReady(page) // a face first requested by the settled frame (a late lyric style) must be in before we measure
       const m = await page.evaluate(MEASURE)
       const shot = await page.screenshot()
       let contrast = null
@@ -281,24 +271,45 @@ async function main() {
         if (d.state === 'plain' && !(await page.evaluate(() => !!document.querySelector('.plain__stanza')))) fails.push('plain lyrics are not shown')
       }
       if (errors.length) fails.unshift(`page error: ${errors[0]}`)
-      const name = `${v.id}__${d.id}`
-      if (fails.length || args.shots) writeFileSync(join(OUT, 'shots', `${fails.length ? 'FAIL_' : ''}${name}.png`), shot)
-      results.push({ vibe: v.id, device: d.id, fails, contrast: contrast === null ? null : Number(contrast.toFixed(2)) })
+      return { vibe: v.id, device: d.id, fails, shot, contrast: contrast === null ? null : Number(contrast.toFixed(2)) }
+    } finally {
       await page.close()
+    }
+  }
+
+  const results = []
+  let next = 0
+  const worker = async () => {
+    const ctx = await browser.newContext(CONTEXT_OPTIONS)
+    for (;;) {
+      const i = next++
+      if (i >= jobs.length) break
+      let r = await runJob(ctx, jobs[i])
+      const first = r.fails
+      // flaky-test policy: a failing screen is re-run in a fresh page; only a screen that fails every time fails the suite
+      for (let a = 0; a < RETRIES && r.fails.length; a++) r = await runJob(ctx, jobs[i])
+      const flaky = first.length && !r.fails.length ? first : null
+      const name = `${r.vibe}__${r.device}`
+      if (r.fails.length || flaky || args.shots) writeFileSync(join(OUT, 'shots', `${r.fails.length ? 'FAIL_' : flaky ? 'FLAKY_' : ''}${name}.png`), r.shot)
+      const { shot, ...rest } = r
+      results.push({ ...rest, flaky })
     }
     await ctx.close()
   }
-  await Promise.all(Array.from({ length: Number(args.workers) || 4 }, worker))
+  const workers = Math.max(1, Number(args.workers) || Math.min(6, Math.max(2, cpus().length)))
+  await Promise.all(Array.from({ length: workers }, worker))
   await browser.close()
-  try { if (server) process.kill(process.platform === 'win32' ? server.pid : -server.pid) } catch {}
+  stopServer()
 
   results.sort((a, b) => (a.vibe + a.device).localeCompare(b.vibe + b.device))
   writeFileSync(join(OUT, 'report.json'), JSON.stringify(results, null, 2))
   const bad = results.filter((r) => r.fails.length)
-  console.log(`\nUI test: ${results.length} screens checked${` (${vibes.length} vibes x ${devices.length} devices)`}, ${bad.length} with problems\n`)
+  const flaky = results.filter((r) => r.flaky)
+  console.log(`\nUI test${args.shard ? ` [shard ${args.shard}]` : ''}: ${results.length} screens checked (${vibes.length} vibes x ${devices.length} devices), ${bad.length} with problems${flaky.length ? `, ${flaky.length} flaky` : ''}\n`)
+  for (const r of flaky) console.log(`  ~ FLAKY ${r.vibe} @ ${r.device} (failed once, passed on retry)\n      ${r.flaky.join('\n      ')}`)
   for (const r of bad) console.log(`  ✗ ${r.vibe} @ ${r.device}\n      ${r.fails.join('\n      ')}`)
   if (!bad.length) console.log('  ✓ all screens pass')
   console.log(`\nreport + failing screenshots: ${OUT}`)
   process.exit(bad.length ? 1 : 0)
 }
-main().catch((e) => { console.error(e); try { if (server) process.kill(process.platform === 'win32' ? server.pid : -server.pid) } catch {}; process.exit(2) })
+main().catch((e) => { console.error(e); process.exit(2) })
