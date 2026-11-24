@@ -40,21 +40,20 @@ input[type='range']:focus-visible {
 }
 
 /* ---------- Android: 48dp touch targets without moving the layout ---------- */
-[data-platform='android'] .ibtn {
-  min-width: 48px;
-  min-height: 48px;
+/* !important: the per-look Android rules are more specific; 48 is a floor no look may go under */
+:root[data-platform='android'] .ibtn {
+  min-width: 48px !important;
+  min-height: 48px !important;
 }
-[data-platform='android'] :is(.pill, .seg button, [role='tab'], .menu__pop button, select) {
-  min-height: 48px;
+:root[data-platform='android'] :is(.pill, .seg button, [role='tab'], [role='radio'], .menu__pop button, select) {
+  min-height: 48px !important;
 }
-/* small controls keep their look; an invisible larger area takes the touch */
-[data-platform='android'] :is(.offset button, .switch--sm) {
-  position: relative;
-}
-[data-platform='android'] :is(.offset button, .switch--sm)::after {
-  content: '';
-  position: absolute;
-  inset: -14px;
+/* small controls keep their look; android-scenes.css already gives them an invisible 44px hit area, raised here to 48 */
+:root[data-platform='android'] .lyrics__footer button::after,
+:root[data-platform='android'] .lyrics__footer .pill::after,
+:root[data-platform='android'] .ambsw .switch::after {
+  width: max(100%, 48px);
+  height: 48px;
 }
 
 /* ---------- text size: let long words and big text wrap instead of overflowing ---------- */
@@ -82,4 +81,12 @@ input[type='range']:focus-visible {
   .switch[aria-checked='true'] {
     outline: 2px solid Highlight;
   }
+}
+
+/* ---------- lyrics keep their own direction whatever the UI direction is ----------
+   Each line decides for itself (Arabic and Hebrew lines run right to left inside an LTR app, and English
+   lines stay left to right inside an RTL app). */
+.lyric__text,
+.lyrics__plain p {
+  unicode-bidi: plaintext;
 }

@@ -96,7 +96,7 @@ export class MprisSource extends PlaybackSource {
     const args = playerctlArgs(cmd)
     if (!args) return { ok: false, reason: 'unsupported', error: 'This player can’t do that through the Linux media controls.' }
     return new Promise((resolve) => {
-      execFile('playerctl', args, { timeout: 4000 }, (err) => resolve(err ? { ok: false, reason: 'offline', error: 'playerctl could not reach a player.' } : { ok: true }))
+      execFile('playerctl', args, { timeout: 4000 }, (err) => resolve(err ? { ok: false, reason: 'offline', error: 'No media player found. Open one and try again.' } : { ok: true }))
     })
   }
 

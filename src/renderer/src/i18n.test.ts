@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { formatDuration, setLanguage, translate as t, translatePlural as tp } from './i18n'
+import { formatDuration, lineDir, setLanguage, translate as t, translatePlural as tp } from './i18n'
 import { gu } from './locales/gu'
 import { hi } from './locales/hi'
 
@@ -18,6 +18,16 @@ describe('translate', () => {
   it('picks plural forms by the language rule', () => {
     expect(tp('{n} line', '{n} lines', 1)).toBe('1 line')
     expect(tp('{n} line', '{n} lines', 2)).toBe('2 lines')
+  })
+})
+
+describe('lineDir', () => {
+  it('follows the first letter of the line', () => {
+    expect(lineDir('مرحبا بالعالم')).toBe('rtl')
+    expect(lineDir('שלום עולם')).toBe('rtl')
+    expect(lineDir('  “Hello” world')).toBe('ltr')
+    expect(lineDir('नमस्ते')).toBe('ltr')
+    expect(lineDir('♪ ♪')).toBe('ltr')
   })
 })
 

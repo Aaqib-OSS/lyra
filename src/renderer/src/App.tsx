@@ -164,7 +164,7 @@ function useHotkeys(): void {
           break
         case 'ArrowRight':
         case 'ArrowLeft': {
-          if (t.closest('input[type="range"]')) return
+          if (t.closest('input[type="range"], [role="radio"], [role="tab"], [role="menuitem"]')) return // those widgets own the arrow keys
           e.preventDefault()
           const fwd = e.key === 'ArrowRight'
           if (e.shiftKey) void p.command({ type: fwd ? 'next' : 'previous' })
@@ -173,7 +173,7 @@ function useHotkeys(): void {
         }
         case 'ArrowUp':
         case 'ArrowDown': {
-          if (t.closest('input[type="range"]') || !p.snapshot?.device) return
+          if (t.closest('input[type="range"], [role="radio"], [role="tab"], [role="menuitem"]') || !p.snapshot?.device) return
           e.preventDefault()
           p.setVolume(Math.min(100, Math.max(0, (p.snapshot.device.volumePercent ?? 0) + (e.key === 'ArrowUp' ? 5 : -5))))
           break

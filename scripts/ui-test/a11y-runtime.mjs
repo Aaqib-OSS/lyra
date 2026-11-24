@@ -49,7 +49,10 @@ const SMALL_JS = (min) => {
     const cs = getComputedStyle(e)
     if (r.width === 0 || r.height === 0 || cs.visibility === 'hidden' || cs.display === 'none' || e.closest('[aria-hidden=true]')) return
     if (r.right < 0 || r.bottom < 0 || r.left > innerWidth || r.top > innerHeight) return
-    if (r.width < min || r.height < min) out.push(`${(e.getAttribute('aria-label') || e.textContent || e.className).toString().trim().slice(0, 24)} ${Math.round(r.width)}x${Math.round(r.height)}`)
+    // a transparent ::after hit area counts (small controls keep their look but take a 48px touch)
+    const ps = getComputedStyle(e, '::after')
+    const hit = ps.position === 'absolute' && ps.content !== 'none' ? { w: parseFloat(ps.width) || 0, h: parseFloat(ps.height) || 0 } : { w: 0, h: 0 }
+    if (Math.max(r.width, hit.w) < min || Math.max(r.height, hit.h) < min) out.push(`${(e.getAttribute('aria-label') || e.textContent || e.className).toString().trim().slice(0, 24)} ${Math.round(r.width)}x${Math.round(r.height)}`)
   })
   return out
 }
@@ -75,7 +78,7 @@ async function scene(name, url, opts, fn) {
   const errors = []
   page.on('pageerror', (e) => errors.push(e.message))
   await page.goto(`http://localhost:${PORT}/${url}`)
-  await page.waitForTimeout(1800)
+  await page.waitForTimeout(2600)
   const unnamed = await page.evaluate(NAME_JS)
   for (const u of unnamed) fail(name, `no accessible name: ${u}`)
   if (opts.small) {

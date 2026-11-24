@@ -111,6 +111,18 @@ export function formatDuration(ms: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`
 }
 
+const RTL_CHARS = /[֐-ࣿיִ-﷿ﹰ-﻿]/
+const LATIN_OR_OTHER = /[A-Za-zÀ-֏ऀ-﬜]/
+
+/** 'rtl' when the first letter of a lyric line is Hebrew, Arabic, Syriac, Thaana etc.; else 'ltr'. Use as dir={lineDir(text)} on a line wrapper. */
+export function lineDir(text: string): 'ltr' | 'rtl' {
+  for (const ch of text) {
+    if (RTL_CHARS.test(ch)) return 'rtl'
+    if (LATIN_OR_OTHER.test(ch)) return 'ltr'
+  }
+  return 'ltr'
+}
+
 export function useTranslation(): {
   language: Language
   setLanguage: typeof setLanguage
