@@ -14,9 +14,11 @@ import { BG_SCHEME, background, registerBackgroundScheme } from './background/se
 import { createTray } from './tray'
 import { updater } from './updater'
 import { windows } from './window'
+import { attachWindowGuard, installCrashGuard, isSafeMode } from './crashGuard'
 
 // the shared core reaches the OS only through this (fetch, storage, secrets, logging)
 installElectronPlatform()
+installCrashGuard() // before ready: safe mode, GPU fallback, process-level error handlers
 
 const log = createLogger('main')
 
@@ -88,12 +90,14 @@ if (!app.requestSingleInstanceLock()) {
     background.collectGarbage()
     registerIpc()
     const win = windows.create()
+    attachWindowGuard(win)
     createTray()
     applyShortcuts(settings.get().globalShortcuts, settings.get().shortcuts)
     windows.applySettings(settings.get())
     startPlayback()
-    if (settings.get().connectEnabled) void connectService.start()
-    updater.start()
+    // safe mode (two unfinished starts in a row): skip the optional network services
+    if (settings.get().connectEnabled && !isSafeMode()) void connectService.start()
+    if (!isSafeMode()) updater.start()
 
     // Slow polling while the widget isn't visible.
     win.on('hide', () => setBackground(true))

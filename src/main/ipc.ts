@@ -12,7 +12,8 @@ import { failedVideos } from '@core/background/failedVideos'
 import { connectService } from './connect/service'
 import { registerStudioIpc } from './studio'
 import QRCode from 'qrcode'
-import { createLogger, readLogTail } from './logger'
+import { createLogger } from './logger'
+import { buildDiagnostics, openLogFolder } from './diagnostics'
 import { moments } from './moments'
 import { background } from './background/service'
 import { youtube } from '@core/background/youtube'
@@ -191,7 +192,7 @@ export function registerIpc(): void {
       if ((await stat(file)).size > 1_000_000) return { error: 'That file is too big to be lyrics (limit 1 MB).' }
       return lyricsService.importText(t, decodeLyricsBytes(await readFile(file)), basename(file))
     } catch {
-      return { error: 'Couldn’t read that file.' }
+      return { error: 'Couldn’t read that file. Check it is a plain-text .lrc, .srt or .txt file that no other app has locked.' }
     }
   })
   handle(CH.artGet, (url: string) => getArtwork(url))
@@ -200,20 +201,8 @@ export function registerIpc(): void {
   handle(CH.momentsAdd, (m: Parameters<typeof moments.add>[0]) => moments.add(m))
   handle(CH.momentsRemove, (id: string) => moments.remove(id))
 
-  handle(CH.appDiagnostics, (): string => {
-    // no account id, no window place, and no per-song picks (song ids are listening history): only how many
-    const { spotifyClientId: _id, position, songVibes, ...safe } = settings.get()
-    void _id
-    return [
-      `Lyra ${app.getVersion()} (${app.isPackaged ? 'installed' : 'dev'})`,
-      `Electron ${process.versions.electron} · Chrome ${process.versions.chrome} · Node ${process.versions.node}`,
-      `Windows ${process.getSystemVersion()} · ${process.arch}`,
-      `Source: ${active?.kind ?? 'none'} · status: ${JSON.stringify(active?.getStatus() ?? {})}`,
-      `Settings: ${JSON.stringify({ ...safe, position: position ? 'set' : null, songVibes: Object.keys(songVibes).length })}`,
-      '--- recent log ---',
-      readLogTail(80)
-    ].join('\n')
-  })
+  handle(CH.appDiagnostics, (): Promise<string> => buildDiagnostics(`Source: ${active?.kind ?? 'none'} · status: ${JSON.stringify(active?.getStatus() ?? {})}`))
+  handle(CH.appOpenLogs, () => openLogFolder())
   handle(CH.appShortcutStatus, () => failedShortcuts())
   const pngFrom = (dataUrl: unknown): Buffer | null => {
     if (typeof dataUrl !== 'string' || dataUrl.length > 25_000_000) return null

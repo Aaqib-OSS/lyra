@@ -1,9 +1,30 @@
 import { app } from 'electron'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { chooseStoreSource, migrate, type Migrations } from '../core/reliability'
 import { createLogger } from './logger'
 
 const log = createLogger('store')
+
+export interface StoreOptions {
+  /**
+   * keep a `.bak` of the last good file and restore from it. Opt-in: stores that hold things a user can delete (history,
+   * moments, picks) must not keep an older copy around. Without it a broken file is only set aside as `.corrupt`.
+   */
+  backup?: boolean
+  /** current schema version; stored as `__v` in the file. Omit for unversioned stores. */
+  version?: number
+  /** migrations[n] upgrades data from version n to n+1 */
+  migrations?: Migrations
+}
+
+const read = (p: string): string | null => {
+  try {
+    return existsSync(p) ? readFileSync(p, 'utf8') : null
+  } catch {
+    return null
+  }
+}
 
 /** Tiny atomic, debounced JSON file store living in userData. */
 export class JsonStore<T extends object> {
@@ -11,41 +32,38 @@ export class JsonStore<T extends object> {
   private timer: NodeJS.Timeout | null = null
   readonly path: string
 
-  constructor(name: string, private readonly defaults: T, private readonly backup = false) {
+  private readonly opts: StoreOptions
+
+  constructor(name: string, private readonly defaults: T, opts: StoreOptions | boolean = {}) {
+    this.opts = typeof opts === 'boolean' ? { backup: opts } : opts
     this.path = join(app.getPath('userData'), name)
     this.data = this.load()
   }
 
-  private parse(file: string): T {
-    const parsed = JSON.parse(readFileSync(file, 'utf8')) as Partial<T>
-    if (!parsed || typeof parsed !== 'object') throw new Error('not a JSON object or array')
-    return Array.isArray(this.defaults) ? (parsed as T) : { ...this.defaults, ...parsed }
-  }
-
   private load(): T {
-    if (!existsSync(this.path)) return structuredClone(this.defaults)
-    try {
-      return this.parse(this.path)
-    } catch (e) {
-      log.warn(`could not read ${this.path}`, e)
-    }
-    // Unreadable: keep the broken file for inspection (never silently overwrite it), then try the last good copy.
-    try {
-      if (this.backup) copyFileSync(this.path, `${this.path}.corrupt`)
-      else renameSync(this.path, `${this.path}.corrupt`) // no backup to fall back on: keep the unreadable file next to the new one
-    } catch {
-      /* best effort */
-    }
-    try {
-      if (this.backup && existsSync(`${this.path}.bak`)) {
-        const restored = this.parse(`${this.path}.bak`)
-        log.warn(`restored ${this.path} from its backup`)
-        return restored
+    const r = chooseStoreSource(read(this.path), this.opts.backup ? read(`${this.path}.bak`) : null, (v) => (Array.isArray(this.defaults) ? Array.isArray(v) : v !== null && typeof v === 'object' && !Array.isArray(v)))
+    if (r.primaryCorrupt) {
+      // keep the unreadable file so nothing is lost for good, then carry on from the backup or defaults
+      try {
+        if (this.opts.backup) copyFileSync(this.path, `${this.path}.corrupt`)
+        else renameSync(this.path, `${this.path}.corrupt`) // no backup to fall back on: set the unreadable file aside, never overwrite it
+      } catch {
+        /* best effort */
       }
-    } catch (e) {
-      log.warn(`backup of ${this.path} is unreadable too, using defaults`, e)
+      log.warn(`${this.path} was unreadable; ${r.source === 'backup' ? 'restored the last good copy' : 'using defaults'} (the bad file is kept as .corrupt)`)
     }
-    return structuredClone(this.defaults)
+    if (r.source === 'defaults') return structuredClone(this.defaults)
+    if (Array.isArray(this.defaults)) return r.value as T
+    let obj = r.value as Record<string, unknown>
+    if (this.opts.version !== undefined) {
+      const from = typeof obj['__v'] === 'number' ? (obj['__v'] as number) : 0
+      if (from < this.opts.version) {
+        const m = migrate(obj, from, this.opts.version, this.opts.migrations ?? {})
+        if (m.failed) log.warn(`migration of ${this.path} stopped at version ${m.version}`)
+        obj = { ...m.data, __v: m.version }
+      }
+    }
+    return { ...this.defaults, ...obj } as T
   }
 
   get(): T {
@@ -68,16 +86,16 @@ export class JsonStore<T extends object> {
     try {
       mkdirSync(dirname(this.path), { recursive: true })
       const tmp = `${this.path}.tmp`
-      writeFileSync(tmp, JSON.stringify(this.data, null, 2))
-      // keep the previous good file as the backup before it is replaced (a crash between the two steps loses nothing)
-      // (opt-in: stores that hold things a user can delete, like history, must not keep an older copy around)
-      try {
-        if (this.backup && existsSync(this.path)) {
-          JSON.parse(readFileSync(this.path, 'utf8')) // never replace a good backup with a broken file
+      const out = this.opts.version !== undefined && !Array.isArray(this.data) ? { ...this.data, __v: this.opts.version } : this.data
+      writeFileSync(tmp, JSON.stringify(out, null, 2))
+      // only a file that still parses becomes the backup, so a corrupt file never overwrites the good copy
+      const prev = this.opts.backup ? read(this.path) : null
+      if (prev !== null && chooseStoreSource(prev, null).source === 'primary') {
+        try {
           copyFileSync(this.path, `${this.path}.bak`)
+        } catch {
+          /* best effort */
         }
-      } catch {
-        /* the backup is a bonus */
       }
       renameSync(tmp, this.path)
     } catch (e) {

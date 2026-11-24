@@ -1,20 +1,26 @@
 import { app } from 'electron'
-import { appendFileSync, mkdirSync, readFileSync, statSync, renameSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync } from 'node:fs'
 import { join } from 'node:path'
+import { rotationMoves, scrubText, shouldRotate } from '../core/reliability'
 
 type Level = 'debug' | 'info' | 'warn' | 'error'
 const MAX_BYTES = 1_000_000
+const KEEP = 3 // lyra.log + lyra.1.log .. lyra.3.log (about 4 MB at most)
 
+let dir: string | null = null
 let file: string | null = null
+let written = 0
+const recent: string[] = []
 
 function logFile(): string | null {
   if (file) return file
   try {
-    const dir = join(app.getPath('userData'), 'logs')
+    dir = join(app.getPath('userData'), 'logs')
     mkdirSync(dir, { recursive: true })
     file = join(dir, 'lyra.log')
     try {
-      if (statSync(file).size > MAX_BYTES) renameSync(file, join(dir, 'lyra.old.log'))
+      written = statSync(file).size
+      if (shouldRotate(written, MAX_BYTES)) rotate()
     } catch {
       /* no existing log */
     }
@@ -24,12 +30,39 @@ function logFile(): string | null {
   return file
 }
 
-/** Strip anything that looks like a bearer/refresh token or auth code before logging. */
+function rotate(): void {
+  if (!dir) return
+  try {
+    for (const m of rotationMoves('lyra.log', KEEP)) {
+      const from = join(dir, m.from)
+      if (!existsSync(from)) continue
+      const to = join(dir, m.to)
+      if (existsSync(to)) rmSync(to, { force: true })
+      renameSync(from, to)
+    }
+    written = 0
+  } catch {
+    /* rotation is best effort */
+  }
+}
+
+/** Folder holding the log files (created on demand). */
+export function logDirectory(): string {
+  logFile()
+  return dir ?? join(app.getPath('userData'), 'logs')
+}
+
+/** Strip anything personal (tokens, keys, e-mails, the OS user name, LAN addresses) before logging. */
 function redact(text: string): string {
-  return text
-    .replace(/(Bearer\s+)[A-Za-z0-9._~+/-]+=*/gi, '$1[redacted]')
-    .replace(/((?:access|refresh)_token["':=\s]+)[A-Za-z0-9._~+/-]+/gi, '$1[redacted]')
-    .replace(/([?&](?:code|state|code_verifier)=)[^&\s]+/gi, '$1[redacted]')
+  return scrubText(text, safeHome())
+}
+
+function safeHome(): string | undefined {
+  try {
+    return app.getPath('home')
+  } catch {
+    return undefined
+  }
 }
 
 function write(level: Level, scope: string, args: unknown[]): void {
@@ -40,10 +73,16 @@ function write(level: Level, scope: string, args: unknown[]): void {
   if (level === 'error') console.error(line)
   else if (level === 'warn') console.warn(line)
   else if (!app.isPackaged || level !== 'debug') console.log(line)
+  if (level === 'warn' || level === 'error') {
+    recent.push(line.split('\n')[0]!)
+    if (recent.length > 20) recent.shift()
+  }
   const f = logFile()
   if (f && level !== 'debug') {
     try {
+      if (shouldRotate(written, MAX_BYTES)) rotate()
       appendFileSync(f, line + '\n')
+      written += line.length + 1
     } catch {
       /* disk issues must never crash the app */
     }
@@ -57,6 +96,11 @@ export function createLogger(scope: string) {
     warn: (...a: unknown[]) => write('warn', scope, a),
     error: (...a: unknown[]) => write('error', scope, a)
   }
+}
+
+/** The last warnings and errors of this run (already scrubbed). */
+export function recentProblems(): string[] {
+  return [...recent]
 }
 
 /** Last `lines` lines of the log file (secrets are already redacted when written). */

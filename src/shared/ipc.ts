@@ -116,6 +116,7 @@ export const CH = {
   studioStageSync: 'studio:stage-sync',
   studioStageStop: 'studio:stage-stop',
   appDiagnostics: 'app:diagnostics',
+  appOpenLogs: 'app:open-logs',
   appCopy: 'app:copy',
   appCopyImage: 'app:copy-image',
   appShareImage: 'app:share-image',
@@ -440,6 +441,8 @@ export interface LyraApi {
     info(): Promise<AppInfo>
     /** Plain-text report (versions, settings, recent log) safe to paste into a bug report. */
     diagnostics(): Promise<string>
+    /** Open the folder with Lyra's log files in the file manager. */
+    openLogs(): Promise<string>
     /** Copy plain text to the system clipboard. */
     copy(text: string): Promise<boolean>
     /** Put a PNG (data URL) on the clipboard. Resolves false where that is not possible. */
