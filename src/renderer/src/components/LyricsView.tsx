@@ -18,6 +18,7 @@ import { LyricsFallback } from './LyricsFallback'
 import { LyricsStage } from './LyricsStage'
 import { useEffectiveVibe } from '@/hooks/useVibe'
 import { plainInk } from '@/lib/journalInk'
+import { matchLooksOff, providerLabel } from '@/lib/lyricsSource'
 
 const RESUME_AFTER_MS = 6000
 
@@ -350,7 +351,7 @@ function PlainLyrics({ result }: { result: LyricsResult }) {
   return (
     <div className="lyrics__scroller lyrics__scroller--plain" data-nodrag tabIndex={-1}>
       <div className="lyrics__inner lyrics__inner--plain">
-        <p className="lyrics__notice">
+        <p className="lyrics__notice" role="note">
           <Icon name="alert" size={13} /> These lyrics aren’t time-synced, so they won’t follow the song.
         </p>
         {paragraphs.map((p, i) => (
@@ -419,16 +420,19 @@ function LyricsFooter({ result }: { result: LyricsResult }) {
   const wordByWord = useSettings((s) => s.settings.wordByWord)
   const synced = result.status === 'synced'
   const m = result.matched
-  const providerName = result.provider === 'lrclib' ? 'LRCLIB' : result.provider === 'demo' ? 'Demo' : result.provider === 'you' ? 'Your lyrics' : result.provider
+  const track = usePlayer((st) => st.snapshot?.track ?? null)
+  const providerName = providerLabel(result.provider)
+  const looksOff = matchLooksOff(track, result)
   return (
     <div className="lyrics__footer" data-nodrag>
       <span className="lyrics__source">
-        <span title={m ? `Matched “${m.title}” by ${m.artist}` : undefined}>
+        <span title={m ? `Matched “${m.title}” by ${m.artist}${looksOff ? '. This may be a different song: tap Wrong lyrics? to pick another.' : ''}` : undefined}>
           {providerName}
           <span className="lyrics__kind">
             {synced ? (result.wordSynced ? ' · word-synced' : wordByWord ? ' · words estimated' : ' · line-synced') : ' · plain text'}
             {result.imported ? ' · yours' : result.pinned ? ' · your pick' : ''}
             {result.stale ? ' · saved copy' : ''}
+            {looksOff ? ' · may be another song' : ''}
           </span>
         </span>
         {result.provider !== 'demo' && (
@@ -442,7 +446,7 @@ function LyricsFooter({ result }: { result: LyricsResult }) {
           <button type="button" aria-label="Show lyrics later" onClick={() => nudgeSongOffset(-OFFSET_STEP_MS)}>
             −
           </button>
-          <output>{songOffset === 0 ? 'sync' : `${songOffset > 0 ? '+' : ''}${(songOffset / 1000).toFixed(2)}s`}</output>
+          <output aria-live="polite">{songOffset === 0 ? 'sync' : `${songOffset > 0 ? '+' : ''}${(songOffset / 1000).toFixed(2)}s`}</output>
           <button type="button" aria-label="Show lyrics earlier" onClick={() => nudgeSongOffset(OFFSET_STEP_MS)}>
             +
           </button>

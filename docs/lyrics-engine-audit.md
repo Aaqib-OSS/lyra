@@ -19,3 +19,7 @@ Method: read the code. Nothing here was run in the real Electron app.
 4. **Pins grow forever** (`lyrics-pins.json` has no cap). Fix: cap with oldest-first eviction.
 5. Accessibility: the plain-text notice and the offset readout are not announced; fix with `role`/`aria-live`.
 6. Not changed, by decision (see report): LRC `[offset:]` sign (the existing test fixes "+ shifts later"; the LRC spec says the opposite and players disagree), a third provider (needs a documented, permitted API and a PRIVACY.md change, owner decision), word timing and romanization quality (reasonable; improving them needs real song samples to judge).
+
+## Done in this branch
+
+Items 1 to 5 above (footer source names + "may be another song" hint, UTF-16/legacy file decoding, cache shape validation and size limit, pin cap, aria roles). Unit tests: `lrc.test.ts`, `service.test.ts`, `lyricsSource.test.ts`. The look CSS was not touched: the warning reuses the existing `lyrics__kind` span, so it inherits every look.
