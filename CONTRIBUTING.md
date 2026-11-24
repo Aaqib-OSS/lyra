@@ -6,7 +6,7 @@ Thanks for helping! Lyra is a small, friendly project. Every kind of help counts
 ```bash
 npm install
 npm run dev          # Windows app with hot reload
-npm run typecheck && npm test
+npm run check   # typecheck + unit tests + docs and site checks (every test command: docs/testing.md)
 ```
 Android: see the Android section of the [README](README.md) (`npm run build:android-ui`, then Gradle).
 
