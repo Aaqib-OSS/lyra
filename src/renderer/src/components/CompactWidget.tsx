@@ -80,7 +80,7 @@ function WidgetMenu({ onClose }: { onClose: () => void }) {
     }
   }, [onClose])
   const onKey = (e: React.KeyboardEvent): void => {
-    const all = Array.from(box.current?.querySelectorAll<HTMLButtonElement>('button') ?? [])
+    const all = Array.from(box.current?.querySelectorAll<HTMLButtonElement>('button') ?? []).filter((b) => b.offsetParent !== null) // the close button is only shown in the one-line widget
     const at = all.indexOf(document.activeElement as HTMLButtonElement)
     const go = (n: number): void => {
       e.preventDefault()
@@ -109,6 +109,9 @@ function WidgetMenu({ onClose }: { onClose: () => void }) {
           <span>{it.label.replace('Export lyric video', 'Export').replace('Fullscreen lyrics', 'Fullscreen').replace('Click-through lock', 'Lock').replace('Keyboard shortcuts', 'Keys')}</span>
         </button>
       ))}
+      <button type="button" role="menuitem" className="widget__more-close" title="Close menu" aria-label="Close menu" onClick={onClose}>
+        <Icon name="close" size={16} />
+      </button>
     </div>
   )
 }

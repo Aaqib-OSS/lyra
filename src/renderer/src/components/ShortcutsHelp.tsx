@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { GLOBAL_SHORTCUTS, LOCAL_SHORTCUTS, effectiveAccel } from '@shared/shortcuts'
+import { Icon } from './Icon'
 import { useSettings } from '@/store/settings'
 import { requestMode, useUi } from '@/store/ui'
 
@@ -41,8 +42,8 @@ export function ShortcutsHelp() {
       <div className="keyhelp__card">
         <header>
           <h2>Keyboard shortcuts</h2>
-          <button type="button" ref={close} className="btn" onClick={() => setHelp(false)}>
-            Close
+          <button type="button" ref={close} className="ibtn" aria-label="Close" title="Close (Esc)" onClick={() => setHelp(false)}>
+            <Icon name="close" size={16} />
           </button>
         </header>
         <h3>Inside Lyra</h3>

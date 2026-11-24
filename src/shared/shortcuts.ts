@@ -18,7 +18,7 @@ export const LOCAL_SHORTCUTS = [
   { keys: '↑ / ↓', label: 'Volume' },
   { keys: 'F', label: 'Fullscreen lyrics' },
   { keys: 'M', label: 'Next window size (minimal, compact, expanded, fullscreen)' },
-  { keys: 'Esc', label: 'Close menu or panel, then leave fullscreen, then collapse to the widget' },
+  { keys: 'Esc', label: 'Close menu / panel, then leave fullscreen, then collapse' },
   { keys: '?', label: 'This list of keys' },
   { keys: 'D', label: 'Distraction-free (fullscreen)' },
   { keys: '[ / ]', label: 'Lyrics later / earlier' },

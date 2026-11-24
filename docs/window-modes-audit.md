@@ -52,3 +52,25 @@ Severity: P1 = real bug or data-loss feel, P2 = rough edge, P3 = polish.
 - Per-mode and per-monitor position memory. The widget has one anchor on purpose (collapse from mini keeps the bottom edge). Per-monitor memory is easy to add on top of `windowGeometry`, but changes where the widget reappears; ask first.
 - A desktop car mode. The Android one is a different product (big buttons for a phone in a dock).
 - Taskbar thumbnail buttons (need icon assets).
+
+## How it works now (short)
+
+- `src/shared/windowGeometry.ts`: pure clamp / pick-display / snap / resize-limit functions (tested). `window.ts` only feeds it the displays.
+- Display change, resume and unlock: `scheduleRecover()` (500 ms debounce) runs `recoverPlacement()` and re-asserts topmost. Fullscreen re-fits its display; a windowed mode is moved only when less than 60 percent of it is visible. Tray "Bring back to screen" forces it.
+- Hidden in the tray: after 60 s the page unloads. `wake()` now waits for the app root (`uiReady`), and a mode change on an unloaded page sets the final bounds at once (no union rectangle, no animation to nobody).
+- `--hidden` is on the login item; with Settings, Startup, "Start in the tray" it keeps the login launch hidden.
+- Jump list (installed builds): `--cmd=toggle-play|next|fullscreen`; a second launch hands its arguments to the running app (`taskbar.ts`, `shared/launchArgs.ts`, whitelist only).
+- Keys: `M` next window size, `?` keys sheet, Esc ladder (menu / sheet, then panel, then fullscreen to expanded, then expanded to widget). Global additions: Ctrl+Alt+K peek, Ctrl+Alt+U click-through lock (rebindable like the others).
+
+## Manual test list (needs real Windows)
+
+1. Two monitors: put the widget on monitor 2, unplug it: the widget appears on monitor 1 within a second. Plug back: it stays.
+2. Fullscreen, change resolution or taskbar position: the window re-fits.
+3. Sleep and wake, lock and unlock: the widget is still on top of a maximized app.
+4. Tray, Window size, Fullscreen while the widget has been hidden for over a minute: no flash, song and lyrics are there.
+5. Hide the widget and play a song: the tray tooltip shows the song (and the current line, if the page timers run while hidden: unverified).
+6. Ctrl+Alt+K while hidden: the widget appears for 5 s without taking focus, then hides.
+7. Widget, More, Click-through lock: clicks pass through; tray "Click-through lock" (or Ctrl+Alt+U) undoes it. Restart: unlocked.
+8. Launch at startup plus Start in the tray, reboot: no window, tray icon present. Right-click the taskbar icon: Play / pause, Next track, Fullscreen lyrics work.
+9. Rebind a global key to one another app owns: a red toast names it.
+10. Expanded player: open More, press Esc: only the menu closes. Tab to the resize grip, arrow keys resize.

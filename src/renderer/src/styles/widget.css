@@ -347,9 +347,13 @@
 .widget__more button:hover,
 .widget__more button:focus-visible { background: var(--glass-2); outline: none; }
 .widget__more svg { color: var(--fg-2); }
-.widget--minimal .widget__more { padding-right: 78px; }
-.widget--minimal .widget__more button { padding: 6px 4px; }
+.widget__more-close { display: none !important; }
+.widget--minimal .widget__more { padding: 0 8px; }
+.widget--minimal .widget__more button { min-width: 32px; padding: 6px 4px; }
 .widget--minimal .widget__more button span { display: none; }
+/* in the one-line widget the menu takes the place of the little action bar, so it brings its own close button */
+.widget--minimal.widget--menu .widget__actions { display: none; }
+.widget--minimal .widget__more .widget__more-close { display: flex !important; }
 
 /* keyboard shortcuts sheet (`?`) */
 .keyhelp {
