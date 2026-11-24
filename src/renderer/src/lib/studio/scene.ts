@@ -17,6 +17,8 @@ export interface SceneInput {
   art: HTMLImageElement | null
   /** a YouTube video playing in the hidden window: its newest frame is drawn behind the lyrics */
   stage?: { bitmap: ImageBitmap | null; crop: { t: number; r: number; b: number; l: number } | null } | null
+  /** the stage picture is Lyra's own lyrics screen: it IS the frame (look, lyrics, title and all), so nothing else is drawn over it */
+  ui?: boolean
   /** a looping video or a photo behind the lyrics; null = the cover's colours */
   media: HTMLVideoElement | HTMLImageElement | null
   logo: HTMLImageElement | null
@@ -221,6 +223,14 @@ export function createScene(inp: SceneInput): Scene {
   function draw(ctx: CanvasRenderingContext2D, posMs: number, t: number): void {
     const dt = Math.min(0.1, Math.max(0, t - lastT))
     lastT = t
+
+    // ---- the app's own lyrics screen: the picture is the whole frame
+    const ub = inp.ui ? inp.stage?.bitmap : null
+    if (ub) {
+      const k = Math.max(w / ub.width, h / ub.height)
+      ctx.drawImage(ub, (w - ub.width * k) / 2, (h - ub.height * k) / 2, ub.width * k, ub.height * k)
+      return
+    }
 
     // ---- background
     drawMotionBackground(ctx, w, h, t, inp.tint1, inp.tint2, inp.accent, inp.motionStyle ?? 'cover', !!inp.filmGrain && !inp.media && !inp.stage?.bitmap)

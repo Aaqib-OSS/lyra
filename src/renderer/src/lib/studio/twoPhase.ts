@@ -78,7 +78,11 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     mediaVideo?.pause()
 
     let sourceQuality = ''
-    if (opts.youtube) {
+    if (opts.ui) {
+      const st = await window.lyra.studio.uiStart({ width: w, height: h, fps: STAGE_FPS, vibe: opts.ui.vibe })
+      if (!st.ok) throw new Error(`Lyra could not show its lyrics screen for the video: ${st.reason ?? 'unknown reason'}. Switch “Use my current look” off to use the simple layout.`)
+      await new Promise((r) => setTimeout(r, 600)) // let the first pictures arrive
+    } else if (opts.youtube) {
       const needH = Math.min(1440, Math.max(720, Math.ceil(Math.max(h, (w * 9) / 16))))
       const st = await window.lyra.studio.stageStart({ videoId: opts.youtube.videoId, width: Math.round((needH * 16) / 9 / 2) * 2, height: needH, fps: STAGE_FPS, startSec: startMs / 1000 })
       if (!st.ok) throw new Error(`The YouTube video can not be used: ${st.reason ?? 'unknown reason'}. Pick Cover colours instead.`)
@@ -147,8 +151,9 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     if (aborted) throw new Error('cancelled')
     if (Math.abs(getPosition() - startMs) > 3000) throw new Error('Could not jump to the start of the part. Press play and try again.')
 
-    const framesOnDisk = opts.youtube ? await window.lyra.studio.frameCaptureStart() : false
-    if (opts.youtube && !framesOnDisk) throw new Error('Could not save the video pictures on this PC (is the disk full?).')
+    const stageOn = !!(opts.youtube || opts.ui)
+    const framesOnDisk = stageOn ? await window.lyra.studio.frameCaptureStart() : false
+    if (stageOn && !framesOnDisk) throw new Error('Could not save the video pictures on this PC (is the disk full?).')
     t0 = performance.now()
     recording = true
     const tl: number[] = [] // seconds since the start
@@ -206,7 +211,7 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
       /* already closed */
     }
     await pump.catch(() => undefined)
-    const frameTimes = opts.youtube ? await window.lyra.studio.frameCaptureStop() : null
+    const frameTimes = stageOn ? await window.lyra.studio.frameCaptureStop() : null
     void window.lyra.studio.stageStop()
     if (aborted) throw new Error('cancelled')
 
@@ -219,9 +224,10 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     onProgress({ stage: 'rendering', seconds: 0, total: audioSecs })
     const css = getComputedStyle(document.documentElement)
     let crop = opts.youtube?.crop ?? null
-    const offStage = opts.youtube ? { bitmap: null as ImageBitmap | null, crop } : null
+    const offStage = stageOn ? { bitmap: null as ImageBitmap | null, crop } : null
     const scene = createScene({
       stage: offStage,
+      ui: !!opts.ui,
       w,
       h,
       lines,
@@ -339,7 +345,7 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
             }
           }
           if (next) {
-            if (!barsChecked) {
+            if (!barsChecked && !opts.ui) {
               barsChecked = true
               const seen = detectBars(next)
               const c = crop ?? { t: 0, r: 0, b: 0, l: 0 }

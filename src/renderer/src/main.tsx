@@ -8,6 +8,7 @@ import '@fontsource/press-start-2p'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { CaptureApp, isCapturePage } from './components/CaptureApp'
 /*
  * CSS cascade map: the order of the style imports below IS the cascade (later wins at equal specificity), so keep it.
  *   1. tokens, base, widget, player, lyrics, panels, android, polish, redesign, stage, vibes, layouts, skins, posters, states, cards
@@ -126,6 +127,7 @@ import './styles/edge-lock.css'
 import './styles/android-looks.css'
 import './styles/mini-looks.css'
 import './styles/minsizes.css'
+import './styles/capture.css'
 
 // Let CSS honour the in-app settings: reduced motion, rim light and the vibe in effect (a cycled / smart vibe is
 // temporary and lives in the UI store; the OS reduced-motion preference is handled by media queries).
@@ -165,7 +167,5 @@ useUi.subscribe(applyLook)
 applyLook()
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
+  <StrictMode>{isCapturePage() ? <CaptureApp /> : <App />}</StrictMode>
 )

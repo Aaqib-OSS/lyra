@@ -57,6 +57,21 @@ class WindowManager extends EventEmitter {
   private faded = false
   private quitting = false
   private loginState: boolean | null = null
+  /** Hidden windows that show the lyrics screen for a lyric-video export (see studio.ts). They hear what the app window hears. */
+  readonly captures = new Set<BrowserWindow>()
+
+  /** Is this page the app window or one of its export capture windows? */
+  isAppContents(c: Electron.WebContents): boolean {
+    if (c === this.window?.webContents) return true
+    for (const w of this.captures) if (!w.isDestroyed() && w.webContents === c) return true
+    return false
+  }
+
+  /** Send an event to the app window and to any export capture window. */
+  broadcast(channel: string, payload: unknown): void {
+    this.window?.webContents.send(channel, payload)
+    for (const w of this.captures) if (!w.isDestroyed()) w.webContents.send(channel, payload)
+  }
 
   get window(): BrowserWindow | null {
     return this.win && !this.win.isDestroyed() ? this.win : null

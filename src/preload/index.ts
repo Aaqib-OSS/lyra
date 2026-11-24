@@ -107,6 +107,7 @@ const api: LyraApi = {
     audioStop: () => invoke(CH.studioAudioStop),
     onAudio: (cb) => subscribe(EV.studioAudio, cb),
     stageStart: (o) => invoke(CH.studioStageStart, o),
+    uiStart: (o) => invoke(CH.studioUiStart, o),
     stageSeek: (sec) => invoke(CH.studioStageSeek, sec),
     stageSync: (sec) => invoke(CH.studioStageSync, sec),
     stageStop: () => invoke(CH.studioStageStop),

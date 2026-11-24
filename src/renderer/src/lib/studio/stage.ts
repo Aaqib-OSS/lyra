@@ -7,8 +7,12 @@ export class StageSource {
   private off: () => void
   private busy = false
 
-  constructor(crop: VideoCrop | null) {
+  /** the picture is Lyra's own screen, not a video: nothing to crop */
+  private readonly ui: boolean
+
+  constructor(crop: VideoCrop | null, ui = false) {
     this.crop = crop
+    this.ui = ui
     this.off = window.lyra.studio.onFrame((jpeg) => {
       if (this.busy) return // still decoding the last one: skip, the next frame is a moment away
       this.busy = true
@@ -28,7 +32,7 @@ export class StageSource {
   async firstFrame(ms = 8000): Promise<boolean> {
     const t0 = performance.now()
     while (!this.bitmap && performance.now() - t0 < ms) await new Promise((r) => setTimeout(r, 50))
-    if (this.bitmap) {
+    if (this.bitmap && !this.ui) {
       // black bars (letterboxing) inside the video would be zoomed into the frame: trim what the thumbnail check missed
       const seen = detectBars(this.bitmap)
       const c = this.crop ?? { t: 0, r: 0, b: 0, l: 0 }

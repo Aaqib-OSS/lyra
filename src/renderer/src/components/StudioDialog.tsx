@@ -12,6 +12,7 @@ import { useLyrics } from '@/store/lyrics'
 import { usePlayer } from '@/store/player'
 import { useSettings } from '@/store/settings'
 import { useUi } from '@/store/ui'
+import { effectiveVibe } from '@/hooks/useVibe'
 import { StudioPreview } from './StudioPreview'
 
 const RATIOS: Array<{ v: Ratio; label: string; hint: string }> = [
@@ -73,6 +74,9 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
   // smooth: record the song first, draw the video afterwards (never stutters, takes longer); instant: draw while it plays
   const [method, setMethod] = useState<'smooth' | 'instant'>(() => (localStorage.getItem('lyra.studio.method') === 'instant' ? 'instant' : 'smooth'))
   const [bg, setBg] = useState<'auto' | 'cover' | 'motion' | 'file'>('auto')
+  // film the app's own lyrics screen (the look in use now) instead of drawing the simple layout below (only for the song playing now)
+  const [useMyLook, setUseMyLook] = useState(() => localStorage.getItem('lyra.studio.mylook') !== 'off')
+  const myLook = useMyLook && source === 'live'
   const [file, setFile] = useState<{ url: string; kind: 'video' | 'image'; name: string } | null>(null)
   const [spec, setSpec] = useState<BackgroundSpec | null>(null)
   const [phase, setPhase] = useState<Phase>({ name: 'setup' })
@@ -100,7 +104,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
   useEffect(() => () => abort.current?.abort(), [])
 
   // a YouTube background plays in a hidden window, small, just for the preview (stopped as soon as you export or leave)
-  const ytId = bg === 'auto' && source === 'live' && spec?.kind === 'youtube' ? spec.videoId : null
+  const ytId = !myLook && bg === 'auto' && source === 'live' && spec?.kind === 'youtube' ? spec.videoId : null
   const ytCrop = spec?.kind === 'youtube' ? spec.crop : null
   const startSecRef = useRef(0)
   startSecRef.current = range.startMs / 1000
@@ -201,10 +205,11 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
           startMs: range.startMs,
           endMs: range.endMs,
           showSong,
-          mediaUrl: bg === 'file' ? (file?.url ?? null) : bg === 'auto' && spec?.kind === 'media' ? spec.url : null,
-          mediaKind: bg === 'file' ? (file?.kind ?? null) : bg === 'auto' && spec?.kind === 'media' ? spec.media : null,
-          clipUrl: bg === 'auto' && spec?.kind === 'preview' ? spec.url : null,
-          youtube: bg === 'auto' && spec?.kind === 'youtube' ? { videoId: spec.videoId, crop: spec.crop } : null
+          mediaUrl: myLook ? null : bg === 'file' ? (file?.url ?? null) : bg === 'auto' && spec?.kind === 'media' ? spec.url : null,
+          mediaKind: myLook ? null : bg === 'file' ? (file?.kind ?? null) : bg === 'auto' && spec?.kind === 'media' ? spec.media : null,
+          clipUrl: !myLook && bg === 'auto' && spec?.kind === 'preview' ? spec.url : null,
+          youtube: !myLook && bg === 'auto' && spec?.kind === 'youtube' ? { videoId: spec.videoId, crop: spec.crop } : null,
+          ui: myLook ? { vibe: effectiveVibe(useSettings.getState().settings, useUi.getState().vibeNow).vibe } : null
         }
         const r = await (method === 'smooth' ? exportSmooth(opts, onProgress, ctl.signal) : exportVideo(opts, onProgress, ctl.signal))
         if (r.droppedPct >= 8) localStorage.setItem('lyra.studio.slowPc', '1')
@@ -320,9 +325,21 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
 
             {ready && subjectTrack && (
               <>
-                <div className="studio__preview-wrap">
-                  <StudioPreview track={subjectTrack} lines={lines} ratio={ratio} look={look} motionStyle={bg === 'motion' ? motionStyle : undefined} filmGrain={bg === 'motion' && filmGrain} showSong={showSong} media={media} stage={previewStage} startMs={range.startMs} endMs={range.endMs} />
+                <div className="studio__group">
+                  <span>Look</span>
+                  {source === 'live' ? (
+                    <>
+                      {seg<string>('Look', useMyLook ? 'mine' : 'simple', [{ v: 'mine', label: 'My current look' }, { v: 'simple', label: 'Simple layout' }], (v) => { setUseMyLook(v === 'mine'); localStorage.setItem('lyra.studio.mylook', v === 'mine' ? 'on' : 'off') })}
+                      <small>{useMyLook ? 'The video shows Lyra’s lyrics screen exactly as it looks now: same look, colours, moving background and lyrics.' : 'A plain lyric video drawn by the exporter: pick the layout, font and background below.'}</small>
+                    </>
+                  ) : (
+                    <small>A song from a file uses the simple layout below.</small>
+                  )}
                 </div>
+
+                {!myLook && <div className="studio__preview-wrap">
+                  <StudioPreview track={subjectTrack} lines={lines} ratio={ratio} look={look} motionStyle={bg === 'motion' ? motionStyle : undefined} filmGrain={bg === 'motion' && filmGrain} showSong={showSong} media={media} stage={previewStage} startMs={range.startMs} endMs={range.endMs} />
+                </div>}
 
                 <div className="studio__group">
                   <span>Part of the song</span>
@@ -383,7 +400,7 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                   </small>
                 </div>
 
-                <div className="studio__group">
+                {!myLook && <div className="studio__group">
                   <span>Lyrics look</span>
                   {seg<LayoutStyle>('Layout', look.style, [{ v: 'scroll', label: 'Scrolling' }, { v: 'focus', label: 'One big line' }, { v: 'subtitle', label: 'Subtitle' }], pickStyle)}
                   {seg<FontChoice>('Font', look.font, [{ v: 'sans', label: 'Sans' }, { v: 'serif', label: 'Serif' }, { v: 'rounded', label: 'Round' }, { v: 'mono', label: 'Mono' }], (font) => setLook((l) => ({ ...l, font })))}
@@ -395,9 +412,9 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                     </>
                   )}
                   {seg<TextPosition>('Text position', look.position, [{ v: 'upper', label: 'Upper' }, { v: 'middle', label: 'Middle' }, { v: 'lower', label: 'Lower' }], (position) => setLook((l) => ({ ...l, position })))}
-                </div>
+                </div>}
 
-                <div className="studio__group">
+                {!myLook && <div className="studio__group">
                   <span>Background</span>
                   {seg<'auto' | 'cover' | 'motion' | 'file'>('Background', bg, source === 'live' ? [{ v: 'auto', label: 'Current video' }, { v: 'cover', label: 'Cover colours' }, { v: 'motion', label: 'Motion' }, { v: 'file', label: 'My file' }] : [{ v: 'cover', label: 'Cover colours' }, { v: 'motion', label: 'Motion' }, { v: 'file', label: 'My video or photo' }], setBg)}
                   {bg === 'motion' && <><span>Motion style</span>{seg<MotionStyle>('Motion style', motionStyle, [{ v: 'gradient', label: 'Drifting gradient' }, { v: 'aurora', label: 'Soft aurora' }, { v: 'particles', label: 'Soft particles' }], setMotionStyle)}<label className="studio__check"><input type="checkbox" checked={filmGrain} onChange={(e) => setFilmGrain(e.target.checked)} /> Film grain</label></>}
@@ -448,11 +465,11 @@ export function StudioDialog({ onClose }: { onClose(): void }) {
                       />
                     </label>
                   )}
-                </div>
+                </div>}
 
-                <label className="studio__check">
+                {!myLook && <label className="studio__check">
                   <input type="checkbox" checked={showSong} onChange={(e) => setShowSong(e.target.checked)} /> Show the song’s cover and title
-                </label>
+                </label>}
 
                 <p className="hint">
                   {source === 'live'

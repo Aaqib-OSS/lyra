@@ -59,6 +59,8 @@ export interface ExportOptions {
   mediaKind: 'video' | 'image' | null
   /** a free-to-read 30 s clip to loop behind the lyrics (from the background resolver) */
   clipUrl: string | null
+  /** film Lyra's own lyrics screen in the look in use now (instead of drawing lyrics on a canvas); `vibe` is that look */
+  ui?: { vibe: string } | null
   /** a YouTube video to play behind the lyrics */
   youtube: { videoId: string; crop: { t: number; r: number; b: number; l: number } | null } | null
 }
@@ -190,7 +192,12 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     // a YouTube background plays in a hidden window; its frames arrive here
     let stage: StageSource | null = null
     let sourceQuality = ''
-    if (opts.youtube) {
+    if (opts.ui) {
+      stage = stageRef = new StageSource(null, true)
+      const st = await window.lyra.studio.uiStart({ width: w, height: h, fps: STAGE_FPS, vibe: opts.ui.vibe })
+      if (!st.ok) throw new Error(`Lyra could not show its lyrics screen for the video: ${st.reason ?? 'unknown reason'}. Switch “Use my current look” off to use the simple layout.`)
+      await stage.firstFrame()
+    } else if (opts.youtube) {
       stage = stageRef = new StageSource(opts.youtube.crop)
       // the picture is cropped to fill the frame, so it must be as tall as the part of it that we show: ask for the
       // biggest the hidden window can hand over smoothly (up to 1440p)
@@ -203,6 +210,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
     const css = getComputedStyle(document.documentElement)
     const scene = createScene({
       stage,
+      ui: !!opts.ui,
       w,
       h,
       lines,
@@ -414,7 +422,7 @@ export async function exportVideo(opts: ExportOptions, onProgress: (p: Progress)
             done = true
             return resolve()
           }
-          if (stage && nowMs - lastSync > 1500) {
+          if (stage && opts.youtube && nowMs - lastSync > 1500) {
             lastSync = nowMs
             void window.lyra.studio.stageSync(pos / 1000)
           }

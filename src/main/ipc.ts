@@ -39,7 +39,7 @@ let active: PlaybackSource
 let lastTrackId: string | null = null
 
 const send = (channel: string, payload: unknown): void => {
-  windows.window?.webContents.send(channel, payload)
+  windows.broadcast(channel, payload)
 }
 
 function onSnapshot(s: PlaybackSnapshot): void {
@@ -75,7 +75,7 @@ function activate(src: PlaybackSource): void {
 
 /** Only the app's own window may talk to the main process. */
 function guard(e: IpcMainInvokeEvent): void {
-  if (e.sender !== windows.window?.webContents) throw new Error('Blocked IPC from unknown sender')
+  if (!windows.isAppContents(e.sender)) throw new Error('Blocked IPC from unknown sender')
 }
 
 function handle<A extends unknown[], R>(channel: string, fn: (...args: A) => R | Promise<R>): void {

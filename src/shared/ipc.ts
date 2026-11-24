@@ -105,6 +105,7 @@ export const CH = {
   studioAudioStart: 'studio:audio-start',
   studioAudioStop: 'studio:audio-stop',
   studioStageStart: 'studio:stage-start',
+  studioUiStart: 'studio:ui-start',
   studioStageSeek: 'studio:stage-seek',
   studioStageSync: 'studio:stage-sync',
   studioStageStop: 'studio:stage-stop',
@@ -366,6 +367,11 @@ export interface LyraApi {
     audioStop(): Promise<void>
     onAudio(cb: (pcm: Uint8Array) => void): Unsubscribe
     stageStart(o: { videoId: string; width: number; height: number; fps: number; startSec: number }): Promise<{ ok: boolean; reason?: string; quality?: string; bestHeight?: number }>
+    /**
+     * Show Lyra's own lyrics screen, in the look you use now, in a hidden window of the export's size and stream its
+     * picture back as JPEG frames (onFrame): the video then looks like the app. Resolves ok:false with a reason when it can not start.
+     */
+    uiStart(o: { width: number; height: number; fps: number; vibe: string }): Promise<{ ok: boolean; reason?: string }>
     stageSeek(sec: number): Promise<void>
     /** Nudge the hidden video to the given time if it has drifted. */
     stageSync(sec: number): Promise<void>

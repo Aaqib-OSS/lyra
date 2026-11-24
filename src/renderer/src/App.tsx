@@ -75,7 +75,7 @@ function useBoot(): boolean {
 }
 
 /** Writes artwork-derived colours to CSS variables so every surface can use them. */
-function useThemeVars(): void {
+export function useThemeVars(): void {
   const theme = useSettings((s) => s.settings.theme)
   const url = usePlayer((s) => s.snapshot?.track?.artworkUrl ?? null)
   const art = useArtwork(url)

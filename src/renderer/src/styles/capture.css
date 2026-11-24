@@ -1,0 +1,12 @@
+/* The hidden window that shows the lyrics screen for a lyric-video export (CaptureApp): only the picture, no controls. */
+.capture .full__top,
+.capture .lyrics__footer,
+.capture .toasts,
+.capture .full__volume,
+.capture .full__controls {
+  display: none !important;
+}
+.capture,
+.capture * {
+  cursor: none !important;
+}
