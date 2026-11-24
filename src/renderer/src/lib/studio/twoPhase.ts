@@ -9,7 +9,7 @@ import { seekVideo } from './fileExport'
 import { loudnessGainFromEnergies } from './loudness'
 import { PcmStore } from './pcmStore'
 import { isKeyFrame, maxQueueFor, throttleProgress, waitForRoom, type ChunkWriter } from './encodePolicy'
-import { closeEncoder, dimensions, encoderConfig, loadImage, loadVideo, lookInputs, offsetNow, openWriter, pickEncoder, releaseMedia, softCeiling, type ExportOptions, type Fps, type Progress } from './recorder'
+import { assertRoom, closeEncoder, dimensions, encoderConfig, loadImage, loadVideo, lookInputs, offsetNow, openWriter, pickEncoder, releaseMedia, softCeiling, type ExportOptions, type Fps, type Progress } from './recorder'
 import { createScene } from './scene'
 import { detectBars } from './stage'
 
@@ -48,7 +48,7 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
   const endMs = Math.min(track.durationMs, Math.max(opts.endMs, startMs + 1000))
   const planned = (endMs - startMs) / 1000
   const safeName = `${track.title} - ${track.artists[0] ?? ''}`.replace(/[^\p{L}\p{N} _-]+/gu, '').trim().slice(0, 80) || 'lyra-video'
-  const file = await window.lyra.studio.open(`${safeName} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`)
+  const file = await window.lyra.studio.open(`${safeName} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`, opts.test)
   if (!file) throw new Error('cancelled')
 
   useBgState.getState().setExporting(true)
@@ -66,6 +66,7 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
   let mediaRef: HTMLVideoElement | HTMLImageElement | null = null
   let canvasRef: HTMLCanvasElement | null = null
   try {
+    assertRoom(file, opts.quality, FPS, planned)
     // ---------- pictures and video first
     const art = await loadImage(track.artworkUrl)
     const logo = await loadImage(logoUrl)
@@ -212,6 +213,7 @@ export async function exportSmooth(opts: ExportOptions, onProgress: (p: Progress
     }
     await pump.catch(() => undefined)
     const frameTimes = stageOn ? await window.lyra.studio.frameCaptureStop() : null
+    if (opts.ui && !aborted && !frameTimes) throw new Error('The pictures of the lyrics screen could not be saved (is the disk full?). Free some space and try again.')
     void window.lyra.studio.stageStop()
     if (aborted) throw new Error('cancelled')
 

@@ -5,7 +5,7 @@ import logoUrl from '@/assets/logo.png'
 import { useBgState } from '@/store/bgState'
 import { loudnessGainFromEnergies, loudnessGainOf } from './loudness'
 import { isKeyFrame, maxQueueFor, throttleProgress, waitForRoom, type ChunkWriter } from './encodePolicy'
-import { closeEncoder, openWriter, releaseMedia, pickEncoder, softCeiling, bitrateFor, codecFor, dimensions, loadImage, loadVideo, lookInputs, type Fps, type Look, type Quality, type Ratio, type Progress } from './recorder'
+import { assertRoom, closeEncoder, openWriter, releaseMedia, pickEncoder, softCeiling, bitrateFor, codecFor, dimensions, loadImage, loadVideo, lookInputs, type Fps, type Look, type Quality, type Ratio, type Progress } from './recorder'
 import { createScene } from './scene'
 
 /**
@@ -19,6 +19,8 @@ export interface FileExportOptions {
   artist: string
   lines: LyricLine[]
   coverUrl: string | null
+  /** a quick test clip: written to a temporary file, no save dialog */
+  test?: boolean
   ratio: Ratio
   quality: Quality
   fps?: Fps
@@ -79,7 +81,7 @@ export async function exportFromFile(opts: FileExportOptions, onProgress: (p: Pr
   const endMs = Math.min(pcm.duration * 1000, Math.max(opts.endMs, startMs + 1000))
   const total = (endMs - startMs) / 1000
   const safe = `${opts.title} - ${opts.artist}`.replace(/[^\p{L}\p{N} _-]+/gu, '').trim().slice(0, 80) || 'lyra-video'
-  const file = await window.lyra.studio.open(`${safe} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`)
+  const file = await window.lyra.studio.open(`${safe} (${opts.ratio.replace(':', 'x')} ${opts.quality}).mp4`, opts.test)
   if (!file) throw new Error('cancelled')
 
   let writerRef: ChunkWriter | null = null
@@ -94,6 +96,7 @@ export async function exportFromFile(opts: FileExportOptions, onProgress: (p: Pr
   signal.addEventListener('abort', onAbort)
   useBgState.getState().setExporting(true)
   try {
+    assertRoom(file, opts.quality, FPS, total)
     const art = await loadImage(opts.coverUrl)
     const logo = await loadImage(logoUrl)
     let media: HTMLVideoElement | HTMLImageElement | null = null

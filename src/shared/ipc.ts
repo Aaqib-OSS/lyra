@@ -98,6 +98,8 @@ export const CH = {
   studioEnd: 'studio:end',
   studioReveal: 'studio:reveal',
   studioSaveImage: 'studio:save-image',
+  studioSaveText: 'studio:save-text',
+  studioPlay: 'studio:play',
   studioFrameCaptureStart: 'studio:frames-start',
   studioFrameCaptureStop: 'studio:frames-stop',
   studioFrameRead: 'studio:frames-read',
@@ -337,13 +339,15 @@ export interface LyraApi {
   }
   studio: {
     /** Ask where to save the video. Null if the user cancelled. */
-    open(suggestedName: string): Promise<{ id: number; path: string } | null>
+    open(suggestedName: string, test?: boolean): Promise<{ id: number; path: string; /** free bytes on that drive (null = unknown) */ freeBytes: number | null } | null>
     write(id: number, position: number, chunk: Uint8Array): Promise<void>
     close(id: number): Promise<void>
     discard(path: string): Promise<void>
     /** Export finished (or failed): sound capture is switched off again. */
     end(): Promise<void>
     reveal(path: string): Promise<void>
+    /** open a video made in this session in the default player */
+    play(path: string): Promise<void>
     /** the karaoke screen is open: allow the microphone for this window (audio only) */
     setMic(on: boolean): Promise<void>
     /**
@@ -359,6 +363,8 @@ export interface LyraApi {
     frameCaptureClear(): Promise<void>
     /** save a JPEG next to the video (same name, ' (cover).jpg'); resolves with its path, or null */
     saveImage(videoPath: string, jpeg: Uint8Array): Promise<string | null>
+    /** save lyrics next to the video (same name, .lrc or .srt); resolves with the path, or null */
+    saveText(videoPath: string, ext: 'lrc' | 'srt', text: string): Promise<string | null>
     /**
      * Play a YouTube video in a hidden window and stream its picture back as JPEG frames (onFrame), so it can be
      * used as a background in an exported video. Resolves ok:false with a reason when the video can not be played.

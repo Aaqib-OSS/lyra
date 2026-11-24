@@ -15,6 +15,24 @@ import type { Vibe } from '@shared/types'
 /** Is this page the hidden window that shows the lyrics screen for a lyric-video export? (see startUi in the main process) */
 export const isCapturePage = (): boolean => new URLSearchParams(location.search).get('capture') === '1'
 
+// A hidden off-screen window can report itself as "hidden", which would make the app pause its endless animations
+// ("calm") and its video background. This page is always being filmed: it is always visible.
+if (isCapturePage()) {
+  Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
+}
+
+/** Fill the window; if the main process could not zoom the page (see startUi) it asks for a CSS zoom instead. */
+function fillCapture(): void {
+  fillWindow()
+  const z = (window as unknown as { __lyraCaptureZoom?: number }).__lyraCaptureZoom ?? 1
+  document.documentElement.style.zoom = z !== 1 ? String(z) : ''
+  if (z !== 1) {
+    shell.width.set(window.innerWidth / z)
+    shell.height.set(window.innerHeight / z)
+  }
+}
+
 /**
  * The lyrics screen and nothing else: the same look, cover colours, moving background and lyrics as the app window, filling
  * a hidden window of the export's size. It only listens (settings, song, lyrics): it never changes a setting, never moves the
@@ -36,23 +54,40 @@ export function CaptureApp(): ReactElement | null {
       const want = new URLSearchParams(location.search).get('vibe')
       if (want && /^[a-z0-9-]{2,30}$/.test(want)) ui.setVibeNow(want as Vibe, 'export')
       if (!ui.distractionFree) ui.toggleDistractionFree() // artwork and lyrics only: no buttons in the video
-      fillWindow()
+      fillCapture()
       setReady(true)
     })()
-    const onResize = (): void => fillWindow()
+    const onResize = (): void => fillCapture()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  // tell the main process the first picture of the song is on screen
+  // tell the main process the first picture of the song is on screen: the song is known, its lyrics have been looked
+  // up (or the wait ran out) and the fonts are loaded, so the first frames of the video are not an empty screen
   const hasTrack = usePlayer((s) => !!s.snapshot?.track)
+  const lyricsPhase = useLyrics((s) => s.state.phase)
+  const [waited, setWaited] = useState(false)
   useEffect(() => {
-    if (!ready || !hasTrack) return
-    const t = setTimeout(() => {
-      document.documentElement.dataset.captureReady = '1'
-    }, 800)
+    const t = setTimeout(() => setWaited(true), 6000)
     return () => clearTimeout(t)
-  }, [ready, hasTrack])
+  }, [])
+  useEffect(() => {
+    if (!ready || !hasTrack || (lyricsPhase !== 'ready' && !waited)) return
+    let cancelled = false
+    const t = setTimeout(() => {
+      void (document.fonts?.ready ?? Promise.resolve()).then(() => {
+        if (cancelled) return
+        fillCapture() // the zoom may have arrived after the first layout
+        requestAnimationFrame(() => {
+          document.documentElement.dataset.captureReady = '1'
+        })
+      })
+    }, 600)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [ready, hasTrack, lyricsPhase, waited])
 
   if (!ready) return null
   return (

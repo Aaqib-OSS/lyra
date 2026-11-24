@@ -687,6 +687,8 @@
 .studio__group small { font-size: 11.5px; color: var(--fg-3); }
 .studio__choices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .studio__choices button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--glass); color: var(--fg-2); font-size: 11px; }
+.studio__steps { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.5; color: var(--fg-2); }
+.studio__platforms { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); }
 .studio__choices button i { display: block; height: 28px; background: var(--fg-3); border-radius: 4px; }
 .studio__choices button b { font-size: 12.5px; color: var(--fg); }
 .studio__choices button small { font-size: 10px; line-height: 1.2; text-align: center; color: var(--fg-3); }

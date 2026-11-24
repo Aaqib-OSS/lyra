@@ -93,7 +93,8 @@ const api: LyraApi = {
     onState: (cb) => subscribe(EV.update, cb)
   },
   studio: {
-    open: (name) => invoke(CH.studioOpen, name),
+    open: (name, test) => invoke(CH.studioOpen, name, test),
+    play: (path) => invoke(CH.studioPlay, path),
     write: (id, position, chunk) => invoke(CH.studioWrite, id, position, chunk),
     close: (id) => invoke(CH.studioClose, id),
     discard: (path) => invoke(CH.studioDiscard, path),
@@ -101,6 +102,7 @@ const api: LyraApi = {
     reveal: (path) => invoke(CH.studioReveal, path),
     setMic: (on) => invoke(CH.studioMic, on),
     saveImage: (videoPath, jpeg) => invoke(CH.studioSaveImage, videoPath, jpeg),
+    saveText: (videoPath, ext, text) => invoke(CH.studioSaveText, videoPath, ext, text),
     frameCaptureStart: () => invoke(CH.studioFrameCaptureStart),
     frameCaptureStop: () => invoke(CH.studioFrameCaptureStop),
     frameRead: (index) => invoke(CH.studioFrameRead, index),
