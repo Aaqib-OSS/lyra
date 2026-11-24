@@ -8,7 +8,7 @@ import { Artwork } from './Artwork'
 import { IconButton } from './Controls'
 import { Icon } from './Icon'
 import { LyricsMatchPanel } from './LyricsMatchPanel'
-import { SettingsPanel } from './SettingsPanel'
+import { SettingsPanel } from './lazy'
 import { KeysPanel } from './KeysPanel'
 import { momentCaption, momentsToMarkdown, searchMoments } from '@shared/moments'
 
