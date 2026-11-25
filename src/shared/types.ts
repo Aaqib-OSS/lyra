@@ -178,22 +178,15 @@ export type LyricAnimation = 'glide' | 'focus' | 'fade'
 export const LYRIC_STYLES = ['classic', 'zoom', 'kinetic', 'constellation', 'sticker', 'chat', 'type', 'diary', 'subtitle', 'chatlog', 'lowerthird', 'sign', 'liquid', 'pixel', 'bloom', 'title', 'ink', 'glitch', 'bubble', 'spray', 'intertitle', 'log', 'note', 'jot', 'scrawl', 'label', 'lockscreen', 'wallet', 'route', 'editor', 'metro', 'weave', 'picto', 'wall', 'flap'] as const
 export type LyricStyle = (typeof LYRIC_STYLES)[number]
 /**
- * A personal scene: a look + video for ONE song, kept in a folder on this PC (see src/main/personal.ts). Not part of the
- * public look list; it exists only where that folder exists.
+ * A personal scene: a page of your own that Lyra shows, for ONE song, on this PC (see src/main/personal.ts). Not part of the
+ * public look list; it exists only where its folder exists.
  */
 export interface PersonalScene {
   id: string
-  /** the song that turns it on (compared with the playing song's title and first artist, ignoring case and brackets) */
+  /** the song that turns it on (compared with the playing song's title and any of its artists, ignoring case and brackets) */
   match: { title: string; artist: string }
-  /** [song second, video second] pairs: the video's own timeline laid over the song */
-  anchors: Array<[number, number]>
-  loopFrom: number
-  loopTo: number
-  videoDurationSec: number
-  videoNudgeSec: number
-  lyricNudgeSec: number
-  videoUrl: string
-  artUrl: string | null
+  /** where the page is served from (lyra-media://personal/<id>/files/...) */
+  pageUrl: string
 }
 
 export type VibeMode = 'fixed' | 'cycle' | 'smart'

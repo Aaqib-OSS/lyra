@@ -113,9 +113,9 @@ class BackgroundService {
           return cors(await net.fetch(pathToFileURL(file).toString(), { headers: range(req) }))
         }
         if (u.hostname === 'personal') {
-          // this PC's own scene files (src/main/personal.ts): <scene>/<video|art>, never a path from the page
-          const [sceneId = '', kind = ''] = name.split('/')
-          const f = personalFile(sceneId, kind)
+          // this PC's own scene files (src/main/personal.ts): <scene>/files/<path inside that scene's folder>
+          const [sceneId = '', dir = '', ...rest] = name.split('/')
+          const f = dir === 'files' ? personalFile(sceneId, rest.join('/')) : null
           if (!f) return new Response('not found', { status: 404 })
           return fileResponse(f, req.headers.get('range'))
         }

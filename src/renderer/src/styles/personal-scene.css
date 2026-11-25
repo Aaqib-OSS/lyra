@@ -1,98 +1,11 @@
-/* the scene's own family name: the app's global Fraunces has only the italic face, and adding an upright one there would change the looks that use it */
-@font-face { font-family: 'Fraunces PS'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('../../../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-standard-normal.woff2') format('woff2-variations'); }
-@font-face { font-family: 'Fraunces PS'; font-style: italic; font-weight: 100 900; font-display: swap; src: url('../../../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-standard-italic.woff2') format('woff2-variations'); }
-/* A personal scene (src/main/personal.ts, components/PersonalSceneView.tsx): one song's own screen. Only active while such a scene is
-   showing; nothing here touches the looks. The page is drawn on a 1920x1080 grid (1080x1920 in a tall window): --u is one grid unit in px. */
+/* A personal scene (src/main/personal.ts, components/PersonalSceneView.tsx): only active while such a scene is showing. The page itself
+   lives in your own folder; here is just the frame it sits in. */
 :root[data-pscene] .backdrop,
 :root[data-pscene] .vibefx,
 :root[data-pscene] .edge { display: none !important; }
 
 .full[data-pscene] { position: absolute; inset: 0; }
-.pscene {
-  --ps-paper: #fbfaf6; --ps-ink: #26302a; --ps-sage: #7d9b78; --ps-leaf: #3f5a43; --ps-blush: #f2c9d3; --ps-butter: #f6d365; --ps-amb: rgba(242, 201, 211, 0);
-  position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; background: #ebe8df; color: var(--ps-ink);
-  font-family: 'Nunito Variable', system-ui, sans-serif; user-select: none;
-}
-.pscene__page {
-  position: relative; overflow: hidden; isolation: isolate;
-  background: radial-gradient(120% 90% at 85% 0%, #fff 0%, rgba(255, 255, 255, 0) 60%), radial-gradient(90% 70% at 0% 100%, rgba(242, 201, 211, 0.38), rgba(242, 201, 211, 0) 60%), var(--ps-paper);
-}
-.pscene__page::before {
-  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.9;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='.85' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 .3 0 0 0 0 .3 0 0 0 0 .25 0 0 0 .075 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
-}
-.pscene__page::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(60% 60% at 30% 45%, var(--ps-amb), transparent 70%); transition: background 0.9s; }
-
-.ps-branch { position: absolute; right: calc(var(--u) * -46); top: calc(var(--u) * -40); width: calc(var(--u) * 560); opacity: 0.36; pointer-events: none; }
-.ps-edge { position: absolute; inset: calc(var(--u) * 16); pointer-events: none; border: 2px solid rgba(125, 155, 120, 0.6); border-radius: calc(var(--u) * 14); }
-.ps-edge::after { content: ''; position: absolute; inset: calc(var(--u) * 9); border: 1px dashed rgba(125, 155, 120, 0.32); border-radius: calc(var(--u) * 12); }
-.ps-petals { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.ps-petal { position: absolute; top: -30px; width: calc(var(--u) * 24); height: calc(var(--u) * 16); border-radius: 70% 30% 70% 30%; background: var(--ps-blush); opacity: 0.8; box-shadow: inset -2px -2px 0 rgba(255, 255, 255, 0.45); animation: ps-fall linear infinite; }
-@keyframes ps-fall { 0% { transform: translate3d(0, -6%, 0) rotate(0); } 50% { transform: translate3d(calc(var(--u) * 60), 55vh, 0) rotate(160deg); } 100% { transform: translate3d(calc(var(--u) * -30), 115vh, 0) rotate(320deg); } }
-
-/* header: only the buttons, dark on paper */
-.ps-top { position: absolute; z-index: 6; left: calc(var(--u) * 40); right: calc(var(--u) * 40); top: calc(var(--u) * 30); height: calc(var(--u) * 70); display: flex; justify-content: space-between; align-items: center; }
-.ps-tools { display: flex; gap: calc(var(--u) * 12); }
-.ps-tools button { display: grid; place-items: center; width: calc(var(--u) * 64); height: calc(var(--u) * 64); border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.6); color: var(--ps-leaf); cursor: pointer; transition: background 0.2s; }
-.ps-tools button:hover, .ps-tools button[aria-pressed='true'] { background: #fff; }
-.ps-tools button svg { width: 55%; height: 55%; }
-.ps-tools button:focus-visible, .ps-ctl button:focus-visible { outline: 3px solid var(--ps-leaf); outline-offset: 2px; }
-
-/* polaroid + video */
-.ps-pol { position: absolute; left: calc(var(--u) * 130); top: calc(var(--u) * 118); width: calc(var(--u) * 640); background: #fff; padding: calc(var(--u) * 22) calc(var(--u) * 22) 0; box-shadow: 0 calc(var(--u) * 34) calc(var(--u) * 54) calc(var(--u) * -22) rgba(40, 50, 40, 0.55), 0 2px 5px rgba(0, 0, 0, 0.14); transform: rotate(-2.2deg); animation: ps-breathe 5s ease-in-out infinite; transform-origin: 50% 60%; }
-@keyframes ps-breathe { 0%, 100% { transform: rotate(-2.2deg) translateY(0); } 50% { transform: rotate(-1.7deg) translateY(calc(var(--u) * -7)); } }
-.ps-pol.ps-bump { animation: ps-bump 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2), ps-breathe 5s ease-in-out 0.7s infinite; }
-@keyframes ps-bump { 0% { transform: rotate(-2.2deg) translateY(0) scale(1); } 35% { transform: rotate(-2.6deg) translateY(calc(var(--u) * -12)) scale(1.012); } 100% { transform: rotate(-2.2deg) translateY(0) scale(1); } }
-.ps-vwrap { position: relative; aspect-ratio: 4 / 5; background: #f0ede6; overflow: hidden; }
-.ps-vwrap video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.ps-strip { height: calc(var(--u) * 92); display: flex; align-items: center; justify-content: space-between; padding: 0 calc(var(--u) * 8); font: calc(var(--u) * 40) 'VT323', monospace; letter-spacing: 0.06em; color: #4b5a4d; }
-.ps-tape { position: absolute; width: calc(var(--u) * 190); height: calc(var(--u) * 48); background: rgba(246, 211, 101, 0.72); top: calc(var(--u) * -22); left: 50%; margin-left: calc(var(--u) * -95); transform: rotate(3deg); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16); z-index: 2; }
-.ps-pin { position: absolute; right: calc(var(--u) * 56); top: calc(var(--u) * -56); width: calc(var(--u) * 34); height: calc(var(--u) * 96); background: linear-gradient(#ecd9b4, #c8a76a); border-radius: 6px 6px 3px 3px; transform: rotate(8deg); box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3); z-index: 2; }
-.ps-pin::after { content: ''; position: absolute; left: 46%; top: 10px; width: 5px; height: 58%; background: rgba(0, 0, 0, 0.18); border-radius: 3px; }
-.ps-sticker { position: absolute; left: calc(var(--u) * 170); top: calc(var(--u) * 972); font: calc(var(--u) * 34) 'VT323', monospace; letter-spacing: 0.06em; color: var(--ps-leaf); background: #fff; border: 2px solid var(--ps-sage); padding: calc(var(--u) * 6) calc(var(--u) * 20) calc(var(--u) * 3); border-radius: 99px; transform: rotate(-3deg); box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.3); }
-
-/* lyrics */
-.ps-px { font-family: 'VT323', monospace; letter-spacing: 0.08em; color: var(--ps-leaf); }
-.ps-ly { position: absolute; left: calc(var(--u) * 900); top: calc(var(--u) * 150); width: calc(var(--u) * 900); height: calc(var(--u) * 600); }
-.ps-ly .ps-px { font-size: calc(var(--u) * 38); margin-bottom: calc(var(--u) * 14); }
-.ps-viewport { position: relative; height: calc(var(--u) * 540); overflow: hidden; -webkit-mask-image: linear-gradient(transparent 0, #000 12%, #000 80%, transparent 100%); mask-image: linear-gradient(transparent 0, #000 12%, #000 80%, transparent 100%); }
-.ps-track { position: absolute; left: 0; right: 0; top: 0; transition: transform 0.55s cubic-bezier(0.22, 0.9, 0.3, 1); }
-.ps-ln { font-family: 'Fraunces PS', Georgia, serif; font-style: italic; font-weight: 400; font-size: calc(var(--u) * 46); line-height: 1.12; color: #c9ccc4; padding: calc(var(--u) * 10) 0; transition: color 0.4s, opacity 0.4s; user-select: text; }
-.ps-ln.past { color: #a9baa5; }
-.ps-ln.far { opacity: 0.45; }
-.ps-ln.now { font-style: normal; font-weight: 650; font-size: calc(var(--u) * 84); color: var(--ps-ink); padding: calc(var(--u) * 16) 0; }
-.ps-ln.ps-note { font-size: calc(var(--u) * 48); font-style: italic; font-weight: 500; color: #8da58a; }
-.ps-ln.now .w { display: inline; padding: 0 0.06em; margin: 0 -0.06em; color: #b7bab2; font-weight: 560; background: linear-gradient(var(--ps-butter), var(--ps-butter)) no-repeat 0 78% / 0% 38%; }
-.ps-ln.now .w[data-s='done'] { color: var(--ps-ink); font-weight: 650; }
-.ps-ln.now .w[data-s='on'] { color: var(--ps-ink); font-weight: 650; background-size: calc(var(--wp, 0) * 100%) 38%; }
-.ps-ln .bk { display: block; font: italic 500 0.42em 'Fraunces PS', Georgia, serif; color: #a2b09e; margin-bottom: 0.12em; letter-spacing: 0.01em; }
-.ps-ln.now .bk { color: #8da58a; }
-
-/* the player card */
-.ps-card { position: absolute; left: calc(var(--u) * 900); top: calc(var(--u) * 790); width: calc(var(--u) * 900); height: calc(var(--u) * 190); display: grid; grid-template-columns: calc(var(--u) * 140) 1fr; gap: calc(var(--u) * 30); align-items: center; padding: calc(var(--u) * 26) calc(var(--u) * 34); background: rgba(255, 255, 255, 0.62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.95); border-radius: calc(var(--u) * 46); box-shadow: 0 calc(var(--u) * 30) calc(var(--u) * 60) calc(var(--u) * -34) rgba(30, 50, 35, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.95); }
-.ps-art { width: calc(var(--u) * 140); height: calc(var(--u) * 140); border-radius: calc(var(--u) * 22); background: #7a936f center / cover no-repeat; box-shadow: 0 0 0 calc(var(--u) * 5) #fff, 0 8px 16px -8px rgba(0, 0, 0, 0.45); }
-.ps-row { display: flex; justify-content: space-between; align-items: baseline; gap: calc(var(--u) * 20); }
-.ps-row b { font: 800 calc(var(--u) * 36) 'Nunito Variable', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ps-row .ps-px { font-size: calc(var(--u) * 32); white-space: nowrap; }
-.ps-by { color: #7a8a78; font-weight: 700; font-size: calc(var(--u) * 26); margin: calc(var(--u) * -2) 0 calc(var(--u) * 12); }
-.ps-bar { height: calc(var(--u) * 9); border-radius: 9px; background: rgba(80, 100, 80, 0.2); position: relative; cursor: pointer; }
-.ps-bar::before { content: ''; position: absolute; inset: calc(var(--u) * -14) 0; }
-.ps-bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ps-leaf); border-radius: 9px; }
-.ps-bar i::after { content: ''; position: absolute; right: calc(var(--u) * -9); top: calc(var(--u) * -6); width: calc(var(--u) * 21); height: calc(var(--u) * 21); border-radius: 50%; background: #fff; box-shadow: 0 0 0 calc(var(--u) * 3) var(--ps-leaf); }
-.ps-ctl { display: flex; gap: calc(var(--u) * 54); justify-content: center; margin-top: calc(var(--u) * 12); height: calc(var(--u) * 40); }
-.ps-ctl button { background: none; border: 0; color: var(--ps-leaf); cursor: pointer; padding: 0 calc(var(--u) * 8); border-radius: 8px; }
-.ps-ctl button:hover { background: rgba(63, 90, 67, 0.1); }
-.ps-ctl svg { height: calc(var(--u) * 34); width: auto; }
-
-/* tall window (the small player) */
-.pscene[data-portrait] .ps-pol { left: calc(var(--u) * 150); top: calc(var(--u) * 200); width: calc(var(--u) * 780); }
-.pscene[data-portrait] .ps-top { top: calc(var(--u) * 24); height: calc(var(--u) * 110); }
-.pscene[data-portrait] .ps-tools { gap: calc(var(--u) * 18); }
-.pscene[data-portrait] .ps-tools button { width: calc(var(--u) * 96); height: calc(var(--u) * 96); }
-.pscene[data-portrait] .ps-sticker { left: calc(var(--u) * 560); top: calc(var(--u) * 1236); }
-.pscene[data-portrait] .ps-ly { left: calc(var(--u) * 90); top: calc(var(--u) * 1280); width: calc(var(--u) * 900); height: calc(var(--u) * 400); }
-.pscene[data-portrait] .ps-viewport { height: calc(var(--u) * 350); }
-.pscene[data-portrait] .ps-ln { font-size: calc(var(--u) * 42); }
-.pscene[data-portrait] .ps-ln.now { font-size: calc(var(--u) * 74); }
-.pscene[data-portrait] .ps-card { left: calc(var(--u) * 60); top: calc(var(--u) * 1690); width: calc(var(--u) * 960); height: calc(var(--u) * 190); }
-@media (prefers-reduced-motion: reduce) { .ps-pol, .ps-petal { animation: none; } .ps-track { transition: none; } }
+.pscene { position: absolute; inset: 0; background: #ebe8df; }
+.pscene__frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; }
+/* the small player has no title bar: a thin strip along the top moves the window */
+.pscene__drag { position: absolute; top: 0; left: 0; right: 0; height: 30px; -webkit-app-region: drag; }

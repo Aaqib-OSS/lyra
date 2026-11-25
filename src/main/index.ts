@@ -51,12 +51,12 @@ function installCsp(): void {
   const media = `${BG_SCHEME}:`
   const embed = 'https://www.youtube-nocookie.com'
   const csp = dev
-    ? `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: ${media}; media-src 'self' ${media} https://*.itunes.apple.com; frame-src ${embed}; font-src 'self' data:; connect-src 'self' ws: http://localhost:* https://0.peerjs.com wss://0.peerjs.com`
+    ? `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: ${media}; media-src 'self' ${media} https://*.itunes.apple.com; frame-src ${embed} ${media}; font-src 'self' data:; connect-src 'self' ws: http://localhost:* https://0.peerjs.com wss://0.peerjs.com`
     : productionCsp(BG_SCHEME)
   session.defaultSession.webRequest.onHeadersReceived((details, cb) => {
-    // Only OUR pages get our policy. Third-party documents (the YouTube player) keep their own headers,
+    // Only OUR pages get our policy (a personal scene's page, in its sandboxed frame, comes with its own stricter one). Third-party documents (the YouTube player) keep their own headers,
     // otherwise our "default-src 'self'" would block their scripts.
-    const ours = details.url.startsWith('file://') || details.url.startsWith('http://localhost') || details.url.startsWith(`${media}//`)
+    const ours = details.url.startsWith('file://') || details.url.startsWith('http://localhost') || (details.url.startsWith(`${media}//`) && !details.url.startsWith(`${media}//personal/`))
     cb(ours ? { responseHeaders: { ...details.responseHeaders, 'Content-Security-Policy': [csp] } } : {})
   })
   // YouTube's embedded player refuses to run without a Referer; our pages are file:// so supply an https one.

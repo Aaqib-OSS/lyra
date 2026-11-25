@@ -1,23 +1,53 @@
 import { createReadStream, existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { isAbsolute, extname, join, relative, resolve } from 'node:path'
+import { extname, isAbsolute, join, relative, resolve } from 'node:path'
 import { Readable } from 'node:stream'
 import type { PersonalScene } from '@shared/types'
 
 /**
- * Personal scenes (this PC only). A scene is a look plus a video for ONE song, kept OUTSIDE Lyra in
+ * Personal scenes (this PC only). A scene is a web page, made by you, that Lyra shows instead of its own screen while ONE
+ * song plays. It lives OUTSIDE Lyra, in
  *   %USERPROFILE%\LyraPersonal\<name>\     (or under the folder in the LYRA_PERSONAL_DIR environment variable)
- *     config.json   which song turns it on and how the video lines up with it (see PersonalScene)
- *     a video file and an optional cover picture, named in config.json ("video", "art")
- * There is nothing about any song, person or video in Lyra itself: with no folder there are no scenes and Lyra works as it
- * always did.
+ *     config.json   {"match": {"title", "artist"}, "page": "web/index.html"}  (any other keys are for your page to read)
+ *     ...           the page, its styles, scripts, fonts, pictures and video: anything under that folder
+ * so the look can be changed at any time, without a new Lyra. The page runs in a sandboxed frame (no access to Lyra, no network)
+ * and talks to Lyra through a small message bridge (docs/personal-scenes.md).
+ * There is nothing about any song, person or video in Lyra itself: with no folder there are no scenes and Lyra works as it always did.
  */
 const root = (): string => process.env['LYRA_PERSONAL_DIR'] || join(homedir(), 'LyraPersonal')
 const NAME = /^[A-Za-z0-9_-]{1,40}$/
 
-/** A file named in config.json, kept inside the scene's own folder (never a path that leaves it). */
-function inside(dir: string, rel: unknown, exts: RegExp): string | null {
-  if (typeof rel !== 'string' || !rel || isAbsolute(rel) || !exts.test(rel)) return null
+/** What a scene folder may serve (by file type), with the type to send. No scripts run outside the frame, nothing executable is served. */
+const TYPES: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.htm': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.avif': 'image/avif',
+  '.woff2': 'font/woff2',
+  '.woff': 'font/woff',
+  '.ttf': 'font/ttf',
+  '.otf': 'font/otf',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mp3': 'audio/mpeg',
+  '.txt': 'text/plain; charset=utf-8'
+}
+
+/** The page may load only from Lyra's own media scheme: nothing from the internet, no frames, no forms. */
+const PAGE_CSP = "default-src 'none'; script-src lyra-media: 'unsafe-inline'; style-src lyra-media: 'unsafe-inline'; img-src lyra-media: data: blob:; media-src lyra-media: blob:; font-src lyra-media: data:; connect-src lyra-media:; frame-src 'none'; form-action 'none'; base-uri 'none'"
+
+/** A file inside the scene's own folder (never a path that leaves it). */
+function inside(dir: string, rel: unknown): string | null {
+  if (typeof rel !== 'string' || !rel || rel.includes('\0') || isAbsolute(rel)) return null
   const f = resolve(dir, rel)
   const r = relative(dir, f)
   if (!r || r.startsWith('..') || isAbsolute(r)) return null
@@ -28,12 +58,9 @@ function inside(dir: string, rel: unknown, exts: RegExp): string | null {
   }
 }
 
-const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d)
-
 interface Loaded {
   scene: PersonalScene
-  video: string
-  art: string | null
+  dir: string
 }
 let cache: { at: number; base: string; value: Loaded[] } | null = null
 
@@ -51,28 +78,9 @@ function load(): Loaded[] {
           if (!existsSync(cfgFile)) continue
           const c = JSON.parse(readFileSync(cfgFile, 'utf8')) as Record<string, unknown>
           const m = c['match'] as { title?: unknown; artist?: unknown } | undefined
-          const anchors = Array.isArray(c['videoAnchors'])
-            ? (c['videoAnchors'] as unknown[]).filter((a): a is [number, number] => Array.isArray(a) && a.length === 2 && Number.isFinite(a[0]) && Number.isFinite(a[1]))
-            : []
-          const video = inside(dir, c['video'], /\.(mp4|webm)$/i)
-          if (!m || typeof m.title !== 'string' || typeof m.artist !== 'string' || anchors.length < 2 || !video) continue
-          const art = inside(dir, c['art'], /\.(jpe?g|png|webp)$/i)
-          out.push({
-            video,
-            art,
-            scene: {
-              id: e.name,
-              match: { title: m.title, artist: m.artist },
-              anchors,
-              loopFrom: num(c['loopFrom'], 2),
-              loopTo: num(c['loopTo'], 60),
-              videoDurationSec: num(c['videoDurationSec'], 60),
-              videoNudgeSec: num(c['videoNudgeSec'], 0),
-              lyricNudgeSec: num(c['lyricNudgeSec'], 0),
-              videoUrl: `lyra-media://personal/${e.name}/video`,
-              artUrl: art ? `lyra-media://personal/${e.name}/art` : null
-            }
-          })
+          const page = typeof c['page'] === 'string' ? c['page'] : 'web/index.html'
+          if (!m || typeof m.title !== 'string' || typeof m.artist !== 'string' || !inside(dir, page) || !TYPES[extname(page).toLowerCase()]?.startsWith('text/html')) continue
+          out.push({ dir, scene: { id: e.name, match: { title: m.title, artist: m.artist }, pageUrl: `lyra-media://personal/${e.name}/files/${page.split(/[\\/]/).map(encodeURIComponent).join('/')}` } })
         } catch {
           /* a scene with a broken config is skipped */
         }
@@ -90,22 +98,22 @@ export function personalScenes(): PersonalScene[] {
   return load().map((l) => l.scene)
 }
 
-/** The file behind lyra-media://personal/<id>/<video|art>; only what a scene's own config names. */
-export function personalFile(id: string, kind: string): string | null {
+/** The file behind lyra-media://personal/<id>/files/<path>: only inside that scene's folder and only of a known type. */
+export function personalFile(id: string, rel: string): string | null {
   const l = load().find((x) => x.scene.id === id)
-  if (!l) return null
-  return kind === 'video' ? l.video : kind === 'art' ? l.art : null
+  if (!l || !TYPES[extname(rel).toLowerCase()]) return null
+  return inside(l.dir, rel)
 }
 
-const TYPES: Record<string, string> = { '.mp4': 'video/mp4', '.webm': 'video/webm', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' }
-
 /**
- * A file answered with HTTP Range support. A video that cannot be asked for "the part from here" cannot be sought, and the
- * scene's video is seeked all the time to stay with the song.
+ * A file answered with HTTP Range support (a video that cannot be asked for "the part from here" cannot be seeked), the right
+ * type, and a policy that keeps a page inside Lyra's own scheme.
  */
 export function fileResponse(file: string, rangeHeader: string | null): Response {
   const size = statSync(file).size
-  const headers: Record<string, string> = { 'Content-Type': TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream', 'Accept-Ranges': 'bytes', 'Access-Control-Allow-Origin': '*' }
+  const type = TYPES[extname(file).toLowerCase()] ?? 'application/octet-stream'
+  const headers: Record<string, string> = { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-cache' }
+  if (type.startsWith('text/html')) headers['Content-Security-Policy'] = PAGE_CSP
   const m = rangeHeader ? /^bytes=(\d*)-(\d*)$/.exec(rangeHeader) : null
   if (m && (m[1] || m[2])) {
     const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]))
