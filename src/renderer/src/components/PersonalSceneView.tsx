@@ -1,4 +1,3 @@
-import '@fontsource-variable/fraunces/standard.css'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from 'react'
 import type { LyricLine, PersonalScene } from '@shared/types'
 import { useWindowDrag } from '@/hooks/useWindowDrag'

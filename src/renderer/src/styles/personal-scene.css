@@ -1,3 +1,6 @@
+/* the scene's own family name: the app's global Fraunces has only the italic face, and adding an upright one there would change the looks that use it */
+@font-face { font-family: 'Fraunces PS'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('../../../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-standard-normal.woff2') format('woff2-variations'); }
+@font-face { font-family: 'Fraunces PS'; font-style: italic; font-weight: 100 900; font-display: swap; src: url('../../../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-standard-italic.woff2') format('woff2-variations'); }
 /* A personal scene (src/main/personal.ts, components/PersonalSceneView.tsx): one song's own screen. Only active while such a scene is
    showing; nothing here touches the looks. The page is drawn on a 1920x1080 grid (1080x1920 in a tall window): --u is one grid unit in px. */
 :root[data-pscene] .backdrop,
@@ -54,7 +57,7 @@
 .ps-ly .ps-px { font-size: calc(var(--u) * 38); margin-bottom: calc(var(--u) * 14); }
 .ps-viewport { position: relative; height: calc(var(--u) * 540); overflow: hidden; -webkit-mask-image: linear-gradient(transparent 0, #000 12%, #000 80%, transparent 100%); mask-image: linear-gradient(transparent 0, #000 12%, #000 80%, transparent 100%); }
 .ps-track { position: absolute; left: 0; right: 0; top: 0; transition: transform 0.55s cubic-bezier(0.22, 0.9, 0.3, 1); }
-.ps-ln { font-family: 'Fraunces Variable', Georgia, serif; font-style: italic; font-weight: 400; font-size: calc(var(--u) * 46); line-height: 1.12; color: #c9ccc4; padding: calc(var(--u) * 10) 0; transition: color 0.4s, opacity 0.4s; user-select: text; }
+.ps-ln { font-family: 'Fraunces PS', Georgia, serif; font-style: italic; font-weight: 400; font-size: calc(var(--u) * 46); line-height: 1.12; color: #c9ccc4; padding: calc(var(--u) * 10) 0; transition: color 0.4s, opacity 0.4s; user-select: text; }
 .ps-ln.past { color: #a9baa5; }
 .ps-ln.far { opacity: 0.45; }
 .ps-ln.now { font-style: normal; font-weight: 650; font-size: calc(var(--u) * 84); color: var(--ps-ink); padding: calc(var(--u) * 16) 0; }
@@ -62,7 +65,7 @@
 .ps-ln.now .w { display: inline; padding: 0 0.06em; margin: 0 -0.06em; color: #b7bab2; font-weight: 560; background: linear-gradient(var(--ps-butter), var(--ps-butter)) no-repeat 0 78% / 0% 38%; }
 .ps-ln.now .w[data-s='done'] { color: var(--ps-ink); font-weight: 650; }
 .ps-ln.now .w[data-s='on'] { color: var(--ps-ink); font-weight: 650; background-size: calc(var(--wp, 0) * 100%) 38%; }
-.ps-ln .bk { display: block; font: italic 500 0.42em 'Fraunces Variable', Georgia, serif; color: #a2b09e; margin-bottom: 0.12em; letter-spacing: 0.01em; }
+.ps-ln .bk { display: block; font: italic 500 0.42em 'Fraunces PS', Georgia, serif; color: #a2b09e; margin-bottom: 0.12em; letter-spacing: 0.01em; }
 .ps-ln.now .bk { color: #8da58a; }
 
 /* the player card */
