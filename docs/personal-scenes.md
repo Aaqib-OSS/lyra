@@ -18,7 +18,7 @@ itself contains no song, person, picture or video: with no folder, nothing chang
 LyraPersonal\<name>\config.json     {"match": {"title": "Song title", "artist": "Artist"}, "page": "web/index.html"}
 LyraPersonal\<name>\...             the page and everything it uses: .html .css .js .json .svg .png .jpg .webp .gif .woff2 .woff .ttf .otf .mp4 .webm
 ```
-`page` is optional (default `web/index.html`). Any other keys in `config.json` are yours: the page can read the file
+`page` is optional (default `web/index.html`). `background` is optional: a `#hex` colour shown behind the page while it loads (default near-black); the page then fades in. Any other keys in `config.json` are yours: the page can read the file
 (`fetch('../config.json')` from a page in `web/`). Only files inside the scene folder, of those types, are served.
 
 ## The messages

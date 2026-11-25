@@ -80,7 +80,8 @@ function load(): Loaded[] {
           const m = c['match'] as { title?: unknown; artist?: unknown } | undefined
           const page = typeof c['page'] === 'string' ? c['page'] : 'web/index.html'
           if (!m || typeof m.title !== 'string' || typeof m.artist !== 'string' || !inside(dir, page) || !TYPES[extname(page).toLowerCase()]?.startsWith('text/html')) continue
-          out.push({ dir, scene: { id: e.name, match: { title: m.title, artist: m.artist }, pageUrl: `lyra-media://personal/${e.name}/files/${page.split(/[\\/]/).map(encodeURIComponent).join('/')}` } })
+          const bg = typeof c['background'] === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c['background']) ? c['background'] : '#0d0c10'
+          out.push({ dir, scene: { id: e.name, match: { title: m.title, artist: m.artist }, background: bg, pageUrl: `lyra-media://personal/${e.name}/files/${page.split(/[\\/]/).map(encodeURIComponent).join('/')}` } })
         } catch {
           /* a scene with a broken config is skipped */
         }

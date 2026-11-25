@@ -8,8 +8,33 @@ import { usePlayer } from '@/store/player'
  * With no folder there are no scenes, this returns null for every song, and Lyra looks exactly as it always did.
  */
 let scenes: Promise<PersonalScene[]> | null = null
+/**
+ * The first page a sandboxed frame loads from the scene folder waits several seconds for the frame's own process to start (more
+ * on a busy PC). Start that process early with one tiny hidden frame, only on a PC that has a scene, so the scene shows at once.
+ */
+function warmUp(): void {
+  if (document.getElementById('pscene-warm')) return
+  const f = document.createElement('iframe')
+  f.id = 'pscene-warm'
+  f.setAttribute('sandbox', 'allow-scripts')
+  f.setAttribute('aria-hidden', 'true')
+  f.tabIndex = -1
+  f.style.cssText = 'position:fixed;left:-10px;top:-10px;width:1px;height:1px;border:0;opacity:0;pointer-events:none'
+  f.src = 'lyra-media://personal/warm'
+  document.body.appendChild(f)
+}
 const load = (): Promise<PersonalScene[]> =>
-  (scenes ??= (window.lyra.personal?.get() ?? Promise.resolve([])).catch(() => []))
+  (scenes ??= (window.lyra.personal?.get() ?? Promise.resolve([]))
+    .catch(() => [])
+    .then((l) => {
+      if (l.length) warmUp()
+      return l
+    }))
+
+/** Called once when the app starts: finds the scenes and, if there are any, starts the hidden frame early. */
+export function warmPersonalScenes(): void {
+  void load()
+}
 
 export function usePersonalScene(): PersonalScene | null {
   const track = usePlayer((s) => s.snapshot?.track ?? null)

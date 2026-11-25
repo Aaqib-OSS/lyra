@@ -3,7 +3,7 @@ import { matchScene } from './personalScene'
 import type { PersonalScene, Track } from '@shared/types'
 
 describe('matchScene', () => {
-  const s: PersonalScene = { id: 'x', match: { title: 'Her', artist: 'JVKE' }, pageUrl: 'lyra-media://personal/x/files/web/index.html' }
+  const s: PersonalScene = { id: 'x', match: { title: 'Her', artist: 'JVKE' }, pageUrl: 'lyra-media://personal/x/files/web/index.html', background: '#000' }
   const t = (title: string, artists: string[]): Track => ({ title, artists }) as Track
   it('matches the song ignoring case and brackets', () => {
     expect(matchScene([s], t('her', ['JVKE']))).toBe(s)

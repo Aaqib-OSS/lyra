@@ -10,6 +10,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import { CaptureApp, isCapturePage } from './components/CaptureApp'
+import { warmPersonalScenes } from './hooks/usePersonalScene'
 /*
  * CSS cascade map: the order of the style imports below IS the cascade (later wins at equal specificity), so keep it.
  *   1. tokens, base, widget, player, lyrics, panels, android, polish, redesign, stage, vibes, layouts, skins, posters, states, cards
@@ -171,6 +172,8 @@ document.addEventListener('visibilitychange', syncCalm)
 useSettings.subscribe(applyLook)
 useUi.subscribe(applyLook)
 applyLook()
+
+if (!isCapturePage()) warmPersonalScenes() // (this PC's own scenes, if any: see src/main/personal.ts)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>{isCapturePage() ? <CaptureApp /> : <App />}</StrictMode>

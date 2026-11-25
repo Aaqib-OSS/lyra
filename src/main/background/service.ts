@@ -114,6 +114,8 @@ class BackgroundService {
         }
         if (u.hostname === 'personal') {
           // this PC's own scene files (src/main/personal.ts): <scene>/files/<path inside that scene's folder>
+          // a tiny empty page the app opens once in a hidden frame, so the frame process is already running when a scene starts
+          if (name === 'warm') return new Response('<!doctype html><meta charset="utf-8">', { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'none'" } })
           const [sceneId = '', dir = '', ...rest] = name.split('/')
           const f = dir === 'files' ? personalFile(sceneId, rest.join('/')) : null
           if (!f) return new Response('not found', { status: 404 })

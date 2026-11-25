@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 import type { PersonalScene } from '@shared/types'
 import { useWindowDrag } from '@/hooks/useWindowDrag'
 import { getPosition, usePlayer } from '@/store/player'
@@ -17,6 +17,7 @@ const KEYS = new Set(['f', 'F', 'Escape', ' ', 'ArrowLeft', 'ArrowRight', 'Arrow
 export function PersonalSceneView({ scene, mini }: { scene: PersonalScene; mini: boolean }): ReactElement {
   const drag = useWindowDrag()
   const frame = useRef<HTMLIFrameElement>(null)
+  const [shown, setShown] = useState(false) // the page fades in once it has started, over the colour the scene asked for
   const track = usePlayer((s) => s.snapshot?.track ?? null)
   const playing = usePlayer((s) => s.snapshot?.isPlaying ?? false)
   const lyrics = useLyrics((s) => s.state)
@@ -61,7 +62,10 @@ export function PersonalSceneView({ scene, mini }: { scene: PersonalScene; mini:
       const d = e.data as { type?: unknown; cmd?: unknown; ms?: unknown; action?: unknown; key?: unknown; shiftKey?: unknown } | null
       if (!d || typeof d.type !== 'string') return
       const p = usePlayer.getState()
-      if (d.type === 'lyra:ready') latest.current.sendAll()
+      if (d.type === 'lyra:ready') {
+        setShown(true)
+        latest.current.sendAll()
+      }
       else if (d.type === 'lyra:cmd') {
         if (d.cmd === 'toggle') p.toggle()
         else if (d.cmd === 'next') void p.command({ type: 'next' })
@@ -94,8 +98,8 @@ export function PersonalSceneView({ scene, mini }: { scene: PersonalScene; mini:
   useEffect(() => send({ type: 'lyra:mode', mode: mini ? 'mini' : 'full' }), [mini]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="pscene">
-      <iframe ref={frame} className="pscene__frame" src={scene.pageUrl} sandbox="allow-scripts" allow="autoplay" title={track ? `${track.title} by ${track.artists.join(', ')}` : 'Scene'} onLoad={sendAll} />
+    <div className="pscene" style={{ background: scene.background }}>
+      <iframe ref={frame} className={`pscene__frame${shown ? ' is-shown' : ''}`} src={scene.pageUrl} sandbox="allow-scripts" allow="autoplay" title={track ? `${track.title} by ${track.artists.join(', ')}` : 'Scene'} onLoad={sendAll} />
       {mini && <div className="pscene__drag" {...drag} />}
     </div>
   )

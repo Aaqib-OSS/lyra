@@ -40,6 +40,14 @@ describe('personal scenes', () => {
     expect(s?.pageUrl).toBe('lyra-media://personal/mine/files/web/index.html')
   })
 
+  it('takes the background colour from the config, only if it is a hex colour', () => {
+    scene('a', { ...good, background: '#112233' })
+    scene('b', { ...good, background: 'red; x' })
+    const by = Object.fromEntries(personalScenes().map((x) => [x.id, x.background]))
+    expect(by['a']).toBe('#112233')
+    expect(by['b']).toBe('#0d0c10')
+  })
+
   it('uses the page named in the config', () => {
     scene('mine', { ...good, page: 'x/my page.html' }, { 'x/my page.html': '<p/>' })
     expect(personalScenes()[0]?.pageUrl).toBe('lyra-media://personal/mine/files/x/my%20page.html')

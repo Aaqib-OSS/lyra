@@ -187,6 +187,8 @@ export interface PersonalScene {
   match: { title: string; artist: string }
   /** where the page is served from (lyra-media://personal/<id>/files/...) */
   pageUrl: string
+  /** the colour shown behind the page while it loads (config.json "background", a #hex colour; default near-black) */
+  background: string
 }
 
 export type VibeMode = 'fixed' | 'cycle' | 'smart'
