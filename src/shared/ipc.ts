@@ -9,6 +9,7 @@ import type {
   SourceHealth,
   ModeEvent,
   PlaybackSnapshot,
+  PersonalScene,
   PlayerCommand,
   QueueItem,
   RecentItem,
@@ -126,6 +127,7 @@ export const CH = {
   appShareImage: 'app:share-image',
   appShortcutStatus: 'app:shortcut-status',
   bgResolve: 'bg:resolve',
+  personalGet: 'personal:get',
   bgPick: 'bg:pick',
   bgClear: 'bg:clear',
   bgCacheInfo: 'bg:cacheInfo',
@@ -324,6 +326,10 @@ export interface LyraApi {
     list(): Promise<SavedMoment[]>
     add(m: Omit<SavedMoment, 'id' | 'savedAt'>): Promise<SavedMoment[]>
     remove(id: string): Promise<SavedMoment[]>
+  }
+  personal: {
+    /** The personal scenes found on this PC (src/main/personal.ts): usually none. */
+    get(): Promise<PersonalScene[]>
   }
   background: {
     /** Decide what to show behind the lyrics for this track. */

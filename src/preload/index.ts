@@ -70,6 +70,7 @@ const api: LyraApi = {
     add: (m) => invoke(CH.momentsAdd, m),
     remove: (id) => invoke(CH.momentsRemove, id)
   },
+  personal: { get: () => invoke(CH.personalGet) },
   background: {
     resolve: (track) => invoke(CH.bgResolve, track),
     pick: (scope, trackId) => invoke(CH.bgPick, scope, trackId),

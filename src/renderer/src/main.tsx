@@ -129,6 +129,7 @@ import './styles/android-looks.css'
 import './styles/mini-looks.css'
 import './styles/minsizes.css'
 import './styles/capture.css'
+import './styles/personal-scene.css'
 import './styles/small-features.css'
 import './styles/a11y.css'
 

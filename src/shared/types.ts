@@ -177,6 +177,25 @@ export type LyricAnimation = 'glide' | 'focus' | 'fade'
 /** how the sung line is staged in fullscreen: the classic scrolling list, giant kinetic type or a star map */
 export const LYRIC_STYLES = ['classic', 'zoom', 'kinetic', 'constellation', 'sticker', 'chat', 'type', 'diary', 'subtitle', 'chatlog', 'lowerthird', 'sign', 'liquid', 'pixel', 'bloom', 'title', 'ink', 'glitch', 'bubble', 'spray', 'intertitle', 'log', 'note', 'jot', 'scrawl', 'label', 'lockscreen', 'wallet', 'route', 'editor', 'metro', 'weave', 'picto', 'wall', 'flap'] as const
 export type LyricStyle = (typeof LYRIC_STYLES)[number]
+/**
+ * A personal scene: a look + video for ONE song, kept in a folder on this PC (see src/main/personal.ts). Not part of the
+ * public look list; it exists only where that folder exists.
+ */
+export interface PersonalScene {
+  id: string
+  /** the song that turns it on (compared with the playing song's title and first artist, ignoring case and brackets) */
+  match: { title: string; artist: string }
+  /** [song second, video second] pairs: the video's own timeline laid over the song */
+  anchors: Array<[number, number]>
+  loopFrom: number
+  loopTo: number
+  videoDurationSec: number
+  videoNudgeSec: number
+  lyricNudgeSec: number
+  videoUrl: string
+  artUrl: string | null
+}
+
 export type VibeMode = 'fixed' | 'cycle' | 'smart'
 /** a whole look: colours, type, background effects (and usually its own way of staging lyrics) */
 export const VIBE_IDS = ['none', 'sticker', 'chat', 'crt', 'neon', 'chrome', 'dream', 'paper', 'journal', 'doodle', 'arcade', 'noir', 'sunset', 'dusk', 'blocks', 'stadium', 'cassette', 'trailer', 'sketch', 'glitch', 'comic', 'stencil', 'film', 'filmstrip', 'lock', 'wallet', 'route', 'editor', 'metro', 'web', 'lens', 'picto', 'wall', 'flap'] as const

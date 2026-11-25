@@ -8,6 +8,7 @@ import type { BackgroundMedia, BackgroundResolution, BackgroundSpec, Track, Yout
 import { JsonStore } from '../jsonStore'
 import { ClipStore } from './clipStore'
 import { createLogger } from '../logger'
+import { fileResponse, personalFile } from '../personal'
 import { settings } from '../settings'
 import { thumbCrop } from '@core/background/bars'
 import { HOST_RE } from '@core/background/itunes'
@@ -110,6 +111,13 @@ class BackgroundService {
           const file = join(this.dir, name)
           if (!existsSync(file)) return new Response('not found', { status: 404 })
           return cors(await net.fetch(pathToFileURL(file).toString(), { headers: range(req) }))
+        }
+        if (u.hostname === 'personal') {
+          // this PC's own scene files (src/main/personal.ts): <scene>/<video|art>, never a path from the page
+          const [sceneId = '', kind = ''] = name.split('/')
+          const f = personalFile(sceneId, kind)
+          if (!f) return new Response('not found', { status: 404 })
+          return fileResponse(f, req.headers.get('range'))
         }
         if (u.hostname === 'preview') {
           const target = Buffer.from(name, 'base64url').toString('utf8')

@@ -16,12 +16,15 @@ import { LikeButton, OverflowMenu } from './MiniPlayer'
 import { KaraokeScreen } from './lazy'
 import { StudioDialog } from './lazy'
 import { openShortcuts } from './ShortcutsHelp'
+import { PersonalSceneView } from './PersonalSceneView'
+import { usePersonalScene } from '@/hooks/usePersonalScene'
 import { ProgressBar } from './ProgressBar'
 import { VideoPicker } from './VideoPicker'
 import { VideoStatus } from './VideoStatus'
 import { ConnectScreen, LoadingScreen, NoMusicScreen, OfflineBanner, OfflineScreen } from './StateScreens'
 
 export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
+  const scene = usePersonalScene() // this PC's own screen for one song (src/main/personal.ts), or null
   const drag = useWindowDrag()
   const [karaoke, setKaraoke] = useState(false)
   const [studio, setStudio] = useState(false)
@@ -49,6 +52,13 @@ export function FullscreenPlayer({ mini = false }: { mini?: boolean }) {
   const ytVideo = useBgState((s) => s.kind === 'youtube')
   // each vibe arranges the card and the lyrics its own way
   const effVibe = useEffectiveVibe().vibe
+
+  if (scene)
+    return (
+      <div className="full" data-arch="scene" data-pscene={scene.id}>
+        <PersonalSceneView scene={scene} mini={mini} />
+      </div>
+    )
 
   return (
     <div className={`full ${quiet ? 'is-idle' : ''} ${df ? 'is-df' : ''} ${cinema ? 'is-cinema' : ''}`} data-arch="scene">

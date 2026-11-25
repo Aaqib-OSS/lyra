@@ -17,6 +17,7 @@ import { buildDiagnostics, openLogFolder } from './diagnostics'
 import { clearGpuFallback } from './crashGuard'
 import { moments } from './moments'
 import { background } from './background/service'
+import { personalScenes } from './personal'
 import { youtube } from '@core/background/youtube'
 import { trackKey } from '@core/songKey'
 import { userChoices } from '@core/userChoices'
@@ -248,6 +249,7 @@ export function registerIpc(): void {
     return true
   })
   handle(CH.bgResolve, (t: Track) => background.resolve(t))
+  handle(CH.personalGet, () => personalScenes())
   handle(CH.bgPick, (scope: 'song' | 'global', trackId?: string) => background.pick(scope === 'song' ? 'song' : 'global', trackId))
   handle(CH.bgCacheInfo, () => background.clipCacheInfo())
   handle(CH.bgCacheClear, () => background.clipCacheClear())

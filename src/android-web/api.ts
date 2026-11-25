@@ -361,6 +361,7 @@ export const androidApi: LyraApi &{ android: NonNullable<LyraApi['android']> } =
       return next
     }
   },
+  personal: { get: async () => [] },
   background: {
     resolve: (t) => resolveBackground(t),
     pick: async (scope, trackId) => {
